@@ -1,0 +1,5 @@
+void E_H_J_dip (TinyVector<complex<double>, 3>& E_J, TinyVector<complex<double>, 3>& H_J, const G_EJ_grid & G_EJ_tab, const G_HJ_grid & G_HJ_tab, const TinyVector<complex<double>,3>& J_src, const TinyVector<double,3>& r_src, const TinyVector<double,3>& r_obs, const layers_constants & LC);
+
+void E_H_J_M_cosine (TinyVector<complex<double>, 3>& E_J_M, TinyVector<complex<double>, 3>& H_J_M, const mesh & MESH_ANTENNA, const TinyVector<double,3>& r_ant, const TinyVector<double,3>& x_hat_ant, const TinyVector<double,3>& y_hat_ant, const TinyVector<double,3>& r_obs, const G_EJ_grid & G_EJ_tab_ant_ant, const G_HJ_grid & G_HJ_tab_ant_ant, const layers_constants & LC, const G_EJ_grid & G_EJ_tab_ant_ant_dual, const G_HJ_grid & G_HJ_tab_ant_ant_dual, const layers_constants & LC_dual);
+
+complex<double> R_horn_soil (const mesh & MESH_ANTENNA, const TinyVector<double,3>& r_ant, const TinyVector<double,3>& x_hat_ant, const TinyVector<double,3>& y_hat_ant, const G_EJ_grid & G_EJ_tab_ant_ant, const G_HJ_grid & G_HJ_tab_ant_ant, const layers_constants & LC, const G_EJ_grid & G_EJ_tab_ant_ant_dual, const G_HJ_grid & G_HJ_tab_ant_ant_dual, const layers_constants & LC_dual);

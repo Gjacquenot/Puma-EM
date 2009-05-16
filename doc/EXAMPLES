@@ -1,0 +1,159 @@
+This is the EXAMPLES file. It is intended to get you started as quickly
+as possible with Puma-EM. If you think it can be enhanced/completed, 
+don't hesitate to send an email to <vandenbosch.idesbald@gmail.com>.
+
+
+0. Example 0: Calculating the scattered E-Field at one point in space
+---------------------------------------------------------------------
+
+The goal here is to run the MLFMA code without modifications to the parameters files.
+
+At a terminal, type:
+
+    $ ./run.sh
+
+Choose your number of processes when asked (1 is default).
+
+As the last lines of the output you should obtain (values are approximative):
+
+""" BEGIN QUOTE """
+
+MLFMA E_field =
+[[-0.04433460-0.168929j   -0.10303600-0.00081703j  0.00077412+0.00149528j]
+ [ 0.17373800+0.00222573j  0.02808040-0.0986142j  -0.00163102+0.00034465j]]
+
+at observation points r_obs =
+[[  0.1          0.1         20.        ]
+ [  0.1          0.1         20.10000038]]
+
+See 'E_obs.txt' and 'r_obs.txt' in './result' directory for the results of the computation, where you will also find the far field values.
+
+""" END QUOTE """
+
+See "simulation_parameters.py" for details about the simulations settings.
+
+
+1. Example 1: same as example 0 but with other simulation settings
+------------------------------------------------------------------
+
+Let's pretend we are interested by the scattering from the NASA almond at 
+some point in space (the NASA almond is available in the geo directory of
+the package), for a 3.34 GHz frequency.
+
+The script used for this kind of calculations is "RCS_MLFMA.py". You don't 
+need to open it. Just open "simulation_parameters.py".
+
+We first have to write in "simulation_parameters.py" that our target will be 
+the almond:
+
+    params_simu.targetName = 'EMCC_almond'
+
+(Do not include a tab in the "simulation_parameters.py" file, or python will complain.)
+Next, we can redefine the frequency:
+
+    params_simu.f = 3.34e9
+
+Finally, we need to set up the source and observation points, along with 
+the directions of the source and the observation vectors:
+
+    params_simu.EXCITATION = 'dipole'
+    params_simu.J_src_x = 10.0+0.j
+    params_simu.J_src_y = 0.0+0.j
+    params_simu.J_src_z = 0.0+0.j
+    params_simu.r_src_x = 0.6
+    params_simu.r_src_y = 3.1
+    params_simu.r_src_z = 40.0
+
+    # sampling of the resulting field at some point in space
+    params_simu.r_obs_x = 0.1
+    params_simu.r_obs_y = 0.1
+    params_simu.r_obs_z = 20.0
+
+Now, save "simulation_parameters.py" and at a terminal, type:
+
+    $ ./run.sh
+
+At the end of the simulation, the final lines read like:
+
+    MLFMA E_field =
+    [[E1, E2, E3]
+     [E4, E5, E6]
+     ...
+     [.., .., ..]]
+
+    at observation points r_obs =
+    [[r1, r2, r3]
+     [r4, r5, r6]
+     ...
+     [.., .., ..]]
+
+Note that, by default, after the simulation the parameters are saved 
+in a file called "result/simulation_parameters.txt".
+
+
+2. Example 2: performing a Volakis test of the code or RCS computation
+----------------------------------------------------------------------
+
+This example basically shows you how to perform a monostatic RCS computation.
+
+With the "parameters/RCS_parameters.py" parameters file you can perform 
+Volakis testing of the code. For more info about the tests, see:
+[1] A.C. Woo et al., "Benchmark Plate Radar Targets for the Validation
+    of Computational Electromagnetics Programs", IEEE Antennas and 
+    Propagation Magazine, Vol. 34, No. 6, December 1992
+[2] A.C. Woo et al., "Benchmark Radar Targets for the Validation
+    of Computational Electromagnetics Programs", IEEE Antennas and 
+    Propagation Magazine, Vol. 35, No. 1, February 1993
+
+There are tests on 2 types of targets: plane targets and 3D targets.
+These targets have been defined by the Electromagnetic Code Consortium.
+
+Most (not all) of the EMCC targets described in [1], [2] have been implemented 
+and are in the "Puma-EM/geo" directory:
+  - EMCC plate targets = EMCC_plate-cylinder_plate, EMCC_wedge-cylinder_plate, 
+                         EMCC_wedge-plate-cylinder_plate
+  - EMCC 3D targets = EMCC_almond, EMCC_cone-gap-sphere, EMCC_cone-sphere, EMCC_double-ogive, 
+                      EMCC_ogive
+
+First set params_simu.VOLAKIS_TESTING to 1. Then, set your own desired frequency and choose your target.
+
+The frequency doesn't matter for plate targets, as their dimensions are calculated in wavelengths.
+
+For the 3D targets, the frequencies used in [2] are:
+  - 1.19 GHz, 7 GHz and 9.92 GHz for the almond
+  - 1.18 GHz and 9 GHz for the ogive
+  - 1.57 GHz and 9 GHz for the double ogive
+  - 0.869 GHz and 9 GHz for the cone-sphere and the cone-gap-sphere
+
+also set params_simu.SHOW_FIGURE to 1, for viewing the RCS of the target.
+
+After you have chosen your options in the "simulation_parameters.py", save and type in a terminal:
+
+    $ ./run.sh
+
+The simulation should end with a graph that shows the RCS of your chosen target at the frequency you specified.
+
+
+3. Example 3: increasing the size of the target
+-----------------------------------------------
+
+Now revert back to the original MLFMA parameters of example 0. We will now increase the size
+of the "cubi" target so that the number of unknowns grows steadily. You can compare your result
+to the one listed here. Just modify parameters/simulation_parameters as follows:
+
+params_simu.lx = x
+params_simu.ly = x
+params_simu.lz = x
+
+where x is successively equal to 0.5, 1., 1.5, 2.0, 3.0, 4.0, 5.0, 6.0
+
+The E_x field that you should obtain (approximately) for each of these values is listed hereafter:
+0.5: -1.06726003-1.21954j, N_RWG = 14,627
+1.0: 11.39109993+7.59833002j, N_RWG = 57,301
+1.5: -3.88737011-3.42724991j, N_RWG = 132,414
+2.0: 2.08435993e+01-5.05311j, N_RWG = 233,063
+3.0: 7.59825993+1.31017005j, N_RWG = 537,188
+4.0: 3.12417006+7.63704014j, N_RWG = 952,668
+5.0: -2.56824994+9.92759037j, N_RWG = 1,481,503
+6.0: -5.24400997+9.90711021j, N RWG = 2,145,304
+

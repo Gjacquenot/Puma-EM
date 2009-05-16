@@ -1,0 +1,61 @@
+!    -*- f90 -*-
+! Note: the context of this file is case sensitive.
+
+python module zgels ! in 
+    interface  ! in :zgels
+        subroutine zgels(trans,m,n,nrhs,a,lda,b,ldb,work,lwork,info) ! in :zgels:zgels.f
+            character intent(in) :: trans
+            integer, intent(hide), depend(a) :: m=shape(a,0)
+            integer, intent(hide), depend(a) :: n=shape(a,1)
+            integer intent(in) :: nrhs
+            complex*16 dimension(lda,*),intent(in) :: a
+            integer optional,intent(in),check(shape(a,0)==lda),depend(a) :: lda=shape(a,0)
+            complex*16 dimension(ldb,*),intent(in,out) :: b
+            integer optional,intent(in),check(shape(b,0)==ldb),depend(b) :: ldb=shape(b,0)
+            complex*16 dimension(lwork),intent(out), depend(lwork) :: work
+            integer intent(in, out) :: lwork
+            integer intent(out) :: info
+        end subroutine zgels
+        function dlamch(cmach) ! in :zgels:dlamch.f
+            character :: cmach
+            double precision :: dlamch
+        end function dlamch
+        subroutine dlamc1(beta,t,rnd,ieee1) ! in :zgels:dlamch.f
+            integer :: beta
+            integer :: t
+            logical :: rnd
+            logical :: ieee1
+        end subroutine dlamc1
+        subroutine dlamc2(beta,t,rnd,eps,emin,rmin,emax,rmax) ! in :zgels:dlamch.f
+            integer :: beta
+            integer :: t
+            logical :: rnd
+            double precision :: eps
+            integer :: emin
+            double precision :: rmin
+            integer :: emax
+            double precision :: rmax
+        end subroutine dlamc2
+        function dlamc3(a,b) ! in :zgels:dlamch.f
+            double precision :: a
+            double precision :: b
+            double precision :: dlamc3
+        end function dlamc3
+        subroutine dlamc4(emin,start,base) ! in :zgels:dlamch.f
+            integer :: emin
+            double precision :: start
+            integer :: base
+        end subroutine dlamc4
+        subroutine dlamc5(beta,p,emin,ieee,emax,rmax) ! in :zgels:dlamch.f
+            integer :: beta
+            integer :: p
+            integer :: emin
+            logical :: ieee
+            integer :: emax
+            double precision :: rmax
+        end subroutine dlamc5
+    end interface 
+end python module zgels
+
+! This file was auto-generated with f2py (version:2_3198).
+! See http://cens.ioc.ee/projects/f2py2e/

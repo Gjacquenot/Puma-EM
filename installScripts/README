@@ -1,0 +1,68 @@
+1. Requirements for Running the Puma-EM Programs
+------------------------------------------------
+
+Prior to running Puma-EM, there is a serie of libraries/programs that need 
+to be installed. All these libraries/programs are released under Open-Source
+licences. Before compiling them, first look if it exists as a package for
+your distribution.
+
+  1) gmsh, a three-dimensional finite element mesh generator, available at
+     http://www.geuz.org/gmsh/.
+
+  2) gcc, g++ and g77 compilers.
+
+  3) The Blitz++ library, a C++ fast Array library, available at
+     http://www.oonumerics.org/blitz/
+
+  4) The Python interpreter (available at http://www.python.org/, installed 
+     by default on most Linux distributions). To see if it is there, simply 
+     open a terminal and type "python". This should start the interpreter.
+     Ctrl-d to exit the interpreter.
+
+  5) NumPy and SciPy (both available at http://www.scipy.org/).
+
+  6) matplotlib for plotting, available at http://matplotlib.sourceforge.net/
+
+  7) LAM/MPI runtime environment and development files for running and 
+     compiling (with mpiCC, mpif77) the code. See http://www.lam-mpi.org/
+
+       or
+
+     Open-MPI, the future replacement of LAM/MPI. Puma-EM can run on both
+     Environments. See http://www.open-mpi.org/
+
+     We recommend the use of Open-MPI, as it does not suffer from annoying
+     LAM/MPI bugs, such as the infamous "(set_stdio): Too many files 
+     open in system" that happens when you don't reset lamd often enough.
+
+  8) mpi4py, MPI for Python, available at http://www.scipy.org/
+
+     Please note that the MPI environment has to be installed prior to 
+     compiling and installing mpi4py. mpi4py compiled on LAM/MPI env
+     will not work within Open-MPI environment, and vice-versa.
+
+The scripts in this directory should help you to install Puma-EM dependencies. I strongly recommend you to use them, as they will make your life much easier.
+
+
+1.1 Ubuntu/Debian
+-----------------
+Typically, for Ubuntu/Debian flavors, most of these packages are available 
+through the package manager. Try a search by name through the package manager.
+
+1.2 OpenSuse
+------------
+For OpenSuse 10.0 and 10.1, please add as repository :
+http://download.opensuse.org/repositories/science/SUSE_Linux_10.x/
+where x = 0 or 1.
+
+For OpenSuse 10.x >= 10.2, please add as repository :
+http://download.opensuse.org/repositories/science/openSUSE_10.x
+
+This enables package installation of numpy, scipy, matplotlib.
+
+1.3 RedHat / Fedora / CentOS
+----------------------------
+We don't know yet about the packages for these systems. Try a package manager
+search, and if it fails, download and install the different libraries/programs.
+
+

@@ -1,0 +1,7 @@
+[home_ashigabou]
+name=Scientific python packages (CentOS_5)
+type=rpm-md
+baseurl=http://download.opensuse.org/repositories/home:/ashigabou/CentOS_5/
+gpgcheck=0
+gpgkey=http://download.opensuse.org/repositories/home:/ashigabou/CentOS_5/repodata/repomd.xml.key
+enabled=1

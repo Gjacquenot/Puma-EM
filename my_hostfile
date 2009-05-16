@@ -1,0 +1,9 @@
+# This is an example hostfile. Comments begin with #
+#
+# this machine
+localhost
+
+# The following node is a quad-processor machine, and we absolutely
+# want to disallow over-subscribing it:
+#yow.example.com slots=4 max-slots=4
+
