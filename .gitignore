@@ -1,0 +1,14 @@
+*~
+*.pyc
+*.o
+*.a
+*.msh*
+geo/*.txt
+MPIcommand.sh
+code/MoM/communicateMeshArrays
+code/MoM/communicateZnearBlocks
+code/MoM/mpi_mlfma
+diff.out
+result/
+tmp*
+
