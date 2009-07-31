@@ -270,17 +270,25 @@ def setup_MLFMA(params_simu):
     num_proc = MPI.COMM_WORLD.Get_size()
     my_id = MPI.COMM_WORLD.Get_rank()
 
-    targetFileName = os.path.join(params_simu.pathToTarget, params_simu.targetName + '.msh')
+    if (params_simu.meshFormat == 'GMSH') or (params_simu.meshFormat == 'GIS'):
+        meshFileTermination = '.msh'
+    elif (params_simu.meshFormat == 'IDEAS'):
+        meshFileTermination = '.unv'
+    else:
+        print "In simulation_parameters.py, choose an existing file format please"
+        sys.exit(1)
+    targetFileName = os.path.join(params_simu.pathToTarget, params_simu.targetName + meshFileTermination)
     tmpDirName = 'tmp' + str(my_id)
 
     if params_simu.COMPUTE_Z_NEAR==1:
-        os.system("rm -f " + targetFileName)
-        if my_id==0:
-            write_geo(params_simu.pathToTarget, params_simu.targetName, 'lc', c/params_simu.f * params_simu.lc_factor)
-            write_geo(params_simu.pathToTarget, params_simu.targetName, 'lx', params_simu.lx)
-            write_geo(params_simu.pathToTarget, params_simu.targetName, 'ly', params_simu.ly)
-            write_geo(params_simu.pathToTarget, params_simu.targetName, 'lz', params_simu.lz)
-            executeGmsh(params_simu.pathToTarget, params_simu.targetName, 0)
+        if params_simu.meshToMake:
+            os.system("rm -f " + targetFileName)
+            if my_id==0:
+                write_geo(params_simu.pathToTarget, params_simu.targetName, 'lc', c/params_simu.f * params_simu.lc_factor)
+                write_geo(params_simu.pathToTarget, params_simu.targetName, 'lx', params_simu.lx)
+                write_geo(params_simu.pathToTarget, params_simu.targetName, 'ly', params_simu.ly)
+                write_geo(params_simu.pathToTarget, params_simu.targetName, 'lz', params_simu.lz)
+                executeGmsh(params_simu.pathToTarget, params_simu.targetName, 0)
 
         commands.getoutput("rm -rf ./tmp*")
         MPI.COMM_WORLD.Barrier()

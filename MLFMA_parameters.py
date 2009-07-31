@@ -10,11 +10,11 @@ params_simu = Params_Simu()
 languageForMeshConstruction = ["Python", "C++"]
 params_simu.languageForMeshConstruction = languageForMeshConstruction[1]
 
-##############################################################################
+###################################################
 #
 # Now the MoM/MLFMA parameters. Only for those who know what they're doing :)
 #
-##############################################################################
+###################################################
 # COMPUTE_Z_NEAR = 1 or 0: do we need to compute the near field and SAI preconditioner 
 # sparse matrices or not
 params_simu.COMPUTE_Z_NEAR = 1

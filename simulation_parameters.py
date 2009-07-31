@@ -26,6 +26,17 @@ params_simu.f = 2.12e9
 # to obtain the average edge length (lc) of the mesh. Usually: lc ~= lambda/10.
 params_simu.lc_factor = 1.0/10.0
 
+# CAD and meshing tools
+# the following parameter tells if we want to mesh (True) on-the-fly with GMSH.
+# If mesh comes from another program, like GIS, set it to False
+params_simu.meshToMake = True
+# the mesh format. Currently only 3 are supported.
+MESH_FORMAT = ['GMSH', 'GIS', 'IDEAS']
+# GMSH is the default meshing program
+params_simu.meshFormat = MESH_FORMAT[0]
+if params_simu.meshToMake:
+    params_simu.meshFormat = MESH_FORMAT[0]
+
 #relative epsilon and mu of the host medium
 params_simu.eps_r = 1. + 0.j
 params_simu.mu_r = 1. + 0.j

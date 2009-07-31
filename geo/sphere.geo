@@ -1,5 +1,5 @@
-lc = 0.00942743578616;
-lx = 0.07;
+lc = 0.05;
+lx = 0.051;
 x_center = 0;
 y_center = 0;
 z_center = 0;
