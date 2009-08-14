@@ -1,7 +1,7 @@
 import os.path, sys, time
 from scipy import zeros, ones, arange, array, take, reshape, sort, argsort, put, sum, compress, nonzero, prod
 from scipy import mean, sqrt
-from read_mesh import read_mesh_GMSH, read_mesh_GMSH_C
+from read_mesh import read_mesh_GMSH_1, read_mesh_GMSH_2
 from Cubes import cube_lower_coord_computation, RWGNumber_cubeNumber_computation, cubeIndex_RWGNumbers_computation, findCubeNeighbors, cubes_indexes_to_numbers_computation, write_cubes
 from PyGmsh import executeGmsh, write_geo, findParameter, findParameterValue
 from ReadWriteBlitzArray import readBlitzArrayFromDisk, read1DBlitzArrayFromDisk, readIntFromDisk, writeBlitzArrayToDisk, writeScalarToDisk
@@ -32,17 +32,19 @@ class MeshClass:
             print "The size of the delta gap is", self.delta_gap, "m"
         print "  Python construction of the Mesh object"
         sys.stdout.flush()
+
+        print "  reading",  os.path.join(self.path, self.name), "...",
+        t0 = time.clock()
+        #self.vertexes_coord, self.triangle_vertexes, self.triangles_physicalSurface = read_mesh_GMSH_1(os.path.join(self.path, self.name), self.targetDimensions_scaling_factor, self.z_offset)
+        self.vertexes_coord, self.triangle_vertexes, self.triangles_physicalSurface = read_mesh_GMSH_2(os.path.join(self.path, self.name), self.targetDimensions_scaling_factor, self.z_offset)
+        self.time_reading = time.clock()-t0
+        print "reading mesh time =", self.time_reading, "seconds"
+        self.T = self.triangle_vertexes.shape[0]
+        print "  number of triangles =", self.T
+        print "  edges classification..."
+        sys.stdout.flush()
         
         if self.languageForMeshConstruction=="C" or self.languageForMeshConstruction=="C++":
-            t0 = time.clock()
-            self.vertexes_coord, self.triangle_vertexes, self.triangles_physicalSurface = read_mesh_C(os.path.join(self.path, self.name), self.targetDimensions_scaling_factor, self.z_offset)
-            self.time_reading = time.clock()-t0
-            print "reading mesh time =", self.time_reading, "seconds"
-            self.T = self.triangle_vertexes.shape[0]
-            print "  number of triangles =", self.T
-
-            print "  edges classification..."
-            sys.stdout.flush()
             t0 = time.clock()
             self.triangles_surfaces, self.IS_CLOSED_SURFACE, self.RWGNumber_signedTriangles, self.RWGNumber_edgeVertexes = edges_computation_C(self.triangle_vertexes, self.vertexes_coord)
             self.N_RWG = self.RWGNumber_signedTriangles.shape[0]
@@ -55,16 +57,6 @@ class MeshClass:
             print "    Number of RWG =", self.N_RWG
 
         else:
-            print "  reading",  os.path.join(self.path, self.name), "...",
-            t0 = time.clock()
-            self.vertexes_coord, self.triangle_vertexes, self.triangles_physicalSurface = read_mesh(os.path.join(self.path, self.name), self.targetDimensions_scaling_factor, self.z_offset)
-            self.time_reading = time.clock()-t0
-            print "reading mesh time =", self.time_reading, "seconds"
-            self.T = self.triangle_vertexes.shape[0]
-            print "  number of triangles =", self.T
-
-            print "  edges classification..."
-            sys.stdout.flush()
             t0 = time.clock()
             edgeNumber_vertexes, edgeNumber_triangles, triangle_adjacentTriangles, is_triangle_adjacentTriangles_via_junction = edges_computation(self.triangle_vertexes, self.vertexes_coord)
             self.time_edges_classification = time.clock()-t0

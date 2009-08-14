@@ -99,7 +99,7 @@ if __name__=="__main__":
     executeGmsh(path, targetName, 0)
     z_offset = 0.0
     targetDimensions_scaling_factor = 1.0
-    languageForMeshConstruction = "Python"
+    languageForMeshConstruction = "C++"
     meshFormat = 'GMSH' 
     meshFileTermination = '.msh'
     target_mesh = MeshClass(path, targetName, targetDimensions_scaling_factor, z_offset, languageForMeshConstruction, meshFormat, meshFileTermination)

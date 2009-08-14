@@ -2,7 +2,7 @@ import os.path, sys, time
 from scipy import zeros, ones, arange, array, take, reshape, sort, argsort, put, sum, compress, nonzero, prod, floor, mean, sqrt, dot, arccos
 from scipy import weave
 from scipy.weave import converters
-from read_mesh import read_mesh_GMSH_C
+from read_mesh import read_mesh_GMSH_1, read_mesh_GMSH_2
 from PyGmsh import executeGmsh, write_geo, findParameter, findParameterValue
 from EM_constants import *
 import copy
@@ -236,12 +236,13 @@ if __name__=="__main__":
     targetDimensions_scaling_factor = 1.0
     z_offset = 0.0
     t0 = time.clock()
-    vertexes_coord_C, triangle_vertexes_C, triangles_physicalSurface_C = read_mesh_GMSH_C(os.path.join(path, targetName + '.msh'), targetDimensions_scaling_factor, z_offset)
+    #vertexes_coord, triangle_vertexes, triangles_physicalSurface = read_mesh_GMSH_1(os.path.join(path, targetName + '.msh'), targetDimensions_scaling_factor, z_offset)
+    vertexes_coord, triangle_vertexes, triangles_physicalSurface = read_mesh_GMSH_2(os.path.join(path, targetName + '.msh'), targetDimensions_scaling_factor, z_offset)
     print "reading mesh time =", time.clock() - t0, "seconds"
     sys.stdout.flush()
 
-    triangles_surfaces_C, is_closed_surface_C, RWGNumber_signedTriangles_C, RWGNumber_edgeVertexes_C = edges_computation_C(triangle_vertexes_C, vertexes_coord_C)
-    RWGNumber_oppVertexes_C = RWGNumber_oppVertexes_computation_C(RWGNumber_signedTriangles_C, RWGNumber_edgeVertexes_C, triangle_vertexes_C)
+    triangles_surfaces_C, is_closed_surface_C, RWGNumber_signedTriangles_C, RWGNumber_edgeVertexes_C = edges_computation_C(triangle_vertexes, vertexes_coord)
+    RWGNumber_oppVertexes_C = RWGNumber_oppVertexes_computation_C(RWGNumber_signedTriangles_C, RWGNumber_edgeVertexes_C, triangle_vertexes)
 
     print "    Number of RWG =", RWGNumber_oppVertexes_C.shape[0]
 

@@ -4,7 +4,7 @@ from PyGmsh import executeGmsh, write_geo
 from scipy import weave
 from scipy.weave import converters
 
-def read_meshFile_GMSH(name):
+def preRead_mesh_GMSH_1(name):
     file = open(name, 'r')
     content = {}
     for line in file:
@@ -20,9 +20,14 @@ def read_meshFile_GMSH(name):
     file.close()
     return content
 
-def read_mesh_GMSH(name, targetDimensions_scaling_factor, z_offset):
-    """function that reads the mesh and puts it into nice arrays"""
-    content = read_meshFile_GMSH(name)
+def read_mesh_GMSH_1(name, targetDimensions_scaling_factor, z_offset):
+    """function that reads the mesh and puts it into nice arrays
+       preRead does not create separate files with nodes, triangles,...
+       so for big targets read_mesh_GMSH_1 can take lots of memory.
+
+       This function is to be erased in a near future.
+    """
+    content = preRead_mesh_GMSH_1(name)
     if content.has_key('Nodes'):
         vertexes_key = 'Nodes'
     elif content.has_key('NOD'):
@@ -127,7 +132,7 @@ def read_mesh_GMSH(name, targetDimensions_scaling_factor, z_offset):
     vertexes_coord = take(vertexes_coord, encountered_vertexes, axis=0)
     return vertexes_coord.astype('d'), triangles_vertexes.astype('i'), triangles_physicalSurface.astype('i')
 
-def read_meshFile_GMSH_C(meshFile_name):
+def preRead_mesh_GMSH_2(meshFile_name):
     """
        this function splits the meshFile_name.msh file into smaller entities.
        How do we do it?
@@ -172,9 +177,9 @@ def read_meshFile_GMSH_C(meshFile_name):
     file.close()
     return content
 
-def read_mesh_GMSH_C(name, targetDimensions_scaling_factor, z_offset):
+def read_mesh_GMSH_2(name, targetDimensions_scaling_factor, z_offset):
     """function that reads the mesh and puts it into nice arrays"""
-    content = read_meshFile_GMSH_C(name)
+    content = preRead_mesh_GMSH_2(name)
     print content
     if content.has_key('Nodes'):
         vertexes_key = 'Nodes'
@@ -282,18 +287,16 @@ if __name__=="__main__":
     z_offset = 0.0
     targetDimensions_scaling_factor = 1.0
     t0 = time.time()
-    vertexes_coord, triangles_vertexes, triangles_physicalSurface = read_mesh(os.path.join(path, targetName) + '.msh', targetDimensions_scaling_factor, z_offset)
+    vertexes_coord_1, triangles_vertexes_1, triangles_physicalSurface_1 = read_mesh_GMSH_1(os.path.join(path, targetName) + '.msh', targetDimensions_scaling_factor, z_offset)
     print "time for classical *.msh file reading =", time.time() - t0
     t0 = time.time()
-    vertexes_coord_C, triangles_vertexes_C, triangles_physicalSurface_C = read_mesh_C(os.path.join(path, targetName) + '.msh', targetDimensions_scaling_factor, z_offset)
+    vertexes_coord_2, triangles_vertexes_2, triangles_physicalSurface_2 = read_mesh_GMSH_2(os.path.join(path, targetName) + '.msh', targetDimensions_scaling_factor, z_offset)
     print "time for new *.msh file reading =", time.time() - t0
     
     print
     print "difference between python and C++ code. If results different than 0, there is a problem."
-    print sum(abs(vertexes_coord - vertexes_coord_C))
-    print sum(abs(triangles_vertexes - triangles_vertexes_C))
-    print sum(abs(triangles_physicalSurface - triangles_physicalSurface_C))
+    print sum(abs(vertexes_coord_1 - vertexes_coord_2))
+    print sum(abs(triangles_vertexes_1 - triangles_vertexes_2))
+    print sum(abs(triangles_physicalSurface_1 - triangles_physicalSurface_2))
     
-    #read_meshFile(os.path.join(path, targetName) + '.msh')
-    #vertexes_coord_CC = read_mesh_CC(os.path.join(path, targetName) + '.msh', z_offset)
-    #print vertexes_coord - vertexes_coord_CC
+

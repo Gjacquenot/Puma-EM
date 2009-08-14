@@ -28,25 +28,25 @@ if __name__=="__main__":
         ########################################
         ## mesh_functions_seb
         ########################################
-        vertexes_coord, triangle_vertexes, triangles_physicalSurface = read_mesh_GMSH(os.path.join(path, targetName + '.msh'), targetDimensions_scaling_factor, z_offset)
+        vertexes_coord_1, triangle_vertexes_1, triangles_physicalSurface_1 = read_mesh_GMSH_1(os.path.join(path, targetName + '.msh'), targetDimensions_scaling_factor, z_offset)
 
-        edgeNumber_vertexes, edgeNumber_triangles, triangle_adjacentTriangles, is_triangle_adjacentTriangles_via_junction = edges_computation(triangle_vertexes, vertexes_coord)
+        edgeNumber_vertexes, edgeNumber_triangles, triangle_adjacentTriangles, is_triangle_adjacentTriangles_via_junction = edges_computation(triangle_vertexes_1, vertexes_coord_1)
 
-        triangles_surfaces = reorder_triangle_vertexes(triangle_adjacentTriangles, is_triangle_adjacentTriangles_via_junction, triangle_vertexes, vertexes_coord)
+        triangles_surfaces = reorder_triangle_vertexes(triangle_adjacentTriangles, is_triangle_adjacentTriangles_via_junction, triangle_vertexes_1, vertexes_coord_1)
         is_closed_surface, connected_surfaces, potential_closed_surfaces = is_surface_closed(triangles_surfaces, edgeNumber_triangles)
 
-        RWGNumber_signedTriangles, RWGNumber_edgeVertexes, N_edges, N_RWG = RWGNumber_signedTriangles_computation(edgeNumber_triangles, edgeNumber_vertexes, triangles_surfaces, is_closed_surface, triangle_vertexes, vertexes_coord)
-        RWGNumber_oppVertexes = RWGNumber_oppVertexes_computation(RWGNumber_signedTriangles, RWGNumber_edgeVertexes, triangle_vertexes)
+        RWGNumber_signedTriangles, RWGNumber_edgeVertexes, N_edges, N_RWG = RWGNumber_signedTriangles_computation(edgeNumber_triangles, edgeNumber_vertexes, triangles_surfaces, is_closed_surface, triangle_vertexes_1, vertexes_coord_1)
+        RWGNumber_oppVertexes = RWGNumber_oppVertexes_computation(RWGNumber_signedTriangles, RWGNumber_edgeVertexes, triangle_vertexes_1)
         ########################################
 
 
         ########################################
         ## mesh_functions_seb_C
         ########################################
-        vertexes_coord_C, triangle_vertexes_C, triangles_physicalSurface_C = read_mesh_GMSH_C(os.path.join(path, targetName + '.msh'), targetDimensions_scaling_factor, z_offset)
+        vertexes_coord_2, triangle_vertexes_2, triangles_physicalSurface_2 = read_mesh_GMSH_2(os.path.join(path, targetName + '.msh'), targetDimensions_scaling_factor, z_offset)
 
-        triangles_surfaces_C, is_closed_surface_C, RWGNumber_signedTriangles_C, RWGNumber_edgeVertexes_C = edges_computation_C(triangle_vertexes_C, vertexes_coord_C)
-        RWGNumber_oppVertexes_C = RWGNumber_oppVertexes_computation_C(RWGNumber_signedTriangles_C, RWGNumber_edgeVertexes_C, triangle_vertexes_C)
+        triangles_surfaces_C, is_closed_surface_C, RWGNumber_signedTriangles_C, RWGNumber_edgeVertexes_C = edges_computation_C(triangle_vertexes_2, vertexes_coord_2)
+        RWGNumber_oppVertexes_C = RWGNumber_oppVertexes_computation_C(RWGNumber_signedTriangles_C, RWGNumber_edgeVertexes_C, triangle_vertexes_2)
         ########################################
 
         # comparison mesh_functions_seb vs mesh_functions_seb_C
@@ -60,9 +60,14 @@ if __name__=="__main__":
             print "Error in is_closed_surface for target", targetName
             sys.stdout.flush()
             sys.exit(1)
-        diff_triangle_vertexes = sum(abs(triangle_vertexes - triangle_vertexes_C))
+        diff_triangle_vertexes = sum(abs(triangle_vertexes_1 - triangle_vertexes_2))
         if not diff_triangle_vertexes == 0:
             print "Error in triangle_vertexes for target", targetName
+            sys.stdout.flush()
+            sys.exit(1)
+        diff_vertexes_coord = sum(abs(vertexes_coord_1 - vertexes_coord_2))
+        if not diff_vertexes_coord == 0.0:
+            print "Error in vertexes_coord for target", targetName
             sys.stdout.flush()
             sys.exit(1)
         diff_RWGNumber_signedTriangles = sum(abs(RWGNumber_signedTriangles - RWGNumber_signedTriangles_C))
