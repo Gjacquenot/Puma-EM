@@ -100,7 +100,9 @@ if __name__=="__main__":
     z_offset = 0.0
     targetDimensions_scaling_factor = 1.0
     languageForMeshConstruction = "Python"
-    target_mesh = MeshClass(path, targetName, targetDimensions_scaling_factor, z_offset, languageForMeshConstruction)
+    meshFormat = 'GMSH' 
+    meshFileTermination = '.msh'
+    target_mesh = MeshClass(path, targetName, targetDimensions_scaling_factor, z_offset, languageForMeshConstruction, meshFormat, meshFileTermination)
     target_mesh.constructFromGmshFile()
     N_RWG = target_mesh.N_RWG
 

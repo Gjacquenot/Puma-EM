@@ -270,14 +270,7 @@ def setup_MLFMA(params_simu):
     num_proc = MPI.COMM_WORLD.Get_size()
     my_id = MPI.COMM_WORLD.Get_rank()
 
-    if (params_simu.meshFormat == 'GMSH') or (params_simu.meshFormat == 'GIS'):
-        meshFileTermination = '.msh'
-    elif (params_simu.meshFormat == 'IDEAS'):
-        meshFileTermination = '.unv'
-    else:
-        print "In simulation_parameters.py, choose an existing file format please"
-        sys.exit(1)
-    targetFileName = os.path.join(params_simu.pathToTarget, params_simu.targetName + meshFileTermination)
+    targetFileName = os.path.join(params_simu.pathToTarget, params_simu.targetName + params_simu.meshFileTermination)
     tmpDirName = 'tmp' + str(my_id)
 
     if params_simu.COMPUTE_Z_NEAR==1:
@@ -304,7 +297,7 @@ def setup_MLFMA(params_simu):
         os.mkdir( os.path.abspath(os.path.join('.',tmpDirName,'pickle')) )
 
     # target_mesh construction
-    target_mesh = MeshClass(params_simu.pathToTarget, params_simu.targetName, params_simu.targetDimensions_scaling_factor, params_simu.z_offset, params_simu.languageForMeshConstruction)
+    target_mesh = MeshClass(params_simu.pathToTarget, params_simu.targetName, params_simu.targetDimensions_scaling_factor, params_simu.z_offset, params_simu.languageForMeshConstruction, params_simu.meshFormat, params_simu.meshFileTermination)
     # size of cube at finest level
     a = c/params_simu.f * params_simu.a_factor
     MPI.COMM_WORLD.Barrier()
@@ -535,7 +528,7 @@ def computeCurrentsVisualization(params_simu, variables):
     my_id = MPI.COMM_WORLD.Get_rank()
     tmpDirName = 'tmp' + str(my_id)
     if (my_id == 0):
-        target_mesh = MeshClass(params_simu.pathToTarget, params_simu.targetName, params_simu.targetDimensions_scaling_factor, params_simu.z_offset, params_simu.languageForMeshConstruction)
+        target_mesh = MeshClass(params_simu.pathToTarget, params_simu.targetName, params_simu.targetDimensions_scaling_factor, params_simu.z_offset, params_simu.languageForMeshConstruction, params_simu.meshFormat, params_simu.meshFileTermination)
         # target_mesh.constructFromGmshFile()
         target_mesh.constructFromSavedArrays(os.path.join('.', tmpDirName, "mesh"))
         CURRENTS_VISUALIZATION = params_simu.CURRENTS_VISUALIZATION and (target_mesh.N_RWG<2e6) and (params_simu.BISTATIC == 1)

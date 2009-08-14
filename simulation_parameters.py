@@ -34,8 +34,14 @@ params_simu.meshToMake = True
 MESH_FORMAT = ['GMSH', 'GIS', 'IDEAS']
 # GMSH is the default meshing program
 params_simu.meshFormat = MESH_FORMAT[0]
+# you shouldn't change the following 7 lines
 if params_simu.meshToMake:
     params_simu.meshFormat = MESH_FORMAT[0]
+# the termination of the mesh file
+if (params_simu.meshFormat == 'GMSH') or (params_simu.meshFormat == 'GIS'):
+    params_simu.meshFileTermination = '.msh'
+elif (params_simu.meshFormat == 'IDEAS'):
+    params_simu.meshFileTermination = '.unv'
 
 #relative epsilon and mu of the host medium
 params_simu.eps_r = 1. + 0.j

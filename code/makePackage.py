@@ -5,7 +5,7 @@ def constructArborescense(path):
     """this function construct the arborescence of a directory, i.e. it seeks for all its sub-directories"""
     arborescence = []
     for root, direct, files in os.walk(path):
-        if '.svn' not in root and 'unused' not in root:
+        if '.git' not in root and 'unused' not in root:
             if files != []:
                 arborescence.append(root)
     return arborescence

@@ -11,9 +11,9 @@ from mesh_functions_seb_C import *
 import copy
 
 class MeshClass:
-    def __init__(self, path, targetName, targetDimensions_scaling_factor, z_offset, languageForMeshConstruction):
+    def __init__(self, path, targetName, targetDimensions_scaling_factor, z_offset, languageForMeshConstruction, meshFormat, meshFileTermination):
 	
-	self.path, self.name, self.geoName = path, targetName + '.msh', targetName + '.geo'
+	self.path, self.name, self.geoName = path, targetName + meshFileTermination, targetName + '.geo'
         self.targetName = targetName
         self.z_offset = z_offset
         self.targetDimensions_scaling_factor = targetDimensions_scaling_factor
@@ -400,13 +400,15 @@ if __name__=="__main__":
         z_offset = 0.0
         targetDimensions_scaling_factor = 1.0
         languageForMeshConstruction = "C++"
-        target_mesh = MeshClass(path, targetName, targetDimensions_scaling_factor, z_offset, languageForMeshConstruction)
+        meshFormat = 'GMSH' 
+        meshFileTermination = '.msh'
+        target_mesh = MeshClass(path, targetName, targetDimensions_scaling_factor, z_offset, languageForMeshConstruction, meshFormat, meshFileTermination)
         target_mesh.constructFromGmshFile()
         a = c/f * 0.25
         target_mesh.cubes_data_computation(a)
         target_mesh.write_cubes()
         #target_mesh.saveToDisk("./geo")
-        #target_mesh2 = MeshClass(path, targetName, targetDimensions_scaling_factor, z_offset, languageForMeshConstruction)
+        #target_mesh2 = MeshClass(path, targetName, targetDimensions_scaling_factor, z_offset, languageForMeshConstruction, meshFormat, meshFileTermination)
         #target_mesh2.constructFromSavedArrays("./geo")
         #print "delta_gap =", target_mesh.DELTA_GAP
     if 0:
