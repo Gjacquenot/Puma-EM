@@ -1,6 +1,6 @@
 import os.path, sys, time
 from scipy import zeros, ones, arange, array, take, reshape, sort, argsort, put, sum, compress, nonzero, prod, floor, mean, sqrt, dot, arccos
-from read_mesh import read_mesh
+from read_mesh import read_mesh_GMSH
 from PyGmsh import executeGmsh, write_geo, findParameter, findParameterValue
 from EM_constants import *
 import copy
@@ -536,7 +536,7 @@ if __name__=="__main__":
     executeGmsh(path, targetName, 0)
     targetDimensions_scaling_factor = 1.0
     z_offset = 0.0
-    vertexes_coord, triangle_vertexes, triangles_physicalSurface = read_mesh(os.path.join(path, targetName + '.msh'), targetDimensions_scaling_factor, z_offset)
+    vertexes_coord, triangle_vertexes, triangles_physicalSurface = read_mesh_GMSH(os.path.join(path, targetName + '.msh'), targetDimensions_scaling_factor, z_offset)
     edgeNumber_vertexes, edgeNumber_triangles, triangle_adjacentTriangles, is_triangle_adjacentTriangles_via_junction = edges_computation(triangle_vertexes, vertexes_coord)
     T = len(triangle_adjacentTriangles)
     

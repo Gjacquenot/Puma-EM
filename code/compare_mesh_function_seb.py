@@ -28,7 +28,7 @@ if __name__=="__main__":
         ########################################
         ## mesh_functions_seb
         ########################################
-        vertexes_coord, triangle_vertexes, triangles_physicalSurface = read_mesh(os.path.join(path, targetName + '.msh'), targetDimensions_scaling_factor, z_offset)
+        vertexes_coord, triangle_vertexes, triangles_physicalSurface = read_mesh_GMSH(os.path.join(path, targetName + '.msh'), targetDimensions_scaling_factor, z_offset)
 
         edgeNumber_vertexes, edgeNumber_triangles, triangle_adjacentTriangles, is_triangle_adjacentTriangles_via_junction = edges_computation(triangle_vertexes, vertexes_coord)
 
@@ -43,7 +43,7 @@ if __name__=="__main__":
         ########################################
         ## mesh_functions_seb_C
         ########################################
-        vertexes_coord_C, triangle_vertexes_C, triangles_physicalSurface_C = read_mesh_C(os.path.join(path, targetName + '.msh'), targetDimensions_scaling_factor, z_offset)
+        vertexes_coord_C, triangle_vertexes_C, triangles_physicalSurface_C = read_mesh_GMSH_C(os.path.join(path, targetName + '.msh'), targetDimensions_scaling_factor, z_offset)
 
         triangles_surfaces_C, is_closed_surface_C, RWGNumber_signedTriangles_C, RWGNumber_edgeVertexes_C = edges_computation_C(triangle_vertexes_C, vertexes_coord_C)
         RWGNumber_oppVertexes_C = RWGNumber_oppVertexes_computation_C(RWGNumber_signedTriangles_C, RWGNumber_edgeVertexes_C, triangle_vertexes_C)
@@ -80,5 +80,5 @@ if __name__=="__main__":
             print "Error in RWGNumber_oppVertexes for target", targetName
             sys.stdout.flush()
             sys.exit(1)
-            
-            
+
+

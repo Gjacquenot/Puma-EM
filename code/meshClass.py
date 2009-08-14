@@ -1,7 +1,7 @@
 import os.path, sys, time
 from scipy import zeros, ones, arange, array, take, reshape, sort, argsort, put, sum, compress, nonzero, prod
 from scipy import mean, sqrt
-from read_mesh import read_mesh, read_mesh_C
+from read_mesh import read_mesh_GMSH, read_mesh_GMSH_C
 from Cubes import cube_lower_coord_computation, RWGNumber_cubeNumber_computation, cubeIndex_RWGNumbers_computation, findCubeNeighbors, cubes_indexes_to_numbers_computation, write_cubes
 from PyGmsh import executeGmsh, write_geo, findParameter, findParameterValue
 from ReadWriteBlitzArray import readBlitzArrayFromDisk, read1DBlitzArrayFromDisk, readIntFromDisk, writeBlitzArrayToDisk, writeScalarToDisk
@@ -18,6 +18,8 @@ class MeshClass:
         self.z_offset = z_offset
         self.targetDimensions_scaling_factor = targetDimensions_scaling_factor
         self.languageForMeshConstruction = languageForMeshConstruction
+        self.meshFormat = meshFormat
+        self.meshFileTermination = meshFileTermination
 
     def constructFromGmshFile(self):
         # we check to see if there is a delta_gap parameter in the geo file

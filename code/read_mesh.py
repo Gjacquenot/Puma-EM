@@ -4,7 +4,7 @@ from PyGmsh import executeGmsh, write_geo
 from scipy import weave
 from scipy.weave import converters
 
-def read_meshFile(name):
+def read_meshFile_GMSH(name):
     file = open(name, 'r')
     content = {}
     for line in file:
@@ -20,9 +20,9 @@ def read_meshFile(name):
     file.close()
     return content
 
-def read_mesh(name, targetDimensions_scaling_factor, z_offset):
+def read_mesh_GMSH(name, targetDimensions_scaling_factor, z_offset):
     """function that reads the mesh and puts it into nice arrays"""
-    content = read_meshFile(name)
+    content = read_meshFile_GMSH(name)
     if content.has_key('Nodes'):
         vertexes_key = 'Nodes'
     elif content.has_key('NOD'):
@@ -127,7 +127,7 @@ def read_mesh(name, targetDimensions_scaling_factor, z_offset):
     vertexes_coord = take(vertexes_coord, encountered_vertexes, axis=0)
     return vertexes_coord.astype('d'), triangles_vertexes.astype('i'), triangles_physicalSurface.astype('i')
 
-def read_meshFile_C(meshFile_name):
+def read_meshFile_GMSH_C(meshFile_name):
     """
        this function splits the meshFile_name.msh file into smaller entities.
        How do we do it?
@@ -172,9 +172,9 @@ def read_meshFile_C(meshFile_name):
     file.close()
     return content
 
-def read_mesh_C(name, targetDimensions_scaling_factor, z_offset):
+def read_mesh_GMSH_C(name, targetDimensions_scaling_factor, z_offset):
     """function that reads the mesh and puts it into nice arrays"""
-    content = read_meshFile_C(name)
+    content = read_meshFile_GMSH_C(name)
     print content
     if content.has_key('Nodes'):
         vertexes_key = 'Nodes'
