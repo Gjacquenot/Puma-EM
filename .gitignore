@@ -4,6 +4,7 @@
 *.a
 *.msh*
 geo/*.txt
+geo/*.pos
 MPIcommand.sh
 code/MoM/communicateMeshArrays
 code/MoM/communicateZnearBlocks

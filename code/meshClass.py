@@ -1,7 +1,7 @@
 import os.path, sys, time
 from scipy import zeros, ones, arange, array, take, reshape, sort, argsort, put, sum, compress, nonzero, prod
 from scipy import mean, sqrt
-from read_mesh import read_mesh_GMSH_1, read_mesh_GMSH_2
+from read_mesh import read_mesh_GMSH_1, read_mesh_GMSH_2, read_mesh_GIS
 from Cubes import cube_lower_coord_computation, RWGNumber_cubeNumber_computation, cubeIndex_RWGNumbers_computation, findCubeNeighbors, cubes_indexes_to_numbers_computation, write_cubes
 from PyGmsh import executeGmsh, write_geo, findParameter, findParameterValue
 from ReadWriteBlitzArray import readBlitzArrayFromDisk, read1DBlitzArrayFromDisk, readIntFromDisk, writeBlitzArrayToDisk, writeScalarToDisk
@@ -23,13 +23,17 @@ class MeshClass:
 
     def constructFromGmshFile(self):
         # we check to see if there is a delta_gap parameter in the geo file
-        self.DELTA_GAP, tmp1, tmp2 = findParameter(self.path, self.targetName, "delta_gap")
-        if self.DELTA_GAP:
-            """a delta gap should always be defined in the *.geo file as being located
-            at the origin r = [0,0,0], and directed following z"""
-            self.delta_gap = findParameterValue(self.path, self.targetName, "delta_gap")
-            print "There is a delta gap in file", self.geoName
-            print "The size of the delta gap is", self.delta_gap, "m"
+        if self.meshFormat == 'GMSH':
+            self.DELTA_GAP, tmp1, tmp2 = findParameter(self.path, self.targetName, "delta_gap")
+            if self.DELTA_GAP:
+                ## a delta gap should always be defined in the *.geo file as being located
+                ## at the origin r = [0,0,0], and directed following z"""
+                self.delta_gap = findParameterValue(self.path, self.targetName, "delta_gap")
+                print "There is a delta gap in file", self.geoName
+                print "The size of the delta gap is", self.delta_gap, "m"
+        else:
+            # else we don't look for a delta gap in the file
+            pass
         print "  Python construction of the Mesh object"
         sys.stdout.flush()
 
