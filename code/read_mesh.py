@@ -274,6 +274,140 @@ def read_mesh_GMSH_2(name, targetDimensions_scaling_factor, z_offset):
     vertexes_coord = take(vertexes_coord, encountered_vertexes, axis=0)
     return vertexes_coord.astype('d'), triangles_vertexes.astype('i'), triangles_physicalSurface.astype('i')
 
+def preRead_mesh_GIS(meshFile_name):
+    """
+       GIS is a CAD mesh format, from a program you can google on the Internet.
+
+       This function splits the meshFile_name.msh file into smaller entities.
+       How do we do it?
+
+       Each time we encounter a new 'entity' in the mesh file, such as 'Nodes' 
+       for example, we create a new file for it, name it with the entity name,
+       say 'meshFile_name.msh.Nodes', and place there all corresponding entities,
+       i.e. Nodes in this example.
+    """
+    file = open(meshFile_name, 'r')
+    file.readline() # skip the first line
+    file.readline() # skip the Coordinates line
+    content = {}
+    coordinatesFile = open(meshFile_name + '.' + 'Nodes', 'w')
+    numberOfLines = 0
+    for line in file:
+        if 'end' in line:
+            break
+        else:
+            numberOfLines += 1
+            coordinatesFile.write(line)
+    content['Nodes'] = [numberOfLines]
+    coordinatesFile.close()
+    # we now read the 'Elements'
+    elementsFile = open(meshFile_name + '.' + 'Elements', 'w')
+    numberOfLines = 0
+    for lineTmp in file:
+        line = lineTmp.split()
+        if 'Elements' in line or len(line)==0:
+            pass
+        elif 'end' in lineTmp:
+            break
+        else:
+            numberOfLines += 1
+            elementsFile.write(lineTmp)
+    content['Elements'] = [numberOfLines]
+    elementsFile.close()
+    # final moves
+    file.close()
+    return content
+
+def read_mesh_GIS(name, targetDimensions_scaling_factor, z_offset):
+    """function that reads the mesh and puts it into nice arrays"""
+    content = preRead_mesh_GIS(name)
+    print content
+    vertexes_key = 'Nodes'
+
+    V = int(content[vertexes_key][0]) # we get the number of vertexes
+    vertexes_numbers = zeros(V, 'i')
+    vertexes_coord = zeros( (V, 3), 'd' )
+
+    index = 0
+    file = open(name + '.' + vertexes_key, 'r')
+    for line in file:
+        tmp = line.split()
+        vertexes_numbers[index] = int(tmp[0])
+        vertexes_coord[index, :] = map(float, tmp[1:])
+        index += 1
+    if not (targetDimensions_scaling_factor==1.0):
+        vertexes_coord *= targetDimensions_scaling_factor
+    vertexes_coord[:, -1] += z_offset
+    file.close()
+
+    # we check whether we have a source
+#    SOURCE = False
+#    PhysicalSurfaceNumberToName = {}
+#    if content.has_key('PhysicalNames'):
+#        keyPhysicalNames = 'PhysicalNames'
+#        NumberPhysicalNames = content[keyPhysicalNames][0]
+#        file = open(name + '.' + keyPhysicalNames, 'r')
+#        for line in file:
+#            elem2 = line.split()
+#            newKey = int(elem2[0])
+#            PhysicalSurfaceNumberToName[newKey] = elem2[1]
+#            if "source" in PhysicalSurfaceNumberToName[newKey]:
+#                SOURCE = True
+#        file.close()
+
+    # we now extract the triangles and write them to a file
+    if content.has_key('Elements'):
+        elements_key = 'Elements'
+    else:
+        print "read_mesh.py: Error in the GIS file format: not supported!!"
+        sys.exit(1)
+    T = content[elements_key][0] # N is the number of triangles
+    del content
+
+    g = open(name + "." + elements_key, 'r')
+    triangles_nodes = zeros( (T, 3), 'i')
+    triangles_physicalSurface = zeros(T, 'i')
+    index = 0
+    for line in g:
+        tmp = map(int, line.split())
+        triangles_nodes[index, :] = tmp[-3:]
+        #triangles_physicalSurface[index] = tmp[3]
+        triangles_physicalSurface[index] = 0 # not like GMSH here: GMSH triangles have a physical surface number
+        index += 1
+    g.close()
+    
+    vertex_number_max = max(vertexes_numbers)
+    nodes_vertexes = zeros( vertex_number_max + 1, 'i' )
+    put(nodes_vertexes, vertexes_numbers, range(V))
+    triangles_vertexes = take(nodes_vertexes, triangles_nodes, axis=0).astype('i')
+    del triangles_nodes # gain some memory, we now work only with triangles_vertexes...
+    # we will now eliminate the points that we don't need
+    max_encountered_vertexes = max(triangles_vertexes.flat)
+    encountered_vertexesTmp = (zeros(max_encountered_vertexes + 1, 'i') - 1).astype('i')
+    wrapping_code = """
+    for (int i=0 ; i<triangles_vertexes.extent(0) ; i++) {
+      for (int j=0 ; j<triangles_vertexes.extent(1) ; j++) {
+        const int vertex = triangles_vertexes(i, j);
+        encountered_vertexesTmp(vertex) = vertex;
+      }
+    }
+    """
+    weave.inline(wrapping_code,
+                 ['encountered_vertexesTmp', 'triangles_vertexes'],
+                 type_converters = converters.blitz,
+                 include_dirs = [],
+                 library_dirs = [],
+                 libraries = [],
+                 headers = ['<iostream>'],
+                 compiler = 'gcc',
+                 extra_compile_args = ['-O3', '-pthread', '-w'])
+    encountered_vertexes = compress(encountered_vertexesTmp>-1, encountered_vertexesTmp, axis=0)
+    del encountered_vertexesTmp
+    oldVertex_to_newVertex = zeros(max_encountered_vertexes+1, 'i')
+    oldVertex_to_newVertex[encountered_vertexes] = range(len(encountered_vertexes))
+    triangles_vertexes = take(oldVertex_to_newVertex, triangles_vertexes, axis=0)
+    vertexes_coord = take(vertexes_coord, encountered_vertexes, axis=0)
+    return vertexes_coord.astype('d'), triangles_vertexes.astype('i'), triangles_physicalSurface.astype('i')
 
 if __name__=="__main__":
     path = './geo'
@@ -299,4 +433,5 @@ if __name__=="__main__":
     print sum(abs(triangles_vertexes_1 - triangles_vertexes_2))
     print sum(abs(triangles_physicalSurface_1 - triangles_physicalSurface_2))
     
+    vertexes_coord_GIS, triangles_vertexes_GIS, triangles_physicalSurface_GIS = read_mesh_GIS(os.path.join(path, 'aaa1') + '.msh', targetDimensions_scaling_factor, z_offset)
 

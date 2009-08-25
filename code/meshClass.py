@@ -35,8 +35,13 @@ class MeshClass:
 
         print "  reading",  os.path.join(self.path, self.name), "...",
         t0 = time.clock()
-        #self.vertexes_coord, self.triangle_vertexes, self.triangles_physicalSurface = read_mesh_GMSH_1(os.path.join(self.path, self.name), self.targetDimensions_scaling_factor, self.z_offset)
-        self.vertexes_coord, self.triangle_vertexes, self.triangles_physicalSurface = read_mesh_GMSH_2(os.path.join(self.path, self.name), self.targetDimensions_scaling_factor, self.z_offset)
+        if self.meshFormat == 'GMSH':
+            #self.vertexes_coord, self.triangle_vertexes, self.triangles_physicalSurface = read_mesh_GMSH_1(os.path.join(self.path, self.name), self.targetDimensions_scaling_factor, self.z_offset)
+            self.vertexes_coord, self.triangle_vertexes, self.triangles_physicalSurface = read_mesh_GMSH_2(os.path.join(self.path, self.name), self.targetDimensions_scaling_factor, self.z_offset)
+        elif self.meshFormat == 'GIS':
+            self.vertexes_coord, self.triangle_vertexes, self.triangles_physicalSurface = read_mesh_GIS(os.path.join(self.path, self.name), self.targetDimensions_scaling_factor, self.z_offset)
+        else:
+            print "meshClass.py : error on the mesh format. Enter a correct one please."
         self.time_reading = time.clock()-t0
         print "reading mesh time =", self.time_reading, "seconds"
         self.T = self.triangle_vertexes.shape[0]
