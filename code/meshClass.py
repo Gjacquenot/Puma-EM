@@ -1,7 +1,7 @@
 import os.path, sys, time
 from scipy import zeros, ones, arange, array, take, reshape, sort, argsort, put, sum, compress, nonzero, prod
 from scipy import mean, sqrt
-from read_mesh import read_mesh_GMSH_1, read_mesh_GMSH_2, read_mesh_GIS
+from read_mesh import read_mesh_GMSH_1, read_mesh_GMSH_2, read_mesh_GiD
 from Cubes import cube_lower_coord_computation, RWGNumber_cubeNumber_computation, cubeIndex_RWGNumbers_computation, findCubeNeighbors, cubes_indexes_to_numbers_computation, write_cubes
 from PyGmsh import executeGmsh, write_geo, findParameter, findParameterValue
 from ReadWriteBlitzArray import readBlitzArrayFromDisk, read1DBlitzArrayFromDisk, readIntFromDisk, writeBlitzArrayToDisk, writeScalarToDisk
@@ -42,8 +42,8 @@ class MeshClass:
         if self.meshFormat == 'GMSH':
             #self.vertexes_coord, self.triangle_vertexes, self.triangles_physicalSurface = read_mesh_GMSH_1(os.path.join(self.path, self.name), self.targetDimensions_scaling_factor, self.z_offset)
             self.vertexes_coord, self.triangle_vertexes, self.triangles_physicalSurface = read_mesh_GMSH_2(os.path.join(self.path, self.name), self.targetDimensions_scaling_factor, self.z_offset)
-        elif self.meshFormat == 'GIS':
-            self.vertexes_coord, self.triangle_vertexes, self.triangles_physicalSurface = read_mesh_GIS(os.path.join(self.path, self.name), self.targetDimensions_scaling_factor, self.z_offset)
+        elif self.meshFormat == 'GiD':
+            self.vertexes_coord, self.triangle_vertexes, self.triangles_physicalSurface = read_mesh_GiD(os.path.join(self.path, self.name), self.targetDimensions_scaling_factor, self.z_offset)
         else:
             print "meshClass.py : error on the mesh format. Enter a correct one please."
         self.time_reading = time.clock()-t0

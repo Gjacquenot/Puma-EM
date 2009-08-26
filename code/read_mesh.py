@@ -274,9 +274,9 @@ def read_mesh_GMSH_2(name, targetDimensions_scaling_factor, z_offset):
     vertexes_coord = take(vertexes_coord, encountered_vertexes, axis=0)
     return vertexes_coord.astype('d'), triangles_vertexes.astype('i'), triangles_physicalSurface.astype('i')
 
-def preRead_mesh_GIS(meshFile_name):
+def preRead_mesh_GiD(meshFile_name):
     """
-       GIS is a CAD mesh format, from a program you can google on the Internet.
+       GiD is a CAD mesh format, from a program you can google on the Internet.
 
        This function splits the meshFile_name.msh file into smaller entities.
        How do we do it?
@@ -318,9 +318,9 @@ def preRead_mesh_GIS(meshFile_name):
     file.close()
     return content
 
-def read_mesh_GIS(name, targetDimensions_scaling_factor, z_offset):
+def read_mesh_GiD(name, targetDimensions_scaling_factor, z_offset):
     """function that reads the mesh and puts it into nice arrays"""
-    content = preRead_mesh_GIS(name)
+    content = preRead_mesh_GiD(name)
     print content
     vertexes_key = 'Nodes'
 
@@ -359,7 +359,7 @@ def read_mesh_GIS(name, targetDimensions_scaling_factor, z_offset):
     if content.has_key('Elements'):
         elements_key = 'Elements'
     else:
-        print "read_mesh.py: Error in the GIS file format: not supported!!"
+        print "read_mesh.py: Error in the GiD file format: not supported!!"
         sys.exit(1)
     T = content[elements_key][0] # N is the number of triangles
     del content
@@ -433,5 +433,5 @@ if __name__=="__main__":
     print sum(abs(triangles_vertexes_1 - triangles_vertexes_2))
     print sum(abs(triangles_physicalSurface_1 - triangles_physicalSurface_2))
     
-    vertexes_coord_GIS, triangles_vertexes_GIS, triangles_physicalSurface_GIS = read_mesh_GIS(os.path.join(path, 'aaa1') + '.msh', targetDimensions_scaling_factor, z_offset)
+    vertexes_coord_GiD, triangles_vertexes_GiD, triangles_physicalSurface_GiD = read_mesh_GiD(os.path.join(path, 'aaa1') + '.msh', targetDimensions_scaling_factor, z_offset)
 
