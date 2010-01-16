@@ -27,7 +27,7 @@ mpi-selector --set openmpi-1.3
 export LD_LIBRARY_PATH=/usr/lib64/mpi/gcc/openmpi/lib:
 export PATH=/usr/lib64/mpi/gcc/openmpi/bin:$PATH
 # installing GMSH
-VERSION="2.3.1"
+VERSION="2.4.2"
 wget http://www.geuz.org/gmsh/bin/Linux/gmsh-$VERSION-Linux.tgz
 tar xzf gmsh-$VERSION-Linux.tgz
 sudo mv gmsh-$VERSION/gmsh /usr/bin
