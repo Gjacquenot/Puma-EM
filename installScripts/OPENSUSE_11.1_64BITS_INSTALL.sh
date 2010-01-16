@@ -30,7 +30,7 @@ export PATH=/usr/lib64/mpi/gcc/openmpi/bin:$PATH
 VERSION="2.4.2"
 wget http://www.geuz.org/gmsh/bin/Linux/gmsh-$VERSION-Linux.tgz
 tar xzf gmsh-$VERSION-Linux.tgz
-sudo mv gmsh-$VERSION/gmsh /usr/bin
+sudo mv gmsh-$VERSION-Linux/bin/gmsh /usr/bin
 rm -rf gmsh-$VERSION-Linux.tgz
 # create makefile.inc
 cd ..

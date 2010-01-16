@@ -29,7 +29,7 @@ def L_computation(k, a, NB_DIGITS):
     L2 = where(L_tmp2<5., 5, int(ceil( L_tmp2 )))
     #return L2
     return int(floor( L_tmp2 ))
-
+    #return int(ceil( L_tmp2 ))
 
 #def B_EJ_B_HJ_computation(CFIE, list_of_edges_numbers, vertexes_coord, triangles_vertexes, triangles_edges_kinds, triangles_edges_numbers, triangles_edges_signs, triangles_edges_lengths, triangles_edges_opp_vertexes, triangles_normals, triangles_areas, edges_numbers_triangles, edges_numbers_cubes_centroids, IS_SRC, k, w, mu_r, XcosTheta, Xphi, N_Gauss_points, ELEM_TYPE):
 
