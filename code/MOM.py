@@ -113,8 +113,8 @@ if __name__=="__main__":
     Z_s = 0.0
     J_dip = array([.0, 1.0, 0.], 'D')
     r_dip = array([0.0, 0.0, 0.2714], 'd')
-    list_of_test_edges_numbers = arange(N_RWG).astype('i')
-    list_of_src_edges_numbers = arange(N_RWG).astype('i')
+    list_of_test_edges_numbers = arange(N_RWG,dtype='i')
+    list_of_src_edges_numbers = arange(N_RWG,dtype='i')
     MOM_FULL_PRECISION = 1
     EXCITATION = 'dipole'
     CHOICE = "CFIE testing"

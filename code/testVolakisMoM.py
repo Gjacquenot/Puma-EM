@@ -11,7 +11,7 @@ def testVolakisMoM(path, targetName, f, M0M_FULL_PRECISION):
     z_offset = 0.0
     targetDimensions_scaling_factor = 1.0
     languageForMeshConstruction = "Python"
-    target_mesh = MeshClass(path, targetName, targetDimensions_scaling_factor, z_offset, languageForMeshConstruction)
+    target_mesh = MeshClass(path, targetName, targetDimensions_scaling_factor, z_offset, languageForMeshConstruction, 'GMSH', '.msh')
     target_mesh.constructFromGmshFile()
     N_RWG = target_mesh.N_RWG
     w = 2. * pi * f
@@ -21,8 +21,8 @@ def testVolakisMoM(path, targetName, f, M0M_FULL_PRECISION):
     TDS_APPROX = 0
     Z_s = 0.0
     CFIE = array([coeff, 0.0, 0.0, -(1.0-coeff) * 377], 'D')
-    list_of_test_edges_numbers = arange(N_RWG).astype('i')#[0::6]
-    list_of_src_edges_numbers = arange(N_RWG).astype('i')#[2::6]
+    list_of_test_edges_numbers = arange(N_RWG,dtype='i')#.astype('i')#[0::6]
+    list_of_src_edges_numbers = arange(N_RWG,dtype='i')#.astype('i')#[2::6]
     print "Target_MoM instanciation"
     target_MoM = Target_MoM(CFIE, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh, w, eps_r, mu_r, TDS_APPROX, Z_s, MOM_FULL_PRECISION)
     print "Matrix inversion..."

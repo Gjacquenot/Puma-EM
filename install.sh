@@ -17,11 +17,12 @@ echo " (7) Ubuntu 7.10, 32 or 64 bits"
 echo " (8) Ubuntu 8.04, 32 or 64 bits"
 echo " (9) Ubuntu 8.10, 32 or 64 bits"
 echo " (10) Ubuntu 9.04, 32 or 64 bits"
-echo " (11) OpenSuse 11.0, 32 bits"
-echo " (12) OpenSuse 11.0, 64 bits"
-echo " (13) OpenSuse 11.1, 64 bits"
-echo " (14) CentOS 5.2, 64 bits"
-echo " (15) Other Linux distribution"
+echo " (11) Ubuntu 10.04, 32 or 64 bits"
+echo " (12) OpenSuse 11.0, 32 bits"
+echo " (13) OpenSuse 11.0, 64 bits"
+echo " (14) OpenSuse 11.1, 64 bits"
+echo " (15) CentOS 5.2, 64 bits"
+echo " (16) Other Linux distribution"
 echo " "
 echo "Enter the correct number here: "
 read DISTRIB
@@ -88,30 +89,36 @@ elif [ $DISTRIB = "10" ]; then
     ./UBUNTU_9.04_INSTALL.sh
     cd ..
 elif [ $DISTRIB = "11" ]; then
+    echo " OK, running install script for Ubuntu 10.04: $DIR_INSTALL_SCRIPTS/UBUNTU_10.04_INSTALL.sh"
+    echo " read the file if you want more info about what will be installed..."
+    cd $DIR_INSTALL_SCRIPTS
+    ./UBUNTU_10.04_INSTALL.sh
+    cd ..
+elif [ $DISTRIB = "12" ]; then
     echo " OK, running install script for OpenSuse 11.0: $DIR_INSTALL_SCRIPTS/OPENSUSE_11.0_32BITS_INSTALL.sh"
     echo " read the file if you want more info about what will be installed..."
     cd $DIR_INSTALL_SCRIPTS
     ./OPENSUSE_11.0_32BITS_INSTALL.sh
     cd ..
-elif [ $DISTRIB = "12" ]; then
+elif [ $DISTRIB = "13" ]; then
     echo " OK, running install script for OpenSuse 11.0: $DIR_INSTALL_SCRIPTS/OPENSUSE_11.0_64BITS_INSTALL.sh"
     echo " read the file if you want more info about what will be installed..."
     cd $DIR_INSTALL_SCRIPTS
     ./OPENSUSE_11.0_64BITS_INSTALL.sh
     cd ..
-elif [ $DISTRIB = "13" ]; then
+elif [ $DISTRIB = "14" ]; then
     echo " OK, running install script for OpenSuse 11.1: $DIR_INSTALL_SCRIPTS/OPENSUSE_11.1_64BITS_INSTALL.sh"
     echo " read the file if you want more info about what will be installed..."
     cd $DIR_INSTALL_SCRIPTS
     ./OPENSUSE_11.1_64BITS_INSTALL.sh
     cd ..
-elif [ $DISTRIB = "14" ]; then
+elif [ $DISTRIB = "15" ]; then
     echo " OK, running install script for CentOS 5.2: $DIR_INSTALL_SCRIPTS/CENTOS5_64BITS_INSTALL.sh"
     echo " read the file if you want more info about what will be installed..."
     cd $DIR_INSTALL_SCRIPTS
     ./CENTOS5_64BITS_INSTALL.sh
     cd ..
-elif [ $DISTRIB = "15" ]; then
+elif [ $DISTRIB = "16" ]; then
     echo " Sorry, no install script for Other distributions yet. See what is done in the other install scripts."
 fi
 
