@@ -8,8 +8,6 @@ from EM_constants import *
 from ReadWriteBlitzArray import readASCIIBlitzFloatArray1DFromDisk, readBlitzArrayFromDisk, readASCIIBlitzFloatArray2DFromDisk
 
 def monostatic_SAR(params_simu):
-    # data generation of Volakis article, IEEE Antennas and Propagation Magazine, December 1992
-    # for this purpose we use the MLFMA routines
     my_id = MPI.COMM_WORLD.Get_rank()
     if my_id==0:
         r_SAR = readASCIIBlitzFloatArray2DFromDisk('./result/r_SAR.txt')
@@ -24,8 +22,6 @@ def monostatic_SAR(params_simu):
     return SAR_RCS_HH, SAR_RCS_VV, SAR_RCS_HV, r_SAR
 
 def monostatic_RCS(params_simu):
-    # data generation of Volakis article, IEEE Antennas and Propagation Magazine, December 1992
-    # for this purpose we use the MLFMA routines
     my_id = MPI.COMM_WORLD.Get_rank()
     if my_id==0:
         phis_far_field = 180./pi * readASCIIBlitzFloatArray1DFromDisk('./result/phis_far_field_ASCII.txt')
@@ -71,61 +67,6 @@ def bistatic_RCS(params_simu):
         thetas_far_field, phis_far_field = zeros(1), zeros(1)
     return sigma_theta, sigma_phi, thetas_far_field, phis_far_field
 
-def testVolakisMLFMA(params_simu):
-
-    # Testing of the code for PEC targets
-    #
-    # For more info about the tests, see:
-    # [1] A.C. Woo et al., "Benchmark Plate Radar Targets for the Validation
-    #     of Computational Electromagnetics Programs", IEEE Antennas and 
-    #     Propagation Magazine, Vol. 34, No. 6, December 1992
-    # [2] A.C. Woo et al., "Benchmark Radar Targets for the Validation
-    #     of Computational Electromagnetics Programs", IEEE Antennas and 
-    #     Propagation Magazine, Vol. 35, No. 1, February 1993
-    #
-    # The code can also be compared to the RCS computed in:
-    # [3] Gang Kan et al., "A Novel Grid-Robust Higher Order Vector Basis Function
-    #     for the Method of Moments", IEEE Trans. Ant. Prop., vol. 49, No. 6, 
-    #     June 2001, pp 908--915
-    #
-    # There are tests on 2 types of targets: plane targets and 3D targets.
-    # These targets have been defined by the Electromagnetic Code Consortium.
-    #
-    # The EMCC targets described in [1], [2] have been implemented 
-    # and are in the "Puma-EM/geo" directory.
-    #
-    # certain data will be automatically created/overwritten for you, i.e.:
-    #   - params_simu.thetas_obs
-    #
-    # However, you still have to set your own desired frequency, this for allowing you to easily 
-    # generate the double-frequency results of reference [2] (or create new results on your own).
-    # 
-    # The frequency doesn't matter for plate targets, as their dimensions are calculated in wavelengths.
-    #
-    # For the 3D targets, the frequencies used in [2] are:
-    #   - 1.19 GHz, 7 GHz and 9.92 GHz for the almond (also 5 GHz in [3], Fig. 8)
-    #   - 1.18 GHz and 9 GHz for the ogive
-    #   - 1.57 GHz and 9 GHz for the double ogive
-    #   - 0.869 GHz and 9 GHz for the cone-sphere and the cone-gap-sphere
-
-    params_simu.COMPUTE_RCS_HH = 1
-    params_simu.COMPUTE_RCS_VV = 1
-    params_simu.MONOSTATIC_RCS = 1 # we have to compute the monostatic RCS
-    params_simu.MOM_FULL_PRECISION = 1 # we need precision
-    params_simu.lc_factor = 1.0/10.0 # we need precision
-    params_simu.dB = 1.0
-    if ('EMCC' in params_simu.targetName) and ('plate' in params_simu.targetName):
-        params_simu.lx = c/params_simu.f
-        params_simu.USER_DEFINED_THETAS_OBS = 1
-        params_simu.thetas_obs = array([80.0/180.0]) * pi
-        params_simu.USER_DEFINED_PHIS_OBS = 0
-        params_simu.dB = 1.0 / (c/params_simu.f)**2
-    elif 'EMCC' in params_simu.targetName:
-        params_simu.USER_DEFINED_THETAS_OBS = 1
-        params_simu.thetas_obs = array([90.0/180.0]) * pi
-        params_simu.USER_DEFINED_PHIS_OBS = 0
-    RCS_HH, RCS_VV, RCS_HV, thetas_far_field, phis_far_field = monostatic_RCS(params_simu)
-    return RCS_HH, RCS_VV, RCS_HV, thetas_far_field, phis_far_field
 
 if __name__=='__main__':
     MPI.Init()
