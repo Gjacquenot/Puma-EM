@@ -48,6 +48,15 @@ void local_V_CFIE_dipole (blitz::Array<std::complex<float>, 1>& V_CFIE,
                            const std::complex<double>& mu_r,
                            const blitz::Array<std::complex<float>, 1>& CFIE);
 
+void local_V_CFIE_dipole_array (blitz::Array<std::complex<float>, 1>& V_CFIE,
+                                const blitz::Array<std::complex<double>, 2>& J_dip,
+                                const blitz::Array<double, 2>& r_dip,
+                                const LocalMesh & local_target_mesh,
+                                const double w,
+                                const std::complex<double>& eps_r,
+                                const std::complex<double>& mu_r,
+                                const blitz::Array<std::complex<float>, 1>& CFIE);
+
 void V_EJ_HJ_dipole_alternative (blitz::Array<std::complex<double>, 1> V_tE_J, 
                                  blitz::Array<std::complex<double>, 1> V_nE_J,
                                  blitz::Array<std::complex<double>, 1> V_tH_J,
