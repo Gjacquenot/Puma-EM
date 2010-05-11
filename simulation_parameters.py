@@ -31,7 +31,7 @@ params_simu.lc_factor = 1.0/10.0
 # If mesh comes from another program, like GiD, set it to False
 params_simu.meshToMake = True
 # the mesh format. Currently only 3 are supported.
-MESH_FORMAT = ['GMSH', 'GiD', 'IDEAS']
+MESH_FORMAT = ['GMSH', 'GiD', 'ANSYS']
 # GMSH is the default meshing program
 params_simu.meshFormat = MESH_FORMAT[0]
 # you shouldn't change the following 7 lines
@@ -40,8 +40,8 @@ if params_simu.meshToMake:
 # the termination of the mesh file
 if (params_simu.meshFormat == 'GMSH') or (params_simu.meshFormat == 'GiD'):
     params_simu.meshFileTermination = '.msh'
-elif (params_simu.meshFormat == 'IDEAS'):
-    params_simu.meshFileTermination = '.unv'
+elif (params_simu.meshFormat == 'ANSYS'):
+    params_simu.meshFileTermination = '.lis'
 
 #relative epsilon and mu of the host medium
 params_simu.eps_r = 1. + 0.j

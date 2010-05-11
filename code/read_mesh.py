@@ -276,7 +276,7 @@ def read_mesh_GMSH_2(name, targetDimensions_scaling_factor, z_offset):
 
 def preRead_mesh_GiD(meshFile_name):
     """
-       GiD is a CAD mesh format, from a program you can google on the Internet.
+       GiD is a mesh generator that you can google on the Internet.
 
        This function splits the meshFile_name.msh file into smaller entities.
        How do we do it?
@@ -300,7 +300,7 @@ def preRead_mesh_GiD(meshFile_name):
             coordinatesFile.write(line)
     content['Nodes'] = [numberOfLines]
     coordinatesFile.close()
-    # we now read the 'Elements'
+    # we now read and rewrite the 'Elements'
     elementsFile = open(meshFile_name + '.' + 'Elements', 'w')
     numberOfLines = 0
     for lineTmp in file:
@@ -409,8 +409,65 @@ def read_mesh_GiD(name, targetDimensions_scaling_factor, z_offset):
     vertexes_coord = take(vertexes_coord, encountered_vertexes, axis=0)
     return vertexes_coord.astype('d'), triangles_vertexes.astype('i'), triangles_physicalSurface.astype('i')
 
+def preRead_mesh_ANSYS(meshFile_path):
+    """
+       ANSYS is a multiphysics program that can mesh geometries.
+
+       This function splits the meshFile_name.msh file into smaller entities.
+       How do we do it?
+
+       Each time we encounter a new 'entity' in the mesh file, such as 'Nodes' 
+       for example, we create a new file for it, name it with the entity name,
+       say 'meshFile_name.msh.Nodes', and place there all corresponding entities,
+       i.e. Nodes in this example.
+    """
+    # we first open the nodes coordinates file from which we will read
+    # NLIST.lis is the default ANSYS name.
+    fileToRead = open(os.path.join(meshFile_path, 'NLIST.lis'), 'r')
+    # we also open the file into which we will write the reformatted nodes
+    coordinatesFile = open(os.path.join(meshFile_path, 'NLIST.lis.Nodes'), 'w')
+    # various initialisations
+    content = {}
+    numberOfLines = 0
+    # and now the read and write operations
+    for currentLine in fileToRead:
+        words = currentLine.split()
+        # we pass the line if it is empty. If non empty, we test for numeral entries.
+        if len(words) > 0:
+            word = words[0]
+            if (word[0]>='0' and word[0]<='9'): # we then have an integer
+                numberOfLines += 1
+                lineToWrite = words[0] + ' ' + words[1] + ' ' + words[2] + ' ' + words[3] + '\n'
+                coordinatesFile.write(lineToWrite)
+    content['Nodes'] = [numberOfLines]
+    fileToRead.close()
+    coordinatesFile.close()
+    # we now read the 'Elements'
+    # ELIST.lis is the default ANSYS name.
+    fileToRead = open(os.path.join(meshFile_path, 'ELIST.lis'), 'r')
+    elementsFile = open(os.path.join(meshFile_path, 'ELIST.lis.Elements'), 'w')
+    numberOfLines = 0
+    for currentLine in fileToRead:
+        words = currentLine.split()
+        # we pass the line if it is empty. If non empty, we test for numeral entries.
+        if len(words) > 0:
+            word = words[0]
+            if (word[0]>='0' and word[0]<='9'): # we then have an integer
+                numberOfLines += 1
+                lineToWrite = words[0] + ' ' + words[6] + ' ' + words[7] + ' ' + words[8] + '\n'
+                elementsFile.write(lineToWrite)
+    content['Elements'] = [numberOfLines]
+    elementsFile.close()
+    fileToRead.close()
+    return content
+
+def read_mesh_ANSYS(name, targetDimensions_scaling_factor, z_offset):
+    """function that reads the mesh and puts it into nice arrays"""
+
+
 if __name__=="__main__":
     path = './geo'
+    """
     targetName = 'sphere'
     write_geo(path, targetName, 'lc', 0.05)
     write_geo(path, targetName, 'lx', 0.051)
@@ -434,4 +491,7 @@ if __name__=="__main__":
     print sum(abs(triangles_physicalSurface_1 - triangles_physicalSurface_2))
     
     vertexes_coord_GiD, triangles_vertexes_GiD, triangles_physicalSurface_GiD = read_mesh_GiD(os.path.join(path, 'aaa1') + '.msh', targetDimensions_scaling_factor, z_offset)
+    """
+    content = preRead_mesh_ANSYS('./geo')
+    print content
 
