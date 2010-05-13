@@ -10,6 +10,8 @@ using namespace std;
 std::string intToString(const int & x);
 double stringToDouble(const std::string& s);
 // write scalar to text file
+template <typename T>
+void writeScalarToASCIIFile(const string filename, const T & x);
 void writeIntToASCIIFile(const string filename, const int & x);
 void writeFloatToASCIIFile(const string filename, const float & x);
 void writeDoubleToASCIIFile(const string filename, const double & x);
@@ -19,6 +21,8 @@ void writeComplexDoubleToASCIIFile(const string filename, const complex<double> 
 // read string from file
 void readStringFromASCIIFile(const string filename, string & x);
 // read scalar from text file
+template <typename T>
+void readScalarFromASCIIFile(const string filename, T & x);
 void readIntFromASCIIFile(const string filename, int & x);
 void readFloatFromASCIIFile(const string filename, float & x);
 void readDoubleFromASCIIFile(const string filename, double & x);
@@ -26,6 +30,8 @@ void readComplexFloatFromASCIIFile(const string filename, complex<float> & x);
 void readComplexDoubleFromASCIIFile(const string filename, complex<double> & x);
 
 // read ASCII 1-D arrays
+template<typename T>
+void readBlitzArray1DFromASCIIFile(const string filename, blitz::Array<T, 1>& A);
 void readIntBlitzArray1DFromASCIIFile(const string filename, blitz::Array<int, 1>& A);
 void readFloatBlitzArray1DFromASCIIFile(const string filename, blitz::Array<float, 1>& A);
 void readDoubleBlitzArray1DFromASCIIFile(const string filename, blitz::Array<double, 1>& A);
@@ -49,6 +55,8 @@ void writeIntBlitzArray1DToBinaryFile(const string filename, blitz::Array<int, 1
 
 
 // read ASCII 2-D arrays
+template<typename T>
+void readBlitzArray2DFromASCIIFile(const string filename, blitz::Array<T, 2>& A);
 void readIntBlitzArray2DFromASCIIFile(const string filename, blitz::Array<int, 2>& A);
 void readFloatBlitzArray2DFromASCIIFile(const string filename, blitz::Array<float, 2>& A);
 void readDoubleBlitzArray2DFromASCIIFile(const string filename, blitz::Array<double, 2>& A);

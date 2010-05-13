@@ -51,9 +51,9 @@ def bistatic_RCS(params_simu):
         eps, mu = params_simu.eps_r * eps_0, params_simu.mu_r * mu_0
         k = w * sqrt(mu * eps) # the wavenumber
         if params_simu.EXCITATION=='dipole':
-            r_dip_src = array([params_simu.r_src_x, params_simu.r_src_y, params_simu.r_src_z], 'd')
+            r_dip_src = array([params_simu.r_src_x[0], params_simu.r_src_y[0], params_simu.r_src_z[0]], 'd')
             G_EJ_inc, G_HJ_inc = G_EJ_G_HJ(r_dip_src, R_cube_center, eps, mu, k)
-            J_dip_src = array([params_simu.J_src_x, params_simu.J_src_y, params_simu.J_src_z], 'D')
+            J_dip_src = array([params_simu.J_src_x[0], params_simu.J_src_y[0], params_simu.J_src_z[0]], 'D')
             E_inc = dot(G_EJ_inc, J_dip_src)
         elif params_simu.EXCITATION=='plane':
             E_inc = array([params_simu.E_inc_theta, params_simu.E_inc_phi], 'D')

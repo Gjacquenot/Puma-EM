@@ -350,12 +350,29 @@ def setup_MLFMA(params_simu):
         if (my_id==0):
             print "Error in the r_obs parameter. Check your observation points!"
         sys.exit(1)
+    writeASCIIBlitzArrayToDisk(r_obs, os.path.join('.',tmpDirName,'V_CFIE/r_obs.txt'))
+
+    # now the excitations
     writeScalarToDisk(params_simu.EXCITATION, os.path.join('.',tmpDirName,'V_CFIE/EXCITATION.txt'))
     if params_simu.EXCITATION=='dipole':
-        J_dip = array([params_simu.J_src_x, params_simu.J_src_y, params_simu.J_src_z], 'D')
-        r_dip = array([params_simu.r_src_x, params_simu.r_src_y, params_simu.r_src_z], 'd')
-        writeASCIIBlitzArrayToDisk(J_dip, os.path.join('.',tmpDirName,'V_CFIE/J_dip.txt'))
-        writeASCIIBlitzArrayToDisk(r_dip, os.path.join('.',tmpDirName,'V_CFIE/r_dip.txt'))
+        if (len(params_simu.r_src_x)==len(params_simu.r_src_y)) and (len(params_simu.r_src_x)==len(params_simu.r_src_z)):
+            if (len(params_simu.J_src_x)==len(params_simu.J_src_y)) and (len(params_simu.J_src_x)==len(params_simu.J_src_z)):
+                N_src_points = len(params_simu.r_src_x)
+                J_src = zeros((N_src_points, 3), 'D')
+                r_src = zeros((N_src_points, 3), 'd')
+                for index in range(N_src_points):
+                    r_src[index,:] = array([params_simu.r_src_x[index], params_simu.r_src_y[index], params_simu.r_src_z[index]], 'd')
+                    J_src[index,:] = array([params_simu.J_src_x[index], params_simu.J_src_y[index], params_simu.J_src_z[index]], 'D')
+            else:
+                if (my_id==0):
+                    print "Error in the r_obs parameter. Check your observation points!"
+                sys.exit(1)
+        else:
+            if (my_id==0):
+                print "Error in the r_obs parameter. Check your observation points!"
+            sys.exit(1)
+        writeASCIIBlitzArrayToDisk(J_src, os.path.join('.',tmpDirName,'V_CFIE/J_dip.txt'))
+        writeASCIIBlitzArrayToDisk(r_src, os.path.join('.',tmpDirName,'V_CFIE/r_dip.txt'))
     elif params_simu.EXCITATION=='plane':
         writeScalarToDisk(params_simu.theta_inc, os.path.join('.',tmpDirName,'V_CFIE/theta_inc.txt'))
         writeScalarToDisk(params_simu.phi_inc, os.path.join('.',tmpDirName,'V_CFIE/phi_inc.txt'))
@@ -365,7 +382,6 @@ def setup_MLFMA(params_simu):
         if (my_id==0):
             print "incorrect excitation choice. You chose", params_simu.EXCITATION
         sys.exit(1)
-    writeASCIIBlitzArrayToDisk(r_obs, os.path.join('.',tmpDirName,'V_CFIE/r_obs.txt'))
     if params_simu.MONOSTATIC_SAR==1:
         writeASCIIBlitzArrayToDisk(array(params_simu.SAR_local_x_hat, 'd'), os.path.join('.',tmpDirName,'V_CFIE/SAR_local_x_hat.txt'))
         writeASCIIBlitzArrayToDisk(array(params_simu.SAR_local_y_hat, 'd'), os.path.join('.',tmpDirName,'V_CFIE/SAR_local_y_hat.txt'))

@@ -69,13 +69,25 @@ if (params_simu.COMPUTE_RCS_HH==0) and (params_simu.COMPUTE_RCS_VV==0):
 EXCITATIONS = ['dipole', 'plane']
 params_simu.EXCITATION = EXCITATIONS[0] # 0 is dipole, 1 is plane
 if params_simu.EXCITATION=='dipole':
-    # origin, strength, phase and polarization of the dipole
-    params_simu.J_src_x = 1.0+0.j
-    params_simu.J_src_y = 0.0+0.j
-    params_simu.J_src_z = 0.0+0.j
-    params_simu.r_src_x = 0.1
-    params_simu.r_src_y = 0.1
-    params_simu.r_src_z = 20.0
+    # origin, strength, phase and polarization of the dipoles
+    # we have 2 lists for this purpose: dipoles and positions of these dipoles
+    # You can construct it by using a small program or list comprehension.
+    # example:
+    # params_simu.J_src_x = [Jx1, Jx2, ..., Jxn]
+    # params_simu.J_src_y = [Jy1, Jy2, ..., Jyn]
+    # params_simu.J_src_z = [Jz1, Jz2, ..., Jzn]
+    # and:
+    # params_simu.r_src_x = [x1, x2, x3, ..., xn]
+    # params_simu.r_src_y = [y1, y2, y3, ..., yn]
+    # params_simu.r_src_z = [z1, z2, z3, ..., zn]
+    # will yield the dipoles J1 = [Jx1, Jy1, Jz1], J2 = [Jx2, Jy2, Jz2], etc.
+    # at the respective points r1 = [x1, y1, z1], r2 = [x2, y2, z2], etc.
+    params_simu.J_src_x = [1.0+0.j]
+    params_simu.J_src_y = [0.0+0.j]
+    params_simu.J_src_z = [0.0+0.j]
+    params_simu.r_src_x = [0.1]
+    params_simu.r_src_y = [0.1]
+    params_simu.r_src_z = [20.0]
 elif params_simu.EXCITATION=='plane':
     # origin, strength, phase and polarization of the plane wave
     params_simu.theta_inc = pi/2.0

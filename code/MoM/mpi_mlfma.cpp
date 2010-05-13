@@ -345,15 +345,15 @@ void computeForOneExcitation(Octtree & octtree,
   string EXCITATION;
   readStringFromASCIIFile(V_CFIE_DATA_PATH + "EXCITATION.txt", EXCITATION);
   if (EXCITATION=="dipole") {
-    blitz::Array<std::complex<double>, 1> J_dip(3);
-    blitz::Array<double, 1> r_dip(3);
-    readComplexDoubleBlitzArray1DFromASCIIFile( V_CFIE_DATA_PATH + "J_dip.txt", J_dip);
-    readDoubleBlitzArray1DFromASCIIFile( V_CFIE_DATA_PATH + "r_dip.txt", r_dip);
+    blitz::Array<std::complex<double>, 2> J_dip;
+    blitz::Array<double, 2> r_dip;
+    readBlitzArray2DFromASCIIFile( V_CFIE_DATA_PATH + "J_dip.txt", J_dip);
+    readBlitzArray2DFromASCIIFile( V_CFIE_DATA_PATH + "r_dip.txt", r_dip);
     if (my_id==0) {
       cout << "J_dip.txt = " << J_dip << endl;
       cout << "r_dip.txt = " << r_dip << endl;
     }
-    local_V_CFIE_dipole (V_CFIE, J_dip, r_dip, local_target_mesh, w, eps_r, mu_r, octtree.CFIE);
+    local_V_CFIE_dipole_array (V_CFIE, J_dip, r_dip, local_target_mesh, w, eps_r, mu_r, octtree.CFIE);
   }
   else if (EXCITATION=="plane") {
     double theta_inc, phi_inc;
