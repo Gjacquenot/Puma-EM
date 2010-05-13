@@ -50,16 +50,18 @@ def bistatic_RCS(params_simu):
         w = 2. * pi * params_simu.f
         eps, mu = params_simu.eps_r * eps_0, params_simu.mu_r * mu_0
         k = w * sqrt(mu * eps) # the wavenumber
-        if params_simu.EXCITATION=='dipole':
+        P_inc = 0.0
+        if (params_simu.BISTATIC_EXCITATION_DIPOLES == 1):
             r_dip_src = array([params_simu.r_src_x[0], params_simu.r_src_y[0], params_simu.r_src_z[0]], 'd')
             G_EJ_inc, G_HJ_inc = G_EJ_G_HJ(r_dip_src, R_cube_center, eps, mu, k)
             J_dip_src = array([params_simu.J_src_x[0], params_simu.J_src_y[0], params_simu.J_src_z[0]], 'D')
             E_inc = dot(G_EJ_inc, J_dip_src)
-        elif params_simu.EXCITATION=='plane':
+            P_inc += real(dot(E_inc, conj(E_inc)))
+        if (params_simu.BISTATIC_EXCITATION_PLANE_WAVE == 1):
             E_inc = array([params_simu.E_inc_theta, params_simu.E_inc_phi], 'D')
-        else:
-            pass
-        P_inc = real(dot(E_inc, conj(E_inc)))
+            P_inc += real(dot(E_inc, conj(E_inc)))            
+        if (params_simu.BISTATIC_EXCITATION_DIPOLES == 1) and (params_simu.BISTATIC_EXCITATION_PLANE_WAVE == 1):
+            print "WARNING: you have dipole and plane wave excitation simultaneously. Is it what you intended??"
         sigma_phi = p_scatt_phi/(P_inc * 4.0 * pi)
         sigma_theta = p_scatt_theta/(P_inc * 4.0 * pi)
     else:

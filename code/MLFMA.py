@@ -353,8 +353,9 @@ def setup_MLFMA(params_simu):
     writeASCIIBlitzArrayToDisk(r_obs, os.path.join('.',tmpDirName,'V_CFIE/r_obs.txt'))
 
     # now the excitations
-    writeScalarToDisk(params_simu.EXCITATION, os.path.join('.',tmpDirName,'V_CFIE/EXCITATION.txt'))
-    if params_simu.EXCITATION=='dipole':
+    writeScalarToDisk(params_simu.BISTATIC_EXCITATION_DIPOLES, os.path.join('.',tmpDirName,'V_CFIE/DIPOLES_EXCITATION.txt'))
+    writeScalarToDisk(params_simu.BISTATIC_EXCITATION_PLANE_WAVE, os.path.join('.',tmpDirName,'V_CFIE/PLANE_WAVE_EXCITATION.txt'))
+    if params_simu.BISTATIC_EXCITATION_DIPOLES == 1:
         if (len(params_simu.r_src_x)==len(params_simu.r_src_y)) and (len(params_simu.r_src_x)==len(params_simu.r_src_z)):
             if (len(params_simu.J_src_x)==len(params_simu.J_src_y)) and (len(params_simu.J_src_x)==len(params_simu.J_src_z)):
                 N_src_points = len(params_simu.r_src_x)
@@ -373,14 +374,14 @@ def setup_MLFMA(params_simu):
             sys.exit(1)
         writeASCIIBlitzArrayToDisk(J_src, os.path.join('.',tmpDirName,'V_CFIE/J_dip.txt'))
         writeASCIIBlitzArrayToDisk(r_src, os.path.join('.',tmpDirName,'V_CFIE/r_dip.txt'))
-    elif params_simu.EXCITATION=='plane':
+    if params_simu.BISTATIC_EXCITATION_PLANE_WAVE == 1:
         writeScalarToDisk(params_simu.theta_inc, os.path.join('.',tmpDirName,'V_CFIE/theta_inc.txt'))
         writeScalarToDisk(params_simu.phi_inc, os.path.join('.',tmpDirName,'V_CFIE/phi_inc.txt'))
         E_inc = array([params_simu.E_inc_theta, params_simu.E_inc_phi], 'D')
         writeASCIIBlitzArrayToDisk(E_inc, os.path.join('.',tmpDirName,'V_CFIE/E_inc.txt'))
-    else:
+    if (params_simu.BISTATIC_EXCITATION_DIPOLES != 1) and (params_simu.BISTATIC_EXCITATION_PLANE_WAVE != 1):
         if (my_id==0):
-            print "incorrect excitation choice. You chose", params_simu.EXCITATION
+            print "incorrect excitation choice. You have to choose dipole and/or plane wave excitation."
         sys.exit(1)
     if params_simu.MONOSTATIC_SAR==1:
         writeASCIIBlitzArrayToDisk(array(params_simu.SAR_local_x_hat, 'd'), os.path.join('.',tmpDirName,'V_CFIE/SAR_local_x_hat.txt'))

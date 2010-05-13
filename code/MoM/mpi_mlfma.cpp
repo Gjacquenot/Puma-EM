@@ -341,10 +341,12 @@ void computeForOneExcitation(Octtree & octtree,
   LeftFrobPsolveMLFMA leftFrobPsolveMLFMA(N_RWG, localRWGNumbers);
 
   // excitation : V_CFIE computation
-  blitz::Array<std::complex<float>, 1> V_CFIE;
-  string EXCITATION;
-  readStringFromASCIIFile(V_CFIE_DATA_PATH + "EXCITATION.txt", EXCITATION);
-  if (EXCITATION=="dipole") {
+  blitz::Array<std::complex<float>, 1> V_CFIE(N_local_RWG);
+  V_CFIE = 0.0;
+  int DIPOLES_EXCITATION, PLANE_WAVE_EXCITATION;
+  readIntFromASCIIFile(V_CFIE_DATA_PATH + "DIPOLES_EXCITATION.txt", DIPOLES_EXCITATION);
+  readIntFromASCIIFile(V_CFIE_DATA_PATH + "PLANE_WAVE_EXCITATION.txt", PLANE_WAVE_EXCITATION);
+  if (DIPOLES_EXCITATION==1) {
     blitz::Array<std::complex<double>, 2> J_dip;
     blitz::Array<double, 2> r_dip;
     readBlitzArray2DFromASCIIFile( V_CFIE_DATA_PATH + "J_dip.txt", J_dip);
@@ -353,9 +355,11 @@ void computeForOneExcitation(Octtree & octtree,
       cout << "J_dip.txt = " << J_dip << endl;
       cout << "r_dip.txt = " << r_dip << endl;
     }
-    local_V_CFIE_dipole_array (V_CFIE, J_dip, r_dip, local_target_mesh, w, eps_r, mu_r, octtree.CFIE);
+    blitz::Array<std::complex<float>, 1> V_CFIE_tmp;
+    local_V_CFIE_dipole_array (V_CFIE_tmp, J_dip, r_dip, local_target_mesh, w, eps_r, mu_r, octtree.CFIE);
+    V_CFIE += V_CFIE_tmp;
   }
-  else if (EXCITATION=="plane") {
+  if (PLANE_WAVE_EXCITATION==1) {
     double theta_inc, phi_inc;
     readDoubleFromASCIIFile(V_CFIE_DATA_PATH + "theta_inc.txt", theta_inc);
     readDoubleFromASCIIFile(V_CFIE_DATA_PATH + "phi_inc.txt", phi_inc);
@@ -372,7 +376,9 @@ void computeForOneExcitation(Octtree & octtree,
     blitz::Array<std::complex<double>, 1> E_inc_components(2), E_inc(3);
     readComplexDoubleBlitzArray1DFromASCIIFile( V_CFIE_DATA_PATH + "E_inc.txt", E_inc_components );
     E_inc = E_inc_components(0) * theta_hat + E_inc_components(1) * phi_hat;
-    local_V_CFIE_plane (V_CFIE, E_inc, k_hat, r_ref, local_target_mesh, octtree.w, octtree.eps_r, octtree.mu_r, octtree.CFIE);
+    blitz::Array<std::complex<float>, 1> V_CFIE_tmp;
+    local_V_CFIE_plane (V_CFIE_tmp, E_inc, k_hat, r_ref, local_target_mesh, octtree.w, octtree.eps_r, octtree.mu_r, octtree.CFIE);
+    V_CFIE += V_CFIE_tmp;
   }
   local_target_mesh.resizeToZero();
   // iterative solving

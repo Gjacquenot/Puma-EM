@@ -66,9 +66,15 @@ if (params_simu.COMPUTE_RCS_HH==0) and (params_simu.COMPUTE_RCS_VV==0):
 # Bistatic computation settings
 # type, strenght and phase and direction, origin of the source.
 # It will not be used in case of monostatic_RCS computation
-EXCITATIONS = ['dipole', 'plane']
-params_simu.EXCITATION = EXCITATIONS[0] # 0 is dipole, 1 is plane
-if params_simu.EXCITATION=='dipole':
+# we have 2 types of excitation: 
+# - plurality of dipoles (1 dipole is ok)
+# - plane wave
+# We can have these excitations separately or at the same time, i.e.,
+# plane wave and dipoles.
+params_simu.BISTATIC_EXCITATION_DIPOLES = 1
+params_simu.BISTATIC_EXCITATION_PLANE_WAVE = 0
+# now the details of each excitation
+if params_simu.BISTATIC_EXCITATION_DIPOLES == 1:
     # origin, strength, phase and polarization of the dipoles
     # we have 2 lists for this purpose: dipoles and positions of these dipoles
     # You can construct it by using a small program or list comprehension.
@@ -88,14 +94,12 @@ if params_simu.EXCITATION=='dipole':
     params_simu.r_src_x = [0.1]
     params_simu.r_src_y = [0.1]
     params_simu.r_src_z = [20.0]
-elif params_simu.EXCITATION=='plane':
+if params_simu.BISTATIC_EXCITATION_PLANE_WAVE == 1:
     # origin, strength, phase and polarization of the plane wave
     params_simu.theta_inc = pi/2.0
     params_simu.phi_inc = pi/2.0
     params_simu.E_inc_theta = 1.0+0.j # the theta component
     params_simu.E_inc_phi = 0.0+0.j # the phi component
-else:
-    pass
 # sampling points: sampling of the resulting field at user-specified points in space.
 # It will be used only for BISTATIC
 # The lists have to be of equal lengths.

@@ -191,7 +191,6 @@ void V_CFIE_plane (blitz::Array<std::complex<float>, 1> V_CFIE,
        k_hat(0)*E_0(1)-k_hat(1)*E_0(0);
   H0 *= sqrt(eps/mu);
 
-
   V_CFIE = 0.0;
   blitz::TinyVector<double, 3> r0, r1, r2, r_obs;
   for (int rwg=0 ; rwg<N_RWG_test ; ++rwg) { // loop on the RWGs
