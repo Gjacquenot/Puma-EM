@@ -28,15 +28,15 @@ params_simu.lc_factor = 1.0/10.0
 
 # CAD and meshing tools
 # the following parameter tells if we want to mesh (True) on-the-fly with GMSH.
-# If mesh comes from another program, like GiD, set it to False
+# If mesh comes from another program, like GiD, it will have no impact
 params_simu.meshToMake = True
 # the mesh format. Currently only 3 are supported.
 MESH_FORMAT = ['GMSH', 'GiD', 'ANSYS']
 # GMSH is the default meshing program
 params_simu.meshFormat = MESH_FORMAT[0]
 # you shouldn't change the following 7 lines
-if params_simu.meshToMake:
-    params_simu.meshFormat = MESH_FORMAT[0]
+if params_simu.meshFormat in ['GiD', 'ANSYS']:
+    params_simu.meshToMake = False
 # the termination of the mesh file
 if (params_simu.meshFormat == 'GMSH') or (params_simu.meshFormat == 'GiD'):
     params_simu.meshFileTermination = '.msh'
