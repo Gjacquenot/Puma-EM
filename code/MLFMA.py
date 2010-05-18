@@ -11,6 +11,7 @@ from EM_constants import *
 from MoMPostProcessing import *
 from ReadWriteBlitzArray import writeScalarToDisk, writeASCIIBlitzArrayToDisk, writeBlitzArrayToDisk, readIntFromDisk, readFloatFromDisk, read1DBlitzArrayFromDisk, readASCIIBlitzComplexFloatArray2DFromDisk, readASCIIBlitzFloatArray2DFromDisk
 from runMPIsystemCommand import runMPIsystemCommand, createMPIsystemCommand
+from read_dipole_excitation import read_dipole_excitation
 
 def L_computation(k, a, NB_DIGITS):
     """this function computes the number of expansion poles given the wavenumber k and the sidelength a"""
@@ -355,7 +356,8 @@ def setup_MLFMA(params_simu):
     # now the excitations
     writeScalarToDisk(params_simu.BISTATIC_EXCITATION_DIPOLES, os.path.join('.',tmpDirName,'V_CFIE/DIPOLES_EXCITATION.txt'))
     writeScalarToDisk(params_simu.BISTATIC_EXCITATION_PLANE_WAVE, os.path.join('.',tmpDirName,'V_CFIE/PLANE_WAVE_EXCITATION.txt'))
-    if params_simu.BISTATIC_EXCITATION_DIPOLES == 1:
+    # if we have dipoles excitation AND definition of the excitation in simulation_parameters.py
+    if (params_simu.BISTATIC_EXCITATION_DIPOLES == 1) and (params_simu.BISTATIC_EXCITATION_DIPOLES_FROM_FILE == 0):
         if (len(params_simu.r_src_x)==len(params_simu.r_src_y)) and (len(params_simu.r_src_x)==len(params_simu.r_src_z)):
             if (len(params_simu.J_src_x)==len(params_simu.J_src_y)) and (len(params_simu.J_src_x)==len(params_simu.J_src_z)):
                 N_src_points = len(params_simu.r_src_x)
@@ -374,6 +376,12 @@ def setup_MLFMA(params_simu):
             sys.exit(1)
         writeASCIIBlitzArrayToDisk(J_src, os.path.join('.',tmpDirName,'V_CFIE/J_dip.txt'))
         writeASCIIBlitzArrayToDisk(r_src, os.path.join('.',tmpDirName,'V_CFIE/r_dip.txt'))
+    # if we have dipoles excitation AND definition of the excitation in a user-supplied file
+    elif (params_simu.BISTATIC_EXCITATION_DIPOLES == 1) and (params_simu.BISTATIC_EXCITATION_DIPOLES_FROM_FILE == 1):
+        J_src, r_src = read_dipole_excitation(params_simu.BISTATIC_EXCITATION_DIPOLES_FILENAME)
+        writeASCIIBlitzArrayToDisk(J_src, os.path.join('.',tmpDirName,'V_CFIE/J_dip.txt'))
+        writeASCIIBlitzArrayToDisk(r_src, os.path.join('.',tmpDirName,'V_CFIE/r_dip.txt'))
+    # now the plane wave excitation
     if params_simu.BISTATIC_EXCITATION_PLANE_WAVE == 1:
         writeScalarToDisk(params_simu.theta_inc, os.path.join('.',tmpDirName,'V_CFIE/theta_inc.txt'))
         writeScalarToDisk(params_simu.phi_inc, os.path.join('.',tmpDirName,'V_CFIE/phi_inc.txt'))

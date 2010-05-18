@@ -6,6 +6,7 @@ from scipy import array, arange, zeros, ones
 from V_EH import G_EJ_G_HJ
 from EM_constants import *
 from ReadWriteBlitzArray import readASCIIBlitzFloatArray1DFromDisk, readBlitzArrayFromDisk, readASCIIBlitzFloatArray2DFromDisk
+from read_dipole_excitation import read_dipole_excitation
 
 def monostatic_SAR(params_simu):
     my_id = MPI.COMM_WORLD.Get_rank()
@@ -52,9 +53,14 @@ def bistatic_RCS(params_simu):
         k = w * sqrt(mu * eps) # the wavenumber
         P_inc = 0.0
         if (params_simu.BISTATIC_EXCITATION_DIPOLES == 1):
-            r_dip_src = array([params_simu.r_src_x[0], params_simu.r_src_y[0], params_simu.r_src_z[0]], 'd')
+            if (params_simu.BISTATIC_EXCITATION_DIPOLES_FROM_FILE == 1):
+                J_src, r_src = read_dipole_excitation(params_simu.BISTATIC_EXCITATION_DIPOLES_FILENAME)
+                r_dip_src = r_src[0,:]
+                J_dip_src = J_src[0,:]
+            else:   
+                r_dip_src = array([params_simu.r_src_x[0], params_simu.r_src_y[0], params_simu.r_src_z[0]], 'd')
+                J_dip_src = array([params_simu.J_src_x[0], params_simu.J_src_y[0], params_simu.J_src_z[0]], 'D')
             G_EJ_inc, G_HJ_inc = G_EJ_G_HJ(r_dip_src, R_cube_center, eps, mu, k)
-            J_dip_src = array([params_simu.J_src_x[0], params_simu.J_src_y[0], params_simu.J_src_z[0]], 'D')
             E_inc = dot(G_EJ_inc, J_dip_src)
             P_inc += real(dot(E_inc, conj(E_inc)))
         if (params_simu.BISTATIC_EXCITATION_PLANE_WAVE == 1):
