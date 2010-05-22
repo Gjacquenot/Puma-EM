@@ -1,6 +1,6 @@
 #!/bin/bash
 ###############################################################
-# script for OpenSuse 11.1 to compile puma-em MoM simulator. #
+# script for OpenSuse 11.2 to compile puma-em MoM simulator. #
 # script produced by simon.batchelor@wirelessconsultancy.com #
 ###############################################################
 
@@ -19,7 +19,7 @@ rm -rf ~/.python*_compile
 echo " You will be asked for your root password so that the machine can install some programs as root"
 # installing the main dependencies...
 echo " sudo password for installing main dependencies... "
-sudo zypper ar -c http://download.opensuse.org/repositories/science/openSUSE_11.1/ science
+sudo zypper ar -c http://download.opensuse.org/repositories/science/openSUSE_11.2/ science
 sudo zypper refresh
 sudo zypper install gcc-c++ libstdc++33-32bit Mesa-32bit gcc-fortran autoconf automake make libtool python-devel python-scipy python-matplotlib python-tk openmpi openmpi-devel cvs doxygen
 # modifying the PATH variables

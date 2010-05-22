@@ -117,6 +117,7 @@ elif [ $DISTRIB_TYPE = "3" ]; then
     echo "  (1) OpenSuse 11.0, 32 bits"
     echo "  (2) OpenSuse 11.0, 64 bits"
     echo "  (3) OpenSuse 11.1"
+    echo "  (4) OpenSuse 11.2"
     echo " "
     echo "Enter the correct number here: "
     read DISTRIB
@@ -139,6 +140,12 @@ elif [ $DISTRIB_TYPE = "3" ]; then
         echo " read the file if you want more info about what will be installed..."
         cd $DIR_INSTALL_SCRIPTS
         ./OPENSUSE_11.1_64BITS_INSTALL.sh
+        cd ..
+    elif [ $DISTRIB = "4" ]; then
+        echo " OK, running install script for OpenSuse 11.2: $DIR_INSTALL_SCRIPTS/OPENSUSE_11.2_64BITS_INSTALL.sh"
+        echo " read the file if you want more info about what will be installed..."
+        cd $DIR_INSTALL_SCRIPTS
+        ./OPENSUSE_11.2_64BITS_INSTALL.sh
         cd ..
     fi
 
