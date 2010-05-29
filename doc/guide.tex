@@ -27,18 +27,46 @@ RMA
 
 
 \chapter{Install}
-installing can be tricky, as depends upon numerous, sometimes still experimental libraries.
 
-scripts do this for you, to make your job easier.
+\section{Linux}
+\par
+Installing can be tricky, as Puma-EM depends upon numerous libraries, some of which are still under active development. However, to make it easier, some distributions are supported through an automated installation procedure. These are Ubuntu, Fedora, OpenSuse and CentOS. To install on these distributions, simply type 
+\begin{verbatim}
+puma-em$ ./install.sh
+\end{verbatim}
+and follow the instructions on screen.
 
-\section{Ubuntu}
+\par
+If your distribution is not supported out-of-the-box, it is possible that is is a close relative to one of the distributions cited above, for example, Red Hat or Debian. In that case, have a look at the scripts located in the directory \begin{verbatim}installScripts\end{verbatim}, pick the one that corresponds to the closest relative to your distribution, and run the installation script.
 
-\section{OpenSuse}
+\par
+If your distribution is not supported out-of-the-box and is not a close relative to Debian/Red Hat, here is a list of the libraries Puma-EM depends upon:
+\begin{enumerate}
+\item the compiler suite g++ and gfortran (or g77)
+\item the python interpreter (included by default in most distributions)
+\item scipy, an open source scientific library for python
+\item matplotlib, a powerful plotting tool for python
+\item GMSH, an open source CAD and mesh generator
+\item blitz++
+\item open-mpi or lam-mpi, an open-source message passing interface library
+\item mpi4py 0.6.0, an open-source message passing interface library tuned for Python
+\end{enumerate}
 
-\section{Fedora}
+\section{Mac OS X}
+\par
+Mac OS is a BSD system, and ports exist between Linux libraries and programs and Mac OS. See \url{darwinport}.
 
-\section{CentOS}
+\section{Windows}
+\par
+It is possible to use Puma-EM on Windows... Through a Linux Virtual Machine running on VMWare for example! It might be possible to compile and use Puma-EM on Cygwin but it has not been reported. Yet. 
+
 
 \chapter{Running}
+
+\section{Bistatic RCS computation of a target}
+%
+\par
+
+\section{Monostatic computation of a target}
 
 \end{document}

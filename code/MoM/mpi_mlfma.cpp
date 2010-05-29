@@ -347,17 +347,21 @@ void computeForOneExcitation(Octtree & octtree,
   readIntFromASCIIFile(V_CFIE_DATA_PATH + "DIPOLES_EXCITATION.txt", DIPOLES_EXCITATION);
   readIntFromASCIIFile(V_CFIE_DATA_PATH + "PLANE_WAVE_EXCITATION.txt", PLANE_WAVE_EXCITATION);
   if (DIPOLES_EXCITATION==1) {
-    blitz::Array<std::complex<double>, 2> J_dip;
-    blitz::Array<double, 2> r_dip;
-    readBlitzArray2DFromASCIIFile( V_CFIE_DATA_PATH + "J_dip.txt", J_dip);
-    readBlitzArray2DFromASCIIFile( V_CFIE_DATA_PATH + "r_dip.txt", r_dip);
-    if (my_id==0) {
-      //cout << "J_dip.txt = " << J_dip << endl;
-      //cout << "r_dip.txt = " << r_dip << endl;
+    blitz::Array<std::complex<double>, 2> J_dip, M_dip;
+    blitz::Array<double, 2> r_J_dip, r_M_dip;
+    int J_DIPOLES_EXCITATION, M_DIPOLES_EXCITATION;
+    readIntFromASCIIFile(V_CFIE_DATA_PATH + "J_DIPOLES_EXCITATION.txt", J_DIPOLES_EXCITATION);
+    if (J_DIPOLES_EXCITATION==1) {
+      readBlitzArray2DFromASCIIFile( V_CFIE_DATA_PATH + "J_dip.txt", J_dip);
+      readBlitzArray2DFromASCIIFile( V_CFIE_DATA_PATH + "r_J_dip.txt", r_J_dip);
+      if (my_id==0) {
+        //cout << "J_dip.txt = " << J_dip << endl;
+        //cout << "r_J_dip.txt = " << r_J_dip << endl;
+      }
+      blitz::Array<std::complex<float>, 1> V_CFIE_tmp;
+      local_V_CFIE_dipole_array (V_CFIE_tmp, J_dip, r_J_dip, local_target_mesh, w, eps_r, mu_r, octtree.CFIE);
+      V_CFIE += V_CFIE_tmp;
     }
-    blitz::Array<std::complex<float>, 1> V_CFIE_tmp;
-    local_V_CFIE_dipole_array (V_CFIE_tmp, J_dip, r_dip, local_target_mesh, w, eps_r, mu_r, octtree.CFIE);
-    V_CFIE += V_CFIE_tmp;
   }
   if (PLANE_WAVE_EXCITATION==1) {
     double theta_inc, phi_inc;

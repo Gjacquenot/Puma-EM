@@ -54,11 +54,11 @@ def bistatic_RCS(params_simu):
         P_inc = 0.0
         if (params_simu.BISTATIC_EXCITATION_DIPOLES == 1):
             if (params_simu.BISTATIC_EXCITATION_DIPOLES_FROM_FILE == 1):
-                J_src, r_src = read_dipole_excitation(params_simu.BISTATIC_EXCITATION_DIPOLES_FILENAME)
+                J_src, r_src = read_dipole_excitation(params_simu.BISTATIC_EXCITATION_J_DIPOLES_FILENAME)
                 r_dip_src = r_src[0,:]
                 J_dip_src = J_src[0,:]
             else:   
-                r_dip_src = array([params_simu.r_src_x[0], params_simu.r_src_y[0], params_simu.r_src_z[0]], 'd')
+                r_dip_src = array([params_simu.r_J_src_x[0], params_simu.r_J_src_y[0], params_simu.r_J_src_z[0]], 'd')
                 J_dip_src = array([params_simu.J_src_x[0], params_simu.J_src_y[0], params_simu.J_src_z[0]], 'D')
             G_EJ_inc, G_HJ_inc = G_EJ_G_HJ(r_dip_src, R_cube_center, eps, mu, k)
             E_inc = dot(G_EJ_inc, J_dip_src)

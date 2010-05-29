@@ -358,29 +358,70 @@ def setup_MLFMA(params_simu):
     writeScalarToDisk(params_simu.BISTATIC_EXCITATION_PLANE_WAVE, os.path.join('.',tmpDirName,'V_CFIE/PLANE_WAVE_EXCITATION.txt'))
     # if we have dipoles excitation AND definition of the excitation in simulation_parameters.py
     if (params_simu.BISTATIC_EXCITATION_DIPOLES == 1) and (params_simu.BISTATIC_EXCITATION_DIPOLES_FROM_FILE == 0):
-        if (len(params_simu.r_src_x)==len(params_simu.r_src_y)) and (len(params_simu.r_src_x)==len(params_simu.r_src_z)):
-            if (len(params_simu.J_src_x)==len(params_simu.J_src_y)) and (len(params_simu.J_src_x)==len(params_simu.J_src_z)):
-                N_src_points = len(params_simu.r_src_x)
+        # first for electric dipoles
+        N_src_points = 0
+        if (len(params_simu.r_J_src_x)==len(params_simu.r_J_src_y)) and (len(params_simu.r_J_src_x)==len(params_simu.r_J_src_z)):
+            N_src_points = len(params_simu.r_J_src_x)
+            if len(params_simu.J_src_x)==N_src_points and len(params_simu.J_src_x)==len(params_simu.J_src_y) and len(params_simu.J_src_x)==len(params_simu.J_src_z):
                 J_src = zeros((N_src_points, 3), 'D')
-                r_src = zeros((N_src_points, 3), 'd')
+                r_J_src = zeros((N_src_points, 3), 'd')
                 for index in range(N_src_points):
-                    r_src[index,:] = array([params_simu.r_src_x[index], params_simu.r_src_y[index], params_simu.r_src_z[index]], 'd')
+                    r_J_src[index,:] = array([params_simu.r_J_src_x[index], params_simu.r_J_src_y[index], params_simu.r_J_src_z[index]], 'd')
                     J_src[index,:] = array([params_simu.J_src_x[index], params_simu.J_src_y[index], params_simu.J_src_z[index]], 'D')
             else:
                 if (my_id==0):
-                    print "Error in the r_obs parameter. Check your observation points!"
+                    print "Error in the r_J_src parameter. Check your source points!"
                 sys.exit(1)
         else:
             if (my_id==0):
-                print "Error in the r_obs parameter. Check your observation points!"
+                print "Error in the r_J_src parameter. Check your source points!"
             sys.exit(1)
-        writeASCIIBlitzArrayToDisk(J_src, os.path.join('.',tmpDirName,'V_CFIE/J_dip.txt'))
-        writeASCIIBlitzArrayToDisk(r_src, os.path.join('.',tmpDirName,'V_CFIE/r_dip.txt'))
+        if N_src_points > 0:
+            writeScalarToDisk(1, os.path.join('.',tmpDirName,'V_CFIE/J_DIPOLES_EXCITATION.txt'))
+            writeASCIIBlitzArrayToDisk(J_src, os.path.join('.',tmpDirName,'V_CFIE/J_dip.txt'))
+            writeASCIIBlitzArrayToDisk(r_J_src, os.path.join('.',tmpDirName,'V_CFIE/r_J_dip.txt'))
+        else:
+            writeScalarToDisk(0, os.path.join('.',tmpDirName,'V_CFIE/J_DIPOLES_EXCITATION.txt'))
+        # then for magnetic dipoles
+        N_src_points = 0
+        if (len(params_simu.r_M_src_x)==len(params_simu.r_M_src_y)) and (len(params_simu.r_M_src_x)==len(params_simu.r_M_src_z)):
+            N_src_points = len(params_simu.r_M_src_x)
+            if len(params_simu.M_src_x)==N_src_points and len(params_simu.M_src_x)==len(params_simu.M_src_y) and len(params_simu.M_src_x)==len(params_simu.M_src_z):
+                M_src = zeros((N_src_points, 3), 'D')
+                r_M_src = zeros((N_src_points, 3), 'd')
+                for index in range(N_src_points):
+                    r_M_src[index,:] = array([params_simu.r_M_src_x[index], params_simu.r_M_src_y[index], params_simu.r_M_src_z[index]], 'd')
+                    M_src[index,:] = array([params_simu.M_src_x[index], params_simu.M_src_y[index], params_simu.M_src_z[index]], 'D')
+            else:
+                if (my_id==0):
+                    print "Error in the r_M_src parameter. Check your source points!"
+                sys.exit(1)
+        else:
+            if (my_id==0):
+                print "Error in the r_M_src parameter. Check your source points!"
+            sys.exit(1)
+        if N_src_points > 0:
+            writeScalarToDisk(1, os.path.join('.',tmpDirName,'V_CFIE/M_DIPOLES_EXCITATION.txt'))
+            writeASCIIBlitzArrayToDisk(M_src, os.path.join('.',tmpDirName,'V_CFIE/M_dip.txt'))
+            writeASCIIBlitzArrayToDisk(r_M_src, os.path.join('.',tmpDirName,'V_CFIE/r_M_dip.txt'))
+        else:
+            writeScalarToDisk(0, os.path.join('.',tmpDirName,'V_CFIE/M_DIPOLES_EXCITATION.txt'))
     # if we have dipoles excitation AND definition of the excitation in a user-supplied file
     elif (params_simu.BISTATIC_EXCITATION_DIPOLES == 1) and (params_simu.BISTATIC_EXCITATION_DIPOLES_FROM_FILE == 1):
-        J_src, r_src = read_dipole_excitation(params_simu.BISTATIC_EXCITATION_DIPOLES_FILENAME)
-        writeASCIIBlitzArrayToDisk(J_src, os.path.join('.',tmpDirName,'V_CFIE/J_dip.txt'))
-        writeASCIIBlitzArrayToDisk(r_src, os.path.join('.',tmpDirName,'V_CFIE/r_dip.txt'))
+        if params_simu.BISTATIC_EXCITATION_J_DIPOLES_FILENAME != "":
+            J_src, r_J_src = read_dipole_excitation(params_simu.BISTATIC_EXCITATION_J_DIPOLES_FILENAME)
+            writeScalarToDisk(1, os.path.join('.',tmpDirName,'V_CFIE/J_DIPOLES_EXCITATION.txt'))
+            writeASCIIBlitzArrayToDisk(J_src, os.path.join('.',tmpDirName,'V_CFIE/J_dip.txt'))
+            writeASCIIBlitzArrayToDisk(r_J_src, os.path.join('.',tmpDirName,'V_CFIE/r_J_dip.txt'))
+        else:
+            writeScalarToDisk(0, os.path.join('.',tmpDirName,'V_CFIE/J_DIPOLES_EXCITATION.txt'))
+        if params_simu.BISTATIC_EXCITATION_M_DIPOLES_FILENAME != "":
+            M_src, r_M_src = read_dipole_excitation(params_simu.BISTATIC_EXCITATION_M_DIPOLES_FILENAME)
+            writeScalarToDisk(1, os.path.join('.',tmpDirName,'V_CFIE/M_DIPOLES_EXCITATION.txt'))
+            writeASCIIBlitzArrayToDisk(M_src, os.path.join('.',tmpDirName,'V_CFIE/M_dip.txt'))
+            writeASCIIBlitzArrayToDisk(r_M_src, os.path.join('.',tmpDirName,'V_CFIE/r_M_dip.txt'))
+        else:
+            writeScalarToDisk(0, os.path.join('.',tmpDirName,'V_CFIE/M_DIPOLES_EXCITATION.txt'))
     # now the plane wave excitation
     if params_simu.BISTATIC_EXCITATION_PLANE_WAVE == 1:
         writeScalarToDisk(params_simu.theta_inc, os.path.join('.',tmpDirName,'V_CFIE/theta_inc.txt'))

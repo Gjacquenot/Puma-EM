@@ -78,8 +78,9 @@ if params_simu.BISTATIC_EXCITATION_DIPOLES == 1:
     # do we receive our excitation from a user-supplied file?
     params_simu.BISTATIC_EXCITATION_DIPOLES_FROM_FILE = 0
     if params_simu.BISTATIC_EXCITATION_DIPOLES_FROM_FILE == 1:
-        # the name (with path) of the user-supplied excitation file.
-        params_simu.BISTATIC_EXCITATION_DIPOLES_FILENAME = "./J_dip_r_dip.txt"
+        # the name (with path) of the user-supplied excitation file. Set to "" if empty
+        params_simu.BISTATIC_EXCITATION_J_DIPOLES_FILENAME = "./J_dip_r_dip.txt"
+        params_simu.BISTATIC_EXCITATION_M_DIPOLES_FILENAME = ""
         # the structure of the excitation file MUST BE AS FOLLOWS:
         # 1 line per dipole, as many lines as there are dipoles
         # each line has 9 columns that must be arranged as follows:
@@ -96,17 +97,24 @@ if params_simu.BISTATIC_EXCITATION_DIPOLES == 1:
         # params_simu.J_src_y = [Jy1, Jy2, ..., Jyn]
         # params_simu.J_src_z = [Jz1, Jz2, ..., Jzn]
         # and:
-        # params_simu.r_src_x = [x1, x2, x3, ..., xn]
-        # params_simu.r_src_y = [y1, y2, y3, ..., yn]
-        # params_simu.r_src_z = [z1, z2, z3, ..., zn]
+        # params_simu.r_J_src_x = [x1, x2, x3, ..., xn]
+        # params_simu.r_J_src_y = [y1, y2, y3, ..., yn]
+        # params_simu.r_J_src_z = [z1, z2, z3, ..., zn]
         # will yield the dipoles J1 = [Jx1, Jy1, Jz1], J2 = [Jx2, Jy2, Jz2], etc.
         # at the respective points r1 = [x1, y1, z1], r2 = [x2, y2, z2], etc.
         params_simu.J_src_x = [1.0+0.j]
         params_simu.J_src_y = [0.0+0.j]
         params_simu.J_src_z = [0.0+0.j]
-        params_simu.r_src_x = [0.1]
-        params_simu.r_src_y = [0.1]
-        params_simu.r_src_z = [20.0]
+        params_simu.r_J_src_x = [0.1]
+        params_simu.r_J_src_y = [0.1]
+        params_simu.r_J_src_z = [20.0]
+        # the same but for magnetic dipoles. Leave empty if not needed.
+        params_simu.M_src_x = []
+        params_simu.M_src_y = []
+        params_simu.M_src_z = []
+        params_simu.r_M_src_x = []
+        params_simu.r_M_src_y = []
+        params_simu.r_M_src_z = []
 if params_simu.BISTATIC_EXCITATION_PLANE_WAVE == 1:
     # origin, strength, phase and polarization of the plane wave
     params_simu.theta_inc = pi/2.0

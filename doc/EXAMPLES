@@ -60,9 +60,9 @@ the directions of the source and the observation vectors:
     params_simu.J_src_x = 10.0+0.j
     params_simu.J_src_y = 0.0+0.j
     params_simu.J_src_z = 0.0+0.j
-    params_simu.r_src_x = 0.6
-    params_simu.r_src_y = 3.1
-    params_simu.r_src_z = 40.0
+    params_simu.r_J_src_x = 0.6
+    params_simu.r_J_src_y = 3.1
+    params_simu.r_J_src_z = 40.0
 
     # sampling of the resulting field at some point in space
     params_simu.r_obs_x = 0.1
