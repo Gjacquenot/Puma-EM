@@ -340,7 +340,8 @@ void V_CFIE_dipole_array (blitz::Array<std::complex<float>, 1> V_CFIE,
                           const blitz::Array<double, 2>& RWGNumber_trianglesCoord,
                           const double w,
                           const std::complex<double>& eps_r,
-                          const std::complex<double>& mu_r)
+                          const std::complex<double>& mu_r,
+                          const char CURRENT_TYPE)
 /**
  * This function computes the CFIE excitation vectors of the MoM due to
  * multiple elementary electric current elements J_dip located at r_dip.
@@ -431,6 +432,16 @@ void V_CFIE_dipole_array (blitz::Array<std::complex<float>, 1> V_CFIE,
           r_obs = r0 * xi[j] + r1 * eta[j] + r2 * (1-xi[j]-eta[j]);
           blitz::TinyVector<double, 3> n_hat_X_r(cross(triangle.n_hat, r_obs));
           G_EJ_G_HJ (G_EJ, G_HJ, rDip, r_obs, eps, mu, k);
+          // we check if we have electric or magnetic dipole 
+          if (CURRENT_TYPE == 'M') {
+            // then G_EJ should be filled with G_EM values
+            // and G_HJ with G_HM values. Since G_EM = -G_HJ, and G_HM = eps/mu * G_EJ
+            // it is a simple interchange and scaling of G_EJ and G_HJ values.
+            blitz::Array<std::complex<double>, 2> G_tmp(3, 3);
+            G_tmp = G_EJ; // we "save" G_EJ values
+            G_EJ = -G_HJ; // G_EJ becomes G_EM
+            G_HJ = eps/mu * G_tmp; // G_HJ becomes G_HM
+          }
 
           // computation of ITo_E_inc due to a dipole located at r_dip
           for (int m=0 ; m<3 ; m++) E_inc_i (m) = (G_EJ (m, 0) * JDip (0) + G_EJ (m, 1) * JDip (1) + G_EJ (m, 2) * JDip (2)) * weigths[j];
@@ -481,11 +492,12 @@ void local_V_CFIE_dipole_array (blitz::Array<std::complex<float>, 1>& V_CFIE,
                                 const double w,
                                 const std::complex<double>& eps_r,
                                 const std::complex<double>& mu_r,
-                                const blitz::Array<std::complex<float>, 1>& CFIE)
+                                const blitz::Array<std::complex<float>, 1>& CFIE,
+                                const char CURRENT_TYPE)
 {
   // We now compute the excitation vectors
   V_CFIE.resize(local_target_mesh.N_local_RWG);
-  V_CFIE_dipole_array (V_CFIE, CFIE, J_dip, r_dip, local_target_mesh.reallyLocalRWGNumbers, local_target_mesh.localRWGNumber_CFIE_OK, local_target_mesh.localRWGNumber_trianglesCoord, w, eps_r, mu_r);
+  V_CFIE_dipole_array (V_CFIE, CFIE, J_dip, r_dip, local_target_mesh.reallyLocalRWGNumbers, local_target_mesh.localRWGNumber_CFIE_OK, local_target_mesh.localRWGNumber_trianglesCoord, w, eps_r, mu_r, CURRENT_TYPE);
 }
 
 

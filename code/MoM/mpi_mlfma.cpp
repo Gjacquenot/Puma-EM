@@ -350,6 +350,7 @@ void computeForOneExcitation(Octtree & octtree,
     blitz::Array<std::complex<double>, 2> J_dip, M_dip;
     blitz::Array<double, 2> r_J_dip, r_M_dip;
     int J_DIPOLES_EXCITATION, M_DIPOLES_EXCITATION;
+    // electric dipoles
     readIntFromASCIIFile(V_CFIE_DATA_PATH + "J_DIPOLES_EXCITATION.txt", J_DIPOLES_EXCITATION);
     if (J_DIPOLES_EXCITATION==1) {
       readBlitzArray2DFromASCIIFile( V_CFIE_DATA_PATH + "J_dip.txt", J_dip);
@@ -359,7 +360,22 @@ void computeForOneExcitation(Octtree & octtree,
         //cout << "r_J_dip.txt = " << r_J_dip << endl;
       }
       blitz::Array<std::complex<float>, 1> V_CFIE_tmp;
-      local_V_CFIE_dipole_array (V_CFIE_tmp, J_dip, r_J_dip, local_target_mesh, w, eps_r, mu_r, octtree.CFIE);
+      const char CURRENT_TYPE = 'J';
+      local_V_CFIE_dipole_array (V_CFIE_tmp, J_dip, r_J_dip, local_target_mesh, w, eps_r, mu_r, octtree.CFIE, CURRENT_TYPE);
+      V_CFIE += V_CFIE_tmp;
+    }
+    // magnetic dipoles
+    readIntFromASCIIFile(V_CFIE_DATA_PATH + "M_DIPOLES_EXCITATION.txt", M_DIPOLES_EXCITATION);
+    if (M_DIPOLES_EXCITATION==1) {
+      readBlitzArray2DFromASCIIFile( V_CFIE_DATA_PATH + "M_dip.txt", M_dip);
+      readBlitzArray2DFromASCIIFile( V_CFIE_DATA_PATH + "r_M_dip.txt", r_M_dip);
+      if (my_id==0) {
+        //cout << "M_dip.txt = " << M_dip << endl;
+        //cout << "r_M_dip.txt = " << r_M_dip << endl;
+      }
+      blitz::Array<std::complex<float>, 1> V_CFIE_tmp;
+      const char CURRENT_TYPE = 'M';
+      local_V_CFIE_dipole_array (V_CFIE_tmp, J_dip, r_J_dip, local_target_mesh, w, eps_r, mu_r, octtree.CFIE, CURRENT_TYPE);
       V_CFIE += V_CFIE_tmp;
     }
   }
