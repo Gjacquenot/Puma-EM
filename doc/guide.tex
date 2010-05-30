@@ -9,10 +9,17 @@
 \usepackage{url}
 \usepackage{fancyhdr}
 \usepackage{array,longtable}
+\usepackage{color}
+
+\definecolor{orange}{rgb}{1,0.5,0}
+\definecolor{blue}{rgb}{0.3,0.3,0.9}
+
+\newcommand{\file}[1] {\textcolor{blue}{\textsf{#1}}}
+\newcommand{\parameter}[1] {\textcolor{orange}{\textsf{#1}}}
+
 
 \title{Puma-EM User's guide}
 \author{Idesbald van den Bosch}
-
 
 \begin{document}
 \maketitle
@@ -62,6 +69,11 @@ It is possible to use Puma-EM on Windows... Through a Linux Virtual Machine runn
 
 
 \chapter{Running}
+
+\section{introduction}
+%
+\par
+Your starting point is the configuration file \file{simulation\_parameters.py}
 
 \section{Bistatic RCS computation of a target}
 %
