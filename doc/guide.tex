@@ -4,12 +4,14 @@
 \usepackage{calc}
 \usepackage{amsmath,amssymb}
 \usepackage{epsfig}
-\usepackage{fourier}
+%\usepackage{fourier}
+\usepackage{times}
 \usepackage{a4wide}
 \usepackage{url}
 \usepackage{fancyhdr}
 \usepackage{array,longtable}
 \usepackage{color}
+\usepackage{listings}
 
 \definecolor{orange}{rgb}{1,0.5,0}
 \definecolor{blue}{rgb}{0.3,0.3,0.9}
@@ -26,23 +28,40 @@
 \tableofcontents
 
 \chapter{Introduction}
-GPLv3
+%
+\par
+Puma-EM is a code that allows the computation of various electromagnetic quantities when a target is excited by an electromagnetic source. These quantities are the scattered fields and the currents on the surface of the target. It can compute:
+\begin{itemize}
+\item monostatic RCS for a variety of angles or positions (SAR)
+\item bistatic RCS for a variety of angles
+\item Antenna pattern
+\item electric and/or magnetic dipole excitation
+\item plane-wave excitation
+\item a combination of the above
+\item \ldots
+\end{itemize}
+%
+\par
+The target is for now a perfect electric conductor (PEC). The method used is the boundary elements method, also commonly known as the method of moments (MOM). The basis functions used are the Rao-Wilton-Glisson triangular rooftops. The integral equation implemented is the combined fields integral equation (CFIE) formulation, which can be degenerated into an electric field integral equation (EFIE) or magnetic field integral equation (MFIE). 
+%
+\par
+Puma-EM also makes use of the Multilevel fast multipole method (MLFMM or MLFMA) for speeding up the computations and also allowing a larger number of basis RWG functions (and hence allowing to solve larger problems) than with the classical MOM. 
+%
+\par
+In addition to the MLFMM, Puma-EM is parallelized and can run on laptop, desktop and homogeneous cluster architectures. The rule of thumb for the number of unknowns Puma-EM can reasonably handle per GByte of memory is between $500,000$ and $2,000,000$ (depending upon the problem specificities and the details of the machine architecture). For example, Puma-EM has solved the monostatic scattering of a cubic target involving $53.9$ million of unknowns, on a cluster of 2 machines having each ``only'' 16 GBytes of memory. It can routinely solve in a few hours problems involving more than 1 million of unkowns of a low-end (dated 2004) 2 GByte laptop.
 
-RMA
 
-54 million unknowns
-
-
-\chapter{Install}
+\chapter{Installing}
 
 \section{Linux}
+%
 \par
 Installing can be tricky, as Puma-EM depends upon numerous libraries, some of which are still under active development. However, to make it easier, some distributions are supported through an automated installation procedure. These are Ubuntu, Fedora, OpenSuse and CentOS. To install on these distributions, simply type 
 \begin{verbatim}
 puma-em$ ./install.sh
 \end{verbatim}
 and follow the instructions on screen.
-
+%
 \par
 If your distribution is not supported out-of-the-box, it is possible that is is a close relative to one of the distributions cited above, for example, Red Hat or Debian. In that case, have a look at the scripts located in the directory \begin{verbatim}installScripts\end{verbatim}, pick the one that corresponds to the closest relative to your distribution, and run the installation script.
 
@@ -60,25 +79,75 @@ If your distribution is not supported out-of-the-box and is not a close relative
 \end{enumerate}
 
 \section{Mac OS X}
-\par
-Mac OS is a BSD system, and ports exist between Linux libraries and programs and Mac OS. See \url{darwinport}.
-
-\section{Windows}
-\par
-It is possible to use Puma-EM on Windows... Through a Linux Virtual Machine running on VMWare for example! It might be possible to compile and use Puma-EM on Cygwin but it has not been reported. Yet. 
-
-
-\chapter{Running}
-
-\section{introduction}
 %
 \par
-Your starting point is the configuration file \file{simulation\_parameters.py}
+If Puma-EM has run on a Mac OS computer, I am not aware of it. However, Mac OS is a BSD system, and ports exist between Linux libraries and programs and Mac OS. See the darwinports website \url{http://darwinports.com/}. Here are some --- possibly outdated --- hints:
+\begin{itemize}
+\item g++ and gfortran
+\item Open-MPI (\url{http://permalink.gmane.org/gmane.comp.clustering.open-mpi.user/10347} and \url{http://openmpi.darwinports.com/})
+\item GMSH (yes you can: this one works on Mac: \url{http://geuz.org/gmsh/#Download})
+\item Blitz++ (you should be able to install this: \url{http://blitz.darwinports.com/})
+\item mpi4py \url{http://mpi4py.scipy.org/docs/usrman/appendix.html}
+\item scipy \url{http://www.scipy.org/Installing_SciPy/Mac_OS_X}
+\item matplotlib \url{http://py-matplotlib.darwinports.com/}
+\end{itemize}
+If you succeed, could you post the steps on the Forum? Better yet, if you could provide an installation script, that would be awesome!
+
+
+\section{Windows}
+%
+\par
+It is possible to use Puma-EM on Windows... Through a Linux Virtual Machine running on VMWare \url{http://www.vmware.com/} for example! It might be possible to compile and use Puma-EM on Cygwin \url{http://www.cygwin.com/} but it has not been reported. Yet. 
+
+
+\chapter{Running the code}
+
+\section{Introduction}
+%
+\par
+Your starting point is the configuration file \file{simulation\_parameters.py}. While it may be repellent at first (no graphical user interface?? Are you freakin' kiddin' me??), it is actually not so difficult to get acquainted with. It contains the parameters that will define the simulation, such as the frequency, the target, the type of result you want (RCS, bistatic RCS, array of dipoles excitation, antenna pattern), and some post-processing possibilities.
+
+\section{CAD models and meshes}
+%
+\par
+Puma-EM supports GMSH, and it is strongly advised to use it for your project. Explaining how to use GMSH is beyond the scope of this document. But here are a few facts. Basically, a CAD file comes with a \texttt{*.geo} extension, and is a written in a scripting language. A good starting point is to open one of the \texttt{geo} files and start playing with it, and visualise the result in GMSH. A mesh file comes with a \texttt{*.msh} extension. You don't need to know what's inside (nodes of triangles and nodes coordinates), Puma-EM can read it and interpret it. The good thing is that the density of the mesh will vary with the frequency (to follow the requirement that each RWG function be around $\lambda/10$ in size), so you don't need to worry about setting yourself the parameter that controls mesh size. Well, this is true for the targets shipped with Puma-EM. When designing your own target, you will make sure to parametrize the mesh size (look at the shipped targets to see how it is done).
+%
+\par
+At the request of users, Puma-EM also supports 2 other mesh formats from proprietary CAD programs, GiD (mesh extension \texttt{*.msh}) and ANSYS (generates 2 mesh files, \texttt{ELIST.lis} and \texttt{NLIST.lis}). Below is explained how to specify the mesh format for Puma-EM. But beforehand, you must know that since these programs are proprietary, no scripting exists that allows parametrization as for GMSH. Therefore, before running Puma-EM, you will have to make sure that the mesh is generated, located in the correct directory (usually \texttt{puma-em/geo}), and that the mean RWG size is around $\lambda/10$ in size.
+%
+\par
+Support could easily be added for other mesh formats. If you want that, just post on the Puma-EM forum and join an example of the mesh format that has to be interpreted.
 
 \section{Bistatic RCS computation of a target}
 %
 \par
+This title recovers many possibilities, and we will review them separately. They are grouped here together, because bistatic means that you are primarily interested in knowing the scattered fields due to a given excitation, but not necessarily at the place of the excitation itself.
 
-\section{Monostatic computation of a target}
+\subsection{The simple one: single electric dipole excitation}
+%
+\par
+Open \file{simulation\_parameters.py} with your favourite text editor. There are two parameters for the name of the target you want to simulate:
+\begin{verbatim}
+params_simu.pathToTarget = './geo'
+params_simu.targetName = 'cubi'
+\end{verbatim}
+You should not change \parameter{params\_simu.pathToTarget}; that's where the geometry files and meshes are stored by Puma-EM. However, if your target file is located in \texttt{/somewhere/potato}, feel free to change \parameter{params\_simu.pathToTarget}.
+
+
+\subsection{Another simple one: plane wave excitation}
+%
+\par
+
+
+
+\section{Monostatic RCS computation of a target}
+%
+\par
+
+\section{Antenna radiation pattern}
+%
+\par
+
+
 
 \end{document}
