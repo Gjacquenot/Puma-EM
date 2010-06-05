@@ -13,6 +13,9 @@
 \usepackage{color}
 \usepackage{listings}
 
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
+
 \definecolor{orange}{rgb}{1,0.5,0}
 \definecolor{blue}{rgb}{0.3,0.3,0.9}
 
@@ -105,7 +108,14 @@ It is possible to use Puma-EM on Windows... Through a Linux Virtual Machine runn
 \section{Introduction}
 %
 \par
-Your starting point is the configuration file \file{simulation\_parameters.py}. While it may be repellent at first (no graphical user interface?? Are you freakin' kiddin' me??), it is actually not so difficult to get acquainted with. It contains the parameters that will define the simulation, such as the frequency, the target, the type of result you want (RCS, bistatic RCS, array of dipoles excitation, antenna pattern), and some post-processing possibilities.
+Your starting point is the configuration file \file{simulation\_parameters.py}. While it may be repellent at first (no graphical user interface?? Are you freakin' kiddin' me??), it is actually not so difficult to get acquainted with. It contains the parameters that will define the simulation, such as the frequency, the target, the type of result you want (RCS, bistatic RCS, array of dipoles excitation, antenna pattern), and some post-processing possibilities. 
+%
+\par
+Once you have modified \file{simulation\_parameters.py} to suit your needs, simply type:
+\begin{verbatim}
+puma-em$ ./run.sh
+\end{verbatim}
+To run the code on the set of parameters that you have defined.
 
 \section{CAD models and meshes}
 %
@@ -113,7 +123,7 @@ Your starting point is the configuration file \file{simulation\_parameters.py}. 
 Puma-EM supports GMSH, and it is strongly advised to use it for your project. Explaining how to use GMSH is beyond the scope of this document. But here are a few facts. Basically, a CAD file comes with a \texttt{*.geo} extension, and is a written in a scripting language. A good starting point is to open one of the \texttt{geo} files and start playing with it, and visualise the result in GMSH. A mesh file comes with a \texttt{*.msh} extension. You don't need to know what's inside (nodes of triangles and nodes coordinates), Puma-EM can read it and interpret it. The good thing is that the density of the mesh will vary with the frequency (to follow the requirement that each RWG function be around $\lambda/10$ in size), so you don't need to worry about setting yourself the parameter that controls mesh size. Well, this is true for the targets shipped with Puma-EM. When designing your own target, you will make sure to parametrize the mesh size (look at the shipped targets to see how it is done).
 %
 \par
-At the request of users, Puma-EM also supports 2 other mesh formats from proprietary CAD programs, GiD (mesh extension \texttt{*.msh}) and ANSYS (generates 2 mesh files, \texttt{ELIST.lis} and \texttt{NLIST.lis}). Below is explained how to specify the mesh format for Puma-EM. But beforehand, you must know that since these programs are proprietary, no scripting exists that allows parametrization as for GMSH. Therefore, before running Puma-EM, you will have to make sure that the mesh is generated, located in the correct directory (usually \texttt{puma-em/geo}), and that the mean RWG size is around $\lambda/10$ in size.
+At the request of users, Puma-EM also supports 2 other mesh formats from proprietary CAD programs, GiD (mesh extension \texttt{*.msh}) and ANSYS (generates 2 mesh files, \file{ELIST.lis} and \file{NLIST.lis}). Below is explained how to specify the mesh format for Puma-EM. But beforehand, you must know that since these programs are proprietary, no scripting exists that allows parametrization as for GMSH. Therefore, before running Puma-EM, you will have to make sure that the mesh is generated, located in the correct directory (usually \texttt{puma-em/geo}), and that the mean RWG size is around $\lambda/10$.
 %
 \par
 Support could easily be added for other mesh formats. If you want that, just post on the Puma-EM forum and join an example of the mesh format that has to be interpreted.
@@ -124,25 +134,273 @@ Support could easily be added for other mesh formats. If you want that, just pos
 This title recovers many possibilities, and we will review them separately. They are grouped here together, because bistatic means that you are primarily interested in knowing the scattered fields due to a given excitation, but not necessarily at the place of the excitation itself.
 
 \subsection{The simple one: single electric dipole excitation}
+\label{subsection:The simple one: single electric dipole excitation}
 %
 \par
-Open \file{simulation\_parameters.py} with your favourite text editor. There are two parameters for the name of the target you want to simulate:
+Open \file{simulation\_parameters.py} with your favourite text editor. Only the relevant parameters will be reviewed. Do not modify the other parameters if you are unsure of what they do.
+
+\subsubsection{Target}
+%
+\par
+There are two parameters for the name of the target you want to simulate:
 \begin{verbatim}
 params_simu.pathToTarget = './geo'
 params_simu.targetName = 'cubi'
 \end{verbatim}
-You should not change \parameter{params\_simu.pathToTarget}; that's where the geometry files and meshes are stored by Puma-EM. However, if your target file is located in \texttt{/somewhere/potato}, feel free to change \parameter{params\_simu.pathToTarget}.
+You should not change \parameter{params\_simu.pathToTarget}; that's where the geometry files and meshes are stored by Puma-EM. However, if your target file is located in \texttt{/somewhere/potato}, feel free to change \parameter{params\_simu.pathToTarget}. Also, the name of the target is given without its extension.
 
+\subsubsection{Frequency}
+%
+\par
+Next, the frequency of the source (in Hz units):
+\begin{verbatim}
+params_simu.f = 2.12e9
+\end{verbatim}
+%
+\par
+Next, the lc (characteristic length) factor. It will multiply lambda (the wavelength) to obtain the average edge length (lc) of the mesh. Usually: lc ~= lambda/10.
+\begin{verbatim}
+params_simu.lc_factor = 1.0/10.0
+\end{verbatim}
+%
+\par
+Then, you can define the dimensions of the target (in meters). It is only applicable to targets which have parameterized dimensions (see \file{sphere.geo} for example); undefined parameters will not impact the simulation. Unless you find a way to script your favourite mesher, it does not apply to another mesher than GMSH either.
+\begin{verbatim}
+params_simu.lx = .2
+params_simu.ly = .2
+params_simu.lz = .2
+\end{verbatim}
+The dimensions can also be given in terms of lambda:
+\begin{verbatim}
+params_simu.lx = 20.0 * c/params_simu.f
+\end{verbatim}
+
+\subsubsection{Mesh format}
+%
+\par
+You have to choose the mesh format. Default is GMSH.
+\begin{verbatim}
+params_simu.meshFormat = MESH_FORMAT[0]
+\end{verbatim}
+
+\subsubsection{Type of simulation}
+%
+\par
+Fast-forward to the parameters that define which type of computation---bistatic---we are going to perform:
+\begin{verbatim}
+params_simu.BISTATIC = 1
+params_simu.MONOSTATIC_RCS = 0
+params_simu.MONOSTATIC_SAR = 0
+\end{verbatim}
+In fact, bistatic defines a whole lot of possibilities, but for now we concentrate on the simple one electric dipole source.
+
+\subsubsection{Bistatic simulation settings}
+%
+\par
+We want just the dipole, remember? So:
+\begin{verbatim}
+params_simu.BISTATIC_EXCITATION_DIPOLES = 1
+params_simu.BISTATIC_EXCITATION_PLANE_WAVE = 0
+\end{verbatim}
+If both parameters are set to 1, the excitation will be a combined one: plane wave + dipole.
+%
+\par
+Next there is an \texttt{if} statement:
+\begin{verbatim}
+if params_simu.BISTATIC_EXCITATION_DIPOLES == 1:
+    # do we receive our excitation from a user-supplied file?
+    params_simu.BISTATIC_EXCITATION_DIPOLES_FROM_FILE = 0
+\end{verbatim}
+The above parameter \parameter{params\_simu.BISTATIC\_EXCITATION\_DIPOLES\_FROM\_FILE} tells if we define the excitation from a file or directly in the \file{simulation\_parameters.py} file. For now, that parameter is $0$. In that case, there is the following piece of parameters definition:
+\begin{verbatim}
+....
+params_simu.BISTATIC_EXCITATION_DIPOLES = 1
+    ....
+    params_simu.BISTATIC_EXCITATION_DIPOLES_FROM_FILE = 0
+    ....
+        # in this case we define the excitation here and now
+        # we have 2 lists for this purpose: 
+        # dipoles and positions of these dipoles
+        # example:
+        # params_simu.J_src_x = [Jx1, Jx2, ..., Jxn]
+        # params_simu.J_src_y = [Jy1, Jy2, ..., Jyn]
+        # params_simu.J_src_z = [Jz1, Jz2, ..., Jzn]
+        # and:
+        # params_simu.r_J_src_x = [x1, x2, x3, ..., xn]
+        # params_simu.r_J_src_y = [y1, y2, y3, ..., yn]
+        # params_simu.r_J_src_z = [z1, z2, z3, ..., zn]
+        # will yield the dipoles J1 = [Jx1, Jy1, Jz1], J2 = [Jx2, Jy2, Jz2], etc.
+        # at the respective points r1 = [x1, y1, z1], r2 = [x2, y2, z2], etc.
+        params_simu.J_src_x = [1.0+0.j]
+        params_simu.J_src_y = [0.0+0.j]
+        params_simu.J_src_z = [0.0+0.j]
+        params_simu.r_J_src_x = [0.1]
+        params_simu.r_J_src_y = [0.1]
+        params_simu.r_J_src_z = [20.0]
+\end{verbatim}
+Pretty self-explanatory, huh? We have a dipole $\mathbf{J}_1 = [1, 0, 0]$ located at $\mathbf{r}_1 = [0.1, 0.1, 20]$. Dimensions for $\mathbf{r}_1$ are in meters.
+%
+\par
+The same piece of code exists for magnetic dipoles.
+
+\subsubsection{Results we want: EM fields sampling}
+
+\paragraph{Arbitrary sampling of E-field}
+%
+\par
+The following parameter allows one to sample the scattered electric field in arbitrary positions. For now it has to be defined in \file{simulation\_parameters.py}, but in the future it will optionally be defined through a file whose construction can be automated.
+\begin{verbatim}
+# sampling points: sampling of the resulting field 
+# at user-specified points in space.
+# It will be used only for BISTATIC
+# The lists have to be of equal lengths.
+# example:
+# params_simu.r_obs_x = [x1, x2, x3, ..., xn]
+# params_simu.r_obs_y = [y1, y2, y3, ..., yn]
+# params_simu.r_obs_z = [z1, z2, z3, ..., zn]
+# will yield the points r1 = [x1, y1, z1], r2 = [x2, y2, z2], etc.
+params_simu.r_obs_x = [0.1, 0.2]
+params_simu.r_obs_y = [0.1, 0.3]
+params_simu.r_obs_z = [20.0, 20.1]
+\end{verbatim}
+In the above settings, the field is sampled at $\mathbf{r_1} = [0.1, 0.1, 20.0 ]$ and $\mathbf{r_2} = [0.2, 0.3, 20.1 ]$.
+%
+\par
+This allows to visualize the field along lines, planes, volumes, curves, etc.
+
+\paragraph{far-field sampling of E-field}
+%
+\par
+This is controlled by the following lines:
+\begin{verbatim}
+# thetas
+params_simu.START_THETA = pi/2.0
+params_simu.STOP_THETA = pi
+params_simu.AUTOMATIC_THETAS = False
+params_simu.USER_DEFINED_NB_THETA = 1
+# phis
+params_simu.START_PHI = 0.0
+params_simu.STOP_PHI = 2.0 * pi
+params_simu.AUTOMATIC_PHIS = True
+params_simu.USER_DEFINED_NB_PHI = 200
+\end{verbatim}
+%
+\par
+Normally the code provides "best angles of observation", best from a "field spatial information for minimal sampling size" point of view. If you want the program to choose the best points for $\theta$ for example, set \parameter{params\_simu.AUTOMATIC\_THETAS} to \texttt{True}. If you want to provide your own sampling points (because you need less/more angles, for example), set \parameter{params\_simu.AUTOMATIC\_THETAS} to \texttt{False}. If you chose 1 point only, and \parameter{params\_simu.AUTOMATIC\_THETAS} is \texttt{False}, then the point will correspond to \parameter{params\_simu.START\_THETA} for $\theta$. The same reasoning holds for $\phi$ parameters
 
 \subsection{Another simple one: plane wave excitation}
 %
 \par
+Now we want just the plane wave. So, everything else being equal, we set the following parameters:
+\begin{verbatim}
+params_simu.BISTATIC_EXCITATION_DIPOLES = 0
+params_simu.BISTATIC_EXCITATION_PLANE_WAVE = 1
+\end{verbatim}
+Remember: if both parameters are set to 1, the excitation will be a combined one: plane wave + dipole. Then, to define the plane wave, one has to set:
+\begin{verbatim}
+if params_simu.BISTATIC_EXCITATION_PLANE_WAVE == 1:
+    # origin, strength, phase and polarization of the plane wave
+    params_simu.theta_inc = pi/2.0
+    params_simu.phi_inc = pi/2.0
+    params_simu.E_inc_theta = 1.0+0.j # the theta component
+    params_simu.E_inc_phi = 0.0+0.j # the phi component
+\end{verbatim}
+Nothing to say here.
 
+\subsection{Plurality of dipoles}
+%
+\par
+This is similar to what is developed in section \ref{subsection:The simple one: single electric dipole excitation}. Except now we will learn how to define a plurality of dipoles (for modeling complex sources of current for example).
+
+\subsubsection{Dipoles defined in \file{simulation\_parameters.py}}
+%
+\par
+Let's recall that
+\begin{verbatim}
+params_simu.BISTATIC = 1
+\end{verbatim}
+and that
+\begin{verbatim}
+params_simu.BISTATIC_EXCITATION_DIPOLES = 1
+params_simu.BISTATIC_EXCITATION_PLANE_WAVE = 0
+\end{verbatim}
+If both parameters are set to 1, the excitation will be a combined one: plane wave + dipole.
+%
+\par
+We now define the sources:
+\begin{verbatim}
+params_simu.BISTATIC_EXCITATION_DIPOLES = 1
+params_simu.BISTATIC_EXCITATION_PLANE_WAVE = 0
+# now the details of each excitation
+if params_simu.BISTATIC_EXCITATION_DIPOLES == 1:
+    # do we receive our excitation from a user-supplied file?
+    params_simu.BISTATIC_EXCITATION_DIPOLES_FROM_FILE = 0
+    if params_simu.BISTATIC_EXCITATION_DIPOLES_FROM_FILE == 1:
+        .....
+        (see next section)
+        .....
+    else:
+        # in this case we define the excitation here and now
+        # we have 2 lists for this purpose: 
+        # dipoles and positions of these dipoles
+        # example:
+        # params_simu.J_src_x = [Jx1, Jx2, ..., Jxn]
+        # params_simu.J_src_y = [Jy1, Jy2, ..., Jyn]
+        # params_simu.J_src_z = [Jz1, Jz2, ..., Jzn]
+        # and:
+        # params_simu.r_J_src_x = [x1, x2, x3, ..., xn]
+        # params_simu.r_J_src_y = [y1, y2, y3, ..., yn]
+        # params_simu.r_J_src_z = [z1, z2, z3, ..., zn]
+        # will yield the dipoles J1 = [Jx1, Jy1, Jz1], J2 = [Jx2, Jy2, Jz2], etc.
+        # at the respective points r1 = [x1, y1, z1], r2 = [x2, y2, z2], etc.
+        params_simu.J_src_x = [1.0+0.j, 2.0+6.0j]
+        params_simu.J_src_y = [0.0+0.j, 1.j]
+        params_simu.J_src_z = [0.0+0.j, 0.0+0.j]
+        params_simu.r_J_src_x = [0.1, 0.2]
+        params_simu.r_J_src_y = [0.1, 0.3]
+        params_simu.r_J_src_z = [20.0, 22.0]
+        # the same but for magnetic dipoles. Leave empty if not needed.
+        params_simu.M_src_x = [0.0+0.j]
+        params_simu.M_src_y = [0.0+0.j]
+        params_simu.M_src_z = [1.0+0.j]
+        params_simu.r_M_src_x = [1.0]
+        params_simu.r_M_src_y = [0.0]
+        params_simu.r_M_src_z = [0.0]
+\end{verbatim}
+The above defines 2 electric dipoles, $\mathbf{J}_1 = [1, 0, 0]$ and $\mathbf{J}_2 = [2+6i, i, 0]$, respectively located at $\mathbf{r}_1 = [0.1, 0.1, 20]$ and $\mathbf{r}_2 = [0.2, 0.3, 22]$, and one magnetic dipole $\mathbf{M} = [0, 0, 1]$ located at $\mathbf{r} = [1, 0, 0]$. Dimensions for position vectors are in meters.
+%
+\par
+You can realize how quickly cumbersome it becomes to define the dipoles in \file{simulation\_parameters.py}. This is why it is possible to define the dipoles through a user-supplied file, the subject of the nect section.
+
+\subsubsection{Dipoles defined in user-supplied files}
+%
+\par
+The following example shows you how to do this
+\begin{verbatim}
+if params_simu.BISTATIC_EXCITATION_DIPOLES == 1:
+    # do we receive our excitation from a user-supplied file?
+    params_simu.BISTATIC_EXCITATION_DIPOLES_FROM_FILE = 1
+    if params_simu.BISTATIC_EXCITATION_DIPOLES_FROM_FILE == 1:
+        # the name (with path) of the user-supplied excitation file. 
+        # Set it to "" if empty
+        params_simu.BISTATIC_EXCITATION_J_DIPOLES_FILENAME = "./J_dip_r_dip.txt"
+        params_simu.BISTATIC_EXCITATION_M_DIPOLES_FILENAME = ""
+        # the structure of the excitation file MUST BE AS FOLLOWS:
+        # 1 line per dipole, as many lines as there are dipoles
+        # each line has 9 columns that must be arranged as follows:
+        #
+        # real(J_x) imag(J_x) real(J_y) imag(J_y) real(J_z) imag(J_z) r_x r_y r_z
+        #
+        # where J = [J_x J_y J_z] is the dipole and r = [r_x r_y r_z] its origin.
+\end{verbatim}
+It is your responsibility to create a file named \file{J\_dip\_r\_dip.txt}, and arranged in 9 columns as explained, each line corresponding to a dipole. You can also do the same for magnetic dipoles.
 
 
 \section{Monostatic RCS computation of a target}
 %
 \par
+
+
 
 \section{Antenna radiation pattern}
 %

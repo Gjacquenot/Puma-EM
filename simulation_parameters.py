@@ -8,27 +8,26 @@ from EM_constants import *
 # The list of targets can be viewed by looking up the geo directory
 params_simu.pathToTarget = './geo'
 params_simu.targetName = 'cubi'
+# frequency
+params_simu.f = 2.12e9
+# the lc (characteristic length) factor -- it will multiply lambda (the wavelength)
+# to obtain the average edge length (lc) of the mesh. Usually: lc ~= lambda/10.
+params_simu.lc_factor = 1.0/10.0
 # the dimensions of the target (if applicable)
 params_simu.lx = .2
 params_simu.ly = .2
 params_simu.lz = .2
-# the vertical offset of the target
+# the vertical offset of the target -- shifts the target up or down the z-axis
 params_simu.z_offset = 0.0
 # the dimensions scaling factor (some targets are designed in other units than meters)
 # if dimensions are in cm, params_simu.targetDimensions_scaling_factor = 0.01
 # if dimensions are in mm, params_simu.targetDimensions_scaling_factor = 0.001
 params_simu.targetDimensions_scaling_factor = 1.0
 
-# frequency
-params_simu.f = 2.12e9
-
-# the lc (characteristic length) factor -- it will multiply lambda (the wavelength)
-# to obtain the average edge length (lc) of the mesh. Usually: lc ~= lambda/10.
-params_simu.lc_factor = 1.0/10.0
-
 # CAD and meshing tools
 # the following parameter tells if we want to mesh (True) on-the-fly with GMSH.
-# If mesh comes from another program, like GiD, it will have no impact
+# If False, it assumes that the mesh file already exists.
+# If the mesh comes from another program, like GiD, this parameter will have no impact.
 params_simu.meshToMake = True
 # the mesh format. Currently only 3 are supported.
 MESH_FORMAT = ['GMSH', 'GiD', 'ANSYS']
@@ -37,7 +36,7 @@ params_simu.meshFormat = MESH_FORMAT[0]
 # you shouldn't change the following 7 lines
 if params_simu.meshFormat in ['GiD', 'ANSYS']:
     params_simu.meshToMake = False
-# the termination of the mesh file
+# the termination of the mesh file -- don't change this
 if (params_simu.meshFormat == 'GMSH') or (params_simu.meshFormat == 'GiD'):
     params_simu.meshFileTermination = '.msh'
 elif (params_simu.meshFormat == 'ANSYS'):
@@ -91,7 +90,6 @@ if params_simu.BISTATIC_EXCITATION_DIPOLES == 1:
     else:
         # in this case we define the excitation here and now
         # we have 2 lists for this purpose: dipoles and positions of these dipoles
-        # You can construct it by using a small program or list comprehension.
         # example:
         # params_simu.J_src_x = [Jx1, Jx2, ..., Jxn]
         # params_simu.J_src_y = [Jy1, Jy2, ..., Jyn]
@@ -124,7 +122,6 @@ if params_simu.BISTATIC_EXCITATION_PLANE_WAVE == 1:
 # sampling points: sampling of the resulting field at user-specified points in space.
 # It will be used only for BISTATIC
 # The lists have to be of equal lengths.
-# You can construct it by using a small program or list comprehension.
 # example:
 # params_simu.r_obs_x = [x1, x2, x3, ..., xn]
 # params_simu.r_obs_y = [y1, y2, y3, ..., yn]
@@ -212,3 +209,4 @@ if params_simu.TDS_APPROX == 1:
     params_simu.lx = 10.0 * c/(2.0 * pi * params_simu.f) # see MEDGYESI-MITSCHANG and WANG 86
 else:
     params_simu.Z_s = 0.0 + 0.0j
+
