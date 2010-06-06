@@ -115,7 +115,7 @@ Once you have modified \file{simulation\_parameters.py} to suit your needs, simp
 \begin{verbatim}
 puma-em$ ./run.sh
 \end{verbatim}
-To run the code on the set of parameters that you have defined.
+To run the code on the set of parameters that you have defined. The results of the run will be stored in \texttt{result} directory.
 
 \section{CAD models and meshes}
 %
@@ -399,13 +399,82 @@ It is your responsibility to create a file named \file{J\_dip\_r\_dip.txt}, and 
 \section{Monostatic RCS computation of a target}
 %
 \par
+First Let's take a look at the following parameters:
+\begin{verbatim}
+params_simu.BISTATIC = 0
+params_simu.MONOSTATIC_RCS = 1
+params_simu.MONOSTATIC_SAR = 0
+\end{verbatim}
+There are two possibilities for doing monostatic computations: classic and SAR. We can do computations for the antenna polarization in vertical mode at emission and reception (VV following the $\theta$ angle), or horizontal mode at emission and reception (HH following the $\phi$ angle), or mixed (HV):
+\begin{verbatim}
+params_simu.COMPUTE_RCS_HH = 1
+params_simu.COMPUTE_RCS_VV = 1
+params_simu.COMPUTE_RCS_HV = 0
+\end{verbatim}
 
+\subsection{Classic RCS}
+%
+\par
+We then define the angles we want to study. This is controlled by the following lines:
+\begin{verbatim}
+# thetas
+params_simu.START_THETA = pi/2.0
+params_simu.STOP_THETA = pi
+params_simu.AUTOMATIC_THETAS = False
+params_simu.USER_DEFINED_NB_THETA = 1
+# phis
+params_simu.START_PHI = 0.0
+params_simu.STOP_PHI = 2.0 * pi
+params_simu.AUTOMATIC_PHIS = True
+params_simu.USER_DEFINED_NB_PHI = 200
+\end{verbatim}
+%
+\par
+Normally the code provides "best angles of observation", best from a "field spatial information for minimal sampling size" point of view. If you want the program to choose the best points for $\theta$ for example, set \parameter{params\_simu.AUTOMATIC\_THETAS} to \texttt{True}. If you want to provide your own sampling points (because you need less/more angles, for example), set \parameter{params\_simu.AUTOMATIC\_THETAS} to \texttt{False}. If you chose 1 point only, and \parameter{params\_simu.AUTOMATIC\_THETAS} is \texttt{False}, then the point will correspond to \parameter{params\_simu.START\_THETA} for $\theta$. The same reasoning holds for $\phi$ parameters
+%
+\par
+Finally, for visualization, we can decide:
+\begin{verbatim}
+params_simu.SHOW_FIGURE = 1
+\end{verbatim}
+
+\subsection{Monostatic SAR}
+%
+\par
+Instead of a classic, along $\theta$ or $\phi$, monostatic evaluation of a target, it is possible to gather SAR data by virtually ``flying'' an antenna in a plane and sample the fields at given points. For this we do:
+\begin{verbatim}
+params_simu.BISTATIC = 0
+params_simu.MONOSTATIC_RCS = 0
+params_simu.MONOSTATIC_SAR = 1
+\end{verbatim}
+%
+\par
+We then decide at which locations we want to sample the monostatic fields:
+\begin{verbatim}
+if params_simu.MONOSTATIC_SAR==1:
+    # dipole antenna will "fly" in a plane defined by local x and y axis
+    # we also need an origin for the plane, 
+    # and a distribution of observation points
+    params_simu.SAR_local_x_hat = [-1.0, 0.0, 0.0]
+    params_simu.SAR_local_y_hat = [0.0, 0.0, 1.0]
+    params_simu.SAR_plane_origin = [0.0, 50.0, 0.0]
+    # span of the scanning rectangle (in meters)
+    params_simu.SAR_x_span = 200.
+    params_simu.SAR_y_span = 200.
+    # offset of the scanning rectangle wrt its origin
+    params_simu.SAR_x_span_offset = -100.
+    params_simu.SAR_y_span_offset = -100.
+    # the number of points in each direction
+    params_simu.SAR_N_x_points = 8
+    params_simu.SAR_N_y_points = 3
+\end{verbatim}
+This is self explanatory. 
 
 
 \section{Antenna radiation pattern}
 %
 \par
-
+This is in principle possible, although I haven't tried it. An antenna system comprises in general a waveguiding structure and a radiator. It is possible to excite the structure, with one dipole or a plurality of dipoles judiciously placed, and then to evaluate the bistatic scattering of the structure in the far field to obtain its radiation pattern.
 
 
 \end{document}

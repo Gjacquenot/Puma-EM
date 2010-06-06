@@ -148,7 +148,7 @@ params_simu.START_PHI = 0.0
 params_simu.STOP_PHI = 2.0 * pi
 params_simu.AUTOMATIC_PHIS = True
 params_simu.USER_DEFINED_NB_PHI = 200
-# now the monostatic SAR settings
+# for the monostatic SAR settings
 if params_simu.MONOSTATIC_SAR==1:
     # dipole antenna will "fly" in a plane defined by local x and y axis
     # we also need an origin for the plane, and a distribution of observation points
