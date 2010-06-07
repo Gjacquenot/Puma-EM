@@ -201,6 +201,9 @@ params_simu.SHOW_FIGURE = 0
 # open with GMSH the *.pos files that are in the ./geo directory
 # only works if BISTATIC == 1
 params_simu.CURRENTS_VISUALIZATION = 0
+# we can also save the currents at the centroids of the triangles.
+# It will be stored in ./result directory
+params_simu.SAVE_CURRENTS_CENTROIDS = 0
 
 # now a parameter that tells if we want to be silent (little to no output)
 params_simu.VERBOSE = 1

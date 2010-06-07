@@ -1,5 +1,5 @@
 from math import pi
-from scipy import real, exp
+from scipy import real, imag, exp
 from mesh_functions_seb import *
 
 def JMCentroidsTriangles(ICoeffs, target_mesh):
@@ -35,6 +35,20 @@ def normJMCentroidsTriangles(J_M_centroids, w, nbTimeSteps):
     return norm_J_M_centroids
 
 def write_VectorFieldTrianglesCentroids(name, VectorField, target_mesh):
+    """function that writes a given vector field on the triangles centroids."""
+    triangles_centroids = triangles_centroids_computation(target_mesh.vertexes_coord, target_mesh.triangle_vertexes)
+    f = open(name, 'w')
+    for k in range(target_mesh.T):
+        string_to_write = ''
+        for i in range(3):
+            string_to_write += str(real(VectorField[k][i])) + ' ' + str(imag(VectorField[k][i])) + ' '
+        for i in range(3):
+            string_to_write += str(triangles_centroids[k][i]) + ' '
+        string_to_write += '\n'
+        f.write(string_to_write)
+    f.close()
+
+def write_VectorFieldTrianglesCentroidsGMSH(name, VectorField, target_mesh):
     """function that writes a given vector field on a given surface
     to a file readable by GMSH for viewing."""
     triangles_centroids = triangles_centroids_computation(target_mesh.vertexes_coord, target_mesh.triangle_vertexes)
@@ -49,7 +63,7 @@ def write_VectorFieldTrianglesCentroids(name, VectorField, target_mesh):
     f.write('};\n')
     f.close()
 
-def write_ScalarFieldTrianglesCentroids(name, ScalarField, target_mesh):
+def write_ScalarFieldTrianglesCentroidsGMSH(name, ScalarField, target_mesh):
     """function that writes a given scalar field on a given surface
     to a file readable by GMSH for viewing."""
     f = open(name, 'w')
@@ -71,3 +85,4 @@ def write_ScalarFieldTrianglesCentroids(name, ScalarField, target_mesh):
         f.write(string_to_write)
     f.write('};\n')
     f.close()
+

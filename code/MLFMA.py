@@ -607,6 +607,8 @@ def print_times(params_simu):
             #print Wall_time_Z_near_computation + Wall_time_Mg_computation + target_MLFMA.Wall_time_Target_MLFMA_resolution, "Wall time (seconds) for complete MLFMA solution"
         if params_simu.CURRENTS_VISUALIZATION:
             computeCurrentsVisualization(params_simu, variables)
+        if params_simu.SAVE_CURRENTS_CENTROIDS:
+            saveCurrentsCentroids(params_simu)
 
 def computeCurrentsVisualization(params_simu, variables):
     my_id = MPI.COMM_WORLD.Get_rank()
@@ -626,12 +628,29 @@ def computeCurrentsVisualization(params_simu, variables):
             I_coeff = read1DBlitzArrayFromDisk(os.path.join(tmpDirName, 'ZI/ZI.txt'), 'F')
             J_centroids_triangles = JMCentroidsTriangles(I_coeff, target_mesh)
             norm_J_centroids_triangles = normJMCentroidsTriangles(J_centroids_triangles, variables['w'], nbTimeSteps)
-            write_VectorFieldTrianglesCentroids(os.path.join(params_simu.pathToTarget, params_simu.targetName) + '.J_centroids_triangles.pos', real(J_centroids_triangles), target_mesh)
-            write_ScalarFieldTrianglesCentroids(os.path.join(params_simu.pathToTarget, params_simu.targetName) + '.norm_J_centroids_triangles.pos', norm_J_centroids_triangles, target_mesh)
+            write_VectorFieldTrianglesCentroidsGMSH(os.path.join(params_simu.pathToTarget, params_simu.targetName) + '.J_centroids_triangles.pos', real(J_centroids_triangles), target_mesh)
+            write_ScalarFieldTrianglesCentroidsGMSH(os.path.join(params_simu.pathToTarget, params_simu.targetName) + '.norm_J_centroids_triangles.pos', norm_J_centroids_triangles, target_mesh)
             print "............end of currents visualisation construction."
         else:
             "Error in the computeCurrentsVisualization routine. Probably you required currents visualization computation for a mesh too big"
             sys.exit(1)
+
+def saveCurrentsCentroids(params_simu):
+    my_id = MPI.COMM_WORLD.Get_rank()
+    tmpDirName = 'tmp' + str(my_id)
+    if (my_id == 0):
+        target_mesh = MeshClass(params_simu.pathToTarget, params_simu.targetName, params_simu.targetDimensions_scaling_factor, params_simu.z_offset, params_simu.languageForMeshConstruction, params_simu.meshFormat, params_simu.meshFileTermination)
+        # target_mesh.constructFromGmshFile()
+        target_mesh.constructFromSavedArrays(os.path.join('.', tmpDirName, "mesh"))
+        SAVE_CURRENTS_CENTROIDS = (params_simu.SAVE_CURRENTS_CENTROIDS and (params_simu.BISTATIC == 1))
+        if SAVE_CURRENTS_CENTROIDS:
+            print "............saving currents at centroids of triangles"
+            nbTimeSteps = 1
+            tmpDirName = 'tmp' + str(my_id)
+            I_coeff = read1DBlitzArrayFromDisk(os.path.join(tmpDirName, 'ZI/ZI.txt'), 'F')
+            J_centroids_triangles = JMCentroidsTriangles(I_coeff, target_mesh)
+            write_VectorFieldTrianglesCentroids(os.path.join('./result', 'J_centroids_triangles.txt'), J_centroids_triangles, target_mesh)
+            print "............end of saving of currents."
 
 def getField(filename):
     my_id = MPI.COMM_WORLD.Get_rank()
