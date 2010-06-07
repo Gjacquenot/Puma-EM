@@ -11,7 +11,7 @@ from EM_constants import *
 from MoMPostProcessing import *
 from ReadWriteBlitzArray import writeScalarToDisk, writeASCIIBlitzArrayToDisk, writeBlitzArrayToDisk, readIntFromDisk, readFloatFromDisk, read1DBlitzArrayFromDisk, readASCIIBlitzComplexFloatArray2DFromDisk, readASCIIBlitzFloatArray2DFromDisk
 from runMPIsystemCommand import runMPIsystemCommand, createMPIsystemCommand
-from read_dipole_excitation import read_dipole_excitation
+from read_dipole_excitation import read_dipole_excitation, read_observation_points
 
 def L_computation(k, a, NB_DIGITS):
     """this function computes the number of expansion poles given the wavenumber k and the sidelength a"""
@@ -342,16 +342,24 @@ def setup_MLFMA(params_simu):
     w = 2. * pi * params_simu.f
     k = w * sqrt(eps_0*params_simu.eps_r*mu_0*params_simu.mu_r) + 1.j * 0.
     # now the observation points
-    if (len(params_simu.r_obs_x)==len(params_simu.r_obs_y)) and (len(params_simu.r_obs_x)==len(params_simu.r_obs_z)):
-        N_obs_points = len(params_simu.r_obs_x)
-        r_obs = zeros((N_obs_points, 3), 'd')
-        for index in range(N_obs_points):
-            r_obs[index,:] = array([params_simu.r_obs_x[index], params_simu.r_obs_y[index], params_simu.r_obs_z[index]], 'd')
-    else:
-        if (my_id==0):
-            print "Error in the r_obs parameter. Check your observation points!"
-        sys.exit(1)
-    writeASCIIBlitzArrayToDisk(r_obs, os.path.join('.',tmpDirName,'V_CFIE/r_obs.txt'))
+    if (params_simu.r_obs_FROM_FILE == 0):
+        if (len(params_simu.r_obs_x)==len(params_simu.r_obs_y)) and (len(params_simu.r_obs_x)==len(params_simu.r_obs_z)):
+            N_obs_points = len(params_simu.r_obs_x)
+            r_obs = zeros((N_obs_points, 3), 'd')
+            for index in range(N_obs_points):
+                r_obs[index,:] = array([params_simu.r_obs_x[index], params_simu.r_obs_y[index], params_simu.r_obs_z[index]], 'd')
+        else:
+            if (my_id==0):
+                print "Error in the r_obs parameter. Check your observation points!"
+            sys.exit(1)
+        writeASCIIBlitzArrayToDisk(r_obs, os.path.join('.',tmpDirName,'V_CFIE/r_obs.txt'))
+    elif (params_simu.r_obs_FROM_FILE == 1) and (params_simu.r_obs_FILENAME != ""):
+        if (my_id==0): # this file is only on processor 0
+            r_obs = read_observatin_points(params_simu.r_obs_FILENAME)
+        else:
+            r_obs = zeros((1, 3), 'd')
+        r_obs = MPI.COMM_WORLD.Bcast(r_obs)
+        writeASCIIBlitzArrayToDisk(r_J_src, os.path.join('.',tmpDirName,'V_CFIE/r_obs.txt'))
 
     # now the excitations
     writeScalarToDisk(params_simu.BISTATIC_EXCITATION_DIPOLES, os.path.join('.',tmpDirName,'V_CFIE/DIPOLES_EXCITATION.txt'))

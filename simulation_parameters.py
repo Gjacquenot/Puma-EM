@@ -121,15 +121,26 @@ if params_simu.BISTATIC_EXCITATION_PLANE_WAVE == 1:
     params_simu.E_inc_phi = 0.0+0.j # the phi component
 # sampling points: sampling of the resulting field at user-specified points in space.
 # It will be used only for BISTATIC
-# The lists have to be of equal lengths.
-# example:
-# params_simu.r_obs_x = [x1, x2, x3, ..., xn]
-# params_simu.r_obs_y = [y1, y2, y3, ..., yn]
-# params_simu.r_obs_z = [z1, z2, z3, ..., zn]
-# will yield the points r1 = [x1, y1, z1], r2 = [x2, y2, z2], etc.
-params_simu.r_obs_x = [0.1, 0.1]
-params_simu.r_obs_y = [0.1, 0.1]
-params_simu.r_obs_z = [20.0, 20.1]
+params_simu.r_obs_FROM_FILE = 0
+if params_simu.r_obs_FROM_FILE == 1:
+    # the name (with path) of the user-supplied r_obs file. Set to "" if empty
+    params_simu.r_obs_FILENAME = "./r_obs.txt"
+    # the structure of the r_obs file MUST BE AS FOLLOWS:
+    # 1 line per observation point, as many lines as there are points
+    # each line has 3 columns that must be arranged as follows:
+    #
+    # r_obs_x r_obs_y r_obs_z
+else:
+    # else we create the lists here
+    # The lists have to be of equal lengths.
+    # example:
+    # params_simu.r_obs_x = [x1, x2, x3, ..., xn]
+    # params_simu.r_obs_y = [y1, y2, y3, ..., yn]
+    # params_simu.r_obs_z = [z1, z2, z3, ..., zn]
+    # will yield the points r1 = [x1, y1, z1], r2 = [x2, y2, z2], etc.
+    params_simu.r_obs_x = [0.1, 0.1]
+    params_simu.r_obs_y = [0.1, 0.1]
+    params_simu.r_obs_z = [20.0, 20.1]
 
 # the angles for the monostatic RCS or the bistatic far-field data.
 # Normally the code provides "best angles of observation", best
