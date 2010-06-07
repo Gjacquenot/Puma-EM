@@ -409,14 +409,24 @@ def setup_MLFMA(params_simu):
     # if we have dipoles excitation AND definition of the excitation in a user-supplied file
     elif (params_simu.BISTATIC_EXCITATION_DIPOLES == 1) and (params_simu.BISTATIC_EXCITATION_DIPOLES_FROM_FILE == 1):
         if params_simu.BISTATIC_EXCITATION_J_DIPOLES_FILENAME != "":
-            J_src, r_J_src = read_dipole_excitation(params_simu.BISTATIC_EXCITATION_J_DIPOLES_FILENAME)
+            if (my_id==0): # this file is only on processor 0
+                J_src, r_J_src = read_dipole_excitation(params_simu.BISTATIC_EXCITATION_J_DIPOLES_FILENAME)
+            else:
+                J_src, r_J_src = zeros((1, 3), 'D'), zeros((1, 3), 'd')
+            J_src = MPI.COMM_WORLD.Bcast(J_src)
+            r_J_src = MPI.COMM_WORLD.Bcast(r_J_src)
             writeScalarToDisk(1, os.path.join('.',tmpDirName,'V_CFIE/J_DIPOLES_EXCITATION.txt'))
             writeASCIIBlitzArrayToDisk(J_src, os.path.join('.',tmpDirName,'V_CFIE/J_dip.txt'))
             writeASCIIBlitzArrayToDisk(r_J_src, os.path.join('.',tmpDirName,'V_CFIE/r_J_dip.txt'))
         else:
             writeScalarToDisk(0, os.path.join('.',tmpDirName,'V_CFIE/J_DIPOLES_EXCITATION.txt'))
         if params_simu.BISTATIC_EXCITATION_M_DIPOLES_FILENAME != "":
-            M_src, r_M_src = read_dipole_excitation(params_simu.BISTATIC_EXCITATION_M_DIPOLES_FILENAME)
+            if (my_id==0): # this file is only on processor 0
+                M_src, r_M_src = read_dipole_excitation(params_simu.BISTATIC_EXCITATION_M_DIPOLES_FILENAME)
+            else:
+                M_src, r_M_src = zeros((1, 3), 'D'), zeros((1, 3), 'd')
+            M_src = MPI.COMM_WORLD.Bcast(M_src)
+            r_M_src = MPI.COMM_WORLD.Bcast(r_M_src)
             writeScalarToDisk(1, os.path.join('.',tmpDirName,'V_CFIE/M_DIPOLES_EXCITATION.txt'))
             writeASCIIBlitzArrayToDisk(M_src, os.path.join('.',tmpDirName,'V_CFIE/M_dip.txt'))
             writeASCIIBlitzArrayToDisk(r_M_src, os.path.join('.',tmpDirName,'V_CFIE/r_M_dip.txt'))
