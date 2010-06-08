@@ -6,7 +6,6 @@ from myPseudoInv import computeMyPinvCC #, computeMyPinv
 from FMM_Znear import read_Z_perCube_fromFile, compute_list_cubes
 from ReadWriteBlitzArray import *
 from meshClass import CubeClass
-from runMPIsystemCommand import runMPIsystemCommand
 
 def findEdgesInRadiusAroundCube(RWGNumber_nodes, nodesCoord, rCubeCenter, R_NORM_TYPE_1):
     """this function yields a 1 to an edge number if it is within

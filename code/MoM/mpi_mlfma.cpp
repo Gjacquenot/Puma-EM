@@ -854,6 +854,8 @@ int main(void) {
   }
   ierror = MPI_Barrier(MPI::COMM_WORLD);
   if (CUBES_DISTRIBUTION==1) {
+    // we write 0 on the file
+    writeIntToASCIIFile(OCTTREE_DATA_PATH + "CUBES_DISTRIBUTION.txt", 0);
     // we return to python!
     return 0;
   }

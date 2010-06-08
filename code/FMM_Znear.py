@@ -146,9 +146,9 @@ def Z_nearChunksDistribution(MAX_BLOCK_SIZE, N_nearPerCube, C, pathToWriteTo, pa
     # we use the octtree C++ algorithm for repartition of the leaf cubes between the processes
     if (my_id == 0):
         runMPIsystemCommand("./code/MoM", "mpi_mlfma", num_procs)
+        # The latter command should be replaced by this one:
+        #createMPIsystemCommand("./code/MoM", "mpi_mlfma", num_proc)
     MPI.COMM_WORLD.Barrier()
-    CUBES_DISTRIBUTION = 0
-    writeScalarToDisk(CUBES_DISTRIBUTION, os.path.join('.',pathToWriteTo,'octtree_data/CUBES_DISTRIBUTION.txt') )
 
     chunkNumber_to_cubesIndexes, cubeIndex_to_chunkNumber, chunkNumber_to_processNumber, processNumber_to_ChunksNumbers = ['blabla'], ['blabla'], ['blabla'], ['blabla']
     if my_id==0:
