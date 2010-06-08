@@ -1,4 +1,4 @@
-from scipy import array
+from scipy import array, zeros
 
 def read_dipole_excitation(filename):
     # the structure of the excitation file must be as follows:
@@ -16,9 +16,12 @@ def read_dipole_excitation(filename):
             r_tmp.append(map(float, elems[6:]))
             J_tmp.append(map(float, elems[:6]))
     excitation_file.close()
-    r_src = array(r_tmp, 'd')
-    J_tmp2 = array(J_tmp, 'd')
-    J_src = array(J_tmp2[:,0:6:2], 'd') + array(J_tmp2[:,1:6:2], 'd') * 1.j
+    if r_tmp == []:
+        J_src, r_src = zeros((0,0), 'D'), zeros((0,0), 'd')
+    else:
+        r_src = array(r_tmp, 'd')
+        J_tmp2 = array(J_tmp, 'd')
+        J_src = array(J_tmp2[:,0:6:2], 'd') + array(J_tmp2[:,1:6:2], 'd') * 1.j
     return J_src, r_src
 
 def read_observation_points(filename):
@@ -35,6 +38,9 @@ def read_observation_points(filename):
         if (len(elems)==3) and (elems!=[]):
             r_tmp.append(map(float, elems[0:]))
     observation_file.close()
-    r_obs = array(r_tmp, 'd')
+    if r_tmp == []:
+        r_obs = zeros((0, 0), 'd')
+    else:
+        r_obs = array(r_tmp, 'd')
     return r_obs
     
