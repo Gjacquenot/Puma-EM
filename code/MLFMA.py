@@ -355,11 +355,11 @@ def setup_MLFMA(params_simu):
         writeASCIIBlitzArrayToDisk(r_obs, os.path.join('.',tmpDirName,'V_CFIE/r_obs.txt'))
     elif (params_simu.r_obs_FROM_FILE == 1) and (params_simu.r_obs_FILENAME != ""):
         if (my_id==0): # this file is only on processor 0
-            r_obs = read_observatin_points(params_simu.r_obs_FILENAME)
+            r_obs = read_observation_points(params_simu.r_obs_FILENAME)
         else:
             r_obs = zeros((1, 3), 'd')
         r_obs = MPI.COMM_WORLD.Bcast(r_obs)
-        writeASCIIBlitzArrayToDisk(r_J_src, os.path.join('.',tmpDirName,'V_CFIE/r_obs.txt'))
+        writeASCIIBlitzArrayToDisk(r_obs, os.path.join('.',tmpDirName,'V_CFIE/r_obs.txt'))
 
     # now the excitations
     writeScalarToDisk(params_simu.BISTATIC_EXCITATION_DIPOLES, os.path.join('.',tmpDirName,'V_CFIE/DIPOLES_EXCITATION.txt'))
