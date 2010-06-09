@@ -264,8 +264,6 @@ def compute_SAIpreconditioner(tmpDirName, a, C, chunkNumber_to_cubesNumbers, cub
 def setup_MLFMA(params_simu):
     """This function provides an easy interface for running an MLFMA simulation.
        params_simu is a class instance that contains the parameters for the simulation.
-       COMPUTE_Z_NEAR is a bool that tells if we have to recompute the near-field 
-       matrix and the Sparse Approximate Inverse preconditioner.
     """
     status = MPI.Status()
     num_proc = MPI.COMM_WORLD.Get_size()
@@ -274,28 +272,25 @@ def setup_MLFMA(params_simu):
     targetFileName = os.path.join(params_simu.pathToTarget, params_simu.targetName + params_simu.meshFileTermination)
     tmpDirName = 'tmp' + str(my_id)
 
-    if params_simu.COMPUTE_Z_NEAR==1:
-        if params_simu.meshToMake:
-            os.system("rm -f " + targetFileName)
-            if my_id==0:
-                write_geo(params_simu.pathToTarget, params_simu.targetName, 'lc', c/params_simu.f * params_simu.lc_factor)
-                write_geo(params_simu.pathToTarget, params_simu.targetName, 'lx', params_simu.lx)
-                write_geo(params_simu.pathToTarget, params_simu.targetName, 'ly', params_simu.ly)
-                write_geo(params_simu.pathToTarget, params_simu.targetName, 'lz', params_simu.lz)
-                executeGmsh(params_simu.pathToTarget, params_simu.targetName, 0)
+    if params_simu.meshToMake:
+        if my_id==0:
+            write_geo(params_simu.pathToTarget, params_simu.targetName, 'lc', c/params_simu.f * params_simu.lc_factor)
+            write_geo(params_simu.pathToTarget, params_simu.targetName, 'lx', params_simu.lx)
+            write_geo(params_simu.pathToTarget, params_simu.targetName, 'ly', params_simu.ly)
+            write_geo(params_simu.pathToTarget, params_simu.targetName, 'lz', params_simu.lz)
+            executeGmsh(params_simu.pathToTarget, params_simu.targetName, 0)
 
-        commands.getoutput("rm -rf ./tmp*")
-        MPI.COMM_WORLD.Barrier()
-        os.mkdir( os.path.abspath(os.path.join('.',tmpDirName)) )
-        os.mkdir( os.path.abspath(os.path.join('.',tmpDirName,'Z_tmp')) )
-        os.mkdir( os.path.abspath(os.path.join('.',tmpDirName,'Z_near')) )
-        os.mkdir( os.path.abspath(os.path.join('.',tmpDirName,'Mg_LeftFrob')) )
-        os.mkdir( os.path.abspath(os.path.join('.',tmpDirName,'mesh')) )
-        os.mkdir( os.path.abspath(os.path.join('.',tmpDirName,'octtree_data')) )
-        os.mkdir( os.path.abspath(os.path.join('.',tmpDirName,'V_CFIE')) )
-        os.mkdir( os.path.abspath(os.path.join('.',tmpDirName,'ZI')) )
-        os.mkdir( os.path.abspath(os.path.join('.',tmpDirName,'iterative_data')) )
-        os.mkdir( os.path.abspath(os.path.join('.',tmpDirName,'pickle')) )
+    MPI.COMM_WORLD.Barrier()
+    os.mkdir( os.path.abspath(os.path.join('.',tmpDirName)) )
+    os.mkdir( os.path.abspath(os.path.join('.',tmpDirName,'Z_tmp')) )
+    os.mkdir( os.path.abspath(os.path.join('.',tmpDirName,'Z_near')) )
+    os.mkdir( os.path.abspath(os.path.join('.',tmpDirName,'Mg_LeftFrob')) )
+    os.mkdir( os.path.abspath(os.path.join('.',tmpDirName,'mesh')) )
+    os.mkdir( os.path.abspath(os.path.join('.',tmpDirName,'octtree_data')) )
+    os.mkdir( os.path.abspath(os.path.join('.',tmpDirName,'V_CFIE')) )
+    os.mkdir( os.path.abspath(os.path.join('.',tmpDirName,'ZI')) )
+    os.mkdir( os.path.abspath(os.path.join('.',tmpDirName,'iterative_data')) )
+    os.mkdir( os.path.abspath(os.path.join('.',tmpDirName,'pickle')) )
 
     # target_mesh construction
     target_mesh = MeshClass(params_simu.pathToTarget, params_simu.targetName, params_simu.targetDimensions_scaling_factor, params_simu.z_offset, params_simu.languageForMeshConstruction, params_simu.meshFormat, params_simu.meshFileTermination)
@@ -303,10 +298,7 @@ def setup_MLFMA(params_simu):
     a = c/params_simu.f * params_simu.a_factor
     MPI.COMM_WORLD.Barrier()
     if (my_id==0):
-        if params_simu.COMPUTE_Z_NEAR==1:
-            target_mesh.constructFromGmshFile()
-        else:
-            target_mesh.constructFromSavedArrays(os.path.join("./tmp" + str(my_id), "mesh"))
+        target_mesh.constructFromGmshFile()
         average_RWG_length = target_mesh.average_RWG_length
         writeScalarToDisk(average_RWG_length, os.path.join('.',tmpDirName,'mesh/average_RWG_length.txt'))
         if params_simu.VERBOSE==1:
@@ -318,7 +310,7 @@ def setup_MLFMA(params_simu):
     else:
         target_mesh.N_nearPerCube = ['blabla']
     target_mesh.N_nearPerCube = MPI.COMM_WORLD.Bcast(target_mesh.N_nearPerCube)
-    if (my_id==0) and (params_simu.COMPUTE_Z_NEAR==1):
+    if (my_id==0):
         runMPIsystemCommand("./code/MoM", "communicateMeshArrays", num_proc)
     MPI.COMM_WORLD.Barrier()
 
@@ -504,8 +496,9 @@ def setup_MLFMA(params_simu):
     MPI.COMM_WORLD.Barrier()
     computeTreeParameters(my_id, tmpDirName, a, k, N_levels, params_simu)
     if params_simu.COMPUTE_Z_NEAR==1:
-        chunkNumber_to_cubesNumbers, cubeNumber_to_chunkNumber, chunkNumber_to_processNumber, processNumber_to_ChunksNumbers = distributeZcubesAttributions(params_simu.MAX_BLOCK_SIZE, target_mesh.N_nearPerCube, C, tmpDirName, params_simu)
-        scatterMesh(target_mesh, processNumber_to_ChunksNumbers, chunkNumber_to_cubesNumbers, tmpDirName, my_id, num_proc)
+        pass
+    chunkNumber_to_cubesNumbers, cubeNumber_to_chunkNumber, chunkNumber_to_processNumber, processNumber_to_ChunksNumbers = distributeZcubesAttributions(params_simu.MAX_BLOCK_SIZE, target_mesh.N_nearPerCube, C, tmpDirName, params_simu)
+    scatterMesh(target_mesh, processNumber_to_ChunksNumbers, chunkNumber_to_cubesNumbers, tmpDirName, my_id, num_proc)
     del target_mesh # we gain A LOT of memory here, especially if N_RWG~1e6
     # we now dump-pickle the necessary variables
     variables = {}
@@ -530,17 +523,16 @@ def compute_Z_near(params_simu):
     my_id = MPI.COMM_WORLD.Get_rank()
     tmpDirName = 'tmp' + str(my_id)
     if params_simu.COMPUTE_Z_NEAR==1:
-        file = open(os.path.join('.', tmpDirName, 'pickle', 'variables.txt'), 'r')
-        variables = cPickle.load(file)
-        file.close()
-        Wall_time_Z_near_computation, CPU_time_Z_near_computation = computeZ_near(tmpDirName, variables['a'], variables['C'], variables['k'], variables['w'], variables['N_levels'], variables['chunkNumber_to_cubesNumbers'], variables['processNumber_to_ChunksNumbers'], variables['CFIE'], params_simu)
-        pathToReadFrom = os.path.join('.', tmpDirName, 'Z_tmp')
-        # we exchange the missing Z_near parts for each process
-        Mg_listsOfZnearBlocks_ToTransmitAndReceive(variables['chunkNumber_to_cubesNumbers'], variables['cubeNumber_to_chunkNumber'], variables['chunkNumber_to_processNumber'], variables['processNumber_to_ChunksNumbers'], pathToReadFrom, 'F')
-        if (my_id == 0):
-            createMPIsystemCommand("./code/MoM", "communicateZnearBlocks", num_proc)
-    else:
-        Wall_time_Z_near_computation, CPU_time_Z_near_computation = 0.0, 0.0
+        pass
+    file = open(os.path.join('.', tmpDirName, 'pickle', 'variables.txt'), 'r')
+    variables = cPickle.load(file)
+    file.close()
+    Wall_time_Z_near_computation, CPU_time_Z_near_computation = computeZ_near(tmpDirName, variables['a'], variables['C'], variables['k'], variables['w'], variables['N_levels'], variables['chunkNumber_to_cubesNumbers'], variables['processNumber_to_ChunksNumbers'], variables['CFIE'], params_simu)
+    pathToReadFrom = os.path.join('.', tmpDirName, 'Z_tmp')
+    # we exchange the missing Z_near parts for each process
+    Mg_listsOfZnearBlocks_ToTransmitAndReceive(variables['chunkNumber_to_cubesNumbers'], variables['cubeNumber_to_chunkNumber'], variables['chunkNumber_to_processNumber'], variables['processNumber_to_ChunksNumbers'], pathToReadFrom, 'F')
+    if (my_id == 0):
+        createMPIsystemCommand("./code/MoM", "communicateZnearBlocks", num_proc)
     # we now dump-pickle the necessary variables
     variables['Wall_time_Z_near_computation'] = Wall_time_Z_near_computation
     variables['CPU_time_Z_near_computation'] = CPU_time_Z_near_computation
@@ -553,12 +545,11 @@ def compute_SAI(params_simu):
     my_id = MPI.COMM_WORLD.Get_rank()
     tmpDirName = 'tmp' + str(my_id)
     if params_simu.COMPUTE_Z_NEAR==1:
-        file = open(os.path.join('.', tmpDirName, 'pickle', 'variables.txt'), 'r')
-        variables = cPickle.load(file)
-        file.close()
-        Wall_time_Mg_computation, CPU_time_Mg_computation = compute_SAIpreconditioner(tmpDirName, variables['a'], variables['C'], variables['chunkNumber_to_cubesNumbers'], variables['cubeNumber_to_chunkNumber'], variables['chunkNumber_to_processNumber'], variables['processNumber_to_ChunksNumbers'], params_simu.MAX_BLOCK_SIZE)
-    else:
-        Wall_time_Mg_computation, CPU_time_Mg_computation = 0.0, 0.0
+        pass
+    file = open(os.path.join('.', tmpDirName, 'pickle', 'variables.txt'), 'r')
+    variables = cPickle.load(file)
+    file.close()
+    Wall_time_Mg_computation, CPU_time_Mg_computation = compute_SAIpreconditioner(tmpDirName, variables['a'], variables['C'], variables['chunkNumber_to_cubesNumbers'], variables['cubeNumber_to_chunkNumber'], variables['chunkNumber_to_processNumber'], variables['processNumber_to_ChunksNumbers'], params_simu.MAX_BLOCK_SIZE)
     variables['Wall_time_Mg_computation'] = Wall_time_Mg_computation
     variables['CPU_time_Mg_computation'] = CPU_time_Mg_computation
     if (my_id == 0) and (params_simu.VERBOSE == 1):

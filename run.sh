@@ -26,6 +26,10 @@ else
     COMMAND1="mpirun --hostfile $MPI_HOSTFILE -np $N_PROCESSES "
 fi
 
+# cleanup. To be changed if COMPUTE_Z_NEAR is ever to have an influence again.
+echo "run.sh: Erasing the tmp* directories..."
+rm -rf ./tmp*
+echo "Done"
 ${COMMAND1} python code/setup_MLFMA.py
 ${COMMAND1} python code/compute_Z_near_MLFMA.py
 # hereafter we exchange the Z_near blocks for SAI computation

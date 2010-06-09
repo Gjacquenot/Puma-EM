@@ -16,7 +16,7 @@ params_simu.languageForMeshConstruction = languageForMeshConstruction[1]
 #
 ###################################################
 # COMPUTE_Z_NEAR = 1 or 0: do we need to compute the near field and SAI preconditioner 
-# sparse matrices or not
+# sparse matrices or not. DOES NOT WORK ANYMORE!!! SHOULD BE 1 ALWAYS!!
 params_simu.COMPUTE_Z_NEAR = 1
 
 # MOM_FULL_PRECISION = 0/1: faster/slower Z_near computation but less/more precision
