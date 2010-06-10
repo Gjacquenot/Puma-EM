@@ -27,7 +27,8 @@ void V_EJ_HJ_plane (blitz::Array<std::complex<double>, 1> V_tE_J,
                     const blitz::Array<double, 2>& RWGNumber_oppVertexesCoord,
                     const double w,
                     const complex<double>& eps_r,
-                    const complex<double>& mu_r)
+                    const complex<double>& mu_r,
+                    const int FULL_PRECISION)
 {
   // def of k, mu_i, eps_i
   blitz::Range all = blitz::Range::all();
@@ -37,7 +38,10 @@ void V_EJ_HJ_plane (blitz::Array<std::complex<double>, 1> V_tE_J,
   // weights and abscissas for triangle integration
   double sum_weigths;
   const double *xi, *eta, *weigths;
-  int N_points = 6;
+  // triangle integration precision. Possible values for N_points: 1, 3, 6, 9, 12, 13
+  int N_points;
+  if (FULL_PRECISION!=0) N_points = 6; 
+  else N_points = 3;
   IT_points (xi, eta, weigths, sum_weigths, N_points);
 
   blitz::TinyVector<double, 3> kHat, rRef;
@@ -163,7 +167,8 @@ void V_CFIE_plane (blitz::Array<std::complex<float>, 1> V_CFIE,
                    const blitz::Array<double, 2>& RWGNumber_trianglesCoord,
                    const double w,
                    const complex<double>& eps_r,
-                   const complex<double>& mu_r)
+                   const complex<double>& mu_r,
+                   const int FULL_PRECISION)
 {
   // def of k, mu_i, eps_i
   Range all = Range::all();
@@ -173,7 +178,9 @@ void V_CFIE_plane (blitz::Array<std::complex<float>, 1> V_CFIE,
 
   double sum_weigths;
   const double *xi, *eta, *weigths;
-  int N_points = 9;
+  int N_points;
+  if (FULL_PRECISION!=0) N_points = 6; 
+  else N_points = 3;
   IT_points (xi, eta, weigths, sum_weigths, N_points);
 
   // r_ref is the reference for the phase of the incoming plane wave
@@ -290,11 +297,12 @@ void local_V_CFIE_plane (blitz::Array<std::complex<float>, 1>& V_CFIE,
                           const double w,
                           const std::complex<double>& eps_r,
                           const std::complex<double>& mu_r,
-                          const blitz::Array<std::complex<float>, 1>& CFIE)
+                          const blitz::Array<std::complex<float>, 1>& CFIE,
+                          const int FULL_PRECISION)
 {
   // We now compute the excitation vectors
   V_CFIE.resize(local_target_mesh.N_local_RWG);
-  V_CFIE_plane (V_CFIE, CFIE, E_0, k_hat, r_ref, local_target_mesh.reallyLocalRWGNumbers, local_target_mesh.localRWGNumber_CFIE_OK, local_target_mesh.localRWGNumber_trianglesCoord, w, eps_r, mu_r);
+  V_CFIE_plane (V_CFIE, CFIE, E_0, k_hat, r_ref, local_target_mesh.reallyLocalRWGNumbers, local_target_mesh.localRWGNumber_CFIE_OK, local_target_mesh.localRWGNumber_trianglesCoord, w, eps_r, mu_r, FULL_PRECISION);
 }
 
 

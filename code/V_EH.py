@@ -34,6 +34,7 @@ def V_EH_dipole(J_dip, r_dip, list_of_edges_numbers, RWGNumber_CFIE_OK, RWGNumbe
     # creation of the local V arrays 
     E = list_of_edges_numbers.shape[0]
     V_EH = zeros((E, 4), 'D')
+    V_FULL_PRECISION = 1
     # RWGNumber_vertexesCoord
     RWGNumber_vertexesCoord = zeros((E, 6), 'd')
     RWGNumber_vertexesCoord[:, 0:3] = take(vertexes_coord, RWGNumber_edgeVertexes[:,0], axis=0).astype('d')
@@ -44,10 +45,10 @@ def V_EH_dipole(J_dip, r_dip, list_of_edges_numbers, RWGNumber_CFIE_OK, RWGNumbe
     RWGNumber_oppVertexesCoord[:, 3:6] = take(vertexes_coord, RWGNumber_oppVertexes[:,1], axis=0).astype('d')
     wrapping_code = """
     blitz::Range all = blitz::Range::all();
-    V_EJ_HJ_dipole (V_EH(all, 0), V_EH(all, 1), V_EH(all, 2), V_EH(all, 3), J_dip, r_dip, list_of_edges_numbers, RWGNumber_CFIE_OK, RWGNumber_signedTriangles, RWGNumber_vertexesCoord, RWGNumber_oppVertexesCoord, w, eps_r, mu_r);
+    V_EJ_HJ_dipole (V_EH(all, 0), V_EH(all, 1), V_EH(all, 2), V_EH(all, 3), J_dip, r_dip, list_of_edges_numbers, RWGNumber_CFIE_OK, RWGNumber_signedTriangles, RWGNumber_vertexesCoord, RWGNumber_oppVertexesCoord, w, eps_r, mu_r, V_FULL_PRECISION);
     """
     weave.inline(wrapping_code,
-                 ['V_EH', 'J_dip', 'r_dip', 'list_of_edges_numbers', 'RWGNumber_CFIE_OK', 'RWGNumber_signedTriangles', 'RWGNumber_vertexesCoord', 'RWGNumber_oppVertexesCoord', 'w', 'eps_r', 'mu_r'],
+                 ['V_EH', 'J_dip', 'r_dip', 'list_of_edges_numbers', 'RWGNumber_CFIE_OK', 'RWGNumber_signedTriangles', 'RWGNumber_vertexesCoord', 'RWGNumber_oppVertexesCoord', 'w', 'eps_r', 'mu_r', 'V_FULL_PRECISION'],
                  type_converters = converters.blitz,
                  include_dirs = ['./code/MoM/'],
                  library_dirs = ['./code/MoM/'],
@@ -64,6 +65,7 @@ def V_EH_dipole_alternative(J_dip, r_dip, list_of_edges_numbers, RWGNumber_CFIE_
     ## creation of the local V arrays 
     #E = list_of_edges_numbers.shape[0]
     #V_EH = zeros((E, 4), 'D')
+    #V_FULL_PRECISION = 1
     ## RWGNumber_edgeLength
     #r0_r1 = take(vertexes_coord, RWGNumber_edgeVertexes[:, 0],axis=0) - take(vertexes_coord, RWGNumber_edgeVertexes[:, 1],axis=0)
     #RWGNumber_edgeLength = sqrt(sum(r0_r1 * r0_r1, axis=1)).astype('d')
@@ -79,10 +81,10 @@ def V_EH_dipole_alternative(J_dip, r_dip, list_of_edges_numbers, RWGNumber_CFIE_
         #testTriangle_vertexesCoord[:, arange(3) + i*3] = take(vertexes_coord, testTriangle_vertexes[:, i], axis=0)
     #wrapping_code = """
     #blitz::Range all = blitz::Range::all();
-    #V_EJ_HJ_dipole_alternative (V_EH(all, 0), V_EH(all, 1), V_EH(all, 2), V_EH(all, 3), J_dip, r_dip, list_of_edges_numbers, RWGNumber_CFIE_OK, RWGNumber_signedTriangles, RWGNumber_edgeLength, RWGNumber_oppVertexesCoord, testTriangle_vertexesCoord, w, eps_r, mu_r);
+    #V_EJ_HJ_dipole_alternative (V_EH(all, 0), V_EH(all, 1), V_EH(all, 2), V_EH(all, 3), J_dip, r_dip, list_of_edges_numbers, RWGNumber_CFIE_OK, RWGNumber_signedTriangles, RWGNumber_edgeLength, RWGNumber_oppVertexesCoord, testTriangle_vertexesCoord, w, eps_r, mu_r, V_FULL_PRECISION);
     #"""
     #weave.inline(wrapping_code,
-                 #['V_EH', 'J_dip', 'r_dip', 'list_of_edges_numbers', 'RWGNumber_CFIE_OK', 'RWGNumber_signedTriangles', 'RWGNumber_edgeLength', 'RWGNumber_oppVertexesCoord', 'testTriangle_vertexesCoord', 'w', 'eps_r', 'mu_r'],
+                 #['V_EH', 'J_dip', 'r_dip', 'list_of_edges_numbers', 'RWGNumber_CFIE_OK', 'RWGNumber_signedTriangles', 'RWGNumber_edgeLength', 'RWGNumber_oppVertexesCoord', 'testTriangle_vertexesCoord', 'w', 'eps_r', 'mu_r', 'V_FULL_PRECISION'],
                  #type_converters = converters.blitz,
                  #include_dirs = ['./code/MoM/'],
                  #library_dirs = ['./code/MoM/'],
@@ -103,6 +105,7 @@ def V_EH_plane(J_dip, r_dip, list_of_edges_numbers, RWGNumber_CFIE_OK, RWGNumber
     # creation of the local V arrays
     E = list_of_edges_numbers.shape[0]
     V_EH = zeros((E, 4), 'D')
+    V_FULL_PRECISION = 1
     # RWGNumber_vertexesCoord
     RWGNumber_vertexesCoord = zeros((E, 6), 'd')
     RWGNumber_vertexesCoord[:, 0:3] = take(vertexes_coord, RWGNumber_edgeVertexes[:,0], axis=0).astype('d')
@@ -113,10 +116,10 @@ def V_EH_plane(J_dip, r_dip, list_of_edges_numbers, RWGNumber_CFIE_OK, RWGNumber
     RWGNumber_oppVertexesCoord[:, 3:6] = take(vertexes_coord, RWGNumber_oppVertexes[:,1], axis=0).astype('d')
     wrapping_code = """
     blitz::Range all = blitz::Range::all();
-    V_EJ_HJ_plane (V_EH(all, 0), V_EH(all, 1), V_EH(all, 2), V_EH(all, 3), E_0, k_hat, r_ref, list_of_edges_numbers, RWGNumber_CFIE_OK, RWGNumber_signedTriangles, RWGNumber_vertexesCoord, RWGNumber_oppVertexesCoord, w, eps_r, mu_r);
+    V_EJ_HJ_plane (V_EH(all, 0), V_EH(all, 1), V_EH(all, 2), V_EH(all, 3), E_0, k_hat, r_ref, list_of_edges_numbers, RWGNumber_CFIE_OK, RWGNumber_signedTriangles, RWGNumber_vertexesCoord, RWGNumber_oppVertexesCoord, w, eps_r, mu_r, V_FULL_PRECISION);
     """
     weave.inline(wrapping_code,
-                 ['V_EH', 'E_0', 'k_hat', 'r_ref', 'list_of_edges_numbers', 'RWGNumber_CFIE_OK', 'RWGNumber_signedTriangles', 'RWGNumber_vertexesCoord', 'RWGNumber_oppVertexesCoord', 'w', 'eps_r', 'mu_r'],
+                 ['V_EH', 'E_0', 'k_hat', 'r_ref', 'list_of_edges_numbers', 'RWGNumber_CFIE_OK', 'RWGNumber_signedTriangles', 'RWGNumber_vertexesCoord', 'RWGNumber_oppVertexesCoord', 'w', 'eps_r', 'mu_r', 'V_FULL_PRECISION'],
                  type_converters = converters.blitz,
                  include_dirs = ['./code/MoM/'],
                  library_dirs = ['./code/MoM/'],

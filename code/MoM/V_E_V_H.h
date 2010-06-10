@@ -26,7 +26,8 @@ void V_EJ_HJ_dipole (blitz::Array<std::complex<double>, 1> V_tE_J,
                      const blitz::Array<double, 2>& RWGNumber_oppVertexesCoord,
                      const double w,
                      const std::complex<double>& eps_r,
-                     const std::complex<double>& mu_r);
+                     const std::complex<double>& mu_r,
+                     const int FULL_PRECISION);
 
 void V_CFIE_dipole (blitz::Array<std::complex<float>, 1> V_CFIE,
                     const blitz::Array<std::complex<float>, 1>& CFIE,
@@ -37,16 +38,18 @@ void V_CFIE_dipole (blitz::Array<std::complex<float>, 1> V_CFIE,
                     const blitz::Array<double, 2>& RWGNumber_trianglesCoord,
                     const double w,
                     const std::complex<double>& eps_r,
-                    const std::complex<double>& mu_r);
+                    const std::complex<double>& mu_r,
+                    const int FULL_PRECISION);
 
 void local_V_CFIE_dipole (blitz::Array<std::complex<float>, 1>& V_CFIE,
-                           const blitz::Array<std::complex<double>, 1>& J_dip,
-                           const blitz::Array<double, 1>& r_dip,
-                           const LocalMesh & local_target_mesh,
-                           const double w,
-                           const std::complex<double>& eps_r,
-                           const std::complex<double>& mu_r,
-                           const blitz::Array<std::complex<float>, 1>& CFIE);
+                          const blitz::Array<std::complex<double>, 1>& J_dip,
+                          const blitz::Array<double, 1>& r_dip,
+                          const LocalMesh & local_target_mesh,
+                          const double w,
+                          const std::complex<double>& eps_r,
+                          const std::complex<double>& mu_r,
+                          const blitz::Array<std::complex<float>, 1>& CFIE,
+                          const int FULL_PRECISION);
 
 void local_V_CFIE_dipole_array (blitz::Array<std::complex<float>, 1>& V_CFIE,
                                 const blitz::Array<std::complex<double>, 2>& J_dip,
@@ -56,7 +59,8 @@ void local_V_CFIE_dipole_array (blitz::Array<std::complex<float>, 1>& V_CFIE,
                                 const std::complex<double>& eps_r,
                                 const std::complex<double>& mu_r,
                                 const blitz::Array<std::complex<float>, 1>& CFIE,
-                                const char CURRENT_TYPE);
+                                const char CURRENT_TYPE,
+                                const int FULL_PRECISION);
 
 void V_EJ_HJ_dipole_alternative (blitz::Array<std::complex<double>, 1> V_tE_J, 
                                  blitz::Array<std::complex<double>, 1> V_nE_J,
@@ -71,7 +75,8 @@ void V_EJ_HJ_dipole_alternative (blitz::Array<std::complex<double>, 1> V_tE_J,
                                  const blitz::Array<double, 2>& RWGNumber_oppVertexesCoord,
                                  const double w,
                                  const std::complex<double>& eps_r,
-                                 const std::complex<double>& mu_r);
+                                 const std::complex<double>& mu_r,
+                                 const int FULL_PRECISION);
 
 void V_EJ_HJ_plane (blitz::Array<std::complex<double>, 1> V_tE_J,
                     blitz::Array<std::complex<double>, 1> V_nE_J,
@@ -87,7 +92,8 @@ void V_EJ_HJ_plane (blitz::Array<std::complex<double>, 1> V_tE_J,
                     const blitz::Array<double, 2>& RWGNumber_oppVertexesCoord,
                     const double w,
                     const complex<double>& eps_r,
-                    const complex<double>& mu_r);
+                    const complex<double>& mu_r,
+                    const int FULL_PRECISION);
 
 void V_CFIE_plane (blitz::Array<std::complex<float>, 1> V_CFIE,
                    const blitz::Array<std::complex<float>, 1>& CFIE,
@@ -99,7 +105,8 @@ void V_CFIE_plane (blitz::Array<std::complex<float>, 1> V_CFIE,
                    const blitz::Array<double, 2>& RWGNumber_trianglesCoord,
                    const double w,
                    const complex<double>& eps_r,
-                   const complex<double>& mu_r);
+                   const complex<double>& mu_r,
+                   const int FULL_PRECISION);
 
 void local_V_CFIE_plane (blitz::Array<std::complex<float>, 1>& V_CFIE,
                          const blitz::Array<std::complex<double>, 1>& E_0,
@@ -109,7 +116,8 @@ void local_V_CFIE_plane (blitz::Array<std::complex<float>, 1>& V_CFIE,
                          const double w,
                          const std::complex<double>& eps_r,
                          const std::complex<double>& mu_r,
-                         const blitz::Array<std::complex<float>, 1>& CFIE);
+                         const blitz::Array<std::complex<float>, 1>& CFIE,
+                         const int FULL_PRECISION);
 
 void local_V_CFIE_slot (blitz::Array<std::complex<float>, 1>& V_CFIE,
                         const std::complex<double> E_0,
@@ -120,7 +128,8 @@ void local_V_CFIE_slot (blitz::Array<std::complex<float>, 1>& V_CFIE,
                         const double w,
                         const std::complex<double>& eps_r,
                         const std::complex<double>& mu_r,
-                        const blitz::Array<std::complex<float>, 1>& CFIE);
+                        const blitz::Array<std::complex<float>, 1>& CFIE,
+                        const int FULL_PRECISION);
 
 //void V_E_V_H_horn_BBHA (Array<complex<double>,2>& V_EJ, Array<complex<double>,2>& V_HJ, Array<complex<double>,2>& V_EM, Array<complex<double>,2>& V_HM, const mesh & MESH_TARGET, const mesh & MESH_ANTENNA, const TinyVector<double,3>& r_ant, const TinyVector<double,3>& x_hat_ant, const TinyVector<double,3>& y_hat_ant, const G_EJ_grid & G_EJ_tab_ant_object, const G_HJ_grid & G_HJ_tab_ant_object, const layers_constants & LC, const G_EJ_grid & G_EJ_tab_ant_object_dual, const G_HJ_grid & G_HJ_tab_ant_object_dual, const layers_constants & LC_dual);
 

@@ -356,6 +356,7 @@ def setup_MLFMA(params_simu):
     # now the excitations
     writeScalarToDisk(params_simu.BISTATIC_EXCITATION_DIPOLES, os.path.join('.',tmpDirName,'V_CFIE/DIPOLES_EXCITATION.txt'))
     writeScalarToDisk(params_simu.BISTATIC_EXCITATION_PLANE_WAVE, os.path.join('.',tmpDirName,'V_CFIE/PLANE_WAVE_EXCITATION.txt'))
+    writeScalarToDisk(params_simu.V_FULL_PRECISION*1, os.path.join('.', tmpDirName, 'V_CFIE/V_FULL_PRECISION.txt') )
     # if we have dipoles excitation AND definition of the excitation in simulation_parameters.py
     if (params_simu.BISTATIC_EXCITATION_DIPOLES == 1) and (params_simu.BISTATIC_EXCITATION_DIPOLES_FROM_FILE == 0):
         # first for electric dipoles

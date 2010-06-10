@@ -295,7 +295,7 @@ void computeE_obs(blitz::Array<std::complex<double>, 2>& E_obs,
                   const std::complex<float> mu_r,
                   const float w)
 {
-  int ierror;
+  int ierror, FULL_PRECISION = 1;
   blitz::Range all = blitz::Range::all();
   blitz::Array<std::complex<float>, 1> CFIE_for_tE(4);
   CFIE_for_tE = 1.0, 0.0, 0.0, 0.0;
@@ -306,7 +306,7 @@ void computeE_obs(blitz::Array<std::complex<double>, 2>& E_obs,
       blitz::Array<std::complex<double>, 1> J_obs(3);
       J_obs = 0.0;
       J_obs(i) = 1.0;
-      local_V_CFIE_dipole (V_tE, J_obs, r_obs(j, all), local_target_mesh, w, eps_r, mu_r, CFIE_for_tE);
+      local_V_CFIE_dipole (V_tE, J_obs, r_obs(j, all), local_target_mesh, w, eps_r, mu_r, CFIE_for_tE, FULL_PRECISION);
       std::complex<float> local_e_tmp = sum(V_tE * ZI), e_tmp;
       ierror = MPI_Allreduce(&local_e_tmp, &e_tmp, 1, MPI::COMPLEX, MPI::SUM, MPI::COMM_WORLD);
       E_obs(j, i) = e_tmp;
@@ -343,9 +343,10 @@ void computeForOneExcitation(Octtree & octtree,
   // excitation : V_CFIE computation
   blitz::Array<std::complex<float>, 1> V_CFIE(N_local_RWG);
   V_CFIE = 0.0;
-  int DIPOLES_EXCITATION, PLANE_WAVE_EXCITATION;
+  int DIPOLES_EXCITATION, PLANE_WAVE_EXCITATION, V_FULL_PRECISION;
   readIntFromASCIIFile(V_CFIE_DATA_PATH + "DIPOLES_EXCITATION.txt", DIPOLES_EXCITATION);
   readIntFromASCIIFile(V_CFIE_DATA_PATH + "PLANE_WAVE_EXCITATION.txt", PLANE_WAVE_EXCITATION);
+  readIntFromASCIIFile(V_CFIE_DATA_PATH + "V_FULL_PRECISION.txt", V_FULL_PRECISION);
   if (DIPOLES_EXCITATION==1) {
     blitz::Array<std::complex<double>, 2> J_dip, M_dip;
     blitz::Array<double, 2> r_J_dip, r_M_dip;
@@ -361,7 +362,7 @@ void computeForOneExcitation(Octtree & octtree,
       }
       blitz::Array<std::complex<float>, 1> V_CFIE_tmp;
       const char CURRENT_TYPE = 'J';
-      local_V_CFIE_dipole_array (V_CFIE_tmp, J_dip, r_J_dip, local_target_mesh, w, eps_r, mu_r, octtree.CFIE, CURRENT_TYPE);
+      local_V_CFIE_dipole_array (V_CFIE_tmp, J_dip, r_J_dip, local_target_mesh, w, eps_r, mu_r, octtree.CFIE, CURRENT_TYPE, V_FULL_PRECISION);
       V_CFIE += V_CFIE_tmp;
     }
     // magnetic dipoles
@@ -375,7 +376,7 @@ void computeForOneExcitation(Octtree & octtree,
       }
       blitz::Array<std::complex<float>, 1> V_CFIE_tmp;
       const char CURRENT_TYPE = 'M';
-      local_V_CFIE_dipole_array (V_CFIE_tmp, J_dip, r_J_dip, local_target_mesh, w, eps_r, mu_r, octtree.CFIE, CURRENT_TYPE);
+      local_V_CFIE_dipole_array (V_CFIE_tmp, J_dip, r_J_dip, local_target_mesh, w, eps_r, mu_r, octtree.CFIE, CURRENT_TYPE, V_FULL_PRECISION);
       V_CFIE += V_CFIE_tmp;
     }
   }
@@ -397,7 +398,7 @@ void computeForOneExcitation(Octtree & octtree,
     readComplexDoubleBlitzArray1DFromASCIIFile( V_CFIE_DATA_PATH + "E_inc.txt", E_inc_components );
     E_inc = E_inc_components(0) * theta_hat + E_inc_components(1) * phi_hat;
     blitz::Array<std::complex<float>, 1> V_CFIE_tmp;
-    local_V_CFIE_plane (V_CFIE_tmp, E_inc, k_hat, r_ref, local_target_mesh, octtree.w, octtree.eps_r, octtree.mu_r, octtree.CFIE);
+    local_V_CFIE_plane (V_CFIE_tmp, E_inc, k_hat, r_ref, local_target_mesh, octtree.w, octtree.eps_r, octtree.mu_r, octtree.CFIE, V_FULL_PRECISION);
     V_CFIE += V_CFIE_tmp;
   }
   local_target_mesh.resizeToZero();
@@ -499,8 +500,9 @@ void computeMonostaticRCS(Octtree & octtree,
 
   // functors declarations
   const string PRECOND = "FROB";
-  int N_RWG, iter, flag, numberOfMatvecs, RESTART, MAXITER, USE_PREVIOUS_SOLUTION, MONOSTATIC_BY_BISTATIC_APPROX;
+  int N_RWG, iter, flag, numberOfMatvecs, RESTART, MAXITER, USE_PREVIOUS_SOLUTION, MONOSTATIC_BY_BISTATIC_APPROX, V_FULL_PRECISION;
   double error, TOL, MAX_DELTA_PHASE;
+  readIntFromASCIIFile(V_CFIE_DATA_PATH + "V_FULL_PRECISION.txt", V_FULL_PRECISION);
   readIntFromASCIIFile(OCTTREE_DATA_PATH + "N_RWG.txt", N_RWG);
   readDoubleFromASCIIFile(ITERATIVE_DATA_PATH + "TOL.txt", TOL);
   readIntFromASCIIFile(ITERATIVE_DATA_PATH + "RESTART.txt", RESTART);
@@ -588,7 +590,7 @@ void computeMonostaticRCS(Octtree & octtree,
           else E_0 = -100.0 * (theta_hat + I * 0.0);
           blitz::Array<std::complex<float>, 1> V_CFIE;
           local_target_mesh.setLocalMeshFromFile(MESH_DATA_PATH);
-          local_V_CFIE_plane (V_CFIE, E_0, k_hat, r_ref, local_target_mesh, octtree.w, octtree.eps_r, octtree.mu_r, octtree.CFIE);
+          local_V_CFIE_plane (V_CFIE, E_0, k_hat, r_ref, local_target_mesh, octtree.w, octtree.eps_r, octtree.mu_r, octtree.CFIE, V_FULL_PRECISION);
           local_target_mesh.resizeToZero();
           // solving
           octtree.setNumberOfUpdates(0);
@@ -678,8 +680,9 @@ void computeMonostaticSAR(Octtree & octtree,
 
   // functors declarations
   const string PRECOND = "FROB";
-  int N_RWG, iter, flag, numberOfMatvecs, RESTART, MAXITER, USE_PREVIOUS_SOLUTION, MONOSTATIC_BY_BISTATIC_APPROX;
+  int N_RWG, iter, flag, numberOfMatvecs, RESTART, MAXITER, USE_PREVIOUS_SOLUTION, MONOSTATIC_BY_BISTATIC_APPROX, V_FULL_PRECISION;
   double error, TOL, MAX_DELTA_PHASE;
+  readIntFromASCIIFile(V_CFIE_DATA_PATH + "V_FULL_PRECISION.txt", V_FULL_PRECISION);
   readIntFromASCIIFile(OCTTREE_DATA_PATH + "N_RWG.txt", N_RWG);
   readDoubleFromASCIIFile(ITERATIVE_DATA_PATH + "TOL.txt", TOL);
   readIntFromASCIIFile(ITERATIVE_DATA_PATH + "RESTART.txt", RESTART);
@@ -768,7 +771,7 @@ void computeMonostaticSAR(Octtree & octtree,
           else J_ant = 100. * SAR_local_y_hat;
           blitz::Array<std::complex<float>, 1> V_CFIE;
           local_target_mesh.setLocalMeshFromFile(MESH_DATA_PATH);
-          local_V_CFIE_dipole (V_CFIE, J_ant, r_src, local_target_mesh, w, eps_r, mu_r, octtree.CFIE);
+          local_V_CFIE_dipole (V_CFIE, J_ant, r_src, local_target_mesh, w, eps_r, mu_r, octtree.CFIE, V_FULL_PRECISION);
           local_target_mesh.resizeToZero();
           // target incoming field: reference field for RCS computation
           blitz::Array<std::complex<double>, 2> G_EJ(3, 3), G_HJ(3, 3);

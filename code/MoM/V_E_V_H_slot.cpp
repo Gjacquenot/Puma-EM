@@ -24,7 +24,8 @@ void V_CFIE_slot (blitz::Array<std::complex<float>, 1> V_CFIE,
                   const blitz::Array<double, 2>& RWGNumber_trianglesCoord,
                   const double w,
                   const std::complex<double>& eps_r,
-                  const std::complex<double>& mu_r)
+                  const std::complex<double>& mu_r,
+                  const int FULL_PRECISION)
 /**
  * This function computes the CFIE excitation vectors of the MoM due to a
  * slot which center is located at r_ref, having length slot_length, 
@@ -153,11 +154,12 @@ void local_V_CFIE_slot (blitz::Array<std::complex<float>, 1>& V_CFIE,
                         const double w,
                         const std::complex<double>& eps_r,
                         const std::complex<double>& mu_r,
-                        const blitz::Array<std::complex<float>, 1>& CFIE)
+                        const blitz::Array<std::complex<float>, 1>& CFIE,
+                        const int FULL_PRECISION)
 {
   // slot excitation vector
   V_CFIE.resize(local_target_mesh.N_local_RWG);
-  V_CFIE_slot (V_CFIE, CFIE, E_0, l_hat, r_ref, slot_length, local_target_mesh.reallyLocalRWGNumbers, local_target_mesh.localRWGNumber_CFIE_OK, local_target_mesh.localRWGNumber_trianglesCoord, w, eps_r, mu_r);
+  V_CFIE_slot (V_CFIE, CFIE, E_0, l_hat, r_ref, slot_length, local_target_mesh.reallyLocalRWGNumbers, local_target_mesh.localRWGNumber_CFIE_OK, local_target_mesh.localRWGNumber_trianglesCoord, w, eps_r, mu_r, FULL_PRECISION);
 }
 
 

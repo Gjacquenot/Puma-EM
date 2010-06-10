@@ -21,6 +21,8 @@ params_simu.COMPUTE_Z_NEAR = 1
 
 # MOM_FULL_PRECISION = 0/1: faster/slower Z_near computation but less/more precision
 params_simu.MOM_FULL_PRECISION = 1
+# V_FULL_PRECISION = 0/1: faster/slower V_CFIE computation but less/more precision
+params_simu.V_FULL_PRECISION = 1
 
 # the a (finest cubes sidelength) factor -- it will multiply lambda (the wavelength)
 # to obtain the side length of the leaf (finest) level . Usually: a = lambda/4.

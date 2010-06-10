@@ -66,7 +66,8 @@ void V_EJ_HJ_dipole (blitz::Array<std::complex<double>, 1> V_tE_J,
                      const blitz::Array<double, 2>& RWGNumber_oppVertexesCoord,
                      const double w,
                      const std::complex<double>& eps_r,
-                     const std::complex<double>& mu_r)
+                     const std::complex<double>& mu_r,
+                     const int FULL_PRECISION)
 /**
  * This function computes the 4 excitation vectors of the MoM due to an
  * elementary electric current element J_dip located at r_dip.
@@ -78,6 +79,16 @@ void V_EJ_HJ_dipole (blitz::Array<std::complex<double>, 1> V_tE_J,
   blitz::Range all = blitz::Range::all();
   int N_RWG_test = numbers_RWG_test.size();
   std::complex<double> mu = mu_0 * mu_r, eps = eps_0 * eps_r, k = w * sqrt(eps*mu);
+  // triangle integration precision. Possible values for N_points: 1, 3, 6, 9, 12, 13
+  int N_points_far, N_points_near;
+  if (FULL_PRECISION!=0) {
+    N_points_far = 6; 
+    N_points_near = 9;
+  }
+  else {
+    N_points_far = 1; 
+    N_points_near = 3;
+  }
 
   V_tE_J = 0.0; V_tH_J = 0.0;
   V_nE_J = 0.0; V_nH_J = 0.0;
@@ -138,8 +149,8 @@ void V_EJ_HJ_dipole (blitz::Array<std::complex<double>, 1> V_tE_J,
       // weights and abscissas for triangle integration
       double R_os = sqrt (dot (triangles_test[r].r_grav - rDip, triangles_test[r].r_grav - rDip));
       bool IS_NEAR = (R_os - 1.5 * triangles_test[r].R_max <= 0.0);
-      int N_points = 6;
-      if (IS_NEAR) N_points = 9;
+      int N_points = N_points_far;
+      if (IS_NEAR) N_points = N_points_near;
       double sum_weigths;
       const double *xi, *eta, *weigths;
       IT_points (xi, eta, weigths, sum_weigths, N_points);
@@ -198,7 +209,8 @@ void V_CFIE_dipole (blitz::Array<std::complex<float>, 1> V_CFIE,
                     const blitz::Array<double, 2>& RWGNumber_trianglesCoord,
                     const double w,
                     const std::complex<double>& eps_r,
-                    const std::complex<double>& mu_r)
+                    const std::complex<double>& mu_r,
+                    const int FULL_PRECISION)
 /**
  * This function computes the CFIE excitation vectors of the MoM due to an
  * elementary electric current element J_dip located at r_dip.
@@ -210,6 +222,16 @@ void V_CFIE_dipole (blitz::Array<std::complex<float>, 1> V_CFIE,
   int N_RWG_test = numbers_RWG_test.size();
   std::complex<double> mu = mu_0 * mu_r, eps = eps_0 * eps_r, k = w * sqrt(eps*mu);
   const complex<double> tE = CFIE(0), nE = CFIE(1), tH = CFIE(2), nH = CFIE(3);
+  // triangle integration precision. Possible values for N_points: 1, 3, 6, 9, 12, 13
+  int N_points_far, N_points_near;
+  if (FULL_PRECISION!=0) {
+    N_points_far = 6; 
+    N_points_near = 9;
+  }
+  else {
+    N_points_far = 1; 
+    N_points_near = 3;
+  }
 
   // geometrical entities
   blitz::TinyVector<double, 3> r0, r1, r2, r_obs;
@@ -265,8 +287,8 @@ void V_CFIE_dipole (blitz::Array<std::complex<float>, 1> V_CFIE,
       // weights and abscissas for triangle integration
       double R_os = sqrt (dot (triangle.r_grav - rDip, triangle.r_grav - rDip));
       bool IS_NEAR = (R_os - 1.5 * triangle.R_max <= 0.0);
-      int N_points = 6;
-      if (IS_NEAR) N_points = 9;
+      int N_points = N_points_far;
+      if (IS_NEAR) N_points = N_points_near;
       double sum_weigths;
       const double *xi, *eta, *weigths;
       IT_points (xi, eta, weigths, sum_weigths, N_points);
@@ -323,11 +345,12 @@ void local_V_CFIE_dipole (blitz::Array<std::complex<float>, 1>& V_CFIE,
                            const double w,
                            const std::complex<double>& eps_r,
                            const std::complex<double>& mu_r,
-                           const blitz::Array<std::complex<float>, 1>& CFIE)
+                           const blitz::Array<std::complex<float>, 1>& CFIE,
+                           const int FULL_PRECISION)
 {
   // We now compute the excitation vectors
   V_CFIE.resize(local_target_mesh.N_local_RWG);
-  V_CFIE_dipole (V_CFIE, CFIE, J_dip, r_dip, local_target_mesh.reallyLocalRWGNumbers, local_target_mesh.localRWGNumber_CFIE_OK, local_target_mesh.localRWGNumber_trianglesCoord, w, eps_r, mu_r);
+  V_CFIE_dipole (V_CFIE, CFIE, J_dip, r_dip, local_target_mesh.reallyLocalRWGNumbers, local_target_mesh.localRWGNumber_CFIE_OK, local_target_mesh.localRWGNumber_trianglesCoord, w, eps_r, mu_r, FULL_PRECISION);
 }
 
 
@@ -341,7 +364,8 @@ void V_CFIE_dipole_array (blitz::Array<std::complex<float>, 1> V_CFIE,
                           const double w,
                           const std::complex<double>& eps_r,
                           const std::complex<double>& mu_r,
-                          const char CURRENT_TYPE)
+                          const char CURRENT_TYPE,
+                          const int FULL_PRECISION)
 /**
  * This function computes the CFIE excitation vectors of the MoM due to
  * multiple elementary electric current elements J_dip located at r_dip.
@@ -358,6 +382,16 @@ void V_CFIE_dipole_array (blitz::Array<std::complex<float>, 1> V_CFIE,
   }
   std::complex<double> mu = mu_0 * mu_r, eps = eps_0 * eps_r, k = w * sqrt(eps*mu);
   const complex<double> tE = CFIE(0), nE = CFIE(1), tH = CFIE(2), nH = CFIE(3);
+  // triangle integration precision. Possible values for N_points: 1, 3, 6, 9, 12, 13
+  int N_points_far, N_points_near;
+  if (FULL_PRECISION!=0) {
+    N_points_far = 6; 
+    N_points_near = 9;
+  }
+  else {
+    N_points_far = 1; 
+    N_points_near = 3;
+  }
 
   // geometrical entities
   blitz::TinyVector<double, 3> r0, r1, r2, r_obs;
@@ -412,12 +446,12 @@ void V_CFIE_dipole_array (blitz::Array<std::complex<float>, 1> V_CFIE,
       // we first select the weights and abscissas for triangle integration
       double R_os;
       bool IS_NEAR;
-      int N_points = 6;
+      int N_points = N_points_far;
       for (int dipNumber = 0 ; dipNumber < N_dipoles ; dipNumber++) {
         for (int i=0 ; i<3 ; ++i) rDip(i) = r_dip(dipNumber, i);
         R_os = sqrt (dot (triangle.r_grav - rDip, triangle.r_grav - rDip));
         IS_NEAR = (R_os - 1.5 * triangle.R_max <= 0.0);
-        if (IS_NEAR) N_points = 9;
+        if (IS_NEAR) N_points = N_points_near;
         if (IS_NEAR) break;
       }
       double sum_weigths;
@@ -493,11 +527,12 @@ void local_V_CFIE_dipole_array (blitz::Array<std::complex<float>, 1>& V_CFIE,
                                 const std::complex<double>& eps_r,
                                 const std::complex<double>& mu_r,
                                 const blitz::Array<std::complex<float>, 1>& CFIE,
-                                const char CURRENT_TYPE)
+                                const char CURRENT_TYPE,
+                                const int FULL_PRECISION)
 {
   // We now compute the excitation vectors
   V_CFIE.resize(local_target_mesh.N_local_RWG);
-  V_CFIE_dipole_array (V_CFIE, CFIE, J_dip, r_dip, local_target_mesh.reallyLocalRWGNumbers, local_target_mesh.localRWGNumber_CFIE_OK, local_target_mesh.localRWGNumber_trianglesCoord, w, eps_r, mu_r, CURRENT_TYPE);
+  V_CFIE_dipole_array (V_CFIE, CFIE, J_dip, r_dip, local_target_mesh.reallyLocalRWGNumbers, local_target_mesh.localRWGNumber_CFIE_OK, local_target_mesh.localRWGNumber_trianglesCoord, w, eps_r, mu_r, CURRENT_TYPE, FULL_PRECISION);
 }
 
 
@@ -514,7 +549,8 @@ void local_V_CFIE_dipole_array (blitz::Array<std::complex<float>, 1>& V_CFIE,
                                  const blitz::Array<double, 2>& RWGNumber_oppVertexesCoord,
                                  const double w,
                                  const std::complex<double>& eps_r,
-                                 const std::complex<double>& mu_r)
+                                 const std::complex<double>& mu_r,
+                                 const int FULL_PRECISION)
 {
   // This alternative tries to get rid of the singularities associated with a dipole source
   // located near the surface of interest. This function can be used for computing the fields
@@ -524,6 +560,16 @@ void local_V_CFIE_dipole_array (blitz::Array<std::complex<float>, 1>& V_CFIE,
   Range all = Range::all();
   int N_RWG_test = numbers_RWG_test.size(), EXTRACT_R, EXTRACT_1_R, N_points;
   complex<double> mu = mu_0 * mu_r, eps = eps_0 * eps_r, k = w * sqrt(eps*mu);
+  // triangle integration precision. Possible values for N_points: 1, 3, 6, 9, 12, 13
+  int N_points_far, N_points_near;
+  if (FULL_PRECISION!=0) {
+    N_points_far = 6; 
+    N_points_near = 9;
+  }
+  else {
+    N_points_far = 1; 
+    N_points_near = 3;
+  }
 
   // transformation of some input Arrays into TinyVectors...
   blitz::TinyVector<double, 3> rDip;
@@ -557,9 +603,9 @@ void local_V_CFIE_dipole_array (blitz::Array<std::complex<float>, 1>& V_CFIE,
     const Triangle T(triangles_test[r]);
     double R_os = sqrt (dot (triangles_test[r].r_grav - rDip, triangles_test[r].r_grav - rDip));
     bool IS_NEAR = (R_os - 1.5 * triangles_test[r].R_max <= 0.0);
-    EXTRACT_1_R = (EXTRACT_R = 0); N_points = 6;
+    EXTRACT_1_R = (EXTRACT_R = 0); N_points = N_points_far;
     if (IS_NEAR) {
-      EXTRACT_1_R = (EXTRACT_R = 1); N_points = 9;
+      EXTRACT_1_R = (EXTRACT_R = 1); N_points = N_points_near;
     }
     V_EH_ITo_free (ITo_G, ITo_G_r_rDip, ITo_grad_G, ITo_n_hat_X_r_X_grad_G, rDip, T, k, N_points, EXTRACT_1_R, EXTRACT_R);
     //ITs_free (ITs_G, ITs_G_r_rDip, ITs_grad_G, rDip, T, k, N_points, EXTRACT_1_R, EXTRACT_R);
