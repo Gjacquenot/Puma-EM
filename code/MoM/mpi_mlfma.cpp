@@ -860,6 +860,7 @@ int main(void) {
     // we write 0 on the file
     writeIntToASCIIFile(OCTTREE_DATA_PATH + "CUBES_DISTRIBUTION.txt", 0);
     // we return to python!
+    MPI::Finalize();
     return 0;
   }
   Octtree octtree(OCTTREE_DATA_PATH, target_mesh.cubes_centroids, my_id, num_procs);
