@@ -155,10 +155,8 @@ def computeTreeParameters(my_id, tmpDirName, a, k, N_levels, params_simu):
 
 def distributeZcubesAttributions(MAX_BLOCK_SIZE, N_nearPerCube, C, tmpDirName, params_simu):
     my_id = MPI.COMM_WORLD.Get_rank()
-    num_proc = MPI.COMM_WORLD.Get_size()
     if (my_id == 0):
         print "distributing the chunks and cubes among processes..."
-    writeScalarToDisk( num_proc, os.path.join('.', tmpDirName,'octtree_data/num_procs.txt') )
     ZchunkNumber_to_cubesNumbers, ZcubeNumber_to_chunkNumber, ZchunkNumber_to_processNumber, ZprocessNumber_to_ChunksNumbers = Z_nearChunksDistribution(MAX_BLOCK_SIZE, N_nearPerCube, C, tmpDirName, params_simu)
     ZchunkNumber_to_cubesNumbers = MPI.COMM_WORLD.Bcast(ZchunkNumber_to_cubesNumbers)
     ZcubeNumber_to_chunkNumber = MPI.COMM_WORLD.Bcast(ZcubeNumber_to_chunkNumber)
@@ -454,6 +452,7 @@ def setup_MLFMA(params_simu):
         writeScalarToDisk(params_simu.SAR_N_x_points, os.path.join('.',tmpDirName,'V_CFIE/SAR_N_x_points.txt'))
         writeScalarToDisk(params_simu.SAR_N_y_points, os.path.join('.',tmpDirName,'V_CFIE/SAR_N_y_points.txt'))
 
+    writeScalarToDisk( num_proc, os.path.join('.', tmpDirName,'octtree_data/num_procs.txt') )
     writeScalarToDisk( a, os.path.join('.',tmpDirName,'octtree_data/leaf_side_length.txt') )
     writeScalarToDisk(2.0*pi*params_simu.f, os.path.join('.',tmpDirName,'octtree_data/w.txt') )
     writeScalarToDisk(params_simu.eps_r, os.path.join('.',tmpDirName,'octtree_data/eps_r.txt') )
