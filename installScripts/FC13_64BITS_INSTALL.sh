@@ -19,7 +19,7 @@ rm -rf ~/.python25_compiled
 echo " You will be asked for your root password so that the machine can install some programs as root"
 # installing the main dependencies...
 echo " Root password for installing general dependencies... "
-su -c 'yum -y install python-devel gcc-c++ libgfortran gcc-gfortran libstdc++-devel compat-libstdc++-33 openmpi openmpi-libs openmpi-devel scipy numpy python-matplotlib-tk python-matplotlib cvs autoconf automake sysconftool libtool.x86_64 gettext gettext.i386 zlib.i386 mesa-libGLU.i386 compat-libstdc++-33.i386 wget'
+su -c 'yum -y install python-devel gcc-c++ libgfortran gcc-gfortran libstdc++-devel compat-libstdc++-33 openmpi openmpi-libs openmpi-devel scipy numpy python-matplotlib-tk python-matplotlib cvs autoconf automake sysconftool libtool.x86_64 gettext gettext.i686 zlib.i686 mesa-libGLU.i686 compat-libstdc++-33.i686 wget'
 # repairing shite introduced in FC13 in the Open-MPI packages...
 su -c 'ln -s /usr/lib64/openmpi/bin/mpicc /usr/bin/mpicc; ln -s /usr/lib64/openmpi/bin/mpiCC /usr/bin/mpiCC; ln -s /usr/lib64/openmpi/bin/mpirun /usr/bin/mpirun; ln -s /usr/lib64/openmpi/lib/libmpi.so.0 /usr/lib64/libmpi.so.0; ln -s /usr/lib64/openmpi/lib/libopen-rte.so.0 /usr/lib64/libopen-rte.so.0; ln -s /usr/lib64/openmpi/lib/libopen-pal.so.0 /usr/lib64/libopen-pal.so.0; ln -s /usr/lib64/openmpi/lib/libmpi_cxx.so.0 /usr/lib64/libmpi_cxx.so.0'
 # installing binary GMSH -- usually more up-to-date than packaged GMSH
