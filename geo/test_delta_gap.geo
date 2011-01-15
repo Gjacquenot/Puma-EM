@@ -1,0 +1,22 @@
+lc = 0.0141411536792;
+lx = 0.2;
+ly = 0.1;
+lz = 0.2;
+Point(1) = {-lx,-ly/2.0,0.0,lc};
+Point(2) = {0.0,-ly/2.0,0.0,lc};
+Point(3) = {0.0,ly/2.0,0.0,lc};
+Point(4) = {-lx,ly/2.0,0.0,lc};
+Point(5) = {lx,-ly/2.0,0.0,lc};
+Point(6) = {lx,ly/2.0,0.0,lc};
+
+Line(1) = {6, 3};
+Line(2) = {3, 2}; // delta_gap
+Line(3) = {2, 5};
+Line(4) = {5, 6};
+Line(5) = {3, 4};
+Line(6) = {4, 1};
+Line(7) = {1, 2};
+Line Loop(8) = {4, 1, 2, 3};
+Plane Surface(9) = {8};
+Line Loop(10) = {7, -2, 5, 6};
+Plane Surface(11) = {10};
