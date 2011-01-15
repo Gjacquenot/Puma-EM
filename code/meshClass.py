@@ -3,7 +3,7 @@ from scipy import zeros, ones, arange, array, take, reshape, sort, argsort, put,
 from scipy import mean, sqrt
 from read_mesh import read_mesh_GMSH_1, read_mesh_GMSH_2, read_mesh_GiD, read_mesh_ANSYS
 from Cubes import cube_lower_coord_computation, RWGNumber_cubeNumber_computation, cubeIndex_RWGNumbers_computation, findCubeNeighbors, cubes_indexes_to_numbers_computation, write_cubes
-from PyGmsh import executeGmsh, write_geo, findParameter, findParameterValue
+from PyGmsh import executeGmsh, write_geo, findDeltaGap, findParameter, findParameterValue
 from ReadWriteBlitzArray import readBlitzArrayFromDisk, read1DBlitzArrayFromDisk, readIntFromDisk, writeBlitzArrayToDisk, writeScalarToDisk
 from EM_constants import *
 from mesh_functions_seb import *
@@ -24,13 +24,13 @@ class MeshClass:
     def constructFromGmshFile(self):
         # we check to see if there is a delta_gap parameter in the geo file
         if self.meshFormat == 'GMSH':
-            self.DELTA_GAP, tmp1, tmp2 = findParameter(self.path, self.targetName, "delta_gap")
+            self.DELTA_GAP, ORIGIN, END = findDeltaGap(self.path, self.targetName)
             if self.DELTA_GAP:
-                ## a delta gap should always be defined in the *.geo file as being located
-                ## at the origin r = [0,0,0], and directed following z"""
-                self.delta_gap = findParameterValue(self.path, self.targetName, "delta_gap")
+                ## a delta gap should always be defined in the *.geo file as 
+                ## '// delta_gap' written aside the Line we want to be the delta gap
+                self.delta_gap = [ORIGIN, END]
                 print "There is a delta gap in file", self.geoName
-                print "The size of the delta gap is", self.delta_gap, "m"
+                print "The extremities of the delta gap are points", self.delta_gap
         else:
             # else we don't look for a delta gap in the file
             pass

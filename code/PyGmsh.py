@@ -1,6 +1,28 @@
 import os, sys
 import commands
 
+def findDeltaGap(path, targetName):
+    """This function looks for a delta gap defined in the GMSH geo file. 
+       The way to define a delta gap is by adding a '// delta_gap' 
+       in the geo file next to the line/curve that will function as a delta gap."""
+    isGeoFileThere(path, targetName)
+    fileName = os.path.join(path, targetName + '.geo')
+    f = open(fileName, 'r')
+    contents = f.readlines()
+    f.close()
+    ORIGIN, END = 0, 0
+    IS_DELTA_GAP_THERE = False
+    for line in contents:
+        # for the moment only one straight line delta gap is supported
+        if ('delta_gap' in line) and ('Line' in line): # straight line delta_gap
+            IS_DELTA_GAP_THERE = True
+            # now we read the points that define the delta gap.
+            points_of_delta_gap = line.split('=')[1].split(';')[0].split(',')
+            ORIGIN = int(points_of_delta_gap[0].split('{')[1])
+            END = int(points_of_delta_gap[1].split('}')[0])
+            break
+    return IS_DELTA_GAP_THERE, ORIGIN, END
+
 def findParameter(path, targetName, parameter):
     """this function modifies a geo file through its parameters.
     If the parameter is not found it has 2 options:
