@@ -10,7 +10,7 @@ def findDeltaGap(path, targetName):
     f = open(fileName, 'r')
     contents = f.readlines()
     f.close()
-    ORIGIN, END = 0, 0
+    ORIGIN_POINT, END_POINT = 0, 0
     IS_DELTA_GAP_THERE = False
     for line in contents:
         # for the moment only one straight line delta gap is supported
@@ -18,10 +18,10 @@ def findDeltaGap(path, targetName):
             IS_DELTA_GAP_THERE = True
             # now we read the points that define the delta gap.
             points_of_delta_gap = line.split('=')[1].split(';')[0].split(',')
-            ORIGIN = int(points_of_delta_gap[0].split('{')[1])
-            END = int(points_of_delta_gap[1].split('}')[0])
+            ORIGIN_POINT = int(points_of_delta_gap[0].split('{')[1])
+            END_POINT = int(points_of_delta_gap[1].split('}')[0])
             break
-    return IS_DELTA_GAP_THERE, ORIGIN, END
+    return IS_DELTA_GAP_THERE, ORIGIN_POINT, END_POINT
 
 def findParameter(path, targetName, parameter):
     """this function modifies a geo file through its parameters.

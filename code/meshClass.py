@@ -24,11 +24,11 @@ class MeshClass:
     def constructFromGmshFile(self):
         # we check to see if there is a delta_gap parameter in the geo file
         if self.meshFormat == 'GMSH':
-            self.DELTA_GAP, ORIGIN, END = findDeltaGap(self.path, self.targetName)
+            self.DELTA_GAP, ORIGIN_POINT, END_POINT = findDeltaGap(self.path, self.targetName)
             if self.DELTA_GAP:
                 ## a delta gap should always be defined in the *.geo file as 
                 ## '// delta_gap' written aside the Line we want to be the delta gap
-                self.delta_gap = [ORIGIN, END]
+                self.delta_gap = [ORIGIN_POINT, END_POINT]
                 print "There is a delta gap in file", self.geoName
                 print "The extremities of the delta gap are points", self.delta_gap
         else:
