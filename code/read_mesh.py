@@ -241,37 +241,40 @@ def read_mesh_GMSH_2(name, targetDimensions_scaling_factor, z_offset):
         index += 1
     g.close()
     
+    # indexes of elements in Python/C++ arrays start at 0.
+    # However, triangles_nodes don't necessarily start at 0.
+    # So the following 4 lines correct that.
     vertex_number_max = max(vertexes_numbers)
     nodes_vertexes = zeros( vertex_number_max + 1, 'i' )
     put(nodes_vertexes, vertexes_numbers, range(V))
     triangles_vertexes = take(nodes_vertexes, triangles_nodes, axis=0).astype('i')
-    del triangles_nodes # gain some memory, we now work only with triangles_vertexes...
     # we will now eliminate the points that we don't need
-    max_encountered_vertexes = max(triangles_vertexes.flat)
-    encountered_vertexesTmp = (zeros(max_encountered_vertexes + 1, 'i') - 1).astype('i')
-    wrapping_code = """
-    for (int i=0 ; i<triangles_vertexes.extent(0) ; i++) {
-      for (int j=0 ; j<triangles_vertexes.extent(1) ; j++) {
-        const int vertex = triangles_vertexes(i, j);
-        encountered_vertexesTmp(vertex) = vertex;
-      }
-    }
-    """
-    weave.inline(wrapping_code,
-                 ['encountered_vertexesTmp', 'triangles_vertexes'],
-                 type_converters = converters.blitz,
-                 include_dirs = [],
-                 library_dirs = [],
-                 libraries = [],
-                 headers = ['<iostream>'],
-                 compiler = 'gcc',
-                 extra_compile_args = ['-O3', '-pthread', '-w'])
-    encountered_vertexes = compress(encountered_vertexesTmp>-1, encountered_vertexesTmp, axis=0)
-    del encountered_vertexesTmp
-    oldVertex_to_newVertex = zeros(max_encountered_vertexes+1, 'i')
-    oldVertex_to_newVertex[encountered_vertexes] = range(len(encountered_vertexes))
-    triangles_vertexes = take(oldVertex_to_newVertex, triangles_vertexes, axis=0)
-    vertexes_coord = take(vertexes_coord, encountered_vertexes, axis=0)
+#    del triangles_nodes # gain some memory, we now work only with triangles_vertexes...
+#    max_encountered_vertexes = max(triangles_vertexes.flat)
+#    encountered_vertexesTmp = (zeros(max_encountered_vertexes + 1, 'i') - 1).astype('i')
+#    wrapping_code = """
+#    for (int i=0 ; i<triangles_vertexes.extent(0) ; i++) {
+#      for (int j=0 ; j<triangles_vertexes.extent(1) ; j++) {
+#        const int vertex = triangles_vertexes(i, j);
+#        encountered_vertexesTmp(vertex) = vertex;
+#      }
+#    }
+#    """
+#    weave.inline(wrapping_code,
+#                 ['encountered_vertexesTmp', 'triangles_vertexes'],
+#                 type_converters = converters.blitz,
+#                 include_dirs = [],
+#                 library_dirs = [],
+#                 libraries = [],
+#                 headers = ['<iostream>'],
+#                 compiler = 'gcc',
+#                 extra_compile_args = ['-O3', '-pthread', '-w'])
+#    encountered_vertexes = compress(encountered_vertexesTmp>-1, encountered_vertexesTmp, axis=0)
+#    del encountered_vertexesTmp
+#    oldVertex_to_newVertex = zeros(max_encountered_vertexes+1, 'i')
+#    oldVertex_to_newVertex[encountered_vertexes] = range(len(encountered_vertexes))
+#    triangles_vertexes = take(oldVertex_to_newVertex, triangles_vertexes, axis=0)
+#    vertexes_coord = take(vertexes_coord, encountered_vertexes, axis=0)
     return vertexes_coord.astype('d'), triangles_vertexes.astype('i'), triangles_physicalSurface.astype('i')
 
 def preRead_mesh_GiD(meshFile_name):
@@ -340,21 +343,6 @@ def read_mesh_GiD(name, targetDimensions_scaling_factor, z_offset):
     vertexes_coord[:, -1] += z_offset
     file.close()
 
-    # we check whether we have a source
-#    SOURCE = False
-#    PhysicalSurfaceNumberToName = {}
-#    if content.has_key('PhysicalNames'):
-#        keyPhysicalNames = 'PhysicalNames'
-#        NumberPhysicalNames = content[keyPhysicalNames][0]
-#        file = open(name + '.' + keyPhysicalNames, 'r')
-#        for line in file:
-#            elem2 = line.split()
-#            newKey = int(elem2[0])
-#            PhysicalSurfaceNumberToName[newKey] = elem2[1]
-#            if "source" in PhysicalSurfaceNumberToName[newKey]:
-#                SOURCE = True
-#        file.close()
-
     # we now extract the triangles and write them to a file
     if content.has_key('Elements'):
         elements_key = 'Elements'
@@ -376,37 +364,40 @@ def read_mesh_GiD(name, targetDimensions_scaling_factor, z_offset):
         index += 1
     g.close()
     
+    # indexes of elements in Python/C++ arrays start at 0.
+    # However, triangles_nodes don't necessarily start at 0.
+    # So the following 4 lines correct that.
     vertex_number_max = max(vertexes_numbers)
     nodes_vertexes = zeros( vertex_number_max + 1, 'i' )
     put(nodes_vertexes, vertexes_numbers, range(V))
     triangles_vertexes = take(nodes_vertexes, triangles_nodes, axis=0).astype('i')
-    del triangles_nodes # gain some memory, we now work only with triangles_vertexes...
     # we will now eliminate the points that we don't need
-    max_encountered_vertexes = max(triangles_vertexes.flat)
-    encountered_vertexesTmp = (zeros(max_encountered_vertexes + 1, 'i') - 1).astype('i')
-    wrapping_code = """
-    for (int i=0 ; i<triangles_vertexes.extent(0) ; i++) {
-      for (int j=0 ; j<triangles_vertexes.extent(1) ; j++) {
-        const int vertex = triangles_vertexes(i, j);
-        encountered_vertexesTmp(vertex) = vertex;
-      }
-    }
-    """
-    weave.inline(wrapping_code,
-                 ['encountered_vertexesTmp', 'triangles_vertexes'],
-                 type_converters = converters.blitz,
-                 include_dirs = [],
-                 library_dirs = [],
-                 libraries = [],
-                 headers = ['<iostream>'],
-                 compiler = 'gcc',
-                 extra_compile_args = ['-O3', '-pthread', '-w'])
-    encountered_vertexes = compress(encountered_vertexesTmp>-1, encountered_vertexesTmp, axis=0)
-    del encountered_vertexesTmp
-    oldVertex_to_newVertex = zeros(max_encountered_vertexes+1, 'i')
-    oldVertex_to_newVertex[encountered_vertexes] = range(len(encountered_vertexes))
-    triangles_vertexes = take(oldVertex_to_newVertex, triangles_vertexes, axis=0)
-    vertexes_coord = take(vertexes_coord, encountered_vertexes, axis=0)
+#    del triangles_nodes # gain some memory, we now work only with triangles_vertexes...
+#    max_encountered_vertexes = max(triangles_vertexes.flat)
+#    encountered_vertexesTmp = (zeros(max_encountered_vertexes + 1, 'i') - 1).astype('i')
+#    wrapping_code = """
+#    for (int i=0 ; i<triangles_vertexes.extent(0) ; i++) {
+#      for (int j=0 ; j<triangles_vertexes.extent(1) ; j++) {
+#        const int vertex = triangles_vertexes(i, j);
+#        encountered_vertexesTmp(vertex) = vertex;
+#      }
+#    }
+#    """
+#    weave.inline(wrapping_code,
+#                 ['encountered_vertexesTmp', 'triangles_vertexes'],
+#                 type_converters = converters.blitz,
+#                 include_dirs = [],
+#                 library_dirs = [],
+#                 libraries = [],
+#                 headers = ['<iostream>'],
+#                 compiler = 'gcc',
+#                 extra_compile_args = ['-O3', '-pthread', '-w'])
+#    encountered_vertexes = compress(encountered_vertexesTmp>-1, encountered_vertexesTmp, axis=0)
+#    del encountered_vertexesTmp
+#    oldVertex_to_newVertex = zeros(max_encountered_vertexes+1, 'i')
+#    oldVertex_to_newVertex[encountered_vertexes] = range(len(encountered_vertexes))
+#    triangles_vertexes = take(oldVertex_to_newVertex, triangles_vertexes, axis=0)
+#    vertexes_coord = take(vertexes_coord, encountered_vertexes, axis=0)
     return vertexes_coord.astype('d'), triangles_vertexes.astype('i'), triangles_physicalSurface.astype('i')
 
 def preRead_mesh_ANSYS(meshFile_path):
@@ -484,21 +475,6 @@ def read_mesh_ANSYS(path, name, targetDimensions_scaling_factor, z_offset):
     vertexes_coord[:, -1] += z_offset
     fileToRead.close()
 
-    # we check whether we have a source
-#    SOURCE = False
-#    PhysicalSurfaceNumberToName = {}
-#    if content.has_key('PhysicalNames'):
-#        keyPhysicalNames = 'PhysicalNames'
-#        NumberPhysicalNames = content[keyPhysicalNames][0]
-#        file = open(name + '.' + keyPhysicalNames, 'r')
-#        for line in file:
-#            elem2 = line.split()
-#            newKey = int(elem2[0])
-#            PhysicalSurfaceNumberToName[newKey] = elem2[1]
-#            if "source" in PhysicalSurfaceNumberToName[newKey]:
-#                SOURCE = True
-#        file.close()
-
     # we now extract the triangles and write them to a file
     if content.has_key('Elements'):
         elements_key = 'Elements'
@@ -520,37 +496,40 @@ def read_mesh_ANSYS(path, name, targetDimensions_scaling_factor, z_offset):
         index += 1
     g.close()
     
+    # indexes of elements in Python/C++ arrays start at 0.
+    # However, triangles_nodes don't necessarily start at 0.
+    # So the following 4 lines correct that.
     vertex_number_max = max(vertexes_numbers)
     nodes_vertexes = zeros( vertex_number_max + 1, 'i' )
     put(nodes_vertexes, vertexes_numbers, range(V))
     triangles_vertexes = take(nodes_vertexes, triangles_nodes, axis=0).astype('i')
-    del triangles_nodes # gain some memory, we now work only with triangles_vertexes...
     # we will now eliminate the points that we don't need
-    max_encountered_vertexes = max(triangles_vertexes.flat)
-    encountered_vertexesTmp = (zeros(max_encountered_vertexes + 1, 'i') - 1).astype('i')
-    wrapping_code = """
-    for (int i=0 ; i<triangles_vertexes.extent(0) ; i++) {
-      for (int j=0 ; j<triangles_vertexes.extent(1) ; j++) {
-        const int vertex = triangles_vertexes(i, j);
-        encountered_vertexesTmp(vertex) = vertex;
-      }
-    }
-    """
-    weave.inline(wrapping_code,
-                 ['encountered_vertexesTmp', 'triangles_vertexes'],
-                 type_converters = converters.blitz,
-                 include_dirs = [],
-                 library_dirs = [],
-                 libraries = [],
-                 headers = ['<iostream>'],
-                 compiler = 'gcc',
-                 extra_compile_args = ['-O3', '-pthread', '-w'])
-    encountered_vertexes = compress(encountered_vertexesTmp>-1, encountered_vertexesTmp, axis=0)
-    del encountered_vertexesTmp
-    oldVertex_to_newVertex = zeros(max_encountered_vertexes+1, 'i')
-    oldVertex_to_newVertex[encountered_vertexes] = range(len(encountered_vertexes))
-    triangles_vertexes = take(oldVertex_to_newVertex, triangles_vertexes, axis=0)
-    vertexes_coord = take(vertexes_coord, encountered_vertexes, axis=0)
+#    del triangles_nodes # gain some memory, we now work only with triangles_vertexes...
+#    max_encountered_vertexes = max(triangles_vertexes.flat)
+#    encountered_vertexesTmp = (zeros(max_encountered_vertexes + 1, 'i') - 1).astype('i')
+#    wrapping_code = """
+#    for (int i=0 ; i<triangles_vertexes.extent(0) ; i++) {
+#      for (int j=0 ; j<triangles_vertexes.extent(1) ; j++) {
+#        const int vertex = triangles_vertexes(i, j);
+#        encountered_vertexesTmp(vertex) = vertex;
+#      }
+#    }
+#    """
+#    weave.inline(wrapping_code,
+#                 ['encountered_vertexesTmp', 'triangles_vertexes'],
+#                 type_converters = converters.blitz,
+#                 include_dirs = [],
+#                 library_dirs = [],
+#                 libraries = [],
+#                 headers = ['<iostream>'],
+#                 compiler = 'gcc',
+#                 extra_compile_args = ['-O3', '-pthread', '-w'])
+#    encountered_vertexes = compress(encountered_vertexesTmp>-1, encountered_vertexesTmp, axis=0)
+#    del encountered_vertexesTmp
+#    oldVertex_to_newVertex = zeros(max_encountered_vertexes+1, 'i')
+#    oldVertex_to_newVertex[encountered_vertexes] = range(len(encountered_vertexes))
+#    triangles_vertexes = take(oldVertex_to_newVertex, triangles_vertexes, axis=0)
+#    vertexes_coord = take(vertexes_coord, encountered_vertexes, axis=0)
     return vertexes_coord.astype('d'), triangles_vertexes.astype('i'), triangles_physicalSurface.astype('i')
 
 
