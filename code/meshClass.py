@@ -29,6 +29,7 @@ class MeshClass:
                 ## a delta gap should always be defined in the *.geo file as 
                 ## '// delta_gap' written aside the Line we want to be the delta gap
                 self.delta_gap = [ORIGIN_POINT, END_POINT]
+                self.delta_gap_indexes = [ORIGIN_POINT-1, END_POINT-1]
                 print "There is a delta gap in file", self.geoName
                 print "The extremities of the delta gap are points", self.delta_gap
         else:
@@ -61,6 +62,11 @@ class MeshClass:
             self.N_RWG = self.RWGNumber_signedTriangles.shape[0]
             self.S = len(self.IS_CLOSED_SURFACE)
             print "  test of the closed surfaces :", self.IS_CLOSED_SURFACE
+            if self.DELTA_GAP:
+                # here we must create a C++ function that calculates the mid point of each RWG and sees 
+                # if the RWG is part of the delta gap. That function would use vertexes_coord and 
+                # self.RWGNumber_edgeVertexes as inputs.
+                pass
             self.RWGNumber_oppVertexes = RWGNumber_oppVertexes_computation_C(self.RWGNumber_signedTriangles, self.RWGNumber_edgeVertexes, self.triangle_vertexes)
             self.time_edges_classification = time.clock()-t0
             print "  edges classification cumulated time =", self.time_edges_classification, "seconds"
