@@ -91,6 +91,7 @@ elif [ $DISTRIB_TYPE = "2" ]; then
     echo "  (4) Ubuntu 9.04"
     echo "  (5) Ubuntu 10.04"
     echo "  (6) Ubuntu 10.10"
+    echo "  (7) Ubuntu 11.04"
     echo " "
     echo "Enter the correct number here: "
     read DISTRIB
@@ -130,6 +131,12 @@ elif [ $DISTRIB_TYPE = "2" ]; then
         echo " read the file if you want more info about what will be installed..."
         cd $DIR_INSTALL_SCRIPTS
         ./UBUNTU_10.10_INSTALL.sh
+        cd ..
+    elif [ $DISTRIB = "7" ]; then
+        echo " OK, running install script for Ubuntu 11.04: $DIR_INSTALL_SCRIPTS/UBUNTU_11.04_INSTALL.sh"
+        echo " read the file if you want more info about what will be installed..."
+        cd $DIR_INSTALL_SCRIPTS
+        ./UBUNTU_11.04_INSTALL.sh
         cd ..
     fi
 
