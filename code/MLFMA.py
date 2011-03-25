@@ -3,7 +3,6 @@ import sys, time, copy, commands, pickle, cPickle
 from numpy import round, ceil
 from scipy import rand, prod, mean, arccos, dot, product, log, log10, ceil, floor, where, real, sqrt
 from meshClass import MeshClass, CubeClass
-from PyGmsh import executeGmsh, write_geo
 from FMM_precond import MgPreconditionerComputation, Mg_CSR, Mg_listsOfZnearBlocks_ToTransmitAndReceive
 from FMM_Znear import Z_nearCRS_Computation, Z_nearCRS_Assembling, Z_nearChunksDistribution, Z_near_size_computation
 from integration import *
@@ -267,18 +266,7 @@ def setup_MLFMA(params_simu):
     num_proc = MPI.COMM_WORLD.Get_size()
     my_id = MPI.COMM_WORLD.Get_rank()
 
-    targetFileName = os.path.join(params_simu.pathToTarget, params_simu.targetName + params_simu.meshFileTermination)
     tmpDirName = 'tmp' + str(my_id)
-
-    if params_simu.meshToMake:
-        if my_id==0:
-            write_geo(params_simu.pathToTarget, params_simu.targetName, 'lc', c/params_simu.f * params_simu.lc_factor)
-            write_geo(params_simu.pathToTarget, params_simu.targetName, 'lx', params_simu.lx)
-            write_geo(params_simu.pathToTarget, params_simu.targetName, 'ly', params_simu.ly)
-            write_geo(params_simu.pathToTarget, params_simu.targetName, 'lz', params_simu.lz)
-            executeGmsh(params_simu.pathToTarget, params_simu.targetName, 0)
-
-    MPI.COMM_WORLD.Barrier()
     os.mkdir( os.path.abspath(os.path.join('.',tmpDirName)) )
     os.mkdir( os.path.abspath(os.path.join('.',tmpDirName,'Z_tmp')) )
     os.mkdir( os.path.abspath(os.path.join('.',tmpDirName,'Z_near')) )

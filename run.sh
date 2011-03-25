@@ -30,6 +30,8 @@ fi
 echo "run.sh: Erasing the tmp* directories..."
 rm -rf ./tmp*
 echo "Done"
+python code/setup_GMSH.py
+
 ${COMMAND1} python code/setup_MLFMA.py
 ${COMMAND1} python code/compute_Z_near_MLFMA.py
 # hereafter we exchange the Z_near blocks for SAI computation
