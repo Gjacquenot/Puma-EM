@@ -262,7 +262,6 @@ def setup_MLFMA(params_simu):
     """This function provides an easy interface for running an MLFMA simulation.
        params_simu is a class instance that contains the parameters for the simulation.
     """
-    status = MPI.Status()
     num_proc = MPI.COMM_WORLD.Get_size()
     my_id = MPI.COMM_WORLD.Get_rank()
 
@@ -285,10 +284,9 @@ def setup_MLFMA(params_simu):
     MPI.COMM_WORLD.Barrier()
     if (my_id==0):
         target_mesh.constructFromGmshFile()
-        average_RWG_length = target_mesh.average_RWG_length
-        writeScalarToDisk(average_RWG_length, os.path.join('.',tmpDirName,'mesh/average_RWG_length.txt'))
+        writeScalarToDisk(target_mesh.average_RWG_length, os.path.join('.',tmpDirName,'mesh/average_RWG_length.txt'))
         if params_simu.VERBOSE==1:
-            print "average RWG length =", average_RWG_length, "m = lambda /", (c/params_simu.f)/average_RWG_length
+            print "average RWG length =", target_mesh.average_RWG_length, "m = lambda /", (c/params_simu.f)/target_mesh.average_RWG_length
         # target_mesh cubes computation
         target_mesh.cubes_data_computation(a)
         N_nearBlockDiag, target_mesh.N_near, target_mesh.N_nearPerCube  = Z_near_size_computation(target_mesh.cubes_lists_RWGsNumbers, target_mesh.cubesNeighborsIndexes)
