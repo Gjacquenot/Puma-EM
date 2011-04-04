@@ -158,9 +158,10 @@ elif [ $DISTRIB_TYPE = "3" ]; then
     echo "What is the version of your OpenSuse distribution?"
     echo "  (1) OpenSuse 11.0, 32 bits"
     echo "  (2) OpenSuse 11.0, 64 bits"
-    echo "  (3) OpenSuse 11.1"
-    echo "  (4) OpenSuse 11.2"
-    echo "  (5) OpenSuse 11.4"
+    echo "  (3) OpenSuse 11.1, 64 bits"
+    echo "  (4) OpenSuse 11.2, 64 bits"
+    echo "  (5) OpenSuse 11.3, 64 bits"
+    echo "  (6) OpenSuse 11.4, 64 bits"
     echo " "
     echo "Enter the correct number here: "
     read DISTRIB
@@ -191,6 +192,12 @@ elif [ $DISTRIB_TYPE = "3" ]; then
         ./OPENSUSE_11.2_64BITS_INSTALL.sh
         cd ..
     elif [ $DISTRIB = "5" ]; then
+        echo " OK, running install script for OpenSuse 11.3: $DIR_INSTALL_SCRIPTS/OPENSUSE_11.3_64BITS_INSTALL.sh"
+        echo " read the file if you want more info about what will be installed..."
+        cd $DIR_INSTALL_SCRIPTS
+        ./OPENSUSE_11.3_64BITS_INSTALL.sh
+        cd ..
+    elif [ $DISTRIB = "6" ]; then
         echo " OK, running install script for OpenSuse 11.4: $DIR_INSTALL_SCRIPTS/OPENSUSE_11.4_64BITS_INSTALL.sh"
         echo " read the file if you want more info about what will be installed..."
         cd $DIR_INSTALL_SCRIPTS
@@ -201,6 +208,7 @@ elif [ $DISTRIB_TYPE = "3" ]; then
 elif [ $DISTRIB_TYPE = "4" ]; then
     echo "What is the version of your CentOS distribution?"
     echo "  (1) CentOS 5.2"
+    echo "  (2) CentOS 5.5"
     echo " "
     echo "Enter the correct number here: "
     read DISTRIB
@@ -210,6 +218,13 @@ elif [ $DISTRIB_TYPE = "4" ]; then
         echo " read the file if you want more info about what will be installed..."
         cd $DIR_INSTALL_SCRIPTS
         ./CENTOS5_64BITS_INSTALL.sh
+        cd ..
+    fi
+    elif [ $DISTRIB = "2" ]; then
+        echo " OK, running install script for CentOS 5.5: $DIR_INSTALL_SCRIPTS/CENTOS5.5_64BITS_INSTALL.sh"
+        echo " read the file if you want more info about what will be installed..."
+        cd $DIR_INSTALL_SCRIPTS
+        ./CENTOS5.5_64BITS_INSTALL.sh
         cd ..
     fi
 
