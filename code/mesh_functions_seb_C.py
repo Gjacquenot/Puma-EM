@@ -25,19 +25,15 @@ def edges_computation_C(triangle_vertexes, vertexes_coord):
     # counting the occurrences of an edge, one should only count its similar
     # neighbors, thereby greatly reducing the computational cost of the algorithm
 
-    t0 = time.clock()
-    print "    construction of edgeNumber_triangles..."
-    sys.stdout.flush()
-    triangles_surfaces, is_closed_surface, RWGNumber_signedTriangles, RWGNumber_edgeVertexes = compute_edgeNumber_triangles_C(triangle_vertexes, vertexes_coord)
-    print "    edgeNumber_triangles construction cumulated time =", time.clock() - t0
-    sys.stdout.flush()
-    return triangles_surfaces, is_closed_surface, RWGNumber_signedTriangles, RWGNumber_edgeVertexes
-
-def compute_edgeNumber_triangles_C(triangle_vertexes, vertexes_coord):
     # Once the elements of the first 2 columns have been sorted alongside dimension 1,
     # we construct a 1-D array of real numbers, with:
     # 1) the entire part formed by the numbers of the first column
     # 2) the decimal part formed by the numbers of the second column
+
+    t10 = time.clock()
+    print "    construction of edgeNumber_triangles..."
+    sys.stdout.flush()
+    
     T = triangle_vertexes.shape[0]
     E = T * 3 # there are 3 edges per triangles
     saveDir = "./geo/" # where we will write the temporary files
@@ -178,6 +174,8 @@ def compute_edgeNumber_triangles_C(triangle_vertexes, vertexes_coord):
     RWGNumber_signedTriangles = readBlitzArrayFromDisk(saveDir + "RWGNumber_signedTriangles.txt", N_RWG, 2, 'i')
     RWGNumber_edgeVertexes = readBlitzArrayFromDisk(saveDir + "RWGNumber_edgeVertexes.txt", N_RWG, 2, 'i')
     is_closed_surface = readASCIIBlitzIntArray1DFromDisk(saveDir + "is_closed_surface.txt")
+    print "    edgeNumber_triangles construction cumulated time =", time.clock() - t10
+    sys.stdout.flush()
     return triangles_surfaces, is_closed_surface, RWGNumber_signedTriangles, RWGNumber_edgeVertexes
 
 def RWGNumber_oppVertexes_computation_C(RWGNumber_signedTriangles, RWGNumber_edgeVertexes, triangle_vertexes):
