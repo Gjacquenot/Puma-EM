@@ -154,10 +154,15 @@ def edges_computation_C(triangle_vertexes, vertexes_coord):
     RWGNumber_signedTriangles_computation(RWGNumber_signedTriangles, RWGNumber_edgeVertexes, edgeNumber_triangles, edgeNumber_vertexes, triangles_surfaces, is_closed_surface, triangle_vertexes, vertexes_coord);
     edgeNumber_triangles.free();
     edgeNumber_vertexes.free();
+    // computation of opposite vertexes of RWGs in triangles
+    blitz::Array<int, 2> RWGNumber_oppVertexes;
+    RWGNumber_oppVertexes_computation(RWGNumber_oppVertexes, RWGNumber_signedTriangles, RWGNumber_edgeVertexes, triangle_vertexes);
+    // writing to files
     writeIntToASCIIFile(SaveDir + "N_edges.txt", N_edges);
     writeIntToASCIIFile(SaveDir + "N_RWG.txt", RWGNumber_signedTriangles.extent(0));
     writeIntBlitzArray2DToBinaryFile(SaveDir + "RWGNumber_signedTriangles.txt", RWGNumber_signedTriangles);
     writeIntBlitzArray2DToBinaryFile(SaveDir + "RWGNumber_edgeVertexes.txt", RWGNumber_edgeVertexes);
+    writeIntBlitzArray2DToBinaryFile(SaveDir + "RWGNumber_oppVertexes.txt", RWGNumber_oppVertexes);
     writeIntBlitzArray1DToASCIIFile(SaveDir + "is_closed_surface.txt", is_closed_surface);
     """
     weave.inline(wrapping_code,
@@ -173,31 +178,12 @@ def edges_computation_C(triangle_vertexes, vertexes_coord):
     N_RWG = readIntFromDisk(saveDir + "N_RWG.txt")
     RWGNumber_signedTriangles = readBlitzArrayFromDisk(saveDir + "RWGNumber_signedTriangles.txt", N_RWG, 2, 'i')
     RWGNumber_edgeVertexes = readBlitzArrayFromDisk(saveDir + "RWGNumber_edgeVertexes.txt", N_RWG, 2, 'i')
+    RWGNumber_oppVertexes = readBlitzArrayFromDisk(saveDir + "RWGNumber_oppVertexes.txt", N_RWG, 2, 'i')
     is_closed_surface = readASCIIBlitzIntArray1DFromDisk(saveDir + "is_closed_surface.txt")
     print "    edgeNumber_triangles construction cumulated time =", time.clock() - t10
     sys.stdout.flush()
-    return triangles_surfaces, is_closed_surface, RWGNumber_signedTriangles, RWGNumber_edgeVertexes
+    return triangles_surfaces, is_closed_surface, RWGNumber_signedTriangles, RWGNumber_edgeVertexes, RWGNumber_oppVertexes
 
-def RWGNumber_oppVertexes_computation_C(RWGNumber_signedTriangles, RWGNumber_edgeVertexes, triangle_vertexes):
-    print "    computation of RWG opposite vertexes...", 
-    sys.stdout.flush()
-    t5 = time.clock()
-    N_RWG = RWGNumber_signedTriangles.shape[0]
-    RWGNumber_oppVertexes = zeros((N_RWG, 2), 'i')
-    wrapping_code = """
-    RWGNumber_oppVertexes_computation(RWGNumber_oppVertexes, RWGNumber_signedTriangles, RWGNumber_edgeVertexes, triangle_vertexes);
-    """
-    weave.inline(wrapping_code,
-                 ['RWGNumber_oppVertexes', 'RWGNumber_signedTriangles', 'RWGNumber_edgeVertexes', 'triangle_vertexes'],
-                 type_converters = converters.blitz,
-                 include_dirs = ['./code/MoM/'],
-                 library_dirs = ['./code/MoM/'],
-                 libraries = ['MoM'],
-                 headers = ['<iostream>','"mesh.h"'],
-                 compiler = 'gcc',
-                 extra_compile_args = ['-O3', '-pthread', '-w'])
-    print "   time =", time.clock() - t5
-    return RWGNumber_oppVertexes.astype('i')
 
 def edgeNumber_triangles_indexes_C(N_triangles, list_of_edges_numbers, RWGNumber_signedTriangles):
     """This function returns a 1-D array of the indexes of the triangles corresponding
