@@ -23,7 +23,7 @@ sudo zypper ar -c http://download.opensuse.org/repositories/science/openSUSE_11.
 sudo zypper refresh
 sudo zypper install gcc-c++ libstdc++33-32bit Mesa-32bit gcc-fortran autoconf automake make libtool python-devel python-scipy python-matplotlib python-tk python-numpy-devel openmpi openmpi-devel cvs doxygen
 # modifying the PATH variables
-mpi-selector --set openmpi-1.3
+mpi-selector --set openmpi-1.3.2
 export LD_LIBRARY_PATH=/usr/lib64/mpi/gcc/openmpi/lib:
 export PATH=/usr/lib64/mpi/gcc/openmpi/bin:$PATH
 # installing GMSH
