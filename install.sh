@@ -219,7 +219,6 @@ elif [ $DISTRIB_TYPE = "4" ]; then
         cd $DIR_INSTALL_SCRIPTS
         ./CENTOS5_64BITS_INSTALL.sh
         cd ..
-    fi
     elif [ $DISTRIB = "2" ]; then
         echo " OK, running install script for CentOS 5.5: $DIR_INSTALL_SCRIPTS/CENTOS5.5_64BITS_INSTALL.sh"
         echo " read the file if you want more info about what will be installed..."

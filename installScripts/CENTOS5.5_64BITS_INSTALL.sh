@@ -15,7 +15,7 @@ echo " Otherwise, mpi4py risks crashing."
 echo " "
 echo " press enter to continue, ctrl-C to stop "
 read
-rm -rf ~/.python25_compiled
+rm -rf ~/.python*_compiled
 echo " You will be asked for your root password so that the machine can install some programs as root"
 # installing a new repository
 su -c "cp centos5_scipy.repo /etc/yum.repos.d/"
@@ -23,7 +23,7 @@ su -c "cp centos5_scipy.repo /etc/yum.repos.d/"
 echo " Root password for installing general dependencies... "
 su -c 'yum -y install python-devel gcc-c++ libgfortran gcc-gfortran libstdc++-devel compat-gcc-34-g77 compat-libstdc++-33 openmpi openmpi-libs openmpi-devel mesa-libGLU python-numpy.x86_64 python-scipy.x86_64 lapack3.x86_64'
 # selecting openmpi as mpi implementation
-mpi-selector --set openmpi-1.2.5-gcc-x86_64
+mpi-selector --set openmpi-1.4-gcc-x86_64
 # relinking libg2c.so: bug in Fedora Core 8
 echo " Root password for correcting a Fedora Core 8 link bug for libg2c.so "
 su -c 'ln -s /usr/lib/gcc/x86_64-redhat-linux/3.4.6/libg2c.so /usr/lib/libg2c.so'

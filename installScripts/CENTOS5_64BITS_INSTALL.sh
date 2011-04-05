@@ -15,7 +15,7 @@ echo " Otherwise, mpi4py risks crashing."
 echo " "
 echo " press enter to continue, ctrl-C to stop "
 read
-rm -rf ~/.python25_compiled
+rm -rf ~/.python*_compiled
 echo " You will be asked for your root password so that the machine can install some programs as root"
 # installing a new repository
 su -c "cp centos5_scipy.repo /etc/yum.repos.d/"
