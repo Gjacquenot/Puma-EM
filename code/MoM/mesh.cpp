@@ -712,9 +712,12 @@ void RWGNumber_signedTriangles_computation(blitz::Array<int, 2>& RWGNumber_signe
       // we now sort the triangles wrt their respective position wrt xHatEdge
       // we need an argsort type function, given by the Dictionary class (see mesh.h)
       std::vector< Dictionary<double, int> > triangles_anglesToIndexes;
+      triangles_anglesToIndexes.reserve(numberOfTriangles);
       for (int j=0 ; j<numberOfTriangles ; j++) triangles_anglesToIndexes.push_back(Dictionary<double, int> (triangles_angles(j), j));
       sort(triangles_anglesToIndexes.begin(), triangles_anglesToIndexes.end());
       std::vector<int> sortedTriangles, sortedTrianglesSurfaces;
+      sortedTriangles.reserve(numberOfTriangles);
+      sortedTrianglesSurfaces.reserve(numberOfTriangles);
       for (int j=0 ; j<numberOfTriangles ; j++) {
         sortedTriangles.push_back(triangles[triangles_anglesToIndexes[j].getVal()]);
         sortedTrianglesSurfaces.push_back(triangles_surfaces(sortedTriangles.back()));

@@ -43,10 +43,9 @@ if __name__=="__main__":
         ########################################
         ## mesh_functions_seb_C
         ########################################
-        vertexes_coord_2, triangle_vertexes_2, triangles_physicalSurface_2 = read_mesh_GMSH_2(os.path.join(path, targetName + '.msh'), targetDimensions_scaling_factor, z_offset)
+        vertexes_coord_2, triangle_vertexes_2, triangles_physicalSurface_2 = read_mesh_GMSH_1(os.path.join(path, targetName + '.msh'), targetDimensions_scaling_factor, z_offset)
 
-        triangles_surfaces_C, is_closed_surface_C, RWGNumber_signedTriangles_C, RWGNumber_edgeVertexes_C = edges_computation_C(triangle_vertexes_2, vertexes_coord_2)
-        RWGNumber_oppVertexes_C = RWGNumber_oppVertexes_computation_C(RWGNumber_signedTriangles_C, RWGNumber_edgeVertexes_C, triangle_vertexes_2)
+        triangles_surfaces_C, is_closed_surface_C, RWGNumber_signedTriangles_C, RWGNumber_edgeVertexes_C, RWGNumber_oppVertexes_C = edges_computation_C(triangle_vertexes_2, vertexes_coord_2)
         ########################################
 
         # comparison mesh_functions_seb vs mesh_functions_seb_C

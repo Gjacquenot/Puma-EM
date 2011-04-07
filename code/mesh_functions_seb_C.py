@@ -8,6 +8,7 @@ from EM_constants import *
 import copy
 from ReadWriteBlitzArray import *
 
+
 def edges_computation_C(triangle_vertexes, vertexes_coord):
     """This function builds the edges matrix from the triangles"""
 
@@ -35,14 +36,12 @@ def edges_computation_C(triangle_vertexes, vertexes_coord):
     sys.stdout.flush()
     
     T = triangle_vertexes.shape[0]
-    E = T * 3 # there are 3 edges per triangles
+    triangles_surfaces = (ones(T, 'i') * -1).astype('i')
     saveDir = "./geo/" # where we will write the temporary files
-    t0 = time.clock()
-    print "constructing col_sorted_e_v..."
-    sys.stdout.flush() 
-    col_sorted_e_v = zeros((E, 2), 'i')
     wrapping_code = """
     const int T = triangle_vertexes.extent(0);
+    const int E = 3 * T; // there are 3 edges per triangles
+    blitz::Array<int, 2> col_sorted_e_v(E, 2);
     for (int i=0 ; i<T ; i++) {
       for (int j=0 ; j<3 ; j++) {
         int n_orig = j;
@@ -54,59 +53,47 @@ def edges_computation_C(triangle_vertexes, vertexes_coord):
         col_sorted_e_v(index, 1) = std::max(r_orig, r_end);
       } 
     }
-    """
-    weave.inline(wrapping_code,
-                 ['col_sorted_e_v', 'triangle_vertexes'],
-                 type_converters = converters.blitz,
-                 include_dirs = [],
-                 library_dirs = [],
-                 libraries = [],
-                 headers = ['<iostream>'],
-                 compiler = 'gcc',
-                 extra_compile_args = ['-O3', '-pthread', '-w'])
-    print "time constructing col_sorted_e_v =", time.clock() - t0
-    sys.stdout.flush()
+    
+    const int max_decimal = max(col_sorted_e_v(blitz::Range::all(), 1));
+    double X = 10.0;
+    while (X<max_decimal) X *= 10.0; // we look for smallest "X" such that "1eX > max_decimal"
 
-    max_decimal = max(col_sorted_e_v[:, 1]) # the maximum element of "col_sorted_e_v[:, 1]"
-    X = 10.0
-    while X < max_decimal: # we look for smallest "X" such that "1eX > max_decimal"
-        X *= 10.0
-    decimal_e_v = col_sorted_e_v[:, 0] + col_sorted_e_v[:, 1]/X
-    writeScalarToDisk(len(col_sorted_e_v[:,0]), saveDir + "N_col_sorted_e_v.txt")
-    writeBlitzArrayToDisk(col_sorted_e_v, saveDir + "col_sorted_e_v.txt")
-    del col_sorted_e_v
-    # ind_sorted_e_v
-    ind_sorted_e_v = argsort(decimal_e_v, kind='mergesort').astype('i')
-    sorted_decimal_e_v = take(decimal_e_v, ind_sorted_e_v, axis=0)
-    writeScalarToDisk(len(ind_sorted_e_v), saveDir + "N_ind_sorted_e_v.txt")
-    writeBlitzArrayToDisk(ind_sorted_e_v, saveDir + "ind_sorted_e_v.txt")
-    del decimal_e_v, ind_sorted_e_v
+    blitz::Array<double, 1> decimal_e_v(E);
+    decimal_e_v = col_sorted_e_v(blitz::Range::all(), 0) + col_sorted_e_v(blitz::Range::all(), 1)/X;
 
-    diff = ones(sorted_decimal_e_v.shape[0], 'd')
-    diff[1:] = abs(sorted_decimal_e_v[1:] - sorted_decimal_e_v[:-1])
-    del sorted_decimal_e_v
-    indexesEqualPreceding = compress(diff==0.0,arange(len(diff)),axis=0).astype('i')
-    writeScalarToDisk(len(indexesEqualPreceding), saveDir + "N_indexesEqualPreceding.txt")
-    writeBlitzArrayToDisk(indexesEqualPreceding, saveDir + "indexesEqualPreceding.txt")
-    del diff, indexesEqualPreceding
-    t0 = time.clock()
-    print "Entering the C++ area...",
-    sys.stdout.flush()
-    triangles_surfaces = (ones(T, 'i') * -1).astype('i')
-    wrapping_code = """
-    const int T = triangle_vertexes.extent(0);
+    // we now sort the decimal_e_v
+    // we need an argsort type function, given by the Dictionary class (see mesh.h)
+    std::vector< Dictionary<double, int> > decimal_e_v_ToIndexes;
+    decimal_e_v_ToIndexes.reserve(E);
+    for (int j=0 ; j<E ; j++) decimal_e_v_ToIndexes.push_back(Dictionary<double, int> (decimal_e_v(j), j));
+    stable_sort(decimal_e_v_ToIndexes.begin(), decimal_e_v_ToIndexes.end());
+    blitz::Array<double, 1> sorted_decimal_e_v(E), diff(E);
+    blitz::Array<int, 1> ind_sorted_e_v(E);
+    for (int j=0 ; j<E ; j++) {
+      sorted_decimal_e_v(j) = decimal_e_v(decimal_e_v_ToIndexes[j].getVal());
+      ind_sorted_e_v(j) = decimal_e_v_ToIndexes[j].getVal();
+    }
+
+    diff = 1.0;
+    for (int j=1 ; j<E ; j++) diff(j) = abs(sorted_decimal_e_v(j) - sorted_decimal_e_v(j-1));
+    
+    blitz::Array<int, 1> indexesEqualPreceding;
+    std::vector<int> indexesEqualPrecedingTmp;
+    for (int j=0 ; j<E ; j++) {
+      if (diff(j)==0.0) indexesEqualPrecedingTmp.push_back(j);
+    }
+    const int N_indexesEqualPreceding = indexesEqualPrecedingTmp.size();
+    indexesEqualPreceding.resize(N_indexesEqualPreceding);
+    for (int j=0 ; j<N_indexesEqualPreceding ; j++) indexesEqualPreceding(j) = indexesEqualPrecedingTmp[j];
+    indexesEqualPrecedingTmp.clear();
+
+     
     std::string SaveDir = saveDir;
     std::cout << std::endl;
     // compute_indexesEqualEdges
     std::cout << "compute_indexesEqualEdges" << std::endl;
     std::flush(std::cout);
     std::vector<std::vector<int> > indexesEqualEdges;
-    int N_ind_sorted_e_v, N_indexesEqualPreceding;
-    readIntFromASCIIFile(SaveDir + "N_ind_sorted_e_v.txt", N_ind_sorted_e_v);
-    readIntFromASCIIFile(SaveDir + "N_indexesEqualPreceding.txt", N_indexesEqualPreceding);
-    blitz::Array<int, 1> ind_sorted_e_v(N_ind_sorted_e_v), indexesEqualPreceding(N_indexesEqualPreceding);
-    readIntBlitzArray1DFromBinaryFile(SaveDir + "ind_sorted_e_v.txt", ind_sorted_e_v);
-    readIntBlitzArray1DFromBinaryFile(SaveDir + "indexesEqualPreceding.txt", indexesEqualPreceding);
     compute_indexesEqualEdges(indexesEqualEdges, indexesEqualPreceding, ind_sorted_e_v);
     ind_sorted_e_v.free();
     indexesEqualPreceding.free();
@@ -114,10 +101,6 @@ def edges_computation_C(triangle_vertexes, vertexes_coord):
     std::cout << "edgeNumber_vertexes" << std::endl;
     std::flush(std::cout);
     blitz::Array<int,2> edgeNumber_vertexes;
-    int N_col_sorted_e_v;
-    readIntFromASCIIFile(SaveDir + "N_col_sorted_e_v.txt", N_col_sorted_e_v);
-    blitz::Array<int, 2> col_sorted_e_v(N_col_sorted_e_v, 2);
-    readIntBlitzArray2DFromBinaryFile(SaveDir + "col_sorted_e_v.txt", col_sorted_e_v);
     compute_edgeNumber_vertexes(edgeNumber_vertexes, indexesEqualEdges, col_sorted_e_v);
     col_sorted_e_v.free();
     const int N_edges = edgeNumber_vertexes.extent(0);
@@ -171,10 +154,10 @@ def edges_computation_C(triangle_vertexes, vertexes_coord):
                  include_dirs = ['./code/MoM/'],
                  library_dirs = ['./code/MoM/'],
                  libraries = ['MoM'],
-                 headers = ['<iostream>','<string>', '<complex>','<vector>','<algorithm>','"mesh.h"'],
+                 headers = ['<iostream>','<string>','<vector>','<algorithm>','"mesh.h"'],
                  compiler = 'gcc',
                  extra_compile_args = ['-O3', '-pthread', '-w'])
-    print "time C++ execution =", time.clock() - t0
+    print "time C++ execution =", time.clock() - t10
     N_RWG = readIntFromDisk(saveDir + "N_RWG.txt")
     RWGNumber_signedTriangles = readBlitzArrayFromDisk(saveDir + "RWGNumber_signedTriangles.txt", N_RWG, 2, 'i')
     RWGNumber_edgeVertexes = readBlitzArrayFromDisk(saveDir + "RWGNumber_edgeVertexes.txt", N_RWG, 2, 'i')
@@ -209,12 +192,12 @@ def edgeNumber_triangles_indexes_C(N_triangles, list_of_edges_numbers, RWGNumber
 
 if __name__=="__main__":
     path = './geo'
-    targetName = 'cubi'
+    targetName = 'strip'
     f = 2.12e9
     write_geo(path, targetName, 'lc', c/f/10.0)
-    write_geo(path, targetName, 'lx', 6.05)
-    write_geo(path, targetName, 'ly', 6.05)
-    write_geo(path, targetName, 'lz', 6.05)
+    write_geo(path, targetName, 'lx', 0.07)
+    write_geo(path, targetName, 'ly', 0.07)
+    write_geo(path, targetName, 'lz', 0.02)
     write_geo(path, targetName, 'w', 0.02)
     executeGmsh(path, targetName, 0)
     targetDimensions_scaling_factor = 1.0
@@ -225,10 +208,8 @@ if __name__=="__main__":
     print "reading mesh time =", time.clock() - t0, "seconds"
     sys.stdout.flush()
 
-    triangles_surfaces_C, is_closed_surface_C, RWGNumber_signedTriangles_C, RWGNumber_edgeVertexes_C = edges_computation_C(triangle_vertexes, vertexes_coord)
-    RWGNumber_oppVertexes_C = RWGNumber_oppVertexes_computation_C(RWGNumber_signedTriangles_C, RWGNumber_edgeVertexes_C, triangle_vertexes)
+    triangles_surfaces_C, is_closed_surface_C, RWGNumber_signedTriangles_C, RWGNumber_edgeVertexes_C, RWGNumber_oppVertexes_C = edges_computation_C(triangle_vertexes, vertexes_coord)
 
     print "    Number of RWG =", RWGNumber_oppVertexes_C.shape[0]
-
 
 
