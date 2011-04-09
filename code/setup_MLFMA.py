@@ -248,11 +248,8 @@ def setup_MLFMA(params_simu):
     writeScalarToDisk(params_simu.INNER_MAXITER, os.path.join('.', tmpDirName, 'iterative_data/INNER_MAXITER.txt') )
     writeScalarToDisk(params_simu.INNER_RESTART, os.path.join('.', tmpDirName, 'iterative_data/INNER_RESTART.txt') )
     writeScalarToDisk(N_RWG, os.path.join('.', tmpDirName, 'ZI/ZI_size.txt') )
-    MPI.COMM_WORLD.Barrier()
     computeTreeParameters(my_id, tmpDirName, a, k, N_levels, params_simu)
 
-    if (my_id==0):
-        runMPIsystemCommand("./code/MoM", "communicateMeshArrays", num_proc)
     MPI.COMM_WORLD.Barrier()
     chunkNumber_to_cubesNumbers, cubeNumber_to_chunkNumber, chunkNumber_to_processNumber, processNumber_to_ChunksNumbers = distributeZcubesAttributions(params_simu.MAX_BLOCK_SIZE, target_mesh.N_nearPerCube, C, tmpDirName, params_simu)
     scatterMesh(target_mesh, processNumber_to_ChunksNumbers, chunkNumber_to_cubesNumbers, tmpDirName, my_id, num_proc)

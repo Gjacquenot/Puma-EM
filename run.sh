@@ -33,6 +33,7 @@ echo "Done"
 python code/setup_GMSH.py
 
 ${COMMAND1} python code/setup_MLFMA.py
+${COMMAND1} ./code/MoM/communicateMeshArrays
 ${COMMAND1} python code/compute_Z_near_MLFMA.py
 # hereafter we exchange the Z_near blocks for SAI computation
 # we do this in C++ as it is faster

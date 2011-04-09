@@ -848,21 +848,24 @@ int main(void) {
   // general variables
   const string TMP = "./tmp" + intToString(my_id), OCTTREE_DATA_PATH = TMP + "/octtree_data/", MESH_DATA_PATH = TMP + "/mesh/", V_CFIE_DATA_PATH = TMP + "/V_CFIE/", RESULT_DATA_PATH = "./result/";
   const string ITERATIVE_DATA_PATH = TMP + "/iterative_data/";
-  Mesh target_mesh(MESH_DATA_PATH);
-  int CUBES_DISTRIBUTION, N_RWG = target_mesh.E;
+  int CUBES_DISTRIBUTION;
   readIntFromASCIIFile(OCTTREE_DATA_PATH + "CUBES_DISTRIBUTION.txt", CUBES_DISTRIBUTION);
   if (CUBES_DISTRIBUTION==1) {
     readIntFromASCIIFile(OCTTREE_DATA_PATH + "num_procs.txt", num_procs);
-    if (my_id==0) Octtree octtree(OCTTREE_DATA_PATH, target_mesh.cubes_centroids, my_id, num_procs);
-  }
-  ierror = MPI_Barrier(MPI::COMM_WORLD);
-  if (CUBES_DISTRIBUTION==1) {
+    if (my_id==0) {
+      Mesh target_mesh(MESH_DATA_PATH);
+      Octtree octtree(OCTTREE_DATA_PATH, target_mesh.cubes_centroids, my_id, num_procs);
+    }
+    ierror = MPI_Barrier(MPI::COMM_WORLD);
     // we write 0 on the file
     writeIntToASCIIFile(OCTTREE_DATA_PATH + "CUBES_DISTRIBUTION.txt", 0);
     // we return to python!
     MPI::Finalize();
     return 0;
   }
+
+  Mesh target_mesh(MESH_DATA_PATH);
+  const int N_RWG = target_mesh.E;
   Octtree octtree(OCTTREE_DATA_PATH, target_mesh.cubes_centroids, my_id, num_procs);
   octtree.computeGaussLocatedArguments(target_mesh);
   // every process will receive about the same number of lines
