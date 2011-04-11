@@ -19,12 +19,11 @@ rm -rf ~/.python*_compiled
 echo " You will be asked for your root password so that the machine can install some programs as root"
 # installing the main dependencies...
 echo " Root password for installing general dependencies... "
-su -c 'yum -y install python-devel gcc-c++ libgfortran gcc-gfortran libstdc++-devel compat-libstdc++-33 openmpi openmpi-devel scipy numpy python-matplotlib-tk python-matplotlib cvs autoconf automake sysconftool gettext libtool wget'
+su -c 'yum -y install python-devel gcc-c++ libgfortran gcc-gfortran libstdc++-devel compat-libstdc++-33 openmpi openmpi-devel scipy numpy python-matplotlib-tk python-matplotlib cvs autoconf automake sysconftool gettext libtool wget cmake fltk-devel lapack lapack-devel blas blas-devel libjpeg-devel libpng-devel'
 # repairing shite introduced in FC14 in the Open-MPI packages...
 su -c 'ln -s /usr/lib/openmpi/bin/mpicc /usr/bin/mpicc; ln -s /usr/lib/openmpi/bin/mpiCC /usr/bin/mpiCC; ln -s /usr/lib/openmpi/bin/mpirun /usr/bin/mpirun; ln -s /usr/lib/openmpi/lib/libmpi.so.0 /usr/lib/libmpi.so.0; ln -s /usr/lib/openmpi/lib/libopen-rte.so.0 /usr/lib/libopen-rte.so.0; ln -s /usr/lib/openmpi/lib/libopen-pal.so.0 /usr/lib/libopen-pal.so.0; ln -s /usr/lib/openmpi/lib/libmpi_cxx.so.0 /usr/lib/libmpi_cxx.so.0'
-# installing binary GMSH -- usually more up-to-date than packaged GMSH
-echo " Root password for installing GMSH... "
-su -c 'python installGMSH.py'
+# installing source GMSH
+./installGMSH_fromSource.sh
 # create makefile.inc
 cd ..
 PUMA_EM_DIR=$PWD
@@ -42,6 +41,9 @@ autoreconf -vif
 make lib
 echo " Root password for installing blitz++ library... "
 su -c 'make install'
+# scipy-weave uses the old blitz++, so we need to replace them
+echo " Root password for replacing scipy buggy blitz++ library by the newest version of blitz++... "
+su -c 'cp -r ./blitz /usr/lib/python2.7/site-packages/scipy/weave/blitz'
 # installing mpi4py. No rpm yet for this one...
 cd $PUMA_EM_DIR/installScripts
 wget http://pypi.python.org/packages/source/m/mpi4py/mpi4py-0.6.0.tar.gz

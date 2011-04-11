@@ -41,6 +41,9 @@ autoreconf -vif
 make lib
 echo " Root password for installing blitz++ library... "
 su -c 'make install'
+# scipy-weave uses the old blitz++, so we need to replace them
+echo " Root password for replacing scipy buggy blitz++ library by the newest version of blitz++... "
+su -c 'cp -r ./blitz /usr/lib64/python2.7/site-packages/scipy/weave/blitz'
 # installing mpi4py. No rpm yet for this one...
 cd $PUMA_EM_DIR/installScripts
 wget http://pypi.python.org/packages/source/m/mpi4py/mpi4py-0.6.0.tar.gz
