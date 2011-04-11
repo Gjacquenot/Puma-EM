@@ -3,7 +3,7 @@ from mpi4py import *
 from MLFMA import compute_Z_near
 
 if __name__=='__main__':
-    MPI.Init()
+    #MPI.Init()
     my_id = MPI.COMM_WORLD.Get_rank()
     sys.path.append(os.path.abspath('.'))
     # the simulation itself

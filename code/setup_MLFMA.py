@@ -273,7 +273,7 @@ def setup_MLFMA(params_simu):
 
 
 if __name__=='__main__':
-    MPI.Init()
+    #MPI.Init()
     my_id = MPI.COMM_WORLD.Get_rank()
     if (my_id==0):
         if 'result' not in os.listdir('.'):

@@ -77,7 +77,7 @@ def bistatic_RCS(params_simu):
 
 
 if __name__=='__main__':
-    MPI.Init()
+    #MPI.Init()
     my_id = MPI.COMM_WORLD.Get_rank()
     sys.path.append(os.path.abspath('.'))
     # the simulation itself
@@ -164,5 +164,5 @@ if __name__=='__main__':
     if params_simu.MONOSTATIC_SAR==1:
         SAR_RCS_HH, SAR_RCS_VV, SAR_RCS_HV, r_SAR = monostatic_SAR(params_simu)
 
-    MPI.Finalize()
+    #MPI.Finalize()
 

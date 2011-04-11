@@ -75,7 +75,7 @@ if __name__=="__main__":
     #createZ_sparse_MLFMA(0)
     sendbuf = rand(3,3).tolist()
     recvbuf = zeros(3).tolist()
-    MPI.Init()
+    #MPI.Init()
     status = MPI.Status()
     num_proc = MPI.COMM_WORLD.Get_size()
     my_id = MPI.COMM_WORLD.Get_rank()
