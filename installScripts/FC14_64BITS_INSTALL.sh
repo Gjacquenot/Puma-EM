@@ -22,18 +22,8 @@ echo " Root password for installing general dependencies... "
 su -c 'yum -y install python-devel gcc-c++ libgfortran gcc-gfortran libstdc++-devel compat-libstdc++-33 openmpi openmpi-devel scipy numpy python-matplotlib-tk python-matplotlib cvs autoconf automake sysconftool libtool.x86_64 gettext gettext.i686 zlib.i686 mesa-libGLU.i686 compat-libstdc++-33.i686 wget cmake fltk-devel lapack lapack-devel blas blas-devel libjpeg-devel libpng-devel'
 # repairing shite introduced in FC13 in the Open-MPI packages...
 su -c 'ln -s /usr/lib64/openmpi/bin/mpicc /usr/bin/mpicc; ln -s /usr/lib64/openmpi/bin/mpiCC /usr/bin/mpiCC; ln -s /usr/lib64/openmpi/bin/mpirun /usr/bin/mpirun; ln -s /usr/lib64/openmpi/lib/libmpi.so.0 /usr/lib64/libmpi.so.0; ln -s /usr/lib64/openmpi/lib/libopen-rte.so.0 /usr/lib64/libopen-rte.so.0; ln -s /usr/lib64/openmpi/lib/libopen-pal.so.0 /usr/lib64/libopen-pal.so.0; ln -s /usr/lib64/openmpi/lib/libmpi_cxx.so.0 /usr/lib64/libmpi_cxx.so.0;'
-# installing source GMSH -- usually more up-to-date than packaged GMSH
-echo " Root password for installing GMSH... "
-wget http://www.geuz.org/gmsh/src/gmsh-2.5.0-source.tgz
-tar xzf gmsh-2.5.0-source.tgz
-cd gmsh-2.5.0-source
-mkdir build
-cd build
-cmake ..
-make
-su -c 'make install'
-cd ../..
-rm -rf gmsh-2.5.0-source*
+# installing GMSH from source
+./installGMSH_fromSource.sh
 # create makefile.inc
 cd ..
 PUMA_EM_DIR=$PWD
