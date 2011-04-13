@@ -35,28 +35,9 @@ def Z_nearPerCube(path, cube, CFIE, cubeNumber, w, eps_r, mu_r, ELEM_TYPE, Z_TMP
     writeBlitzArrayToDisk(Z_CFIE_near_local.astype(Z_TMP_ELEM_TYPE), os.path.join(path, str(cubeNumber)))
     return Z_CFIE_nearPerCube
 
-##################################
-# necessary reading functions
-##################################
 def read_Z_perCube_fromFile(path, cubeNumber, cube, Z_TMP_ELEM_TYPE):
     Z_tmp = readBlitzArrayFromDisk(os.path.join(path, str(cubeNumber)), cube.N_RWG_test, cube.N_RWG_src, Z_TMP_ELEM_TYPE)
     return Z_tmp
-
-def Z_near(CFIE, target_mesh, w, eps_r, mu_r, ELEM_TYPE, Z_TMP_ELEM_TYPE, MOM_FULL_PRECISION):
-    """this function computes the near non-diagonal part of the MoM method"""
-    pathToSaveTo = "./tmp/Z_tmp/chunk0"
-    os.mkdir(pathToSaveTo)
-    C = target_mesh.cubes_centroids.shape[0]
-    Z_CFIE_near = zeros(target_mesh.N_near, ELEM_TYPE)
-    pq_array = zeros((target_mesh.N_near, 2), 'i')
-    startIndex = 0
-    for i in range(C):
-        Z_CFIE_near[startIndex:startIndex + target_mesh.N_nearPerCube[i]], pq_array[startIndex:startIndex + target_mesh.N_nearPerCube[i], :] = Z_nearPerCube(pathToSaveTo, CFIE, i, target_mesh, w, eps_r, mu_r, ELEM_TYPE, Z_TMP_ELEM_TYPE, MOM_FULL_PRECISION)
-        startIndex += target_mesh.N_nearPerCube[i]
-        sys.stdout.write("\r" + "Z_near computation. Percentage = %.4s" %str(i*100./C))
-        sys.stdout.flush()
-    print
-    return Z_CFIE_near, pq_array
 
 def compute_list_cubes(cubesNumbers, pathToReadFrom):
     """returns a list of cubes"""

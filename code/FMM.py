@@ -13,7 +13,7 @@ from EM_constants import *
 #from PyGmsh import executeGmsh, write_geo
 #from FMM_matvecs import matvec_FMM2
 #from FMM_translation import *
-#from FMM_Znear import Z_near#, Z_near_size_computation
+#from FMM_Znear import#, Z_near_size_computation
 #from FMM_precond import MgPreconditionerComputation
 #from Z_MoM import Z_MoM
 
@@ -30,6 +30,22 @@ def L_computation(k, a, NB_DIGITS):
     #return L2
     return int(floor( L_tmp2 ))
     #return int(ceil( L_tmp2 ))
+
+#def Z_near(CFIE, target_mesh, w, eps_r, mu_r, ELEM_TYPE, Z_TMP_ELEM_TYPE, MOM_FULL_PRECISION):
+    #"""this function computes the near non-diagonal part of the MoM method"""
+    #pathToSaveTo = "./tmp/Z_tmp/chunk0"
+    #os.mkdir(pathToSaveTo)
+    #C = target_mesh.cubes_centroids.shape[0]
+    #Z_CFIE_near = zeros(target_mesh.N_near, ELEM_TYPE)
+    #pq_array = zeros((target_mesh.N_near, 2), 'i')
+    #startIndex = 0
+    #for i in range(C):
+        #Z_CFIE_near[startIndex:startIndex + target_mesh.N_nearPerCube[i]], pq_array[startIndex:startIndex + target_mesh.N_nearPerCube[i], :] = Z_nearPerCube(pathToSaveTo, CFIE, i, target_mesh, w, eps_r, mu_r, ELEM_TYPE, Z_TMP_ELEM_TYPE, MOM_FULL_PRECISION)
+        #startIndex += target_mesh.N_nearPerCube[i]
+        #sys.stdout.write("\r" + "Z_near computation. Percentage = %.4s" %str(i*100./C))
+        #sys.stdout.flush()
+    #print
+    #return Z_CFIE_near, pq_array
 
 #def B_EJ_B_HJ_computation(CFIE, list_of_edges_numbers, vertexes_coord, triangles_vertexes, triangles_edges_kinds, triangles_edges_numbers, triangles_edges_signs, triangles_edges_lengths, triangles_edges_opp_vertexes, triangles_normals, triangles_areas, edges_numbers_triangles, edges_numbers_cubes_centroids, IS_SRC, k, w, mu_r, XcosTheta, Xphi, N_Gauss_points, ELEM_TYPE):
 
