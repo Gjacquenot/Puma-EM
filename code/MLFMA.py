@@ -4,11 +4,11 @@ from numpy import round, ceil
 from scipy import rand, prod, mean, arccos, dot, product, log, log10, ceil, floor, where, real, sqrt
 from meshClass import MeshClass, CubeClass
 from FMM_precond import MgPreconditionerComputation, Mg_CSR, Mg_listsOfZnearBlocks_ToTransmitAndReceive
-from FMM_Znear import Z_nearCRS_Computation, Z_nearCRS_Assembling, Z_nearChunksDistribution, Z_near_size_computation
+from FMM_Znear import Z_nearCRS_Computation, Z_nearCRS_Assembling, Z_nearChunksDistribution
 from integration import *
 from EM_constants import *
 from MoMPostProcessing import *
-from ReadWriteBlitzArray import writeScalarToDisk, writeASCIIBlitzArrayToDisk, writeBlitzArrayToDisk, readIntFromDisk, readFloatFromDisk, read1DBlitzArrayFromDisk, readASCIIBlitzComplexFloatArray2DFromDisk, readASCIIBlitzFloatArray2DFromDisk
+from ReadWriteBlitzArray import writeScalarToDisk, writeASCIIBlitzArrayToDisk, readIntFromDisk, readFloatFromDisk, read1DBlitzArrayFromDisk, readASCIIBlitzComplexFloatArray2DFromDisk
 
 def L_computation(k, a, NB_DIGITS):
     """this function computes the number of expansion poles given the wavenumber k and the sidelength a"""

@@ -2,8 +2,8 @@ import sys, os
 import time, copy, commands, pickle, cPickle
 from mpi4py import *
 from scipy import zeros, array, sqrt
-from meshClass import MeshClass, CubeClass
-from ReadWriteBlitzArray import writeScalarToDisk, writeASCIIBlitzArrayToDisk, writeBlitzArrayToDisk, readIntFromDisk, readFloatFromDisk, read1DBlitzArrayFromDisk, readASCIIBlitzComplexFloatArray2DFromDisk, readASCIIBlitzFloatArray2DFromDisk
+from meshClass import MeshClass
+from ReadWriteBlitzArray import writeScalarToDisk, writeASCIIBlitzArrayToDisk
 from FMM_Znear import Z_near_size_computation
 from MLFMA import computeTreeParameters, distributeZcubesAttributions, scatterMesh
 
