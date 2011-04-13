@@ -9,9 +9,9 @@ libZGELS: $(OBJECTS_lib)
 	ar -r libZGELS.a $(OBJECTS_lib)
 
 zgels_interface.o: zgels_interface.cpp
-	$(CC) $(CFLAGS) zgels_interface.cpp
+	$(CC) $(INCLUDE_PATH) $(CFLAGS) zgels_interface.cpp
 ztrsm_interface.o: ztrsm_interface.cpp
-	$(CC) $(CFLAGS) ztrsm_interface.cpp
+	$(CC) $(INCLUDE_PATH) $(CFLAGS) ztrsm_interface.cpp
 zgels.o: zgels.f
 	$(F77) $(F_FLAGS) zgels.f
 zunmlq.o: zunmlq.f

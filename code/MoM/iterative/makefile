@@ -12,7 +12,7 @@ iterative: $(ZOURCESF)
 libITERATIVE: $(OBJECTS_lib)
 	ar -r libITERATIVE.a $(OBJECTS_lib)
 iterative.o: iterative.cpp
-	$(MPICC) $(CFLAGS) iterative.cpp
+	$(MPICC) $(INCLUDE_PATH) $(CFLAGS) iterative.cpp
 
 clean: 
 	rm -f *.o libITERATIVE.a *~

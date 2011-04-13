@@ -4,7 +4,6 @@ from mpi4py import *
 from scipy import zeros, array, sqrt
 from meshClass import MeshClass, CubeClass
 from ReadWriteBlitzArray import writeScalarToDisk, writeASCIIBlitzArrayToDisk, writeBlitzArrayToDisk, readIntFromDisk, readFloatFromDisk, read1DBlitzArrayFromDisk, readASCIIBlitzComplexFloatArray2DFromDisk, readASCIIBlitzFloatArray2DFromDisk
-from runMPIsystemCommand import runMPIsystemCommand, createMPIsystemCommand
 from FMM_Znear import Z_near_size_computation
 from MLFMA import computeTreeParameters, distributeZcubesAttributions, scatterMesh
 

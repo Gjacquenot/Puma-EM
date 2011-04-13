@@ -30,18 +30,27 @@ fi
 echo "run.sh: Erasing the tmp* directories..."
 rm -rf ./tmp*
 echo "Done"
+
+# first the mesh setup and generation. Only on one process
 python code/setup_GMSH.py
 
+# setup of the MLFMA simulation
 ${COMMAND1} python code/setup_MLFMA.py
 ${COMMAND1} ./code/MoM/communicateMeshArrays
+
+# computation of the Z_near blocks
 ${COMMAND1} python code/compute_Z_near_MLFMA.py
+
 # hereafter we exchange the Z_near blocks for SAI computation
 # we do this in C++ as it is faster
-./MPIcommand.sh
+${COMMAND1} ./code/MoM/communicateZnearBlocks
+
 # now computation of the SAI preconditioner
 ${COMMAND1} python code/compute_SAI_precond_MLFMA.py
+
 # now the real deal: the MLFMA computation
-{ time -p ./MPIcommand.sh; } 2> result/CPU_time_MLFMA.txt
+{ time -p ${COMMAND1} ./code/MoM/mpi_mlfma; } 2> result/CPU_time_MLFMA.txt
+
 # and now the visualisation of the results
 mpirun -np 1 python code/RCS_MLFMA.py
 
@@ -50,6 +59,12 @@ echo "==========================================================================
 echo "                         SIMULATION COMPLETE! "
 echo "=========================================================================="
 echo " "
+
+# cleaning of OMPI_* variables from the environment
+for i in $(env | grep OMPI_MCA |sed 's/=/ /' | awk '{print $1}')
+do
+	unset $i
+done
 
 exit 0
 

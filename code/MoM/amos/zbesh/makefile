@@ -9,7 +9,7 @@ libAMOS: $(OBJECTS_lib)
 	ar -r libAMOS.a $(OBJECTS_lib)
 
 zbesh_interface.o: zbesh_interface.cpp
-	$(CC) $(CFLAGS) zbesh_interface.cpp
+	$(CC) $(INCLUDE_PATH) $(CFLAGS) zbesh_interface.cpp
 zabs.o: zabs.f
 	$(F77) $(F_FLAGS) zabs.f
 zacai.o: zacai.f

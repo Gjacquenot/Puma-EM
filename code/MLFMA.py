@@ -9,8 +9,6 @@ from integration import *
 from EM_constants import *
 from MoMPostProcessing import *
 from ReadWriteBlitzArray import writeScalarToDisk, writeASCIIBlitzArrayToDisk, writeBlitzArrayToDisk, readIntFromDisk, readFloatFromDisk, read1DBlitzArrayFromDisk, readASCIIBlitzComplexFloatArray2DFromDisk, readASCIIBlitzFloatArray2DFromDisk
-from runMPIsystemCommand import runMPIsystemCommand, createMPIsystemCommand
-from read_dipole_excitation import read_dipole_excitation, read_observation_points
 
 def L_computation(k, a, NB_DIGITS):
     """this function computes the number of expansion poles given the wavenumber k and the sidelength a"""
@@ -273,8 +271,6 @@ def compute_Z_near(params_simu):
     pathToReadFrom = os.path.join('.', tmpDirName, 'Z_tmp')
     # we exchange the missing Z_near parts for each process
     Mg_listsOfZnearBlocks_ToTransmitAndReceive(variables['chunkNumber_to_cubesNumbers'], variables['cubeNumber_to_chunkNumber'], variables['chunkNumber_to_processNumber'], variables['processNumber_to_ChunksNumbers'], pathToReadFrom, 'F')
-    if (my_id == 0):
-        createMPIsystemCommand("./code/MoM", "communicateZnearBlocks", num_proc)
     # we now dump-pickle the necessary variables
     variables['Wall_time_Z_near_computation'] = Wall_time_Z_near_computation
     variables['CPU_time_Z_near_computation'] = CPU_time_Z_near_computation
@@ -302,8 +298,6 @@ def compute_SAI(params_simu):
     file = open(os.path.join('.', tmpDirName, 'pickle', 'variables.txt'), 'w')
     cPickle.dump(variables, file)
     file.close()
-    if (my_id == 0):
-        createMPIsystemCommand("./code/MoM", "mpi_mlfma", num_proc)
 
 def print_times(params_simu):
     num_proc = MPI.COMM_WORLD.Get_size()
