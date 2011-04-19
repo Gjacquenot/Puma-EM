@@ -2,10 +2,10 @@ import sys, os
 import time, copy, commands, pickle, cPickle
 from mpi4py import *
 from scipy import zeros, array, sqrt
-from meshClass import MeshClass
+from meshClass import MeshClass, CubeClass
 from ReadWriteBlitzArray import writeScalarToDisk, writeASCIIBlitzArrayToDisk
-from FMM_Znear import Z_near_size_computation
-from MLFMA import computeTreeParameters, distributeZcubesAttributions, scatterMesh
+from FMM_Znear import Z_near_size_computation, Z_nearChunksDistribution
+from MLFMA import computeTreeParameters
 
 def communicateParamsFile(filename):
     my_id = MPI.COMM_WORLD.Get_rank()
@@ -153,6 +153,61 @@ def setup_excitation(params_simu):
         writeScalarToDisk(params_simu.SAR_y_span_offset, os.path.join('.',tmpDirName,'V_CFIE/SAR_y_span_offset.txt'))
         writeScalarToDisk(params_simu.SAR_N_x_points, os.path.join('.',tmpDirName,'V_CFIE/SAR_N_x_points.txt'))
         writeScalarToDisk(params_simu.SAR_N_y_points, os.path.join('.',tmpDirName,'V_CFIE/SAR_N_y_points.txt'))
+
+
+def distributeZcubesAttributions(MAX_BLOCK_SIZE, N_nearPerCube, C, tmpDirName, params_simu):
+    my_id = MPI.COMM_WORLD.Get_rank()
+    if (my_id == 0):
+        print "distributing the chunks and cubes among processes..."
+    ZchunkNumber_to_cubesNumbers, ZcubeNumber_to_chunkNumber, ZchunkNumber_to_processNumber, ZprocessNumber_to_ChunksNumbers = Z_nearChunksDistribution(MAX_BLOCK_SIZE, N_nearPerCube, C, tmpDirName, params_simu)
+    ZchunkNumber_to_cubesNumbers = MPI.COMM_WORLD.Bcast(ZchunkNumber_to_cubesNumbers)
+    ZcubeNumber_to_chunkNumber = MPI.COMM_WORLD.Bcast(ZcubeNumber_to_chunkNumber)
+    ZchunkNumber_to_processNumber = MPI.COMM_WORLD.Bcast(ZchunkNumber_to_processNumber)
+    ZprocessNumber_to_ChunksNumbers = MPI.COMM_WORLD.Bcast(ZprocessNumber_to_ChunksNumbers)
+    if (my_id == 0):
+        print "Process", my_id, ": self.ZprocessNumber_to_ChunksNumbers =", ZprocessNumber_to_ChunksNumbers
+    CUBES_DISTRIBUTION = 0 # the cubes distribution is finished
+    writeScalarToDisk(CUBES_DISTRIBUTION, os.path.join('.', tmpDirName, 'octtree_data/CUBES_DISTRIBUTION.txt') )
+    return ZchunkNumber_to_cubesNumbers, ZcubeNumber_to_chunkNumber, ZchunkNumber_to_processNumber, ZprocessNumber_to_ChunksNumbers
+
+def scatterMesh(target_mesh, ZprocessNumber_to_ChunksNumbers, ZchunkNumber_to_cubesNumbers, tmpDirName, my_id, num_proc):
+    # we now exchange the local (cubes) meshes data...
+    CPU_time, Wall_time = time.clock(), time.time()
+    pathToSaveTo = os.path.join('.', tmpDirName, 'Z_tmp')
+    if (my_id == 0 ):
+        print "Exchanging local meshes-cubes data..."
+    # I create the necessary directories for Z_tmp
+    for identity in range(num_proc):
+        for chunkNumber in ZprocessNumber_to_ChunksNumbers[identity]:
+            if (my_id == 0): # master node
+                list_cubeIntArrays, list_cubeDoubleArrays = [], []
+            else:
+                list_cubeIntArrays, list_cubeDoubleArrays = ['blabla'], ['blabla']
+            for cubeNumber in ZchunkNumber_to_cubesNumbers[chunkNumber]:
+                # for each one we compute the necessary information for individual Zcube computation
+                if (my_id == 0): # master node
+                    cubeIntArrays, cubeDoubleArrays = target_mesh.computeCubeLocalArrays(cubeNumber)
+                    # we append the cube lists to new lists
+                    list_cubeIntArrays.append(cubeIntArrays)
+                    list_cubeDoubleArrays.append(cubeDoubleArrays)
+            # communicating the arrays
+            # we exchange the concatenated arrays
+            list_cubeIntArrays = MPI.COMM_WORLD.Bcast(list_cubeIntArrays)
+            list_cubeDoubleArrays = MPI.COMM_WORLD.Bcast(list_cubeDoubleArrays)
+            # writing the local cube data to disk
+            if (my_id==identity):
+                pathToSaveToChunk = os.path.join(pathToSaveTo, "chunk" + str(chunkNumber))
+                os.mkdir(pathToSaveToChunk)
+                for j in range(len(ZchunkNumber_to_cubesNumbers[chunkNumber])):
+                    cubeNumber = ZchunkNumber_to_cubesNumbers[chunkNumber][j]
+                    cube = CubeClass()
+                    cube.cubeIntArrays = list_cubeIntArrays[j]
+                    cube.cubeDoubleArrays = list_cubeDoubleArrays[j]
+                    cube.writeIntDoubleArraysToFile(pathToSaveToChunk, cubeNumber)
+
+    CPU_time, Wall_time = time.clock() - CPU_time, time.time() - Wall_time
+    print "mesh scattering: CPU time =", CPU_time, "sec"
+    print "mesh scattering: Wall time =", Wall_time, "sec"
 
 
 def setup_MLFMA(params_simu):

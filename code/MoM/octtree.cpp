@@ -201,12 +201,8 @@ Octtree::Octtree(const string octtree_data_path, const blitz::Array<double, 2>& 
     // we are distributing the leaf cubes among the processors
     // we want a fair distribution, i.e. leaf cubes evenly partitioned between processes
     // therefore, we have to have a top level having a sufficient number of cubes
-    // 1. first assignation for the octtree distribution
-    int Z_NEAR_CUBES_DISTRIBUTION = 0;
-    assignCubesToProcessors(num_procs, Z_NEAR_CUBES_DISTRIBUTION);
-    writeAssignedLeafCubesToDisk(octtree_data_path, "cubesIndexAndNumberToProcessNumber_FOR_OCTTREE.txt");
-    // 2. second assignation for the near field computation
-    Z_NEAR_CUBES_DISTRIBUTION = 1;
+    // assignation for the near field computation
+    int Z_NEAR_CUBES_DISTRIBUTION = 1;
     while ( (levels[(levels.size() - 1)].getLevelSize() < 25*num_procs) && (levels.size()>1) ) levels.pop_back();
     N_levels = levels.size();
     levels[N_levels-1].setCeiling(1);
