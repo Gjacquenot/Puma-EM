@@ -33,6 +33,7 @@ echo "Done"
 
 # first the mesh setup and generation. Only on one process
 python code/setup_GMSH.py
+./GMSHcommand.sh
 
 # setup of the MLFMA simulation
 ${COMMAND1} python code/setup_MLFMA.py

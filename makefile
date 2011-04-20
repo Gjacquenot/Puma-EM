@@ -26,7 +26,7 @@ mpi_mlfma:
 documentation:
 	cd doc; make documentation;
 clean: 
-	rm -f *~ *.pyc *.txt *.out *.tar *.gz *.tgz MPIcommand.sh;
+	rm -f *~ *.pyc *.txt *.out *.tar *.gz *.tgz MPIcommand.sh GMSHcommand.sh;
 	cd $(PROGR_DIR_PATH); make clean; 
 	cd geo; make clean;
 	cd installScripts; make clean;
