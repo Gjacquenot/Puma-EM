@@ -131,24 +131,16 @@ def Z_nearChunksDistribution(MAX_BLOCK_SIZE, N_nearPerCube, C, pathToWriteTo, pa
 
     chunkNumber_to_cubesIndexes, cubeIndex_to_chunkNumber, chunkNumber_to_processNumber, processNumber_to_ChunksNumbers = ['blabla'], ['blabla'], ['blabla'], ['blabla']
     if my_id==0:
-        cubesIndexAndNumberToProcessNumberTmp = readASCIIBlitzIntArray2DFromDisk(os.path.join('.',pathToWriteTo, 'octtree_data/cubesIndexAndNumberToProcessNumber_FOR_Z_NEAR.txt') )
-        # and now new repartition
-        # we first sort cubesIndexAndNumberToProcessNumberTmp by the second column (cube number)
-        sortedIndexes = argsort(cubesIndexAndNumberToProcessNumberTmp[:,1], axis=-1, kind='mergesort')
-        # finally to each cube index we will assign a process number
-        cubesIndexToProcessNumberTmp = zeros((C, 2), 'i')
-        cubesIndexToProcessNumberTmp[:,0] = take(cubesIndexAndNumberToProcessNumberTmp[:,0], sortedIndexes, axis=0)
-        cubesIndexToProcessNumberTmp[:,1] = take(cubesIndexAndNumberToProcessNumberTmp[:,2], sortedIndexes, axis=0)
-        # we sort cubesIndexToProcessNumberTmp according to the process number
-        sortedIndexes = argsort(cubesIndexToProcessNumberTmp[:,1], axis=-1, kind='mergesort')
-        cubesIndexToProcessNumber = take(cubesIndexToProcessNumberTmp, sortedIndexes, axis=0)
+        cubesIndexAndNumberToProcessNumber = readASCIIBlitzIntArray2DFromDisk(os.path.join('.',pathToWriteTo, 'octtree_data/cubesIndexAndNumberToProcessNumber_FOR_Z_NEAR.txt') )
         # processNumber_to_cubesIndexes
         processNumber_to_cubesIndexes = {}
         for i in range(num_procs):
             processNumber_to_cubesIndexes[i] = []
-        for elem in cubesIndexToProcessNumber:
-            cubeIndex, ProcNum = elem[0], elem[1]
+        for elem in cubesIndexAndNumberToProcessNumber:
+            cubeIndex, ProcNum = elem[0], elem[2]
             processNumber_to_cubesIndexes[ProcNum].append(cubeIndex)
+        for i in range(num_procs):
+            processNumber_to_cubesIndexes[i].sort() # we sort by cube index
         # processNumber_to_ChunksNumbers, chunkNumber_to_cubesIndexes
         processNumber_to_ChunksNumbers, chunkNumber_to_cubesIndexes, chunkNumber_to_processNumber= [], [], []
         # cubeIndex_to_chunkNumber
