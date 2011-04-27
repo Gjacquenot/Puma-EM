@@ -35,8 +35,6 @@ def edges_computation_C(triangle_vertexes, vertexes_coord):
     print "    construction of edgeNumber_triangles..."
     sys.stdout.flush()
     
-    T = triangle_vertexes.shape[0]
-    triangles_surfaces = (ones(T, 'i') * -1).astype('i')
     saveDir = "./geo/" # where we will write the temporary files
     wrapping_code = """
     const int T = triangle_vertexes.extent(0);
@@ -120,6 +118,8 @@ def edges_computation_C(triangle_vertexes, vertexes_coord):
     // reordering vertexes of the triangles
     std::cout << "reorder_triangle_vertexes" << std::endl;
     std::flush(std::cout);
+    blitz::Array<int, 1> triangles_surfaces(T);
+    for (int j=0 ; j<T ; j++) triangles_surfaces(j) = -1;
     reorder_triangle_vertexes(triangle_vertexes, triangles_surfaces, vertexes_coord, triangle_adjacentTriangles);
     triangle_adjacentTriangles.clear();
 
@@ -147,9 +147,10 @@ def edges_computation_C(triangle_vertexes, vertexes_coord):
     writeIntBlitzArray2DToBinaryFile(SaveDir + "RWGNumber_edgeVertexes.txt", RWGNumber_edgeVertexes);
     writeIntBlitzArray2DToBinaryFile(SaveDir + "RWGNumber_oppVertexes.txt", RWGNumber_oppVertexes);
     writeIntBlitzArray1DToASCIIFile(SaveDir + "is_closed_surface.txt", is_closed_surface);
+    writeIntBlitzArray1DToASCIIFile(SaveDir + "triangles_surfaces.txt", triangles_surfaces);
     """
     weave.inline(wrapping_code,
-                 ['triangle_vertexes', 'triangles_surfaces', 'vertexes_coord', 'saveDir'],
+                 ['triangle_vertexes', 'vertexes_coord', 'saveDir'],
                  type_converters = converters.blitz,
                  include_dirs = ['./code/MoM/'],
                  library_dirs = ['./code/MoM/'],
@@ -163,6 +164,7 @@ def edges_computation_C(triangle_vertexes, vertexes_coord):
     RWGNumber_edgeVertexes = readBlitzArrayFromDisk(saveDir + "RWGNumber_edgeVertexes.txt", N_RWG, 2, 'i')
     RWGNumber_oppVertexes = readBlitzArrayFromDisk(saveDir + "RWGNumber_oppVertexes.txt", N_RWG, 2, 'i')
     is_closed_surface = readASCIIBlitzIntArray1DFromDisk(saveDir + "is_closed_surface.txt")
+    triangles_surfaces = readASCIIBlitzIntArray1DFromDisk(saveDir + "triangles_surfaces.txt")
     print "    edgeNumber_triangles construction cumulated time =", time.clock() - t10
     sys.stdout.flush()
     return triangles_surfaces, is_closed_surface, RWGNumber_signedTriangles, RWGNumber_edgeVertexes, RWGNumber_oppVertexes
