@@ -114,16 +114,8 @@ def Z_nearChunksDistribution(MAX_BLOCK_SIZE, N_nearPerCube, C, pathToWriteTo, pa
     if ( (MAX_BLOCK_SIZE<0.1) | (MAX_BLOCK_SIZE>250.) ):
         print "Error: Z_nearChunksDistribution: MAX_BLOCK_SIZE too big or too small"
         sys.exit(1)
-    if (my_id==0):
-        Total_Z_near_size = sum(N_nearPerCube)*(2.0*4.0/(1024.**2))
-        Forecasted_number_of_chunks = max(int(floor(Total_Z_near_size/MAX_BLOCK_SIZE) + 1), num_procs*2)
-        Average_N_cubes = C * 1./Forecasted_number_of_chunks
-        print "Total size of Z_near matrix =", Total_Z_near_size, "MBytes"
-        print "Number of leaf cubes =", C
-        print "Forecasted number of chunks =", Forecasted_number_of_chunks
     CUBES_DISTRIBUTION = 1
     writeScalarToDisk(CUBES_DISTRIBUTION, os.path.join('.',pathToWriteTo,'octtree_data/CUBES_DISTRIBUTION.txt') )
-    MPI.COMM_WORLD.Barrier()
     # we use the octtree C++ algorithm for repartition of the leaf cubes between the processes
     if (my_id == 0):
         runMPIsystemCommand("./code/MoM", "mpi_mlfma", num_procs)
@@ -131,6 +123,12 @@ def Z_nearChunksDistribution(MAX_BLOCK_SIZE, N_nearPerCube, C, pathToWriteTo, pa
 
     chunkNumber_to_cubesIndexes, cubeIndex_to_chunkNumber, chunkNumber_to_processNumber, processNumber_to_ChunksNumbers = ['blabla'], ['blabla'], ['blabla'], ['blabla']
     if my_id==0:
+        Total_Z_near_size = sum(N_nearPerCube)*(2.0*4.0/(1024.**2))
+        Forecasted_number_of_chunks = max(int(floor(Total_Z_near_size/MAX_BLOCK_SIZE) + 1), num_procs*2)
+        Average_N_cubes = C * 1./Forecasted_number_of_chunks
+        print "Total size of Z_near matrix =", Total_Z_near_size, "MBytes"
+        print "Number of leaf cubes =", C
+        print "Forecasted number of chunks =", Forecasted_number_of_chunks
         cubesIndexAndNumberToProcessNumber = readASCIIBlitzIntArray2DFromDisk(os.path.join('.',pathToWriteTo, 'octtree_data/cubesIndexAndNumberToProcessNumber_FOR_Z_NEAR.txt') )
         # processNumber_to_cubesIndexes
         processNumber_to_cubesIndexes = {}

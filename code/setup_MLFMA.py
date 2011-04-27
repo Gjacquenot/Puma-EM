@@ -230,7 +230,7 @@ def setup_MLFMA(params_simu):
             print "average RWG length =", target_mesh.average_RWG_length, "m = lambda /", (c/params_simu.f)/target_mesh.average_RWG_length
         # target_mesh cubes computation
         target_mesh.cubes_data_computation(a)
-        N_nearBlockDiag, target_mesh.N_near, target_mesh.N_nearPerCube  = Z_near_size_computation(target_mesh.cubes_lists_RWGsNumbers, target_mesh.cubesNeighborsIndexes)
+        N_nearBlockDiag, N_near, N_nearPerCube = Z_near_size_computation(target_mesh.cubes_lists_RWGsNumbers, target_mesh.cubesNeighborsIndexes)
         target_mesh.saveToDisk(os.path.join('.', tmpDirName,'mesh'))
         IS_CLOSED_SURFACE = target_mesh.IS_CLOSED_SURFACE
         big_cube_lower_coord = target_mesh.big_cube_lower_coord
@@ -240,7 +240,7 @@ def setup_MLFMA(params_simu):
         T = target_mesh.T
         C = target_mesh.C
     else:
-        target_mesh.N_nearPerCube = ['blabla']
+        N_nearPerCube = ['blabla']
         IS_CLOSED_SURFACE = ['blabla']
         big_cube_lower_coord = ['blabla']
         big_cube_center_coord = ['blabla']
@@ -248,7 +248,7 @@ def setup_MLFMA(params_simu):
         N_RWG = ['blabla']
         T = ['blabla']
         C = ['blabla']
-    target_mesh.N_nearPerCube = MPI.COMM_WORLD.Bcast(target_mesh.N_nearPerCube)
+    N_nearPerCube = MPI.COMM_WORLD.Bcast(N_nearPerCube)
     big_cube_lower_coord = MPI.COMM_WORLD.Bcast(big_cube_lower_coord)
     big_cube_center_coord = MPI.COMM_WORLD.Bcast(big_cube_center_coord)
     IS_CLOSED_SURFACE = MPI.COMM_WORLD.Bcast(IS_CLOSED_SURFACE)
@@ -305,7 +305,7 @@ def setup_MLFMA(params_simu):
     computeTreeParameters(my_id, tmpDirName, a, k, N_levels, params_simu)
 
     MPI.COMM_WORLD.Barrier()
-    chunkNumber_to_cubesNumbers, cubeNumber_to_chunkNumber, chunkNumber_to_processNumber, processNumber_to_ChunksNumbers = distributeZcubesAttributions(params_simu.MAX_BLOCK_SIZE, target_mesh.N_nearPerCube, C, tmpDirName, params_simu)
+    chunkNumber_to_cubesNumbers, cubeNumber_to_chunkNumber, chunkNumber_to_processNumber, processNumber_to_ChunksNumbers = distributeZcubesAttributions(params_simu.MAX_BLOCK_SIZE, N_nearPerCube, C, tmpDirName, params_simu)
     scatterMesh(target_mesh, processNumber_to_ChunksNumbers, chunkNumber_to_cubesNumbers, tmpDirName, my_id, num_proc)
     del target_mesh # we gain A LOT of memory here, especially if N_RWG~1e6
     # we now dump-pickle the necessary variables
