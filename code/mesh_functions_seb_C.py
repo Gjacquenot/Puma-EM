@@ -1,4 +1,4 @@
-import os.path, sys, time
+import os.path, sys, time, commands
 from scipy import zeros, ones, arange, array, take, reshape, sort, argsort, put, sum, compress, nonzero, prod, floor, mean, sqrt, dot, arccos
 from scipy import weave
 from scipy.weave import converters
@@ -10,6 +10,52 @@ from ReadWriteBlitzArray import *
 
 
 def edges_computation_C(triangle_vertexes, vertexes_coord):
+    """This function builds the edges matrix from the triangles"""
+
+    # For assigning a "number" and a "kind" to an edge (a set of two vertexes),
+    # we need to find how many occurrences it has in "edges_vertexes". A costful
+    # operation, because for each edge we have to compare the edge to all other
+    # that appear in the "edges_vertexes" array.
+    #
+    # However, if we want efficiency, we can create an array of edges sorted as follows:
+    # 1) sort the elements of the first two columns alongside dimension 1; 
+    # 2) sort the pairs following their 1st element alongside dimension 0;
+    # 3) sort the pairs following their 2nd element alongside dimension 0,
+    #    but with keeping the order of their first element.
+    # In such an array, all occurrences of an edge would be adjacent to each other. So, for
+    # counting the occurrences of an edge, one should only count its similar
+    # neighbors, thereby greatly reducing the computational cost of the algorithm
+
+    # Once the elements of the first 2 columns have been sorted alongside dimension 1,
+    # we construct a 1-D array of real numbers, with:
+    # 1) the entire part formed by the numbers of the first column
+    # 2) the decimal part formed by the numbers of the second column
+
+    t10 = time.clock()
+    print "    construction of edgeNumber_triangles..."
+    sys.stdout.flush()
+    saveDir = "./geo/" # where we will write the temporary files
+    T = triangle_vertexes.shape[0]
+    V = vertexes_coord.shape[0]
+    writeScalarToDisk(T, os.path.join(saveDir, "T.txt"))
+    writeScalarToDisk(V, os.path.join(saveDir, "V.txt"))
+    writeBlitzArrayToDisk(vertexes_coord, os.path.join(saveDir, 'vertexes_coord') + '.txt')
+    writeBlitzArrayToDisk(triangle_vertexes, os.path.join(saveDir, 'triangle_vertexes') + '.txt')
+
+    commands.getoutput("./code/MoM/mesh_functions_seb " + saveDir)
+   
+    print "time C++ execution =", time.clock() - t10
+    N_RWG = readIntFromDisk(saveDir + "N_RWG.txt")
+    RWGNumber_signedTriangles = readBlitzArrayFromDisk(saveDir + "RWGNumber_signedTriangles.txt", N_RWG, 2, 'i')
+    RWGNumber_edgeVertexes = readBlitzArrayFromDisk(saveDir + "RWGNumber_edgeVertexes.txt", N_RWG, 2, 'i')
+    RWGNumber_oppVertexes = readBlitzArrayFromDisk(saveDir + "RWGNumber_oppVertexes.txt", N_RWG, 2, 'i')
+    is_closed_surface = readASCIIBlitzIntArray1DFromDisk(saveDir + "is_closed_surface.txt")
+    triangles_surfaces = readASCIIBlitzIntArray1DFromDisk(saveDir + "triangles_surfaces.txt")
+    print "    edgeNumber_triangles construction cumulated time =", time.clock() - t10
+    sys.stdout.flush()
+    return triangles_surfaces, is_closed_surface, RWGNumber_signedTriangles, RWGNumber_edgeVertexes, RWGNumber_oppVertexes
+
+def edges_computation_C_old(triangle_vertexes, vertexes_coord):
     """This function builds the edges matrix from the triangles"""
 
     # For assigning a "number" and a "kind" to an edge (a set of two vertexes),

@@ -23,6 +23,9 @@ mpi_mlfma: mpi_mlfma.o $(OBJECTS_LIBMLFMA)
 #	$(MPICC) $(INCLUDE_PATH) mpi_mlfma.o -L$(WORKING_DIR_PATH) -lMoM -L$(WORKING_DIR_PATH) -lMLFMA -L$(WORKING_DIR_PATH)/amos/zbesh -lAMOS -l$(G2C) -lblitz -lm -o mpi_mlfma
 	$(MPICC) $(INCLUDE_PATH) mpi_mlfma.o -L$(WORKING_DIR_PATH) -lMLFMA -L$(WORKING_DIR_PATH)/amos/zbesh -lAMOS -L$(WORKING_DIR_PATH)/lapack -lZGELS -l$(G2C) $(LIB_SEARCH_PATH) -lblitz -lm -o mpi_mlfma
 
+mesh_functions_seb: mesh_functions_seb.o mesh.o
+	$(MPICC) $(INCLUDE_PATH) mesh_functions_seb.o mesh.o readWriteBlitzArrayFromFile.o $(LIB_SEARCH_PATH) -lblitz -lm -o mesh_functions_seb
+
 libs: libMoM libMLFMA libAMOS libITERATIVE libLAPACK
 
 libMoM: $(OBJECTS_LIBMOM)
@@ -48,6 +51,8 @@ communicateZnearBlocks.o: communicateZnearBlocks.cpp readWriteBlitzArrayFromFile
 	$(MPICC) $(INCLUDE_PATH) $(CFLAGS) communicateZnearBlocks.cpp
 mpi_mlfma.o: mpi_mlfma.cpp  Z_sparse_MLFMA.h mesh.h octtree.h octtree.cpp level.h level.cpp ./iterative/iterative.h V_E_V_H.h alpha_computation.h V_E_V_H_dipole.cpp V_E_V_H_plane.cpp EMConstants.h
 	$(MPICC) $(INCLUDE_PATH) $(CFLAGS) mpi_mlfma.cpp
+mesh_functions_seb.o: mesh_functions_seb.cpp mesh.cpp mesh.h readWriteBlitzArrayFromFile.cpp readWriteBlitzArrayFromFile.h
+	$(MPICC) $(INCLUDE_PATH) $(CFLAGS) mesh_functions_seb.cpp
 octtree.o: octtree.cpp interpolation.h level.h level.cpp FMM.h mesh.h octtree.h integr_1D_X_W.h alpha_computation.h readWriteBlitzArrayFromFile.h
 	$(MPICC) $(INCLUDE_PATH) $(CFLAGS) octtree.cpp
 level.o: level.cpp interpolation.h level.h FMM.h mesh.h cube.h cube.cpp integr_1D_X_W.h readWriteBlitzArrayFromFile.h alpha_computation.h
