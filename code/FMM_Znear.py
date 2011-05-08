@@ -6,7 +6,6 @@ from Z_MoM import Z_MoM, Z_MoM_triangles_arraysFromCube
 from ReadWriteBlitzArray import *
 from meshClass import MeshClass, CubeClass
 import copy
-from runMPIsystemCommand import runMPIsystemCommand
 
 def Z_near_size_computation(cubes_lists_edges_numbers, cubesNeighborsIndexes):
     N_nearBlockDiag = 0.0
@@ -114,12 +113,6 @@ def Z_nearChunksDistribution(MAX_BLOCK_SIZE, N_nearPerCube, C, pathToWriteTo):
     if ( (MAX_BLOCK_SIZE<0.1) | (MAX_BLOCK_SIZE>250.) ):
         print "Error: Z_nearChunksDistribution: MAX_BLOCK_SIZE too big or too small"
         sys.exit(1)
-    CUBES_DISTRIBUTION = 1
-    writeScalarToDisk(CUBES_DISTRIBUTION, os.path.join('.',pathToWriteTo,'octtree_data/CUBES_DISTRIBUTION.txt') )
-    # we use the octtree C++ algorithm for repartition of the leaf cubes between the processes
-    if (my_id == 0):
-        runMPIsystemCommand("./code/MoM", "mpi_mlfma", num_procs)
-    MPI.COMM_WORLD.Barrier()
 
     chunkNumber_to_cubesIndexes, cubeIndex_to_chunkNumber, chunkNumber_to_processNumber, processNumber_to_ChunksNumbers = ['blabla'], ['blabla'], ['blabla'], ['blabla']
     if my_id==0:

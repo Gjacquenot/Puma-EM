@@ -42,7 +42,7 @@ def edges_computation_C(triangle_vertexes, vertexes_coord):
     writeBlitzArrayToDisk(vertexes_coord, os.path.join(saveDir, 'vertexes_coord') + '.txt')
     writeBlitzArrayToDisk(triangle_vertexes, os.path.join(saveDir, 'triangle_vertexes') + '.txt')
 
-    commands.getoutput("./code/MoM/mesh_functions_seb " + saveDir)
+    print commands.getoutput("./code/MoM/mesh_functions_seb " + saveDir)
    
     print "time C++ execution =", time.clock() - t10
     N_RWG = readIntFromDisk(saveDir + "N_RWG.txt")

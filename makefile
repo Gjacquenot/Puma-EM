@@ -16,13 +16,15 @@ package:
 	make clean;
 	python $(PROGR_DIR_PATH)/makePackage.py;
 libs: 
-	cd $(PROGR_DIR_PATH)/MoM; make libs; make communicateMeshArrays; make communicateZnearBlocks; make mpi_mlfma; make mesh_functions_seb;
+	cd $(PROGR_DIR_PATH)/MoM; make libs; make communicateMeshArrays; make communicateZnearBlocks; make mpi_mlfma; make mesh_functions_seb; make distribute_Z_cubes;
 communicateMeshArrays:
 	cd $(PROGR_DIR_PATH)/MoM; make communicateMeshArrays;
 communicateZnearBlocks:
 	cd $(PROGR_DIR_PATH)/MoM; make communicateZnearBlocks;
 mpi_mlfma:
 	cd $(PROGR_DIR_PATH)/MoM; make mpi_mlfma;
+distribute_Z_cubes:
+	cd $(PROGR_DIR_PATH)/MoM; make distribute_Z_cubes;
 mesh_functions_seb:
 	cd $(PROGR_DIR_PATH)/MoM; make mesh_functions_seb;
 documentation:

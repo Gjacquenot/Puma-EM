@@ -4,7 +4,6 @@ from mpi4py import *
 from scipy import zeros, array, sqrt
 from meshClass import MeshClass, CubeClass
 from ReadWriteBlitzArray import writeScalarToDisk, writeASCIIBlitzArrayToDisk
-from FMM_Znear import Z_near_size_computation, Z_nearChunksDistribution
 from MLFMA import computeTreeParameters
 
 def communicateParamsFile(filename):
@@ -155,51 +154,11 @@ def setup_excitation(params_simu):
         writeScalarToDisk(params_simu.SAR_N_y_points, os.path.join('.',tmpDirName,'V_CFIE/SAR_N_y_points.txt'))
 
 
-def scatterMesh(target_mesh, ZprocessNumber_to_ChunksNumbers, ZchunkNumber_to_cubesNumbers, tmpDirName, my_id, num_proc):
-    # we now exchange the local (cubes) meshes data...
-    CPU_time, Wall_time = time.clock(), time.time()
-    pathToSaveTo = os.path.join('.', tmpDirName, 'Z_tmp')
-    if (my_id == 0 ):
-        print "Exchanging local meshes-cubes data..."
-    # I create the necessary directories for Z_tmp
-    for identity in range(num_proc):
-        for chunkNumber in ZprocessNumber_to_ChunksNumbers[identity]:
-            if (my_id == 0): # master node
-                list_cubeIntArrays, list_cubeDoubleArrays = [], []
-            else:
-                list_cubeIntArrays, list_cubeDoubleArrays = ['blabla'], ['blabla']
-            for cubeNumber in ZchunkNumber_to_cubesNumbers[chunkNumber]:
-                # for each one we compute the necessary information for individual Zcube computation
-                if (my_id == 0): # master node
-                    cubeIntArrays, cubeDoubleArrays = target_mesh.computeCubeLocalArrays(cubeNumber)
-                    # we append the cube lists to new lists
-                    list_cubeIntArrays.append(cubeIntArrays)
-                    list_cubeDoubleArrays.append(cubeDoubleArrays)
-            # communicating the arrays
-            # we exchange the concatenated arrays
-            list_cubeIntArrays = MPI.COMM_WORLD.Bcast(list_cubeIntArrays)
-            list_cubeDoubleArrays = MPI.COMM_WORLD.Bcast(list_cubeDoubleArrays)
-            # writing the local cube data to disk
-            if (my_id==identity):
-                pathToSaveToChunk = os.path.join(pathToSaveTo, "chunk" + str(chunkNumber))
-                os.mkdir(pathToSaveToChunk)
-                for j in range(len(ZchunkNumber_to_cubesNumbers[chunkNumber])):
-                    cubeNumber = ZchunkNumber_to_cubesNumbers[chunkNumber][j]
-                    cube = CubeClass()
-                    cube.cubeIntArrays = list_cubeIntArrays[j]
-                    cube.cubeDoubleArrays = list_cubeDoubleArrays[j]
-                    cube.writeIntDoubleArraysToFile(pathToSaveToChunk, cubeNumber)
-
-    CPU_time, Wall_time = time.clock() - CPU_time, time.time() - Wall_time
-    print "mesh scattering: CPU time =", CPU_time, "sec"
-    print "mesh scattering: Wall time =", Wall_time, "sec"
-
-
 def setup_MLFMA(params_simu):
     """Sets up the MLFMA parameters.
        params_simu is a class instance that contains the parameters for the simulation.
     """
-    num_proc = MPI.COMM_WORLD.Get_size()
+    num_procs = MPI.COMM_WORLD.Get_size()
     my_id = MPI.COMM_WORLD.Get_rank()
 
     tmpDirName = 'tmp' + str(my_id)
@@ -215,7 +174,6 @@ def setup_MLFMA(params_simu):
             print "average RWG length =", target_mesh.average_RWG_length, "m = lambda /", (c/params_simu.f)/target_mesh.average_RWG_length
         # target_mesh cubes computation
         target_mesh.cubes_data_computation(a)
-        N_nearBlockDiag, N_near, N_nearPerCube = Z_near_size_computation(target_mesh.cubes_lists_RWGsNumbers, target_mesh.cubesNeighborsIndexes)
         target_mesh.saveToDisk(os.path.join('.', tmpDirName,'mesh'))
         IS_CLOSED_SURFACE = target_mesh.IS_CLOSED_SURFACE
         big_cube_lower_coord = target_mesh.big_cube_lower_coord
@@ -225,7 +183,6 @@ def setup_MLFMA(params_simu):
         T = target_mesh.T
         C = target_mesh.C
     else:
-        N_nearPerCube = ['blabla']
         IS_CLOSED_SURFACE = ['blabla']
         big_cube_lower_coord = ['blabla']
         big_cube_center_coord = ['blabla']
@@ -233,7 +190,7 @@ def setup_MLFMA(params_simu):
         N_RWG = ['blabla']
         T = ['blabla']
         C = ['blabla']
-    N_nearPerCube = MPI.COMM_WORLD.Bcast(N_nearPerCube)
+    del target_mesh
     big_cube_lower_coord = MPI.COMM_WORLD.Bcast(big_cube_lower_coord)
     big_cube_center_coord = MPI.COMM_WORLD.Bcast(big_cube_center_coord)
     IS_CLOSED_SURFACE = MPI.COMM_WORLD.Bcast(IS_CLOSED_SURFACE)
@@ -246,7 +203,7 @@ def setup_MLFMA(params_simu):
     k = w * sqrt(eps_0*params_simu.eps_r*mu_0*params_simu.mu_r) + 1.j * 0.
     CFIE = array([params_simu.nu, 0, 0, -(1.0-params_simu.nu) * 377]).astype('D')
 
-    writeScalarToDisk( num_proc, os.path.join('.', tmpDirName,'octtree_data/num_procs.txt') )
+    writeScalarToDisk( num_procs, os.path.join('.', tmpDirName,'octtree_data/num_procs.txt') )
     writeScalarToDisk( a, os.path.join('.',tmpDirName,'octtree_data/leaf_side_length.txt') )
     writeScalarToDisk(2.0*pi*params_simu.f, os.path.join('.',tmpDirName,'octtree_data/w.txt') )
     writeScalarToDisk(params_simu.eps_r, os.path.join('.',tmpDirName,'octtree_data/eps_r.txt') )
@@ -289,19 +246,6 @@ def setup_MLFMA(params_simu):
     writeScalarToDisk(N_RWG, os.path.join('.', tmpDirName, 'ZI/ZI_size.txt') )
     computeTreeParameters(my_id, tmpDirName, a, k, N_levels, params_simu)
 
-    MPI.COMM_WORLD.Barrier()
-    if (my_id == 0):
-        print "distributing the chunks and cubes among processes..."
-    chunkNumber_to_cubesNumbers, cubeNumber_to_chunkNumber, chunkNumber_to_processNumber, processNumber_to_ChunksNumbers = Z_nearChunksDistribution(params_simu.MAX_BLOCK_SIZE, N_nearPerCube, C, tmpDirName)
-    chunkNumber_to_cubesNumbers = MPI.COMM_WORLD.Bcast(chunkNumber_to_cubesNumbers)
-    cubeNumber_to_chunkNumber = MPI.COMM_WORLD.Bcast(cubeNumber_to_chunkNumber)
-    chunkNumber_to_processNumber = MPI.COMM_WORLD.Bcast(chunkNumber_to_processNumber)
-    processNumber_to_ChunksNumbers = MPI.COMM_WORLD.Bcast(processNumber_to_ChunksNumbers)
-
-    # distributing the mesh
-    scatterMesh(target_mesh, processNumber_to_ChunksNumbers, chunkNumber_to_cubesNumbers, tmpDirName, my_id, num_proc)
-    del target_mesh # we gain A LOT of memory here, especially if N_RWG~1e6
-    # we now dump-pickle the necessary variables
     variables = {}
     variables['a'] = a
     variables['k'] = k
@@ -310,17 +254,12 @@ def setup_MLFMA(params_simu):
     variables['N_RWG'] = N_RWG
     variables['N_levels'] = N_levels
     variables['CFIE'] = CFIE
-    variables['chunkNumber_to_cubesNumbers'] = chunkNumber_to_cubesNumbers
-    variables['cubeNumber_to_chunkNumber'] = cubeNumber_to_chunkNumber
-    variables['chunkNumber_to_processNumber'] = chunkNumber_to_processNumber
-    variables['processNumber_to_ChunksNumbers'] = processNumber_to_ChunksNumbers
     file = open(os.path.join('.', tmpDirName, 'pickle', 'variables.txt'), 'w')
     cPickle.dump(variables, file)
-    file.close()
+    file.close()    
 
 
 if __name__=='__main__':
-    #MPI.Init()
     my_id = MPI.COMM_WORLD.Get_rank()
     if (my_id==0):
         if 'result' not in os.listdir('.'):

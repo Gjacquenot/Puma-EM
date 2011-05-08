@@ -11,6 +11,7 @@ GMSHcommand.sh
 code/MoM/communicateMeshArrays
 code/MoM/communicateZnearBlocks
 code/MoM/mpi_mlfma
+code/MoM/distribute_Z_cubes
 code/MoM/mesh_functions_seb
 diff.out
 result/

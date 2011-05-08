@@ -1,4 +1,4 @@
-import os.path, sys, time
+import os.path, sys, time, pickle, cPickle
 from scipy import zeros, ones, arange, array, take, reshape, sort, argsort, put, sum, compress, nonzero, prod
 from scipy import mean, sqrt
 from read_mesh import read_mesh_GMSH_1, read_mesh_GMSH_2, read_mesh_GiD, read_mesh_ANSYS
@@ -162,6 +162,12 @@ class MeshClass:
         """this function writes to disk the arrays necessary for MLFMA to work."""
         writeBlitzArrayToDisk(self.cubes_centroids, os.path.join(path, 'cubes_centroids') + '.txt')
         writeBlitzArrayToDisk(self.cubes_RWGsNumbers, os.path.join(path, 'cubes_RWGsNumbers') + '.txt')
+        file = open(os.path.join(path, 'cubes_lists_RWGsNumbers.txt'), 'w')
+        cPickle.dump(self.cubes_lists_RWGsNumbers, file)
+        file.close()
+        file = open(os.path.join(path, 'cubesNeighborsIndexes.txt'), 'w')
+        cPickle.dump(self.cubesNeighborsIndexes, file)
+        file.close()
         writeBlitzArrayToDisk(self.vertexes_coord, os.path.join(path, 'vertexes_coord') + '.txt')
         writeBlitzArrayToDisk(self.triangle_vertexes, os.path.join(path, 'triangle_vertexes') + '.txt')
         writeBlitzArrayToDisk(self.triangles_surfaces, os.path.join(path, 'triangles_surfaces') + '.txt')
@@ -194,6 +200,12 @@ class MeshClass:
         # now the arrays
         self.cubes_centroids = readBlitzArrayFromDisk(os.path.join(path, "cubes_centroids.txt"), self.C, 3, 'd')
         self.cubes_RWGsNumbers = readBlitzArrayFromDisk(os.path.join(path, "cubes_RWGsNumbers.txt"), self.C, self.MAX_N_RWG_per_cube, 'i')
+        file = open(os.path.join(path, 'cubes_lists_RWGsNumbers.txt'), 'r')
+        self.cubes_lists_RWGsNumbers = cPickle.load(file)
+        file.close()
+        file = open(os.path.join(path, 'cubesNeighborsIndexes.txt'), 'r')
+        self.cubesNeighborsIndexes = cPickle.load(file)
+        file.close()
         self.vertexes_coord = readBlitzArrayFromDisk(os.path.join(path, "vertexes_coord.txt"), self.V, 3, 'd')
         self.triangle_vertexes = readBlitzArrayFromDisk(os.path.join(path, "triangle_vertexes.txt"), self.T, 3, 'i')
         self.triangles_surfaces = read1DBlitzArrayFromDisk(os.path.join(path, "triangles_surfaces.txt"), 'i')
