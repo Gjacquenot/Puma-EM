@@ -14,7 +14,8 @@ if __name__=='__main__':
         #executeGmsh(params_simu.pathToTarget, params_simu.targetName, 0)
         isGeoFileThere(params_simu.pathToTarget, params_simu.targetName)
         f = open(filename, 'w')
-        GMSH_command = 'gmsh -2 -algo del2d ' + os.path.join(params_simu.pathToTarget, params_simu.targetName) + '.geo' + ' -string "General.ExpertMode=1;"\n'
+        GMSH_command = 'rm -f ' + os.path.join(params_simu.pathToTarget, params_simu.targetName) + '.msh* \n'
+        GMSH_command += 'gmsh -2 -algo del2d ' + os.path.join(params_simu.pathToTarget, params_simu.targetName) + '.geo' + ' -string "General.ExpertMode=1;"\n'
         f.write(GMSH_command)
         f.write("exit 0" + "\n")
     else:
