@@ -222,7 +222,7 @@ void IT_singularities (double & IT_1_R,
  */
 {
   const double h = dot(r-T.r_nodes (0), T.n_hat), abs_h = abs(h), sign_h = (abs_h<1.0e-10) ? 0.0 : h/abs_h;
-  double t_i_0, s_plus__i, s_minus__i, P_i_plus_square, P_i_minus_square, R_plus__i, R_minus__i, R_i_0_square;
+  double t_i_0, s_plus__i, s_minus__i, R_plus__i, R_minus__i, R_i_0_square;
   double I_L_minus_1__i, I_L_plus_1__i, I_L_plus_3__i, beta_i, K_1_minus_1__i, K_1_plus_1__i;
   const blitz::TinyVector<double, 3> rho(r - T.n_hat * dot(r, T.n_hat));
   blitz::TinyVector<double, 3> r_plus__i, r_minus__i;
@@ -388,7 +388,7 @@ void ITo_ITs_free (std::complex<double>& ITo_ITs_G,
                    const int EXTRACT_R)
 {
   int j;
-  double sum_weigths, norm_factor, r_dot_r;
+  double sum_weigths, norm_factor;
   std::complex<double> ITs_G_j;
   blitz::TinyVector<double, 3> r, n_hat_X_r;
   blitz::TinyVector<std::complex<double>, 3> r_ITs_G_j, ITs_G_rprime_r_j, ITs_G_rprime_j, ITs_grad_G_j, r_X_ITs_grad_G_j, n_hat_X_r_X_ITs_grad_G_j;
@@ -459,7 +459,7 @@ void IDTo_ITs_free (std::complex<double> & IDTo_l_hat_dot_r_ITs_G,
   blitz::Array<double, 1> XGL, WGL;
   Gauss_Legendre (XGL, WGL, N_points_o);
 
-  double l_hat_dot_r, norm_factor, norm_r_hlgth;
+  double norm_factor, norm_r_hlgth;
   blitz::TinyVector<double, 3> r, r_center, n_hat_X_r, m_hat, l_hat, r_plus__i, r_minus__i, r_hlgth;
 
   std::complex<double> ITs_G_j, I_k;

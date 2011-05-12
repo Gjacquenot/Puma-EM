@@ -7,7 +7,6 @@ using namespace blitz;
 
 void integr_1D_X_W(Array<double, 1>& X, Array<double, 1>& W, const double & a, const double & b, const int N_points, const string & METHOD)
 {
-  int i, j;
   double h;
   X.resize(N_points);
   W.resize(N_points);
@@ -15,7 +14,7 @@ void integr_1D_X_W(Array<double, 1>& X, Array<double, 1>& W, const double & a, c
   if (METHOD == "TRAP")
     {
       h = (b-a)/(N_points-1); // trapezoidal rule
-      for (j=0 ; j<N_points ; j++) X(j) = a + j*h;
+      for (int j=0 ; j<N_points ; j++) X(j) = a + j*h;
       W = h;
       W(0) /= 2.0;
       W(N_points-1) /= 2.0;
@@ -23,7 +22,7 @@ void integr_1D_X_W(Array<double, 1>& X, Array<double, 1>& W, const double & a, c
   else if (METHOD == "PONCELET")
     {
       h = (b-a)/N_points; // mid-point method
-      for (j=0 ; j<N_points ; j++) X(j) = a + j*h + h/2.0;
+      for (int j=0 ; j<N_points ; j++) X(j) = a + j*h + h/2.0;
       W = h;
     }
   else if (METHOD == "GAUSSL")
@@ -34,7 +33,7 @@ void integr_1D_X_W(Array<double, 1>& X, Array<double, 1>& W, const double & a, c
         Gauss_Legendre(XGL, WGL, N_points); 
         Dx = 0.5 * (b - a);
         center = 0.5 * (b + a);
-        for (j=0 ; j<N_points ; j++) X(j) = center + Dx * XGL(j); 
+        for (int j=0 ; j<N_points ; j++) X(j) = center + Dx * XGL(j); 
         W = abs(Dx) * WGL;
       }
     }

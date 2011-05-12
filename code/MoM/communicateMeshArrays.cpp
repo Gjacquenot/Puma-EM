@@ -13,14 +13,10 @@ using namespace blitz;
 /****************************************************************************/
 
 int main(void) {
-  int dest;
-  int i;
-  int master = 0;
   int my_id;
   int num_procs;
 
   MPI::Init();
-  MPI_Status status;
 
   num_procs = MPI::COMM_WORLD.Get_size();
 //
@@ -30,7 +26,7 @@ int main(void) {
 //  general variables
   if (my_id==0) cout << "Exchanging mesh arrays in C++ (more memory-economic than in Python)......" << endl;
   const string MESH_PATH = "./tmp" + intToString(my_id) + "/mesh/";
-  int MAX_N_RWG_per_cube, C, V, T, E, N_adj, N_levels, S, ierror;
+  int MAX_N_RWG_per_cube, C, V, T, E, N_levels, S, ierror;
   if (my_id==0) {
     {
       string filename = MESH_PATH + "MAX_N_RWG_per_cube.txt";

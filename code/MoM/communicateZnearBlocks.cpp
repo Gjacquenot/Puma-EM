@@ -13,9 +13,6 @@ using namespace blitz;
 /****************************************************************************/
 
 int main(void) {
-  int dest;
-  int i;
-  int master = 0;
   int my_id;
   int num_procs;
 
@@ -73,7 +70,6 @@ int main(void) {
         blitz::Array<blitz::Array<double, 1>, 1> DoubleArraysToReceive(NCubesToReceive), DoubleArraysToSend(NCubesToSend);
         if (my_id == send_proc_number)  {
           for (int i=0 ; i<NCubesToSend ; ++i) {
-            int cubeNumber = CubesNumbersToSend(i), chunkNumber = ChunkNumbersToSend(i);
             const string CHUNK_PATH = "chunk" + intToString(ChunkNumbersToSend(i)), 
                          filename_N_Int = intToString(CubesNumbersToSend(i)) + "_N_IntArrays.txt";
             const string File_N_IntArray = Z_BLOCKS_PATH + CHUNK_PATH + "/" + filename_N_Int;
@@ -158,7 +154,7 @@ int main(void) {
         // finally we write the communicated files to disk
         if (my_id == recv_proc_number) {
           for (int i=0 ; i<NCubesToReceive ; ++i) {
-            int cubeNumber = CubesNumbersToReceive(i), chunkNumber = ChunkNumbersToReceive(i), src = send_proc_number;
+            int src = send_proc_number;
             if (src == send_proc_number) {
               const string CHUNK_PATH = "chunk" + intToString(ChunkNumbersToReceive(i)); 
               {
@@ -198,7 +194,7 @@ int main(void) {
         // we post the receives of recv_proc_number
         if (my_id == recv_proc_number) {
           for (int i=0 ; i<NCubesToReceive ; ++i) {
-            int cubeNumber = CubesNumbersToReceive(i), chunkNumber = ChunkNumbersToReceive(i), src = send_proc_number;
+            int cubeNumber = CubesNumbersToReceive(i), src = send_proc_number;
             if (my_id == src) cout << "RECEIVING FAILED!!!!!!!" << endl;
             const int Nl = dimensionsOfCubesToReceive(i, 0), Nc = dimensionsOfCubesToReceive(i, 1);
             recv_buff(i).resize(Nl, Nc);

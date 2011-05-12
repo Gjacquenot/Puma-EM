@@ -314,7 +314,7 @@ void Octtree::computeGaussLocatedArguments(const Mesh& target_mesh) {
 
 void Octtree::constructArrays(void) 
 {
-  const int N_levels = levels.size(), N_coord = 2;
+  const int N_levels = levels.size();
   if ( (getProcNumber()==0) && (VERBOSE==1) ) cout << "computing the alpha translations and shifting arrays.........." << endl;
   float alphaTranslation_smoothing_factor, alphaTranslation_thresholdRelValueMax, alphaTranslation_RelativeCountAboveThreshold;
   readFloatFromASCIIFile(this->octtreeDataPath + "alphaTranslation_smoothing_factor.txt", alphaTranslation_smoothing_factor);
@@ -546,7 +546,7 @@ void Octtree::S2DWeighting(blitz::Array<std::complex<float>, 2> S,
                            const blitz::Array<float, 1>& Wtheta,
                            const blitz::Array<float, 1>& Wphi)
 {
-  const int N_theta = Wtheta.size(), N_phi = Wphi.size(), N_coord = 2;
+  const int N_theta = Wtheta.size(), N_phi = Wphi.size();
   for (int i=0 ; i<N_theta ; ++i) {
     for (int j=0 ; j<N_phi ; ++j) {
       int index(i + j*N_theta);
@@ -617,7 +617,6 @@ void Octtree::alphaTranslationsToCube(blitz::Array<std::complex<float>, 2>& S_tm
                                       const int DIRECTIONS_PARALLELIZATION)
 {
   Range all = Range::all();
-  const int N_theta = levels[l].thetas.size(), N_phi = levels[l].phis.size();
   blitz::TinyVector<float, 3> DRcenters;
   S_tmp = 0.0;
   const int N_part = indexesAlphaParticipants.size();
@@ -641,10 +640,8 @@ void Octtree::alphaTranslationsToCube(blitz::Array<std::complex<float>, 2>& S_tm
 
 void Octtree::updateSup(const blitz::Array<std::complex<float>, 1>& I_PQ) /// coefficients of RWG functions
 {
-  MPI_Status status;
   Range all = Range::all();
   int ierror;
-  const int N_coord = 2;
   const int num_procs = getTotalNumProcs();
   numberOfUpdates += 1;
   if (this->getProcNumber()==0) cout << "\rTree update " << numberOfUpdates << ": level ";
@@ -910,7 +907,7 @@ void Octtree::ZIFarComputation(blitz::Array<std::complex<float>, 1>& ZI, /// res
   updateSup(I_PQ);
   if (this->getProcNumber()==0) cout << "tree descent"; flush(cout);
   const int N_levels = levels.size(), L = N_levels-1;
-  int ierror, num_procs = getTotalNumProcs(), my_id = getProcNumber(), thisLevel = L;
+  int ierror, my_id = getProcNumber(), thisLevel = L;
 
   if (levels[thisLevel].DIRECTIONS_PARALLELIZATION==1) {
     const int sonLevel = thisLevel-1;
@@ -979,11 +976,8 @@ void Octtree::computeFarField(blitz::Array<std::complex<float>, 2>& e_theta_far,
                               const blitz::Array<std::complex<float>, 1>& I_PQ,
                               const string octtree_data_path) /// coefficients of RWG functions
 {
-  MPI_Status status;
   Range all = Range::all();
   int ierror;
-  const int N_coord = 2;
-  const int num_procs = getTotalNumProcs();
   if (this->getProcNumber()==0) cout << "\nFar field computation" << ": level ";
 
   const int N_levels = levels.size(), my_id = this->getProcNumber();

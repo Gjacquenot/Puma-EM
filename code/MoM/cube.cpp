@@ -78,7 +78,6 @@ void Cube::computeGaussLocatedArguments(const Mesh& target_mesh, const int N_Gau
   const double *xi, *eta, *weigths;
   IT_points (xi, eta, weigths, sum_weigths, N_Gauss);
   for (int j=0 ; j<RWG_numbers.size() ; ++j) {
-    int index_T, columnIndex;
     const int RWG_number = RWG_numbers[j];
     RWG_numbers_CFIE_OK[j] = target_mesh.RWGNumber_CFIE_OK(RWG_number);
     blitz::TinyVector<double, 3> r, r_p, r0, r1, r2, n_hat;

@@ -24,7 +24,6 @@ int main(void) {
 
   // general variables
   const string TMP = "./tmp" + intToString(my_id), OCTTREE_DATA_PATH = TMP + "/octtree_data/", MESH_DATA_PATH = TMP + "/mesh/";
-  int CUBES_DISTRIBUTION = 1;
   writeIntToASCIIFile(OCTTREE_DATA_PATH + "CUBES_DISTRIBUTION.txt", 1);
   if (my_id==0) {
       Mesh target_mesh(MESH_DATA_PATH);

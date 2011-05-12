@@ -272,7 +272,7 @@ blitz::Array<std::complex<float>, 1> PsolveAMLFMA::psolve(const blitz::Array<std
   PrecondFunctor< std::complex<float>, LeftFrobPsolveMLFMA > innerPsolve(pLeftFrobPsolveMLFMA, &LeftFrobPsolveMLFMA::psolve);
 
   const string TMP = "./tmp" + intToString(my_id), ITERATIVE_DATA_PATH = TMP + "/iterative_data/";
-  int iter, flag, numberOfMatvecs;
+  int iter, flag;
   double error;
   blitz::Array<std::complex<float>, 1> y(this->NlocalRWG);
   y = 0.0;
@@ -325,7 +325,7 @@ void computeForOneExcitation(Octtree & octtree,
                              const string ITERATIVE_DATA_PATH)
 {
   blitz::Range all = blitz::Range::all();
-  int ierror, num_procs = MPI::COMM_WORLD.Get_size(), my_id = MPI::COMM_WORLD.Get_rank();
+  int num_procs = MPI::COMM_WORLD.Get_size(), my_id = MPI::COMM_WORLD.Get_rank();
   const int master = 0, N_local_RWG = local_target_mesh.N_local_RWG;
   const float w = octtree.w;
   const std::complex<float> eps_r = octtree.eps_r, mu_r = octtree.mu_r;
@@ -333,7 +333,7 @@ void computeForOneExcitation(Octtree & octtree,
   localRWGNumbers = local_target_mesh.localRWGNumbers;
   // functors declarations
   const string PRECOND = "FROB";
-  int N_RWG, iter, flag, numberOfMatvecs, RESTART, MAXITER;
+  int N_RWG, iter, flag, RESTART, MAXITER;
   double error, TOL;
   readIntFromASCIIFile(OCTTREE_DATA_PATH + "N_RWG.txt", N_RWG);
   MatvecMLFMA matvecMLFMA(octtree, N_RWG, localRWGNumbers);
@@ -491,16 +491,16 @@ void computeMonostaticRCS(Octtree & octtree,
                           const string ITERATIVE_DATA_PATH)
 {
   blitz::Range all = blitz::Range::all();
-  int ierror, num_procs = MPI::COMM_WORLD.Get_size(), my_id = MPI::COMM_WORLD.Get_rank();
+  int num_procs = MPI::COMM_WORLD.Get_size(), my_id = MPI::COMM_WORLD.Get_rank();
   const int master = 0, N_local_RWG = local_target_mesh.N_local_RWG;
-  const float w = octtree.w;
+  
   const std::complex<float> eps_r = octtree.eps_r, mu_r = octtree.mu_r;
   blitz::Array<int, 1> localRWGNumbers(local_target_mesh.localRWGNumbers.size());
   localRWGNumbers = local_target_mesh.localRWGNumbers;
 
   // functors declarations
   const string PRECOND = "FROB";
-  int N_RWG, iter, flag, numberOfMatvecs, RESTART, MAXITER, USE_PREVIOUS_SOLUTION, MONOSTATIC_BY_BISTATIC_APPROX, V_FULL_PRECISION;
+  int N_RWG, iter, flag, RESTART, MAXITER, USE_PREVIOUS_SOLUTION, MONOSTATIC_BY_BISTATIC_APPROX, V_FULL_PRECISION;
   double error, TOL, MAX_DELTA_PHASE;
   readIntFromASCIIFile(V_CFIE_DATA_PATH + "V_FULL_PRECISION.txt", V_FULL_PRECISION);
   readIntFromASCIIFile(OCTTREE_DATA_PATH + "N_RWG.txt", N_RWG);
@@ -534,7 +534,6 @@ void computeMonostaticRCS(Octtree & octtree,
   readFloatBlitzArray1DFromASCIIFile(OCTTREE_DATA_PATH + "octtreeXphis_coarsest.txt", octtreeXphis_coarsest);
   readFloatBlitzArray1DFromASCIIFile(OCTTREE_DATA_PATH + "octtreeXthetas_coarsest.txt", octtreeXthetas_coarsest);
   const int N_theta(octtreeXthetas_coarsest.size()), N_phi(octtreeXphis_coarsest.size());
-  const float phi_last = octtreeXphis_coarsest(N_phi - 1);
   blitz::Array<float, 2> RCS_VV(N_theta, N_phi), RCS_HH(N_theta, N_phi), RCS_HV(N_theta, N_phi);
   RCS_VV = 1.0;
   RCS_HH = 1.0;
@@ -670,7 +669,7 @@ void computeMonostaticSAR(Octtree & octtree,
                           const string ITERATIVE_DATA_PATH)
 {
   blitz::Range all = blitz::Range::all();
-  int ierror, num_procs = MPI::COMM_WORLD.Get_size(), my_id = MPI::COMM_WORLD.Get_rank();
+  int num_procs = MPI::COMM_WORLD.Get_size(), my_id = MPI::COMM_WORLD.Get_rank();
   const int master = 0, N_local_RWG = local_target_mesh.N_local_RWG;
   const double w = octtree.w;
   blitz::Array<int, 1> localRWGNumbers(local_target_mesh.localRWGNumbers.size());
@@ -680,7 +679,7 @@ void computeMonostaticSAR(Octtree & octtree,
 
   // functors declarations
   const string PRECOND = "FROB";
-  int N_RWG, iter, flag, numberOfMatvecs, RESTART, MAXITER, USE_PREVIOUS_SOLUTION, MONOSTATIC_BY_BISTATIC_APPROX, V_FULL_PRECISION;
+  int N_RWG, iter, flag, RESTART, MAXITER, USE_PREVIOUS_SOLUTION, MONOSTATIC_BY_BISTATIC_APPROX, V_FULL_PRECISION;
   double error, TOL, MAX_DELTA_PHASE;
   readIntFromASCIIFile(V_CFIE_DATA_PATH + "V_FULL_PRECISION.txt", V_FULL_PRECISION);
   readIntFromASCIIFile(OCTTREE_DATA_PATH + "N_RWG.txt", N_RWG);

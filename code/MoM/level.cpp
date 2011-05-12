@@ -33,7 +33,7 @@ Level::Level(const int l,
   cubeSideLength = leaf_side_length;
   maxNumberCubes1D = static_cast<int>(pow(2.0, level));
   int N_cubes_level_L = cubes_centroids.extent(0);
-  const int N_coord = 0, N_theta = 0, N_phi = 0, leaf = 1;
+  const int leaf = 1;
   cubes.reserve(N_cubes_level_L);
   for (int j=0 ; j<N_cubes_level_L ; ++j) {
     addNode(Cube(leaf, level, leaf_side_length, big_cube_lower_coord, cubes_centroids(j, all)));
@@ -333,7 +333,7 @@ void Level::alphaTranslationsComputation(const int VERBOSE,
   const double lambda = static_cast<double>(2.0*M_PI/abs(getK()));
   int translationOrder_prime = static_cast<int>(ceil(translationOrder * alphaTranslation_smoothing_factor));
   const float cutting_coefficient = alphaTranslation_thresholdRelValueMax;
-  int my_id = MPI::COMM_WORLD.Get_rank(), num_procs = MPI::COMM_WORLD.Get_size();
+  int my_id = MPI::COMM_WORLD.Get_rank();
   int Nx = (this->getCeiling()) ? NCubesX : min(NCubesX, 4);
   int Ny = (this->getCeiling()) ? NCubesY : min(NCubesY, 4);
   int Nz = (this->getCeiling()) ? NCubesZ : min(NCubesZ, 4);
@@ -355,7 +355,6 @@ void Level::alphaTranslationsComputation(const int VERBOSE,
     }
   }
   int N_directions, N_total_directions = NThetas * NPhis;
-  const bool PARALLEL_COMPUTATION = ( N_total_directions > num_procs );
   if ( this->DIRECTIONS_PARALLELIZATION==1 ) {
     N_directions = this->MPI_Scatterv_scounts(my_id);
     thetasPhis.resize(N_directions, 2);
@@ -700,8 +699,8 @@ void Level::sortNumbersToIndexes(void)
 void Level::printNumbersToIndexes(void)
 {
   const int N_cubes = getLevelSize();
-  int i, n, l = getLevel();
-  for (i=0 ; i<N_cubes ; ++i) {
+  const int l = getLevel();
+  for (int i=0 ; i<N_cubes ; ++i) {
     cout << "Level " << l << " : numbersToIndexes[" << i << "] = " << numbersToIndexes[i].getKey() << ", " << numbersToIndexes[i].getVal() << endl;
   }
 }

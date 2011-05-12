@@ -109,7 +109,7 @@ void decimate_2D (Array<complex<double>, 2> Y,
                   const int n) 
 {
   Range all = Range::all();
-  int N_X1_i = Y_i.extent(0), N_X2_i = Y_i.extent(1), j, m;
+  int N_X1_i = Y_i.extent(0), N_X2_i = Y_i.extent(1);
   if ( (N_X1_i != X1_i.size()) || (N_X2_i != X2_i.size()) ) {
     cout << "decimate_2D() : (N_X1_i != X1_i.size()) || (N_X2_i != X2_i.size())" << endl;
     exit(1);
@@ -127,7 +127,7 @@ void decimate_2D (Array<complex<double>, 2> Y,
   Lagrangian_regular_matrix(n, M);
   // we first interpolate following phi
   y_tmp.resize(N_X2_i-1);
-  for (j=0 ; j<2*N_X1_i - 1 ; j=j+2) {
+  for (int j=0 ; j<2*N_X1_i - 1 ; j=j+2) {
     Lagrange_vector_fixedstep_interpolation(y_tmp, X2(Range(1, toEnd, 2)), X2(Range(0, toEnd, 2)), Y(j, Range(0, toEnd, 2)), M);
     Y(j, Range(1, toEnd, 2)) = y_tmp;
   }
@@ -135,7 +135,7 @@ void decimate_2D (Array<complex<double>, 2> Y,
   // that we now have (2*N_X2_i - 1) values following X1!!
   // Therefore we do not use Y_i for interpolation anymore.
   y_tmp.resize(N_X1_i-1);
-  for (j=0 ; j<2*N_X2_i-1 ; j++) {
+  for (int j=0 ; j<2*N_X2_i-1 ; j++) {
     Lagrange_vector_fixedstep_interpolation(y_tmp, X1(Range(1, toEnd, 2)), X1(Range(0, toEnd, 2)), Y(Range(0, toEnd, 2), j), M);
     Y(Range(1, toEnd, 2), j) = y_tmp;
   }
