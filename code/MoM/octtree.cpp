@@ -13,7 +13,6 @@ using namespace blitz;
 
 #include "FMM.h"
 #include "octtree.h"
-#include "integr_1D_X_W.h"
 #include "readWriteBlitzArrayFromFile.h"
 #include "interpolation.h"
 

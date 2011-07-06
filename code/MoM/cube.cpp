@@ -12,7 +12,6 @@
 using namespace blitz;
 
 #include "cube.h"
-#include "integr_1D_X_W.h"
 #include "readWriteBlitzArrayFromFile.h"
 
 Cube::Cube(const bool is_leaf,                           // 1 if cube is leaf

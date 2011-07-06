@@ -58,11 +58,11 @@ distribute_Z_cubes.o: distribute_Z_cubes.cpp  mesh.h octtree.h octtree.cpp level
 	$(MPICC) $(INCLUDE_PATH) $(CFLAGS) distribute_Z_cubes.cpp
 mesh_functions_seb.o: mesh_functions_seb.cpp mesh.cpp mesh.h readWriteBlitzArrayFromFile.cpp readWriteBlitzArrayFromFile.h
 	$(MPICC) $(INCLUDE_PATH) $(CFLAGS) mesh_functions_seb.cpp
-octtree.o: octtree.cpp interpolation.h level.h level.cpp FMM.h mesh.h octtree.h integr_1D_X_W.h alpha_computation.h readWriteBlitzArrayFromFile.h
+octtree.o: octtree.cpp interpolation.h level.h level.cpp FMM.h mesh.h octtree.h alpha_computation.h readWriteBlitzArrayFromFile.h
 	$(MPICC) $(INCLUDE_PATH) $(CFLAGS) octtree.cpp
-level.o: level.cpp interpolation.h level.h FMM.h mesh.h cube.h cube.cpp integr_1D_X_W.h readWriteBlitzArrayFromFile.h alpha_computation.h
+level.o: level.cpp interpolation.h level.h FMM.h mesh.h cube.h cube.cpp readWriteBlitzArrayFromFile.h alpha_computation.h
 	$(MPICC) $(INCLUDE_PATH) $(CFLAGS) level.cpp
-cube.o: cube.cpp FMM.h mesh.h cube.h integr_1D_X_W.h readWriteBlitzArrayFromFile.h
+cube.o: cube.cpp FMM.h mesh.h cube.h readWriteBlitzArrayFromFile.h
 	$(MPICC) $(INCLUDE_PATH) $(CFLAGS) cube.cpp
 FMM.o: FMM.cpp EMConstants.h FMM.h integr_1D_X_W.h GK_triangle.h $(LIBAMOS_ZBESH_PATH)zbesh_interface.h
 	$(CC) $(INCLUDE_PATH) $(CFLAGS) FMM.cpp

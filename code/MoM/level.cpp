@@ -12,7 +12,6 @@
 using namespace blitz;
 
 #include "level.h"
-#include "integr_1D_X_W.h"
 #include "readWriteBlitzArrayFromFile.h"
 #include "alpha_computation.h"
 
