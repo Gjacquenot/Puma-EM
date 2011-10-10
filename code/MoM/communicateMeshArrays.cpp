@@ -19,11 +19,9 @@ int main(void) {
   MPI::Init();
 
   num_procs = MPI::COMM_WORLD.Get_size();
-//
-//  Get the individual process ID.
-//
   my_id = MPI::COMM_WORLD.Get_rank();
-//  general variables
+
+  //  general variables
   if (my_id==0) cout << "Exchanging mesh arrays in C++ (more memory-economic than in Python)......" << endl;
   const string MESH_PATH = "./tmp" + intToString(my_id) + "/mesh/";
   int MAX_N_RWG_per_cube, C, V, T, E, N_levels, S, ierror;

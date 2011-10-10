@@ -846,7 +846,37 @@ int main(void) {
   const string TMP = "./tmp" + intToString(my_id), OCTTREE_DATA_PATH = TMP + "/octtree_data/", MESH_DATA_PATH = TMP + "/mesh/", V_CFIE_DATA_PATH = TMP + "/V_CFIE/", RESULT_DATA_PATH = "./result/";
   const string ITERATIVE_DATA_PATH = TMP + "/iterative_data/";
 
-  Mesh target_mesh(MESH_DATA_PATH);
+  Mesh target_mesh;
+  if (my_id==0) target_mesh.setMeshFromFile(MESH_DATA_PATH);
+  MPI_Bcast(&target_mesh.MAX_N_RWG_per_cube, 1, MPI::INT, 0, MPI::COMM_WORLD);
+  MPI_Bcast(&target_mesh.C, 1, MPI::INT, 0, MPI::COMM_WORLD);
+  MPI_Bcast(&target_mesh.V, 1, MPI::INT, 0, MPI::COMM_WORLD);
+  MPI_Bcast(&target_mesh.S, 1, MPI::INT, 0, MPI::COMM_WORLD);
+  MPI_Bcast(&target_mesh.T, 1, MPI::INT, 0, MPI::COMM_WORLD);
+  MPI_Bcast(&target_mesh.E, 1, MPI::INT, 0, MPI::COMM_WORLD);
+  // resizing of the arrays
+  if (my_id!=0) {
+    target_mesh.vertexes_coord.resize(target_mesh.V, 3);
+    target_mesh.cubes_centroids.resize(target_mesh.C, 3);
+    target_mesh.triangles_surfaces.resize(target_mesh.T);
+    target_mesh.isClosedSurface.resize(target_mesh.S);
+    target_mesh.cubes_RWGsNumbers.resize(target_mesh.C, target_mesh.MAX_N_RWG_per_cube);
+    target_mesh.RWGNumber_signedTriangles.resize(target_mesh.E, 2);
+    target_mesh.RWGNumber_edgeVertexes.resize(target_mesh.E, 2);
+    target_mesh.RWGNumber_oppVertexes.resize(target_mesh.E, 2);
+    target_mesh.RWGNumber_CFIE_OK.resize(target_mesh.E);
+  }
+  MPI_Bcast(target_mesh.vertexes_coord.data(), target_mesh.vertexes_coord.size(), MPI::DOUBLE, 0, MPI::COMM_WORLD);
+  MPI_Bcast(target_mesh.cubes_centroids.data(), target_mesh.cubes_centroids.size(), MPI::DOUBLE, 0, MPI::COMM_WORLD);
+  MPI_Bcast(target_mesh.triangles_surfaces.data(), target_mesh.triangles_surfaces.size(), MPI::INT, 0, MPI::COMM_WORLD);
+  MPI_Bcast(target_mesh.isClosedSurface.data(), target_mesh.isClosedSurface.size(), MPI::INT, 0, MPI::COMM_WORLD);
+  MPI_Bcast(target_mesh.cubes_RWGsNumbers.data(), target_mesh.cubes_RWGsNumbers.size(), MPI::INT, 0, MPI::COMM_WORLD);
+  MPI_Bcast(target_mesh.RWGNumber_signedTriangles.data(), target_mesh.RWGNumber_signedTriangles.size(), MPI::INT, 0, MPI::COMM_WORLD);
+  MPI_Bcast(target_mesh.RWGNumber_edgeVertexes.data(), target_mesh.RWGNumber_edgeVertexes.size(), MPI::INT, 0, MPI::COMM_WORLD);
+  MPI_Bcast(target_mesh.RWGNumber_oppVertexes.data(), target_mesh.RWGNumber_oppVertexes.size(), MPI::INT, 0, MPI::COMM_WORLD);
+  MPI_Bcast(target_mesh.RWGNumber_CFIE_OK.data(), target_mesh.RWGNumber_CFIE_OK.size(), MPI::INT, 0, MPI::COMM_WORLD);
+
+  
   const int N_RWG = target_mesh.E;
   Octtree octtree(OCTTREE_DATA_PATH, target_mesh.cubes_centroids, my_id, num_procs);
   octtree.computeGaussLocatedArguments(target_mesh);

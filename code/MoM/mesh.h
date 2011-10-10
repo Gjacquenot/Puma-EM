@@ -30,7 +30,7 @@ class Mesh {
 
 //  public:
     // constructors
-    Mesh(void){;};
+    Mesh(void){};
     Mesh(const string /*path*/);
     void setMeshFromFile(const string /*path*/); // not really a constructor, but oh well....
     void copyMesh(const Mesh&);

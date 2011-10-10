@@ -41,7 +41,6 @@ ${COMMAND1} python code/setup_MLFMA.py
 # distribution of data across processes
 ${COMMAND1} ./code/MoM/distribute_Z_cubes
 ${COMMAND1} python code/distribute_ZChunks_and_Mesh.py
-${COMMAND1} ./code/MoM/communicateMeshArrays
 
 # computation of the Z_near blocks
 ${COMMAND1} python code/compute_Z_near_MLFMA.py
