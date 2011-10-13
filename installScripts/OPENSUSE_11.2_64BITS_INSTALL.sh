@@ -21,7 +21,7 @@ echo " You will be asked for your root password so that the machine can install 
 echo " sudo password for installing main dependencies... "
 sudo zypper ar -c http://download.opensuse.org/repositories/science/openSUSE_11.2/ science
 sudo zypper refresh
-sudo zypper install gcc-c++ libstdc++33-32bit Mesa-32bit gcc-fortran autoconf automake make libtool python-devel python-scipy python-matplotlib python-tk openmpi openmpi-devel cvs doxygen
+sudo zypper install gcc-c++ libstdc++33-32bit Mesa-32bit gcc-fortran autoconf automake make libtool python-devel python-scipy python-matplotlib python-matplotlib-tk python-tk openmpi openmpi-devel cvs doxygen
 # modifying the PATH variables
 mpi-selector --set openmpi-1.3
 export LD_LIBRARY_PATH=/usr/lib64/mpi/gcc/openmpi/lib:

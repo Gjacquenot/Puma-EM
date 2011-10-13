@@ -76,9 +76,9 @@ readWriteBlitzArrayFromFile.o: readWriteBlitzArrayFromFile.cpp readWriteBlitzArr
 	$(CC) $(INCLUDE_PATH) $(CFLAGS) readWriteBlitzArrayFromFile.cpp
 Z_EJ_Z_HJ_FS_triangles_arrays.o: Z_EJ_Z_HJ_FS_triangles_arrays.cpp EMConstants.h triangle_int.h mesh.h
 	$(CC) $(INCLUDE_PATH) $(CFLAGS) Z_EJ_Z_HJ_FS_triangles_arrays.cpp
-V_E_V_H_dipole.o: V_E_V_H_dipole.cpp GK_triangle.h triangle_int.h EMConstants.h V_E_V_H.h
+V_E_V_H_dipole.o: V_E_V_H_dipole.cpp GK_triangle.h triangle_int.h EMConstants.h V_E_V_H.h mesh.h
 	$(CC) $(INCLUDE_PATH) $(CFLAGS) V_E_V_H_dipole.cpp
-V_E_V_H_plane.o: V_E_V_H_plane.cpp GK_triangle.h triangle_int.h EMConstants.h V_E_V_H.h
+V_E_V_H_plane.o: V_E_V_H_plane.cpp GK_triangle.h triangle_int.h EMConstants.h V_E_V_H.h mesh.h
 	$(CC) $(INCLUDE_PATH) $(CFLAGS) V_E_V_H_plane.cpp
 triangle_int_FS.o: triangle_int_FS.cpp GK_triangle.h GL.h
 	$(CC) $(INCLUDE_PATH) $(CFLAGS) triangle_int_FS.cpp
