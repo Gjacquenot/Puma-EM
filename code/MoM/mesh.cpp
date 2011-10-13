@@ -162,12 +162,12 @@ LocalMesh::LocalMesh(const Mesh& target_mesh, const blitz::Array<int, 1>& chosen
   N_local_RWG = localRWGNumbers.size();
   reallyLocalRWGNumbers.resize(N_local_RWG);
   for (int i=0 ; i<N_local_RWG ; ++i) reallyLocalRWGNumbers(i) = i;
+  // LocalRWGNumber_CFIE_OK
   localRWGNumber_CFIE_OK.resize(N_local_RWG);
+  for (int i=0 ; i<N_local_RWG ; ++i) localRWGNumber_CFIE_OK(i) = target_mesh.RWGNumber_CFIE_OK(localRWGNumbers(i));
   // localRWGNumber_trianglesCoord(i,:) = r1, r2, r3, r4 with r1, r2, r3 = first triangle
   // and r3, r2, r4 the second triangle
   localRWGNumber_trianglesCoord.resize(N_local_RWG, 12);
-  // LocalRWGNumber_CFIE_OK
-  for (int i=0 ; i<N_local_RWG ; ++i) localRWGNumber_CFIE_OK(i) = target_mesh.RWGNumber_CFIE_OK(localRWGNumbers(i));
   for (int i=0 ; i<N_local_RWG ; ++i) {
     const int nodeEdge0 = target_mesh.RWGNumber_edgeVertexes(localRWGNumbers(i), 0), nodeEdge1 = target_mesh.RWGNumber_edgeVertexes(localRWGNumbers(i), 1);
     // we now find the RWG opposite vector coordinates

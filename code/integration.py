@@ -18,7 +18,7 @@ def abs_weights(N):
                  libraries = ['MoM'],
                  headers = ['<iostream>','<complex>','"GL.h"'],
                  compiler = 'gcc',
-                 extra_compile_args = ['-O3', '-pthread', '-w'])
+                 extra_compile_args = ['-O3', '-pthread', '-w', '-fPIC'])
     return XGL, WGL
 
 def integr_1D_X_W(a, b, N_points, METHOD, INCLUDE_BOUDARIES):
@@ -36,7 +36,7 @@ def integr_1D_X_W(a, b, N_points, METHOD, INCLUDE_BOUDARIES):
                      libraries = ['MoM'],
                      headers = ['<iostream>','<complex>','"integr_1D_X_W.h"'],
                      compiler = 'gcc',
-                     extra_compile_args = ['-O3', '-pthread', '-w'])
+                     extra_compile_args = ['-O3', '-pthread', '-w', '-fPIC'])
     else:
         Dx = 0.5 * (b - a)
         center = 0.5 * (b + a)

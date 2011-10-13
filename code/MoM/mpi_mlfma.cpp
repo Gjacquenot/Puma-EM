@@ -861,7 +861,8 @@ int main(void) {
     target_mesh.triangles_surfaces.resize(target_mesh.T);
     target_mesh.isClosedSurface.resize(target_mesh.S);
     target_mesh.cubes_RWGsNumbers.resize(target_mesh.C, target_mesh.MAX_N_RWG_per_cube);
-    target_mesh.RWGNumber_signedTriangles.resize(target_mesh.E, 2);
+    //target_mesh.RWGNumber_signedTriangles.resize(target_mesh.E, 2); // not needed for the moment (October 2011)
+    target_mesh.RWGNumber_signedTriangles.resize(1, 1); // artificial resizing, see preceding line
     target_mesh.RWGNumber_edgeVertexes.resize(target_mesh.E, 2);
     target_mesh.RWGNumber_oppVertexes.resize(target_mesh.E, 2);
     target_mesh.RWGNumber_CFIE_OK.resize(target_mesh.E);
@@ -871,11 +872,10 @@ int main(void) {
   MPI_Bcast(target_mesh.triangles_surfaces.data(), target_mesh.triangles_surfaces.size(), MPI::INT, 0, MPI::COMM_WORLD);
   MPI_Bcast(target_mesh.isClosedSurface.data(), target_mesh.isClosedSurface.size(), MPI::INT, 0, MPI::COMM_WORLD);
   MPI_Bcast(target_mesh.cubes_RWGsNumbers.data(), target_mesh.cubes_RWGsNumbers.size(), MPI::INT, 0, MPI::COMM_WORLD);
-  MPI_Bcast(target_mesh.RWGNumber_signedTriangles.data(), target_mesh.RWGNumber_signedTriangles.size(), MPI::INT, 0, MPI::COMM_WORLD);
+  //MPI_Bcast(target_mesh.RWGNumber_signedTriangles.data(), target_mesh.RWGNumber_signedTriangles.size(), MPI::INT, 0, MPI::COMM_WORLD);
   MPI_Bcast(target_mesh.RWGNumber_edgeVertexes.data(), target_mesh.RWGNumber_edgeVertexes.size(), MPI::INT, 0, MPI::COMM_WORLD);
   MPI_Bcast(target_mesh.RWGNumber_oppVertexes.data(), target_mesh.RWGNumber_oppVertexes.size(), MPI::INT, 0, MPI::COMM_WORLD);
   MPI_Bcast(target_mesh.RWGNumber_CFIE_OK.data(), target_mesh.RWGNumber_CFIE_OK.size(), MPI::INT, 0, MPI::COMM_WORLD);
-
   
   const int N_RWG = target_mesh.E;
   Octtree octtree(OCTTREE_DATA_PATH, target_mesh.cubes_centroids, my_id, num_procs);

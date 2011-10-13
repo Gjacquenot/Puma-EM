@@ -264,7 +264,7 @@ def readASCIIBlitzIntArray1DFromDisk(filename):
                  libraries = [],
                  headers = ['<iostream>','<fstream>','<string>','<blitz/array.h>'],
                  compiler = 'gcc',
-                 extra_compile_args = ['-O3', '-pthread', '-w'])
+                 extra_compile_args = ['-O3', '-pthread', '-w', '-fPIC'])
     return A
 
 def writeBlitzArrayToDisk(A, filename):
