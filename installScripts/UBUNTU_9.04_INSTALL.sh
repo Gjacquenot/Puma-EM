@@ -42,9 +42,10 @@ sudo make install
 sudo cp -r ./blitz /usr/lib/python2.6/dist-packages/scipy/weave/blitz/
 # installing mpi4py. No package yet for this one...
 cd $PUMA_EM_DIR/installScripts
-wget http://pypi.python.org/packages/source/m/mpi4py/mpi4py-0.6.0.tar.gz
-tar xzf mpi4py-0.6.0.tar.gz
-cd mpi4py-0.6.0
+#wget http://pypi.python.org/packages/source/m/mpi4py/mpi4py-0.6.0.tar.gz
+wget http://mpi4py.googlecode.com/files/mpi4py-1.2.2.tar.gz
+tar xzf mpi4py-1.2.2.tar.gz
+cd mpi4py-1.2.2
 sudo python setup.py install
 # cleaning up...
 cd $PUMA_EM_DIR/installScripts

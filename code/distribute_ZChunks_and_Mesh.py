@@ -27,8 +27,8 @@ def scatterMesh(target_mesh, ZprocessNumber_to_ChunksNumbers, ZchunkNumber_to_cu
                     list_cubeDoubleArrays.append(cubeDoubleArrays)
             # communicating the arrays
             # we exchange the concatenated arrays
-            list_cubeIntArrays = MPI.COMM_WORLD.Bcast(list_cubeIntArrays)
-            list_cubeDoubleArrays = MPI.COMM_WORLD.Bcast(list_cubeDoubleArrays)
+            list_cubeIntArrays = MPI.COMM_WORLD.bcast(list_cubeIntArrays)
+            list_cubeDoubleArrays = MPI.COMM_WORLD.bcast(list_cubeDoubleArrays)
             # writing the local cube data to disk
             if (my_id==identity):
                 pathToSaveToChunk = os.path.join(pathToSaveTo, "chunk" + str(chunkNumber))
@@ -56,15 +56,15 @@ def distribute_Chunks_and_Mesh(params_simu):
         N_nearBlockDiag, N_near, N_nearPerCube = Z_near_size_computation(target_mesh.cubes_lists_RWGsNumbers, target_mesh.cubesNeighborsIndexes)
     else:
         N_nearPerCube = ['blabla']
-    N_nearPerCube = MPI.COMM_WORLD.Bcast(N_nearPerCube)
+    N_nearPerCube = MPI.COMM_WORLD.bcast(N_nearPerCube)
     file = open(os.path.join('.', tmpDirName, 'pickle', 'variables.txt'), 'r')
     variables = cPickle.load(file)
     file.close()
     chunkNumber_to_cubesNumbers, cubeNumber_to_chunkNumber, chunkNumber_to_processNumber, processNumber_to_ChunksNumbers = Z_nearChunksDistribution(params_simu.MAX_BLOCK_SIZE, N_nearPerCube, variables['C'], tmpDirName)
-    chunkNumber_to_cubesNumbers = MPI.COMM_WORLD.Bcast(chunkNumber_to_cubesNumbers)
-    cubeNumber_to_chunkNumber = MPI.COMM_WORLD.Bcast(cubeNumber_to_chunkNumber)
-    chunkNumber_to_processNumber = MPI.COMM_WORLD.Bcast(chunkNumber_to_processNumber)
-    processNumber_to_ChunksNumbers = MPI.COMM_WORLD.Bcast(processNumber_to_ChunksNumbers)
+    chunkNumber_to_cubesNumbers = MPI.COMM_WORLD.bcast(chunkNumber_to_cubesNumbers)
+    cubeNumber_to_chunkNumber = MPI.COMM_WORLD.bcast(cubeNumber_to_chunkNumber)
+    chunkNumber_to_processNumber = MPI.COMM_WORLD.bcast(chunkNumber_to_processNumber)
+    processNumber_to_ChunksNumbers = MPI.COMM_WORLD.bcast(processNumber_to_ChunksNumbers)
     # distributing chunks of the mesh
     scatterMesh(target_mesh, processNumber_to_ChunksNumbers, chunkNumber_to_cubesNumbers, tmpDirName, my_id, num_procs)
     del target_mesh

@@ -83,10 +83,10 @@ if __name__=="__main__":
     if (my_id == 1):
         tag = 0
         print "sendbuf = ", sendbuf
-        MPI.COMM_WORLD.Send([sendbuf, MPI.FLOAT], 0, tag)
+        MPI.COMM_WORLD.send([sendbuf, MPI.FLOAT], 0, tag)
     else:
         tag = my_id
-        recvbuf = MPI.COMM_WORLD.Recv(1, tag, status)
+        recvbuf = MPI.COMM_WORLD.recv(1, tag, status)
         print "recvbuf = ", recvbuf
     MPI.Finalize()
 

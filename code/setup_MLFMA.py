@@ -16,7 +16,7 @@ def communicateParamsFile(filename):
         f.close()
     else:
         params = ['blabla']
-    params = MPI.COMM_WORLD.Bcast(params)
+    params = MPI.COMM_WORLD.bcast(params)
     for i in range(num_proc):
         if (my_id!=0) and (my_id==i):
             f = open(filename, 'w')
@@ -49,7 +49,7 @@ def setup_excitation(params_simu):
             r_obs = read_observation_points(params_simu.r_obs_FILENAME)
         else:
             r_obs = zeros((1, 3), 'd')
-        r_obs = MPI.COMM_WORLD.Bcast(r_obs)
+        r_obs = MPI.COMM_WORLD.bcast(r_obs)
         writeASCIIBlitzArrayToDisk(r_obs, os.path.join('.',tmpDirName,'V_CFIE/r_obs.txt'))
 
     # now the excitations
@@ -113,8 +113,8 @@ def setup_excitation(params_simu):
                 J_src, r_J_src = read_dipole_excitation(params_simu.BISTATIC_EXCITATION_J_DIPOLES_FILENAME)
             else:
                 J_src, r_J_src = zeros((1, 3), 'D'), zeros((1, 3), 'd')
-            J_src = MPI.COMM_WORLD.Bcast(J_src)
-            r_J_src = MPI.COMM_WORLD.Bcast(r_J_src)
+            J_src = MPI.COMM_WORLD.bcast(J_src)
+            r_J_src = MPI.COMM_WORLD.bcast(r_J_src)
             writeScalarToDisk(1, os.path.join('.',tmpDirName,'V_CFIE/J_DIPOLES_EXCITATION.txt'))
             writeASCIIBlitzArrayToDisk(J_src, os.path.join('.',tmpDirName,'V_CFIE/J_dip.txt'))
             writeASCIIBlitzArrayToDisk(r_J_src, os.path.join('.',tmpDirName,'V_CFIE/r_J_dip.txt'))
@@ -125,8 +125,8 @@ def setup_excitation(params_simu):
                 M_src, r_M_src = read_dipole_excitation(params_simu.BISTATIC_EXCITATION_M_DIPOLES_FILENAME)
             else:
                 M_src, r_M_src = zeros((1, 3), 'D'), zeros((1, 3), 'd')
-            M_src = MPI.COMM_WORLD.Bcast(M_src)
-            r_M_src = MPI.COMM_WORLD.Bcast(r_M_src)
+            M_src = MPI.COMM_WORLD.bcast(M_src)
+            r_M_src = MPI.COMM_WORLD.bcast(r_M_src)
             writeScalarToDisk(1, os.path.join('.',tmpDirName,'V_CFIE/M_DIPOLES_EXCITATION.txt'))
             writeASCIIBlitzArrayToDisk(M_src, os.path.join('.',tmpDirName,'V_CFIE/M_dip.txt'))
             writeASCIIBlitzArrayToDisk(r_M_src, os.path.join('.',tmpDirName,'V_CFIE/r_M_dip.txt'))
@@ -191,13 +191,13 @@ def setup_MLFMA(params_simu):
         T = ['blabla']
         C = ['blabla']
     del target_mesh
-    big_cube_lower_coord = MPI.COMM_WORLD.Bcast(big_cube_lower_coord)
-    big_cube_center_coord = MPI.COMM_WORLD.Bcast(big_cube_center_coord)
-    IS_CLOSED_SURFACE = MPI.COMM_WORLD.Bcast(IS_CLOSED_SURFACE)
-    N_levels = MPI.COMM_WORLD.Bcast(N_levels)
-    N_RWG = MPI.COMM_WORLD.Bcast(N_RWG)
-    C = MPI.COMM_WORLD.Bcast(C)
-    T = MPI.COMM_WORLD.Bcast(T)
+    big_cube_lower_coord = MPI.COMM_WORLD.bcast(big_cube_lower_coord)
+    big_cube_center_coord = MPI.COMM_WORLD.bcast(big_cube_center_coord)
+    IS_CLOSED_SURFACE = MPI.COMM_WORLD.bcast(IS_CLOSED_SURFACE)
+    N_levels = MPI.COMM_WORLD.bcast(N_levels)
+    N_RWG = MPI.COMM_WORLD.bcast(N_RWG)
+    C = MPI.COMM_WORLD.bcast(C)
+    T = MPI.COMM_WORLD.bcast(T)
 
     w = 2. * pi * params_simu.f
     k = w * sqrt(eps_0*params_simu.eps_r*mu_0*params_simu.mu_r) + 1.j * 0.
