@@ -13,9 +13,6 @@ all: libs mpi_mlfma testMPI
 testMPI: testMPI.o
 	$(MPICC) $(INCLUDE_PATH) testMPI.o $(LIB_SEARCH_PATH) -lblitz -lm -o testMPI
 
-communicateMeshArrays: communicateMeshArrays.o readWriteBlitzArrayFromFile.o
-	$(MPICC) $(INCLUDE_PATH) communicateMeshArrays.o readWriteBlitzArrayFromFile.o $(LIB_SEARCH_PATH) -lblitz -lm -o communicateMeshArrays
-
 communicateZnearBlocks: communicateZnearBlocks.o readWriteBlitzArrayFromFile.o
 	$(MPICC) $(INCLUDE_PATH) communicateZnearBlocks.o readWriteBlitzArrayFromFile.o $(LIB_SEARCH_PATH) -lblitz -lm -o communicateZnearBlocks
 
@@ -48,8 +45,6 @@ libLAPACK:
 
 testMPI.o: testMPI.cpp
 	$(MPICC) $(INCLUDE_PATH) $(CFLAGS) testMPI.cpp
-communicateMeshArrays.o: communicateMeshArrays.cpp readWriteBlitzArrayFromFile.h
-	$(MPICC) $(INCLUDE_PATH) $(CFLAGS) communicateMeshArrays.cpp
 communicateZnearBlocks.o: communicateZnearBlocks.cpp readWriteBlitzArrayFromFile.h
 	$(MPICC) $(INCLUDE_PATH) $(CFLAGS) communicateZnearBlocks.cpp
 mpi_mlfma.o: mpi_mlfma.cpp  Z_sparse_MLFMA.h mesh.h octtree.h octtree.cpp level.h level.cpp ./iterative/iterative.h V_E_V_H.h alpha_computation.h V_E_V_H_dipole.cpp V_E_V_H_plane.cpp EMConstants.h
@@ -90,7 +85,7 @@ GL.o: GL.cpp
 
 
 clean: 
-	rm -f *.o *.a *.txt *~ *.pyc octtree mpi_mlfma testMPI communicateZnearBlocks communicateMeshArrays mesh_functions_seb distribute_Z_cubes; 
+	rm -f *.o *.a *.txt *~ *.pyc octtree mpi_mlfma testMPI communicateZnearBlocks mesh_functions_seb distribute_Z_cubes; 
 	cd $(LIBAMOS_ZBESH_PATH); make clean; 
 	cd $(LIBLAPACK_PATH); make clean; 
 	cd $(LIBITERATIVE_PATH); make clean;

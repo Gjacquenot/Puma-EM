@@ -17,8 +17,6 @@ package:
 	python $(PROGR_DIR_PATH)/makePackage.py;
 libs: 
 	cd $(PROGR_DIR_PATH)/MoM; make libs; make communicateZnearBlocks; make mpi_mlfma; make mesh_functions_seb; make distribute_Z_cubes;
-communicateMeshArrays:
-	cd $(PROGR_DIR_PATH)/MoM; make communicateMeshArrays;
 communicateZnearBlocks:
 	cd $(PROGR_DIR_PATH)/MoM; make communicateZnearBlocks;
 mpi_mlfma:
