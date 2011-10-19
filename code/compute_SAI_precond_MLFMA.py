@@ -1,4 +1,4 @@
-import sys, os, cPickle, time
+import sys, os, cPickle, time, argparse
 from mpi4py import *
 from FMM_precond import MgPreconditionerComputation, Mg_CSR
 from FMM_Znear import Z_nearCRS_Assembling
@@ -12,8 +12,8 @@ def compute_SAIpreconditioner(tmpDirName, a, C, chunkNumber_to_cubesNumbers, cub
     # computation of the Frobenius preconditioner
     Wall_t0 = time.time()
     CPU_t0 = time.clock()
-    pathToReadFrom = os.path.join('.', tmpDirName, 'Z_tmp')
-    pathToSaveTo = os.path.join('.', tmpDirName, 'Mg_LeftFrob')
+    pathToReadFrom = os.path.join(tmpDirName, 'Z_tmp')
+    pathToSaveTo = os.path.join(tmpDirName, 'Mg_LeftFrob')
     # we look for the LIB_G2C type
     file = open('makefile.inc', 'r')
     content = file.readlines()
@@ -30,20 +30,20 @@ def compute_SAIpreconditioner(tmpDirName, a, C, chunkNumber_to_cubesNumbers, cub
     CPU_time_Mg_computation = time.clock() - CPU_t0 
     Wall_time_Mg_computation = time.time() - Wall_t0
     # assembling of near interactions matrix
-    pathToReadFrom = os.path.join('.', tmpDirName, 'Z_tmp')
-    pathToSaveTo = os.path.join('.', tmpDirName, 'Z_near')
+    pathToReadFrom = os.path.join(tmpDirName, 'Z_tmp')
+    pathToSaveTo = os.path.join(tmpDirName, 'Z_near')
     Z_nearCRS_Assembling(processNumber_to_ChunksNumbers, chunkNumber_to_cubesNumbers, MAX_BLOCK_SIZE, C, ELEM_TYPE, Z_TMP_ELEM_TYPE, pathToReadFrom, pathToSaveTo)
     MPI.COMM_WORLD.Barrier()
     return Wall_time_Mg_computation, CPU_time_Mg_computation
 
 
-def compute_SAI(params_simu):
+def compute_SAI(params_simu, simuDirName):
     num_proc = MPI.COMM_WORLD.Get_size()
     my_id = MPI.COMM_WORLD.Get_rank()
-    tmpDirName = 'tmp' + str(my_id)
+    tmpDirName = os.path.join(simuDirName, 'tmp' + str(my_id))
     if params_simu.COMPUTE_Z_NEAR==1:
         pass
-    file = open(os.path.join('.', tmpDirName, 'pickle', 'variables.txt'), 'r')
+    file = open(os.path.join(tmpDirName, 'pickle', 'variables.txt'), 'r')
     variables = cPickle.load(file)
     file.close()
     Wall_time_Mg_computation, CPU_time_Mg_computation = compute_SAIpreconditioner(tmpDirName, variables['a'], variables['C'], variables['chunkNumber_to_cubesNumbers'], variables['cubeNumber_to_chunkNumber'], variables['chunkNumber_to_processNumber'], variables['processNumber_to_ChunksNumbers'], params_simu.MAX_BLOCK_SIZE)
@@ -54,7 +54,7 @@ def compute_SAI(params_simu):
         print variables['Wall_time_Z_near_computation'], "Wall time (seconds) for constructing Z_CFIE_near"
         print variables['CPU_time_Mg_computation'], "CPU time (seconds) for constructing SAI precond"
         print variables['Wall_time_Mg_computation'], "Wall time (seconds) for constructing SAI precond"
-    file = open(os.path.join('.', tmpDirName, 'pickle', 'variables.txt'), 'w')
+    file = open(os.path.join(tmpDirName, 'pickle', 'variables.txt'), 'w')
     cPickle.dump(variables, file)
     file.close()
 
@@ -62,10 +62,17 @@ if __name__=='__main__':
     #MPI.Init()
     my_id = MPI.COMM_WORLD.Get_rank()
     sys.path.append(os.path.abspath('.'))
+    parser = argparse.ArgumentParser(description='...')
+    parser.add_argument('--simudir')
+    cmdline = parser.parse_args()
+    simuDirName = cmdline.simudir
+    if simuDirName==None:
+        simuDirName = '.'
+
     # the simulation itself
     from simulation_parameters import *
     if (params_simu.MONOSTATIC_RCS==1) or (params_simu.MONOSTATIC_SAR==1) or (params_simu.BISTATIC==1):
-        compute_SAI(params_simu)
+        compute_SAI(params_simu, simuDirName)
     else:
         print "you should select monostatic RCS or monostatic SAR or bistatic computation, or a combination of these computations. Check the simulation settings."
         sys.exit(1)

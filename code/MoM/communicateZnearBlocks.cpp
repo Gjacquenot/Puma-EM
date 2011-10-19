@@ -12,21 +12,22 @@ using namespace blitz;
 /******************************* main ***************************************/
 /****************************************************************************/
 
-int main(void) {
-  int my_id;
-  int num_procs;
+int main(int argc, char* argv[]) {
 
   MPI::Init();
+  int my_id = MPI::COMM_WORLD.Get_rank();
+  int num_procs = MPI::COMM_WORLD.Get_size();
+
+  string simuDir = ".";
+  if ( argc > 2 ) {
+     if( string(argv[1]) == "--simudir" ) simuDir = argv[2];
+  }
+
   MPI_Status isend_status, irecv_status, isend_status_1, irecv_status_1;
   MPI_Request isend_request, irecv_request, isend_request_1, irecv_request_1;
   
-  num_procs = MPI::COMM_WORLD.Get_size();
-//
-//  Get the individual process ID.
-//
-  my_id = MPI::COMM_WORLD.Get_rank();
-//  general variables
-  const string Z_BLOCKS_PATH = "./tmp" + intToString(my_id) + "/Z_tmp/";
+  //  general variables
+  const string Z_BLOCKS_PATH = simuDir + "/tmp" + intToString(my_id) + "/Z_tmp/";
   int itemsize;
   readIntFromASCIIFile(Z_BLOCKS_PATH + "itemsize.txt", itemsize);
 

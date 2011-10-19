@@ -11,8 +11,9 @@
 #include <algorithm>
 #include <mpi.h>
 
-using namespace blitz;
+using namespace std;
 
+#include "readWriteBlitzArrayFromFile.h"
 #include "Z_sparse_MLFMA.h"
 #include "octtree.h"
 #include "./iterative/iterative.h"
@@ -39,12 +40,14 @@ class MatvecMLFMA {
     int totalProcNumber;
     int N_RWG;
     blitz::Array<int, 1> localRWGnumbers;
+    string simuDir;
 
     // constructors
     MatvecMLFMA(void){;};
     MatvecMLFMA(Octtree & /*octtree*/,
                 const int /*numberOfRWG*/,
-                const blitz::Array<int, 1>& /*localRWGindexes*/);
+                const blitz::Array<int, 1>& /*localRWGindexes*/,
+		const string & /*simuDir*/);
     // destructor
     ~MatvecMLFMA(void){localRWGnumbers.free();};
     // copy operators
@@ -65,7 +68,9 @@ class MatvecMLFMA {
 
 MatvecMLFMA::MatvecMLFMA(Octtree & octtree,
                          const int numberOfRWG,
-                         const blitz::Array<int, 1>& localRWGindexes)
+                         const blitz::Array<int, 1>& localRWGindexes,
+                         const string & simu_dir)
+
 {
   pOcttree = &octtree;
   procNumber = MPI::COMM_WORLD.Get_rank();
@@ -73,6 +78,7 @@ MatvecMLFMA::MatvecMLFMA(Octtree & octtree,
   N_RWG = numberOfRWG;
   localRWGnumbers.resize(localRWGindexes.size());
   localRWGnumbers = localRWGindexes;
+  simuDir = simu_dir;
 }
 
 void MatvecMLFMA::copyMatvecMLFMA(const MatvecMLFMA& matvecMLFMAtoCopy) // copy member function
@@ -83,6 +89,7 @@ void MatvecMLFMA::copyMatvecMLFMA(const MatvecMLFMA& matvecMLFMAtoCopy) // copy 
   N_RWG = matvecMLFMAtoCopy.N_RWG;
   localRWGnumbers.resize(matvecMLFMAtoCopy.localRWGnumbers.size());
   localRWGnumbers = matvecMLFMAtoCopy.localRWGnumbers;
+  simuDir = matvecMLFMAtoCopy.simuDir;
 }
 
 MatvecMLFMA::MatvecMLFMA(const MatvecMLFMA& matvecMLFMAtoCopy) // copy constructor
@@ -98,7 +105,7 @@ MatvecMLFMA& MatvecMLFMA::operator=(const MatvecMLFMA& matvecMLFMAtoCopy) { // c
 void MatvecMLFMA::matvecZnear(blitz::Array<std::complex<float>, 1> & y, const blitz::Array<std::complex<float>, 1> & x)
 {
   const int my_id = MPI::COMM_WORLD.Get_rank();
-  const string pathToReadFrom = "./tmp" + intToString(my_id) + "/Z_near/", Z_name = "Z_CFIE_near";
+  const string pathToReadFrom = simuDir + "/tmp" + intToString(my_id) + "/Z_near/", Z_name = "Z_CFIE_near";
   Array<int, 1> chunkNumbers;
   readIntBlitzArray1DFromASCIIFile(pathToReadFrom + "chunkNumbers.txt", chunkNumbers);
   Z_sparse_MLFMA Z_near;
@@ -143,11 +150,13 @@ class LeftFrobPsolveMLFMA {
     int totalProcNumber;
     int N_RWG;
     blitz::Array<int, 1> localRWGnumbers;
+    string simuDir;
 
     // constructors
     LeftFrobPsolveMLFMA(void){;};
     LeftFrobPsolveMLFMA(const int /*numberOfRWG*/,
-                        const blitz::Array<int, 1>& /*localRWGindexes*/);
+                        const blitz::Array<int, 1>& /*localRWGindexes*/,
+			const string & /*simuDir*/);
     // destructor
     ~LeftFrobPsolveMLFMA(void){localRWGnumbers.free();};
     // copy operators
@@ -160,13 +169,15 @@ class LeftFrobPsolveMLFMA {
 };
 
 LeftFrobPsolveMLFMA::LeftFrobPsolveMLFMA(const int numberOfRWG,
-                                         const blitz::Array<int, 1>& localRWGindexes)
+                                         const blitz::Array<int, 1>& localRWGindexes,
+                                         const string & simu_dir)
 {
   procNumber = MPI::COMM_WORLD.Get_rank();
   totalProcNumber = MPI::COMM_WORLD.Get_size();
   N_RWG = numberOfRWG;
   localRWGnumbers.resize(localRWGindexes.size());
   localRWGnumbers = localRWGindexes;
+  simuDir = simu_dir;
 }
 
 void LeftFrobPsolveMLFMA::copyLeftFrobPsolveMLFMA(const LeftFrobPsolveMLFMA& leftFrobPsolveMLFMAtoCopy) // copy member function
@@ -176,6 +187,7 @@ void LeftFrobPsolveMLFMA::copyLeftFrobPsolveMLFMA(const LeftFrobPsolveMLFMA& lef
   N_RWG = leftFrobPsolveMLFMAtoCopy.N_RWG;
   localRWGnumbers.resize(leftFrobPsolveMLFMAtoCopy.localRWGnumbers.size());
   localRWGnumbers = leftFrobPsolveMLFMAtoCopy.localRWGnumbers;
+  simuDir = leftFrobPsolveMLFMAtoCopy.simuDir;
 }
 
 LeftFrobPsolveMLFMA::LeftFrobPsolveMLFMA(const LeftFrobPsolveMLFMA& leftFrobPsolveMLFMAtoCopy) // copy constructor
@@ -198,7 +210,7 @@ blitz::Array<std::complex<float>, 1> LeftFrobPsolveMLFMA::psolve(const blitz::Ar
 
   blitz::Array<std::complex<float>, 1> y(this->N_RWG);
   y = 0.0;
-  const string pathToReadFrom = "./tmp" + intToString(my_id) + "/Mg_LeftFrob/", Z_name = "Mg_LeftFrob";
+  const string pathToReadFrom = simuDir + "/tmp" + intToString(my_id) + "/Mg_LeftFrob/", Z_name = "Mg_LeftFrob";
   blitz::Array<int, 1> chunkNumbers;
   readIntBlitzArray1DFromASCIIFile(pathToReadFrom + "chunkNumbers.txt", chunkNumbers);
   Z_sparse_MLFMA Mg_LeftFrob;
@@ -231,6 +243,7 @@ class PsolveAMLFMA { // should use FGMRES and _NOT_ GMRES or BiCGSTAB
     int NlocalRWG;
     float inner_tol;
     string inner_solver;
+    string simuDir;
 
   public:
     // constructors
@@ -240,7 +253,8 @@ class PsolveAMLFMA { // should use FGMRES and _NOT_ GMRES or BiCGSTAB
                  const int /*INNER_MAXITER*/,
                  const int /*INNER_RESTART*/,
                  const int /*numberOfRWG*/,
-                 const string & /*INNER_SOLVER*/);
+                 const string & /*INNER_SOLVER*/,
+                 const string & /*simuDir*/);
     ~PsolveAMLFMA(void){};
     // function
     blitz::Array<std::complex<float>, 1> psolve(const blitz::Array<std::complex<float>, 1> & /*x*/);
@@ -252,7 +266,8 @@ PsolveAMLFMA::PsolveAMLFMA (MatvecMLFMA & matvecMLFMA,
                             const int INNER_MAXITER,
                             const int INNER_RESTART,
                             const int numberOfRWG,
-                            const string & INNER_SOLVER)
+                            const string & INNER_SOLVER,
+                            const string & simu_dir)
 {
   pMatvecMLFMA = &matvecMLFMA;
   pLeftFrobPsolveMLFMA = &leftFrobPsolveMLFMA;
@@ -264,6 +279,7 @@ PsolveAMLFMA::PsolveAMLFMA (MatvecMLFMA & matvecMLFMA,
   N_RWG = numberOfRWG;
   NlocalRWG = matvecMLFMA.localRWGnumbers.size();
   inner_solver = INNER_SOLVER;
+  simuDir = simu_dir;
 }
 
 blitz::Array<std::complex<float>, 1> PsolveAMLFMA::psolve(const blitz::Array<std::complex<float>, 1>& x)
@@ -271,7 +287,7 @@ blitz::Array<std::complex<float>, 1> PsolveAMLFMA::psolve(const blitz::Array<std
   MatvecFunctor< std::complex<float>, MatvecMLFMA > matvec(pMatvecMLFMA, &MatvecMLFMA::matvec);
   PrecondFunctor< std::complex<float>, LeftFrobPsolveMLFMA > innerPsolve(pLeftFrobPsolveMLFMA, &LeftFrobPsolveMLFMA::psolve);
 
-  const string TMP = "./tmp" + intToString(my_id), ITERATIVE_DATA_PATH = TMP + "/iterative_data/";
+  const string TMP = simuDir + "/tmp" + intToString(my_id), ITERATIVE_DATA_PATH = TMP + "/iterative_data/";
   int iter, flag;
   double error;
   blitz::Array<std::complex<float>, 1> y(this->NlocalRWG);
@@ -317,6 +333,7 @@ void computeE_obs(blitz::Array<std::complex<double>, 2>& E_obs,
 void computeForOneExcitation(Octtree & octtree,
                              LocalMesh & local_target_mesh,
                              const string SOLVER,
+                             const string SIMU_DIR,
                              const string TMP,
                              const string OCTTREE_DATA_PATH,
                              const string MESH_DATA_PATH,
@@ -336,9 +353,9 @@ void computeForOneExcitation(Octtree & octtree,
   int N_RWG, iter, flag, RESTART, MAXITER;
   double error, TOL;
   readIntFromASCIIFile(OCTTREE_DATA_PATH + "N_RWG.txt", N_RWG);
-  MatvecMLFMA matvecMLFMA(octtree, N_RWG, localRWGNumbers);
+  MatvecMLFMA matvecMLFMA(octtree, N_RWG, localRWGNumbers, SIMU_DIR);
   MatvecFunctor< std::complex<float>, MatvecMLFMA > matvec(&matvecMLFMA, &MatvecMLFMA::matvec);
-  LeftFrobPsolveMLFMA leftFrobPsolveMLFMA(N_RWG, localRWGNumbers);
+  LeftFrobPsolveMLFMA leftFrobPsolveMLFMA(N_RWG, localRWGNumbers, SIMU_DIR);
 
   // excitation : V_CFIE computation
   blitz::Array<std::complex<float>, 1> V_CFIE(N_local_RWG);
@@ -355,7 +372,7 @@ void computeForOneExcitation(Octtree & octtree,
     readIntFromASCIIFile(V_CFIE_DATA_PATH + "J_DIPOLES_EXCITATION.txt", J_DIPOLES_EXCITATION);
     if (J_DIPOLES_EXCITATION==1) {
       readBlitzArray2DFromASCIIFile( V_CFIE_DATA_PATH + "J_dip.txt", J_dip);
-      readBlitzArray2DFromASCIIFile( V_CFIE_DATA_PATH + "r_J_dip.txt", r_J_dip);
+      readDoubleBlitzArray2DFromASCIIFile( V_CFIE_DATA_PATH + "r_J_dip.txt", r_J_dip);
       if (my_id==0) {
         //cout << "J_dip.txt = " << J_dip << endl;
         //cout << "r_J_dip.txt = " << r_J_dip << endl;
@@ -369,7 +386,7 @@ void computeForOneExcitation(Octtree & octtree,
     readIntFromASCIIFile(V_CFIE_DATA_PATH + "M_DIPOLES_EXCITATION.txt", M_DIPOLES_EXCITATION);
     if (M_DIPOLES_EXCITATION==1) {
       readBlitzArray2DFromASCIIFile( V_CFIE_DATA_PATH + "M_dip.txt", M_dip);
-      readBlitzArray2DFromASCIIFile( V_CFIE_DATA_PATH + "r_M_dip.txt", r_M_dip);
+      readDoubleBlitzArray2DFromASCIIFile( V_CFIE_DATA_PATH + "r_M_dip.txt", r_M_dip);
       if (my_id==0) {
         //cout << "M_dip.txt = " << M_dip << endl;
         //cout << "r_M_dip.txt = " << r_M_dip << endl;
@@ -428,7 +445,7 @@ void computeForOneExcitation(Octtree & octtree,
     readIntFromASCIIFile(ITERATIVE_DATA_PATH + "INNER_RESTART.txt", INNER_RESTART);
     double INNER_TOL;
     readDoubleFromASCIIFile(ITERATIVE_DATA_PATH + "INNER_TOL.txt", INNER_TOL);
-    PsolveAMLFMA psolveAMLFMA(matvecMLFMA, leftFrobPsolveMLFMA, INNER_TOL, INNER_MAXITER, INNER_RESTART, N_RWG, INNER_SOLVER);
+    PsolveAMLFMA psolveAMLFMA(matvecMLFMA, leftFrobPsolveMLFMA, INNER_TOL, INNER_MAXITER, INNER_RESTART, N_RWG, INNER_SOLVER, SIMU_DIR);
     PrecondFunctor< std::complex<float>, PsolveAMLFMA > psolve(&psolveAMLFMA, &PsolveAMLFMA::psolve);
     fgmres(ZI, error, iter, flag, matvec, psolve, V_CFIE, TOL, RESTART, MAXITER, my_id, num_procs, ITERATIVE_DATA_PATH + "/convergence.txt");
   }
@@ -483,6 +500,7 @@ void computeForOneExcitation(Octtree & octtree,
 void computeMonostaticRCS(Octtree & octtree,
                           LocalMesh & local_target_mesh,
                           const string SOLVER,
+                          const string SIMU_DIR,
                           const string TMP,
                           const string OCTTREE_DATA_PATH,
                           const string MESH_DATA_PATH,
@@ -513,9 +531,9 @@ void computeMonostaticRCS(Octtree & octtree,
   MAX_DELTA_PHASE *= M_PI/180.0;
   if (MONOSTATIC_BY_BISTATIC_APPROX!=1) MAX_DELTA_PHASE = 0.0;
 
-  MatvecMLFMA matvecMLFMA(octtree, N_RWG, localRWGNumbers);
+  MatvecMLFMA matvecMLFMA(octtree, N_RWG, localRWGNumbers, SIMU_DIR);
   MatvecFunctor< std::complex<float>, MatvecMLFMA > matvec(&matvecMLFMA, &MatvecMLFMA::matvec);
-  LeftFrobPsolveMLFMA leftFrobPsolveMLFMA(N_RWG, localRWGNumbers);
+  LeftFrobPsolveMLFMA leftFrobPsolveMLFMA(N_RWG, localRWGNumbers, SIMU_DIR);
   PrecondFunctor< std::complex<float>, LeftFrobPsolveMLFMA > psolve(&leftFrobPsolveMLFMA, &LeftFrobPsolveMLFMA::psolve);
   if (SOLVER=="FGMRES") {
     string INNER_SOLVER;
@@ -525,7 +543,7 @@ void computeMonostaticRCS(Octtree & octtree,
     readIntFromASCIIFile(ITERATIVE_DATA_PATH + "INNER_RESTART.txt", INNER_RESTART);
     double INNER_TOL;
     readDoubleFromASCIIFile(ITERATIVE_DATA_PATH + "INNER_TOL.txt", INNER_TOL);
-    PsolveAMLFMA psolveAMLFMA(matvecMLFMA, leftFrobPsolveMLFMA, INNER_TOL, INNER_MAXITER, INNER_RESTART, N_RWG, INNER_SOLVER);
+    PsolveAMLFMA psolveAMLFMA(matvecMLFMA, leftFrobPsolveMLFMA, INNER_TOL, INNER_MAXITER, INNER_RESTART, N_RWG, INNER_SOLVER, SIMU_DIR);
     PrecondFunctor< std::complex<float>, PsolveAMLFMA > psolve(&psolveAMLFMA, &PsolveAMLFMA::psolve);
   }
   else PrecondFunctor< std::complex<float>, LeftFrobPsolveMLFMA > psolve(&leftFrobPsolveMLFMA, &LeftFrobPsolveMLFMA::psolve);
@@ -661,6 +679,7 @@ void computeMonostaticRCS(Octtree & octtree,
 void computeMonostaticSAR(Octtree & octtree,
                           LocalMesh & local_target_mesh,
                           const string SOLVER,
+                          const string SIMU_DIR,
                           const string TMP,
                           const string OCTTREE_DATA_PATH,
                           const string MESH_DATA_PATH,
@@ -688,9 +707,9 @@ void computeMonostaticSAR(Octtree & octtree,
   readIntFromASCIIFile(ITERATIVE_DATA_PATH + "MAXITER.txt", MAXITER);
   readIntFromASCIIFile(TMP + "/USE_PREVIOUS_SOLUTION.txt", USE_PREVIOUS_SOLUTION);
 
-  MatvecMLFMA matvecMLFMA(octtree, N_RWG, localRWGNumbers);
+  MatvecMLFMA matvecMLFMA(octtree, N_RWG, localRWGNumbers, SIMU_DIR);
   MatvecFunctor< std::complex<float>, MatvecMLFMA > matvec(&matvecMLFMA, &MatvecMLFMA::matvec);
-  LeftFrobPsolveMLFMA leftFrobPsolveMLFMA(N_RWG, localRWGNumbers);
+  LeftFrobPsolveMLFMA leftFrobPsolveMLFMA(N_RWG, localRWGNumbers, SIMU_DIR);
   PrecondFunctor< std::complex<float>, LeftFrobPsolveMLFMA > psolve(&leftFrobPsolveMLFMA, &LeftFrobPsolveMLFMA::psolve);
   if (SOLVER=="FGMRES") {
     string INNER_SOLVER;
@@ -700,7 +719,7 @@ void computeMonostaticSAR(Octtree & octtree,
     readIntFromASCIIFile(ITERATIVE_DATA_PATH + "INNER_RESTART.txt", INNER_RESTART);
     double INNER_TOL;
     readDoubleFromASCIIFile(ITERATIVE_DATA_PATH + "INNER_TOL.txt", INNER_TOL);
-    PsolveAMLFMA psolveAMLFMA(matvecMLFMA, leftFrobPsolveMLFMA, INNER_TOL, INNER_MAXITER, INNER_RESTART, N_RWG, INNER_SOLVER);
+    PsolveAMLFMA psolveAMLFMA(matvecMLFMA, leftFrobPsolveMLFMA, INNER_TOL, INNER_MAXITER, INNER_RESTART, N_RWG, INNER_SOLVER, SIMU_DIR);
     PrecondFunctor< std::complex<float>, PsolveAMLFMA > psolve(&psolveAMLFMA, &PsolveAMLFMA::psolve);
   }
   else PrecondFunctor< std::complex<float>, LeftFrobPsolveMLFMA > psolve(&leftFrobPsolveMLFMA, &LeftFrobPsolveMLFMA::psolve);
@@ -837,13 +856,25 @@ void computeMonostaticSAR(Octtree & octtree,
 /******************************* main ***************************************/
 /****************************************************************************/
 
-int main(void) {
+int main(int argc, char* argv[]) {
 
   MPI::Init();
-  int ierror, num_procs = MPI::COMM_WORLD.Get_size(), my_id = MPI::COMM_WORLD.Get_rank();
+  int ierror;
+  int num_procs = MPI::COMM_WORLD.Get_size();
+  int my_id = MPI::COMM_WORLD.Get_rank();
+
+  string simuDir = ".";
+  if ( argc > 2 ) {
+     if( string(argv[1]) == "--simudir" ) simuDir = argv[2];
+  }
 
   // general variables
-  const string TMP = "./tmp" + intToString(my_id), OCTTREE_DATA_PATH = TMP + "/octtree_data/", MESH_DATA_PATH = TMP + "/mesh/", V_CFIE_DATA_PATH = TMP + "/V_CFIE/", RESULT_DATA_PATH = "./result/";
+  const string SIMU_DIR = simuDir;
+  const string RESULT_DATA_PATH = SIMU_DIR + "/result/";
+  const string TMP = SIMU_DIR + "/tmp" + intToString(my_id);
+  const string OCTTREE_DATA_PATH = TMP + "/octtree_data/";
+  const string MESH_DATA_PATH = TMP + "/mesh/";
+  const string V_CFIE_DATA_PATH = TMP + "/V_CFIE/";
   const string ITERATIVE_DATA_PATH = TMP + "/iterative_data/";
 
   Mesh target_mesh;
@@ -903,13 +934,13 @@ int main(void) {
   if (my_id==0) cout << "SOLVER IS = " << SOLVER << endl;
   ierror = MPI_Barrier(MPI::COMM_WORLD);
   // bistatic computation
-  if (BISTATIC==1) computeForOneExcitation(octtree, local_target_mesh, SOLVER, TMP, OCTTREE_DATA_PATH, MESH_DATA_PATH, V_CFIE_DATA_PATH, RESULT_DATA_PATH, ITERATIVE_DATA_PATH);
+  if (BISTATIC==1) computeForOneExcitation(octtree, local_target_mesh, SOLVER, SIMU_DIR, TMP, OCTTREE_DATA_PATH, MESH_DATA_PATH, V_CFIE_DATA_PATH, RESULT_DATA_PATH, ITERATIVE_DATA_PATH);
   // monostatic RCS computation
   local_target_mesh.setLocalMeshFromFile(MESH_DATA_PATH);
-  if (MONOSTATIC_RCS==1) computeMonostaticRCS(octtree, local_target_mesh, SOLVER, TMP, OCTTREE_DATA_PATH, MESH_DATA_PATH, V_CFIE_DATA_PATH, RESULT_DATA_PATH, ITERATIVE_DATA_PATH);
+  if (MONOSTATIC_RCS==1) computeMonostaticRCS(octtree, local_target_mesh, SOLVER, SIMU_DIR, TMP, OCTTREE_DATA_PATH, MESH_DATA_PATH, V_CFIE_DATA_PATH, RESULT_DATA_PATH, ITERATIVE_DATA_PATH);
   // monostatic SAR computation
   local_target_mesh.setLocalMeshFromFile(MESH_DATA_PATH);
-  if (MONOSTATIC_SAR==1) computeMonostaticSAR(octtree, local_target_mesh, SOLVER, TMP, OCTTREE_DATA_PATH, MESH_DATA_PATH, V_CFIE_DATA_PATH, RESULT_DATA_PATH, ITERATIVE_DATA_PATH);
+  if (MONOSTATIC_SAR==1) computeMonostaticSAR(octtree, local_target_mesh, SOLVER, SIMU_DIR, TMP, OCTTREE_DATA_PATH, MESH_DATA_PATH, V_CFIE_DATA_PATH, RESULT_DATA_PATH, ITERATIVE_DATA_PATH);
   MPI::Finalize();
   return 0;
 }

@@ -80,34 +80,34 @@ def computeTreeParameters(my_id, tmpDirName, a, k, N_levels, params_simu):
     NOrderInterpTheta = L[0]
     NOrderInterpPhi = L[0]
     # now we write the info to disk
-    writeScalarToDisk(NOrderInterpTheta, os.path.join('.', tmpDirName, 'octtree_data/NOrderInterpTheta.txt') )
-    writeScalarToDisk(NOrderInterpPhi, os.path.join('.', tmpDirName, 'octtree_data/NOrderInterpPhi.txt') )
-    writeASCIIBlitzArrayToDisk(L, os.path.join('.', tmpDirName, 'octtree_data/LExpansion.txt') )
+    writeScalarToDisk(NOrderInterpTheta, os.path.join(tmpDirName, 'octtree_data/NOrderInterpTheta.txt') )
+    writeScalarToDisk(NOrderInterpPhi, os.path.join(tmpDirName, 'octtree_data/NOrderInterpPhi.txt') )
+    writeASCIIBlitzArrayToDisk(L, os.path.join(tmpDirName, 'octtree_data/LExpansion.txt') )
     # we need the following line as a workaround for a weave compilation issue
     # that arises sometimes in FMM_precond.py, when not all the weave modules have been compiled
-    writeASCIIBlitzArrayToDisk(zeros((2,2), 'i'), os.path.join('.', tmpDirName, 'octtree_data/nothing.txt') )
-    writeScalarToDisk(params_simu.alphaTranslation_smoothing_factor, os.path.join('.', tmpDirName, 'octtree_data/alphaTranslation_smoothing_factor.txt') )
-    writeScalarToDisk(params_simu.alphaTranslation_thresholdRelValueMax, os.path.join('.', tmpDirName, 'octtree_data/alphaTranslation_thresholdRelValueMax.txt') )
-    writeScalarToDisk(params_simu.alphaTranslation_RelativeCountAboveThreshold, os.path.join('.', tmpDirName, 'octtree_data/alphaTranslation_RelativeCountAboveThreshold.txt') )
-    writeASCIIBlitzArrayToDisk(octtreeNthetas, os.path.join('.', tmpDirName, 'octtree_data/octtreeNthetas.txt') )
-    writeASCIIBlitzArrayToDisk(octtreeNphis, os.path.join('.', tmpDirName, 'octtree_data/octtreeNphis.txt') )
-    writeASCIIBlitzArrayToDisk(octtreeXthetas, os.path.join('.', tmpDirName, 'octtree_data/octtreeXthetas.txt') )
-    writeASCIIBlitzArrayToDisk(octtreeXphis, os.path.join('.', tmpDirName, 'octtree_data/octtreeXphis.txt') )
-    writeASCIIBlitzArrayToDisk(octtreeWthetas, os.path.join('.', tmpDirName, 'octtree_data/octtreeWthetas.txt') )
-    writeASCIIBlitzArrayToDisk(octtreeWphis, os.path.join('.', tmpDirName, 'octtree_data/octtreeWphis.txt') )
+    writeASCIIBlitzArrayToDisk(zeros((2,2), 'i'), os.path.join(tmpDirName, 'octtree_data/nothing.txt') )
+    writeScalarToDisk(params_simu.alphaTranslation_smoothing_factor, os.path.join(tmpDirName, 'octtree_data/alphaTranslation_smoothing_factor.txt') )
+    writeScalarToDisk(params_simu.alphaTranslation_thresholdRelValueMax, os.path.join(tmpDirName, 'octtree_data/alphaTranslation_thresholdRelValueMax.txt') )
+    writeScalarToDisk(params_simu.alphaTranslation_RelativeCountAboveThreshold, os.path.join(tmpDirName, 'octtree_data/alphaTranslation_RelativeCountAboveThreshold.txt') )
+    writeASCIIBlitzArrayToDisk(octtreeNthetas, os.path.join(tmpDirName, 'octtree_data/octtreeNthetas.txt') )
+    writeASCIIBlitzArrayToDisk(octtreeNphis, os.path.join(tmpDirName, 'octtree_data/octtreeNphis.txt') )
+    writeASCIIBlitzArrayToDisk(octtreeXthetas, os.path.join(tmpDirName, 'octtree_data/octtreeXthetas.txt') )
+    writeASCIIBlitzArrayToDisk(octtreeXphis, os.path.join(tmpDirName, 'octtree_data/octtreeXphis.txt') )
+    writeASCIIBlitzArrayToDisk(octtreeWthetas, os.path.join(tmpDirName, 'octtree_data/octtreeWthetas.txt') )
+    writeASCIIBlitzArrayToDisk(octtreeWphis, os.path.join(tmpDirName, 'octtree_data/octtreeWphis.txt') )
     A_theta, B_theta, A_phi, B_phi = 0., pi, 0., 2.*pi
-    writeScalarToDisk(A_theta, os.path.join('.', tmpDirName, 'octtree_data/A_theta.txt') )
-    writeScalarToDisk(B_theta, os.path.join('.', tmpDirName, 'octtree_data/B_theta.txt') )
-    writeScalarToDisk(A_phi, os.path.join('.', tmpDirName, 'octtree_data/A_phi.txt') )
-    writeScalarToDisk(B_phi, os.path.join('.', tmpDirName, 'octtree_data/B_phi.txt') )
+    writeScalarToDisk(A_theta, os.path.join(tmpDirName, 'octtree_data/A_theta.txt') )
+    writeScalarToDisk(B_theta, os.path.join(tmpDirName, 'octtree_data/B_theta.txt') )
+    writeScalarToDisk(A_phi, os.path.join(tmpDirName, 'octtree_data/A_phi.txt') )
+    writeScalarToDisk(B_phi, os.path.join(tmpDirName, 'octtree_data/B_phi.txt') )
     N_theta, N_phi = octtreeNthetas[0], octtreeNphis[0]
     INCLUDED_THETA_BOUNDARIES, INCLUDED_PHI_BOUNDARIES = 0, 0
     if (abs(octtreeXthetas[0,0]-A_theta)<=1.e-8) and (abs(octtreeXthetas[0,N_theta-1]-B_theta)<=1.e-8):
         INCLUDED_THETA_BOUNDARIES = 1
     if (abs(octtreeXphis[0,0]-A_phi)<=1.e-8) and (abs(octtreeXphis[0,N_phi-1]-B_phi)<=1.e-8):
         INCLUDED_PHI_BOUNDARIES = 1
-    writeScalarToDisk(INCLUDED_THETA_BOUNDARIES, os.path.join('.', tmpDirName, 'octtree_data/INCLUDED_THETA_BOUNDARIES.txt') )
-    writeScalarToDisk(INCLUDED_PHI_BOUNDARIES, os.path.join('.', tmpDirName, 'octtree_data/INCLUDED_PHI_BOUNDARIES.txt') )
+    writeScalarToDisk(INCLUDED_THETA_BOUNDARIES, os.path.join(tmpDirName, 'octtree_data/INCLUDED_THETA_BOUNDARIES.txt') )
+    writeScalarToDisk(INCLUDED_PHI_BOUNDARIES, os.path.join(tmpDirName, 'octtree_data/INCLUDED_PHI_BOUNDARIES.txt') )
 
     # we now have to calculate the theta/phi abscissas for the coarsest level
     # These are needed for far-field computation
@@ -144,23 +144,23 @@ def computeTreeParameters(my_id, tmpDirName, a, k, N_levels, params_simu):
         octtreeXphis_coarsest[0] = params_simu.START_PHI
     if (my_id==0) and (params_simu.VERBOSE == 1):
         print "L for coarsest level =", L_coarsest
-    writeASCIIBlitzArrayToDisk(octtreeXthetas_coarsest, os.path.join('.', tmpDirName, 'octtree_data/octtreeXthetas_coarsest.txt') )
-    writeASCIIBlitzArrayToDisk(octtreeXphis_coarsest, os.path.join('.', tmpDirName, 'octtree_data/octtreeXphis_coarsest.txt') )
+    writeASCIIBlitzArrayToDisk(octtreeXthetas_coarsest, os.path.join(tmpDirName, 'octtree_data/octtreeXthetas_coarsest.txt') )
+    writeASCIIBlitzArrayToDisk(octtreeXphis_coarsest, os.path.join(tmpDirName, 'octtree_data/octtreeXphis_coarsest.txt') )
     MPI.COMM_WORLD.Barrier()
 
-def print_times(params_simu):
+def print_times(params_simu, simuDirName):
     num_proc = MPI.COMM_WORLD.Get_size()
     my_id = MPI.COMM_WORLD.Get_rank()
-    tmpDirName = 'tmp' + str(my_id)
+    tmpDirName = os.path.join(simuDirName, 'tmp' + str(my_id))
     if (my_id == 0):
         # final moves
-        file = open(os.path.join('.', tmpDirName, 'pickle', 'variables.txt'), 'r')
+        file = open(os.path.join(tmpDirName, 'pickle', 'variables.txt'), 'r')
         variables = cPickle.load(file)
         file.close()
-        numberOfMatvecs = readIntFromDisk(os.path.join('.',tmpDirName,'iterative_data/numberOfMatvecs.txt'))
-        NIterMLFMA = readIntFromDisk(os.path.join('.',tmpDirName,'iterative_data/iter.txt'))
-        average_RWG_length = readFloatFromDisk(os.path.join('.',tmpDirName,'mesh/average_RWG_length.txt'))
-        file = open('./result/CPU_time_MLFMA.txt', 'r')
+        numberOfMatvecs = readIntFromDisk(os.path.join(tmpDirName,'iterative_data/numberOfMatvecs.txt'))
+        NIterMLFMA = readIntFromDisk(os.path.join(tmpDirName,'iterative_data/iter.txt'))
+        average_RWG_length = readFloatFromDisk(os.path.join(tmpDirName,'mesh/average_RWG_length.txt'))
+        file = open(os.path.join(simuDirName,'result/CPU_time_MLFMA.txt'), 'r')
         CPU_time_MLFMA_tmp = file.readlines()
         file.close()
         CPU_time_MLFMA = 0.0
@@ -182,17 +182,17 @@ def print_times(params_simu):
             print variables['CPU_time_Z_near_computation'] + variables['CPU_time_Mg_computation'] + CPU_time_MLFMA, "CPU time (seconds) for complete MLFMA solution"
             #print Wall_time_Z_near_computation + Wall_time_Mg_computation + target_MLFMA.Wall_time_Target_MLFMA_resolution, "Wall time (seconds) for complete MLFMA solution"
         if params_simu.CURRENTS_VISUALIZATION:
-            computeCurrentsVisualization(params_simu, variables)
+            computeCurrentsVisualization(params_simu, variables, simuDirName)
         if params_simu.SAVE_CURRENTS_CENTROIDS:
-            saveCurrentsCentroids(params_simu)
+            saveCurrentsCentroids(params_simu, simuDirName)
 
-def computeCurrentsVisualization(params_simu, variables):
+def computeCurrentsVisualization(params_simu, variables, simuDirName):
     my_id = MPI.COMM_WORLD.Get_rank()
-    tmpDirName = 'tmp' + str(my_id)
+    tmpDirName = os.path.join(simuDirName, 'tmp' + str(my_id))
     if (my_id == 0):
         target_mesh = MeshClass(params_simu.pathToTarget, params_simu.targetName, params_simu.targetDimensions_scaling_factor, params_simu.z_offset, params_simu.languageForMeshConstruction, params_simu.meshFormat, params_simu.meshFileTermination)
         # target_mesh.constructFromGmshFile()
-        target_mesh.constructFromSavedArrays(os.path.join('.', tmpDirName, "mesh"))
+        target_mesh.constructFromSavedArrays(os.path.join(tmpDirName, "mesh"))
         CURRENTS_VISUALIZATION = params_simu.CURRENTS_VISUALIZATION and (target_mesh.N_RWG<2e6) and (params_simu.BISTATIC == 1)
         if CURRENTS_VISUALIZATION:
             print "............Constructing visualisation of currents"
@@ -200,7 +200,6 @@ def computeCurrentsVisualization(params_simu, variables):
                 nbTimeSteps = 48
             else:
                 nbTimeSteps = 1
-            tmpDirName = 'tmp' + str(my_id)
             I_coeff = read1DBlitzArrayFromDisk(os.path.join(tmpDirName, 'ZI/ZI.txt'), 'F')
             J_centroids_triangles = JMCentroidsTriangles(I_coeff, target_mesh)
             norm_J_centroids_triangles = normJMCentroidsTriangles(J_centroids_triangles, variables['w'], nbTimeSteps)
@@ -211,21 +210,20 @@ def computeCurrentsVisualization(params_simu, variables):
             "Error in the computeCurrentsVisualization routine. Probably you required currents visualization computation for a mesh too big"
             sys.exit(1)
 
-def saveCurrentsCentroids(params_simu):
+def saveCurrentsCentroids(params_simu, simuDirName):
     my_id = MPI.COMM_WORLD.Get_rank()
-    tmpDirName = 'tmp' + str(my_id)
+    tmpDirName = os.path.join(simuDirName, 'tmp' + str(my_id))
     if (my_id == 0):
         target_mesh = MeshClass(params_simu.pathToTarget, params_simu.targetName, params_simu.targetDimensions_scaling_factor, params_simu.z_offset, params_simu.languageForMeshConstruction, params_simu.meshFormat, params_simu.meshFileTermination)
         # target_mesh.constructFromGmshFile()
-        target_mesh.constructFromSavedArrays(os.path.join('.', tmpDirName, "mesh"))
+        target_mesh.constructFromSavedArrays(os.path.join(tmpDirName, "mesh"))
         SAVE_CURRENTS_CENTROIDS = (params_simu.SAVE_CURRENTS_CENTROIDS and (params_simu.BISTATIC == 1))
         if SAVE_CURRENTS_CENTROIDS:
             print "............saving currents at centroids of triangles"
             nbTimeSteps = 1
-            tmpDirName = 'tmp' + str(my_id)
             I_coeff = read1DBlitzArrayFromDisk(os.path.join(tmpDirName, 'ZI/ZI.txt'), 'F')
             J_centroids_triangles = JMCentroidsTriangles(I_coeff, target_mesh)
-            write_VectorFieldTrianglesCentroids(os.path.join('./result', 'J_centroids_triangles.txt'), J_centroids_triangles, target_mesh)
+            write_VectorFieldTrianglesCentroids(os.path.join(simuDirName, 'result', 'J_centroids_triangles.txt'), J_centroids_triangles, target_mesh)
             print "............end of saving of currents."
 
 def getField(filename):

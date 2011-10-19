@@ -122,7 +122,7 @@ def Z_nearChunksDistribution(MAX_BLOCK_SIZE, N_nearPerCube, C, pathToWriteTo):
         print "Total size of Z_near matrix =", Total_Z_near_size, "MBytes"
         print "Number of leaf cubes =", C
         print "Forecasted number of chunks =", Forecasted_number_of_chunks
-        cubesIndexAndNumberToProcessNumber = readASCIIBlitzIntArray2DFromDisk(os.path.join('.',pathToWriteTo, 'octtree_data/cubesIndexAndNumberToProcessNumber_FOR_Z_NEAR.txt') )
+        cubesIndexAndNumberToProcessNumber = readASCIIBlitzIntArray2DFromDisk(os.path.join(pathToWriteTo, 'octtree_data/cubesIndexAndNumberToProcessNumber_FOR_Z_NEAR.txt') )
         # processNumber_to_cubesIndexes
         processNumber_to_cubesIndexes = {}
         for i in range(num_procs):

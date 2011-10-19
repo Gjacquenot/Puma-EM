@@ -17,13 +17,22 @@ using namespace blitz;
 #include "mesh.h"
 #include "EMConstants.h"
 
-int main(void) {
+int main(int argc, char* argv[]) {
 
   MPI::Init();
-  int ierror, num_procs = MPI::COMM_WORLD.Get_size(), my_id = MPI::COMM_WORLD.Get_rank();
+  int ierror;
+  int num_procs = MPI::COMM_WORLD.Get_size();
+  int my_id = MPI::COMM_WORLD.Get_rank();
+
+  string simuDir = ".";
+  if ( argc > 2 ) {
+     if( string(argv[1]) == "--simudir" ) simuDir = argv[2];
+  }
 
   // general variables
-  const string TMP = "./tmp" + intToString(my_id), OCTTREE_DATA_PATH = TMP + "/octtree_data/", MESH_DATA_PATH = TMP + "/mesh/";
+  const string TMP = simuDir + "/tmp" + intToString(my_id);
+  const string OCTTREE_DATA_PATH = TMP + "/octtree_data/";
+  const string MESH_DATA_PATH = TMP + "/mesh/";
   writeIntToASCIIFile(OCTTREE_DATA_PATH + "CUBES_DISTRIBUTION.txt", 1);
   if (my_id==0) {
       Mesh target_mesh(MESH_DATA_PATH);
