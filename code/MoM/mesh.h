@@ -57,12 +57,12 @@ class Mesh {
 class LocalMesh {
 
   public:
-    int N_local_RWG, N_local_nodes;
+    int N_local_RWG;
     blitz::Array<int, 1> localRWGNumbers;
     blitz::Array<int, 1> reallyLocalRWGNumbers;
     blitz::Array<int, 1> localRWGNumber_CFIE_OK;
-    blitz::Array<int, 2> localRWGNumber_trianglesNodes;
-    blitz::Array<double, 2> local_vertexes_coord;
+    blitz::Array<float, 2> localRWGNumber_trianglesCoord;
+
     // constructors
     LocalMesh(void);
     LocalMesh(const string /*path*/);

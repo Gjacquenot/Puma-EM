@@ -52,7 +52,7 @@ class Level {
   public:
     //! a list of the cubes that belong to the current level 
     std::vector<Cube> cubes;
-    //! a cube number to cube index array
+    //! a cube cartesian number to cube index array. Necessary to quickly find its neighbours
     std::vector< Dictionary<int, int> > numbersToIndexes;
     //! a list of the indexes of the cubes that are on the same process 
     std::vector<int> localCubesIndexes;
@@ -257,6 +257,7 @@ class Level {
     const std::vector< std::vector<int> > getListOfFcToBeReceived(void) const {return listOfFcToBeReceived;};
     const std::vector< std::vector<int> > getListOfFcToBeSent(void) const {return listOfFcToBeSent;};
     const std::vector<int> getCubesIndexesAfterReduction(void) const {return cubesIndexesAfterReduction;};
+    void computeOldIndexesOfCubes(blitz::Array<int, 1>& /*oldIndexesOfCubes*/); 
     void computeLevelReduction(void);
     const int getNumbersToIndexesSize(void) const {return numbersToIndexes.size();};
     const int getNumberToIndex(const int i) const {return numbersToIndexes[i].getKey();};
@@ -269,7 +270,11 @@ class Level {
     const blitz::Array<float, 1> getPhis(void) const {return phis;};
     const int getNThetas(void) const {return thetas.size();};
     const int getNPhis(void) const {return phis.size();};
-    void computeGaussLocatedArguments(const Mesh& /*target_mesh*/, const int /*N_Gauss*/);
+    void computeGaussLocatedArguments(const blitz::Array<int, 1>& /*local_cubes_NRWG*/, 
+                                      const blitz::Array<int, 1>& /*local_RWG_numbers*/, 
+                                      const blitz::Array<int, 1>& /*local_RWG_Numbers_CFIE_OK*/, 
+                                      const blitz::Array<float, 2>& /*local_RWGNumbers_trianglesCoord*/,
+                                      const int /*N_Gauss*/);
     void shiftingArraysComputation(void);
     const double getShiftingArraysSizeMB(void) const {return shiftingArrays.size() *  2.0*4.0/(1024.0*1024.0);};
     const blitz::Array<int, 1> getAlphaTranslationsExtents(void) const;

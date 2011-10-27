@@ -306,9 +306,17 @@ void Octtree::writeAssignedLeafCubesToDisk(const string path, const string filen
   writeIntBlitzArray2DToASCIIFile(path + filename, cubesNumberToProcessNumber);
 }
 
-void Octtree::computeGaussLocatedArguments(const Mesh& target_mesh) {
+void Octtree::computeIndexesOfCubesInOriginalMesh(blitz::Array<int, 1>& oldIndexesOfCubes) {
+  levels[0].computeOldIndexesOfCubes(oldIndexesOfCubes);
+}
+
+void Octtree::computeGaussLocatedArguments(const blitz::Array<int, 1>& local_cubes_NRWG, 
+                                           const blitz::Array<int, 1>& local_RWG_numbers, 
+                                           const blitz::Array<int, 1>& local_RWG_Numbers_CFIE_OK, 
+                                           const blitz::Array<float, 2>& local_RWGNumbers_trianglesCoord)
+{
   if ( (getProcNumber()==0) && (VERBOSE==1) ) cout << "computing the leaf level Gauss located arguments.........." << endl;
-  levels[0].computeGaussLocatedArguments(target_mesh, this->N_GaussOnTriangle);
+  levels[0].computeGaussLocatedArguments(local_cubes_NRWG, local_RWG_numbers, local_RWG_Numbers_CFIE_OK, local_RWGNumbers_trianglesCoord, this->N_GaussOnTriangle);
 }
 
 void Octtree::constructArrays(void) 
@@ -1071,9 +1079,9 @@ void Octtree::computeFarField(blitz::Array<std::complex<float>, 2>& e_theta_far,
     SupLastLevel += static_cast<std::complex<float> >(-I*mu_0)  * w * mu_r * SupLastLevelTmp;
   }
   // we now gather all
-  ierror = MPI_Barrier(MPI::COMM_WORLD);
+  ierror = MPI_Barrier(MPI_COMM_WORLD);
   SupLastLevelTmp = 0.0;
-  ierror = MPI_Allreduce(SupLastLevel.data(), SupLastLevelTmp.data(), SupLastLevelTmp.size(), MPI::COMPLEX, MPI::SUM, MPI::COMM_WORLD);
+  ierror = MPI_Allreduce(SupLastLevel.data(), SupLastLevelTmp.data(), SupLastLevelTmp.size(), MPI_COMPLEX, MPI_SUM, MPI_COMM_WORLD);
   SupLastLevel = SupLastLevelTmp;
   e_theta_far.resize(N_thetaCoarseLevel, N_phiCoarseLevel);
   e_phi_far.resize(N_thetaCoarseLevel, N_phiCoarseLevel);

@@ -21,8 +21,7 @@ void V_CFIE_slot (blitz::Array<std::complex<float>, 1> V_CFIE,
                   const double slot_length,
                   const blitz::Array<int, 1>& numbers_RWG_test,
                   const blitz::Array<int, 1>& RWGNumber_CFIE_OK,
-                  const blitz::Array<int, 2>& RWGNumber_trianglesNodes,
-                  const blitz::Array<double, 2>& vertexes_coord,
+                  const blitz::Array<float, 2>& RWGNumber_trianglesCoord,
                   const double w,
                   const std::complex<double>& eps_r,
                   const std::complex<double>& mu_r,
@@ -55,16 +54,14 @@ void V_CFIE_slot (blitz::Array<std::complex<float>, 1> V_CFIE,
 
   for (int rwg=0 ; rwg<N_RWG_test ; ++rwg) { // loop on the RWGs
     for (int tr = 0 ; tr<2 ; ++tr) {
-      int n0, n1, n2;
       double l_p;
       blitz::Array<double, 1> rt0(3), rt1(3), rt2(3), r_opp(3);
       if (tr==0) {
-        n0 = RWGNumber_trianglesNodes(rwg, 0);
-        n1 = RWGNumber_trianglesNodes(rwg, 1);
-        n2 = RWGNumber_trianglesNodes(rwg, 2);
-        rt0 = vertexes_coord(n0, all);
-        rt1 = vertexes_coord(n1, all);
-        rt2 = vertexes_coord(n2, all);
+        for (int i=0; i<3; i++) { 
+          rt0(i) = RWGNumber_trianglesCoord(rwg, i);
+          rt1(i) = RWGNumber_trianglesCoord(rwg, i+3);
+          rt2(i) = RWGNumber_trianglesCoord(rwg, i+6);
+        }
         for (int i=0 ; i<3 ; i++) {
           r0(i) = rt0(i);
           r1(i) = rt1(i);
@@ -74,12 +71,11 @@ void V_CFIE_slot (blitz::Array<std::complex<float>, 1> V_CFIE,
         l_p = sqrt(sum((rt1-rt2) * (rt1-rt2)));
       }
       else{
-        n0 = RWGNumber_trianglesNodes(rwg, 2);
-        n1 = RWGNumber_trianglesNodes(rwg, 1);
-        n2 = RWGNumber_trianglesNodes(rwg, 3);
-        rt0 = vertexes_coord(n0, all);
-        rt1 = vertexes_coord(n1, all);
-        rt2 = vertexes_coord(n2, all);
+        for (int i=0; i<3; i++) { 
+          rt0(i) = RWGNumber_trianglesCoord(rwg, i+6);
+          rt1(i) = RWGNumber_trianglesCoord(rwg, i+3);
+          rt2(i) = RWGNumber_trianglesCoord(rwg, i+9);
+        }
         for (int i=0 ; i<3 ; i++) {
           r0(i) = rt0(i);
           r1(i) = rt1(i);
@@ -167,6 +163,6 @@ void local_V_CFIE_slot (blitz::Array<std::complex<float>, 1>& V_CFIE,
 {
   // slot excitation vector
   V_CFIE.resize(local_target_mesh.N_local_RWG);
-  V_CFIE_slot (V_CFIE, CFIE, E_0, l_hat, r_ref, slot_length, local_target_mesh.reallyLocalRWGNumbers, local_target_mesh.localRWGNumber_CFIE_OK, local_target_mesh.localRWGNumber_trianglesNodes, local_target_mesh.local_vertexes_coord, w, eps_r, mu_r, FULL_PRECISION);
+  V_CFIE_slot (V_CFIE, CFIE, E_0, l_hat, r_ref, slot_length, local_target_mesh.reallyLocalRWGNumbers, local_target_mesh.localRWGNumber_CFIE_OK, local_target_mesh.localRWGNumber_trianglesCoord, w, eps_r, mu_r, FULL_PRECISION);
 }
 

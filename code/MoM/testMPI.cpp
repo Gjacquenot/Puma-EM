@@ -34,7 +34,7 @@ int main(void) {
 //
 //  Print a message.
 //
-/*  if ( my_id == master ) {
+  if ( my_id == master ) {
     cout << "Hi, I am the master node." << endl;
     cout << "###########################################" << endl;
     cout << "number of processes = " << num_procs << endl;
@@ -61,7 +61,7 @@ int main(void) {
     MPI_Send(AA.data(), AA.size(), MPI::COMPLEX, 1, tag, MPI_COMM_WORLD);
 
     // Ultimate test: use of packing
-    Array<complex<float>, 2> AAA(N+3, 2);
+/*    Array<complex<float>, 2> AAA(N+3, 2);
     for (int i=0 ; i<AAA.extent(0); ++i) {
       for (int j=0 ; j<AAA.extent(1); ++j) AAA(i, j) = a_i.random() + a_i.random() * I;
     }
@@ -69,7 +69,7 @@ int main(void) {
     int S = AAA.size();
     int position = 0;
     MPI_Pack(&S, 1, MPI::INT, AAABuffer.data(), AAABuffer.size(), &position, MPI_COMM_WORLD);
-    MPI_Pack(AAA.data(), S, MPI::COMPLEX, AAABuffer.data(), AAABuffer.size(), &position, MPI_COMM_WORLD);
+    MPI_Pack(AAA.data(), S, MPI::COMPLEX, AAABuffer.data(), AAABuffer.size(), &position, MPI_COMM_WORLD);*/
   }
   else {
     cout << "Hi, I am node number " << my_id << endl;
@@ -86,9 +86,9 @@ int main(void) {
     Array<complex<float>, 2> BB(N, 2);
     MPI_Recv(BB.data(), BB.size(), MPI::COMPLEX, 0, tag, MPI_COMM_WORLD, &status);
     cout << "on process " << my_id << ", BB = " << BB << endl;
-  }*/
+  }
 
-  N = 9;
+/*  N = 9;
   Array<complex<float>, 1> A(N), B, C(N);
   ranlib::Uniform<double> a_i;
   a_i.seed((unsigned int)time(0));
@@ -110,10 +110,10 @@ int main(void) {
   ierror = MPI_Scatterv( A.data(), MPI_Scatterv_scounts.data(), MPI_Scatterv_displs.data(), MPI::COMPLEX, B.data(), B.size(), MPI::COMPLEX, 0,  MPI_COMM_WORLD);
   cout << "on process " << my_id << ", B = " << B << endl;
 
-  ierror = MPI_Gatherv( B.data(), B.size(), MPI::COMPLEX, , MPI_Scatterv_scounts.data(), MPI_Scatterv_displs.data(), C.data(), MPI::COMPLEX, 0,  MPI_COMM_WORLD);
+  ierror = MPI_Gatherv( B.data(), B.size(), MPI::COMPLEX, C.data(), MPI_Scatterv_scounts.data(), MPI_Scatterv_displs.data(), MPI::COMPLEX, 0,  MPI_COMM_WORLD);
 
   cout << "on process " << my_id << ", C = " << C << endl;
-
+*/
 
   MPI::Finalize();
   return 0;

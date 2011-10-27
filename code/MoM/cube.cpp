@@ -55,42 +55,43 @@ Cube::Cube(const Cube& sonCube,
   fatherNumber = static_cast<int>(cartesianCoordInFathers(0) * pow2(maxNumberCubes1D_next_level) + cartesianCoordInFathers(1) * maxNumberCubes1D_next_level + cartesianCoordInFathers(2));
 }
 
-void Cube::computeGaussLocatedArguments(const Mesh& target_mesh, const int N_Gauss)
+void Cube::computeGaussLocatedArguments(const blitz::Array<int, 1>& local_RWG_numbers,
+                                        const blitz::Array<int, 1>& local_RWG_Numbers_CFIE_OK,
+                                        const blitz::Array<float, 2>& local_RWGNumbers_trianglesCoord,
+                                        const int startIndex_in_localArrays,
+                                        const int NRWG,
+                                        const int N_Gauss)
 {
-  // we compute the values of GaussLocatedWeightedRWG and GaussLocatedExpArg
-  blitz::Range all = blitz::Range::all();
-  vector<int> RWG_numbersTmp;
-  Array<int, 1> cube_RWGsNumbers( target_mesh.cubes_RWGsNumbers(this->getOldIndex(), all) );
-  for (int j=0 ; j<cube_RWGsNumbers.size() ; ++j) {
-    if (cube_RWGsNumbers(j)<0) break;
-    else RWG_numbersTmp.push_back(cube_RWGsNumbers(j));
-  }
-  sort(RWG_numbersTmp.begin(), RWG_numbersTmp.end());
-  RWG_numbers.resize(RWG_numbersTmp.size());
-  for (int j=0 ; j<RWG_numbersTmp.size() ; ++j) RWG_numbers[j] = RWG_numbersTmp[j];
-
-  RWG_numbers_CFIE_OK.resize(RWG_numbers.size());
-  GaussLocatedWeightedRWG.resize(RWG_numbers.size(), 2*N_Gauss);
-  GaussLocatedWeighted_nHat_X_RWG.resize(RWG_numbers.size(), 2*N_Gauss);
-  GaussLocatedExpArg.resize(RWG_numbers.size(), 2*N_Gauss);
+  RWG_numbers.resize(NRWG);
+  RWG_numbers_CFIE_OK.resize(NRWG);
+  for (int j=0 ; j<NRWG ; ++j) RWG_numbers[j] = local_RWG_numbers(startIndex_in_localArrays + j);
+  for (int j=0 ; j<NRWG ; ++j) RWG_numbers_CFIE_OK[j] = local_RWG_Numbers_CFIE_OK(startIndex_in_localArrays + j);
+  
+  GaussLocatedWeightedRWG.resize(NRWG, 2*N_Gauss);
+  GaussLocatedWeighted_nHat_X_RWG.resize(NRWG, 2*N_Gauss);
+  GaussLocatedExpArg.resize(NRWG, 2*N_Gauss);
   double sum_weigths;
   const double *xi, *eta, *weigths;
   IT_points (xi, eta, weigths, sum_weigths, N_Gauss);
-  for (int j=0 ; j<RWG_numbers.size() ; ++j) {
-    const int RWG_number = RWG_numbers[j];
-    RWG_numbers_CFIE_OK[j] = target_mesh.RWGNumber_CFIE_OK(RWG_number);
+
+  for (int j=0 ; j<NRWG ; ++j) {
     blitz::TinyVector<double, 3> r, r_p, r0, r1, r2, n_hat;
     for (int halfBasisCounter = 0 ; halfBasisCounter < 2 ; ++halfBasisCounter) {
-      rNode(r_p, target_mesh.vertexes_coord, target_mesh.RWGNumber_oppVertexes(RWG_number, halfBasisCounter));
-      r0 = r_p;
       if (halfBasisCounter==0) {
-        rNode(r1, target_mesh.vertexes_coord, target_mesh.RWGNumber_edgeVertexes(RWG_number, 0));
-        rNode(r2, target_mesh.vertexes_coord, target_mesh.RWGNumber_edgeVertexes(RWG_number, 1));
+        for (int i=0; i<3; i++) {
+          r0(i) = local_RWGNumbers_trianglesCoord(startIndex_in_localArrays + j, i);
+          r1(i) = local_RWGNumbers_trianglesCoord(startIndex_in_localArrays + j, i+3);
+          r2(i) = local_RWGNumbers_trianglesCoord(startIndex_in_localArrays + j, i+6);
+        }
       }
       else {
-        rNode(r1, target_mesh.vertexes_coord, target_mesh.RWGNumber_edgeVertexes(RWG_number, 1));
-        rNode(r2, target_mesh.vertexes_coord, target_mesh.RWGNumber_edgeVertexes(RWG_number, 0));
+        for (int i=0; i<3; i++) {
+          r0(i) = local_RWGNumbers_trianglesCoord(startIndex_in_localArrays + j, i+9);
+          r1(i) = local_RWGNumbers_trianglesCoord(startIndex_in_localArrays + j, i+6);
+          r2(i) = local_RWGNumbers_trianglesCoord(startIndex_in_localArrays + j, i+3);
+        }
       }
+      r_p = r0;
       const blitz::TinyVector<double, 3> r1_r0(r1 - r0), r2_r0(r2-r0);
       n_hat = cross(r1_r0, r2_r0);
       const double Area = sqrt(dot(n_hat, n_hat))/2.0;
@@ -107,6 +108,7 @@ void Cube::computeGaussLocatedArguments(const Mesh& target_mesh, const int N_Gau
     }
   }
 }
+
 
 void Cube::copyCube(const Cube& cubeToCopy) // copy member function
 {

@@ -78,6 +78,7 @@ void writeDoubleBlitzArray2DToASCIIFile(const string filename, blitz::Array<doub
 void writeFloatBlitzArray2DToASCIIFile(const string filename, blitz::Array<float, 2>& A);
 // write 2D binary arrays
 void writeIntBlitzArray2DToBinaryFile(const string filename, blitz::Array<int, 2>& A);
+void writeFloatBlitzArray2DToBinaryFile(const string filename, blitz::Array<float, 2>& A);
 void writeDoubleBlitzArray2DToBinaryFile(const string filename, blitz::Array<double, 2>& A);
 void writeComplexFloatBlitzArray2DToBinaryFile(const string filename, blitz::Array<complex<float>, 2>& A);
 

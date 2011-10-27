@@ -399,7 +399,7 @@ void Level::alphaTranslationsComputation(const int VERBOSE,
           // we then seek the max of alpha_all_directions
           double max_abs_alpha_local = max(abs(alpha));
           double max_abs_alpha = max_abs_alpha_local;
-          if ( this->DIRECTIONS_PARALLELIZATION==1 ) int ierror = MPI_Allreduce(&max_abs_alpha_local, &max_abs_alpha, 1, MPI::DOUBLE, MPI::MAX, MPI::COMM_WORLD);
+          if ( this->DIRECTIONS_PARALLELIZATION==1 ) int ierror = MPI_Allreduce(&max_abs_alpha_local, &max_abs_alpha, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
           int countNonZeroLocal = 0, countNonZero;
           for (int kkk=0 ; kkk<alpha.size() ; ++kkk) {
             if (abs(alpha(kkk)) >= cutting_coefficient * max_abs_alpha) {
@@ -413,7 +413,7 @@ void Level::alphaTranslationsComputation(const int VERBOSE,
           }
           /* To be erased */
           countNonZero = countNonZeroLocal;
-          if ( this->DIRECTIONS_PARALLELIZATION==1 ) int ierror = MPI_Allreduce(&countNonZeroLocal, &countNonZero, 1, MPI::INT, MPI::SUM, MPI::COMM_WORLD);
+          if ( this->DIRECTIONS_PARALLELIZATION==1 ) int ierror = MPI_Allreduce(&countNonZeroLocal, &countNonZero, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
           if (countNonZero * 1.0/N_total_directions < alphaTranslation_RelativeCountAboveThreshold) {
             if ((my_id==0) && (this->cubeSideLength>= 16.0*lambda) && (VERBOSE==1) ) cout << "level " << this->getLevel() << ", cube side length = " << this->cubeSideLength/lambda << " lambdas, rel. count for r_mn = [" << r_mn(0)/this->cubeSideLength << ", " << r_mn(1)/this->cubeSideLength << ", " << r_mn(2)/this->cubeSideLength << "] is = " << countNonZero * 100.0/N_total_directions << endl;
             flush(cout);
@@ -818,17 +818,35 @@ void Level::computeLevelReduction(void) {
   cubes.swap(newCubes);
 }
 
-void Level::computeGaussLocatedArguments(const Mesh& target_mesh, const int N_Gauss) {
-  // this function computes the GaussLocatedArguments only for the local cubes
-  // e.g. the cubes that are located on the same process as their octtree.
-  if ( getLeaf() ) {
-    const int N_local_cubes = localCubesIndexes.size();
-    for (int i=0 ; i<N_local_cubes ; ++i) {
-      int indexLocalCube = cubesIndexesAfterReduction[localCubesIndexes[i]];
-      cubes[indexLocalCube].computeGaussLocatedArguments(target_mesh, N_Gauss);
-    }
+void Level::computeOldIndexesOfCubes(blitz::Array<int, 1>& oldIndexesOfCubes) {
+  // this function computes the indexes of the cubes in the original mesh
+  const int N_local_cubes = localCubesIndexes.size();
+  oldIndexesOfCubes.resize(N_local_cubes);
+  for (int i=0 ; i<N_local_cubes ; ++i) {
+    int indexLocalCube = cubesIndexesAfterReduction[localCubesIndexes[i]];      
+    oldIndexesOfCubes(i) = cubes[indexLocalCube].getOldIndex();
   }
 }
+
+
+void Level::computeGaussLocatedArguments(const blitz::Array<int, 1>& local_cubes_NRWG, 
+                                         const blitz::Array<int, 1>& local_RWG_numbers, 
+                                         const blitz::Array<int, 1>& local_RWG_Numbers_CFIE_OK, 
+                                         const blitz::Array<float, 2>& local_RWGNumbers_trianglesCoord,
+                                         const int N_Gauss)
+{
+  if ( getLeaf() ) {
+    const int N_local_cubes = localCubesIndexes.size();
+    int startIndex_in_localArrays = 0;
+    for (int i=0 ; i<N_local_cubes ; ++i) {
+      const int indexLocalCube = cubesIndexesAfterReduction[localCubesIndexes[i]];      
+      const int NRWG = local_cubes_NRWG(i);
+      cubes[indexLocalCube].computeGaussLocatedArguments(local_RWG_numbers, local_RWG_Numbers_CFIE_OK, local_RWGNumbers_trianglesCoord, startIndex_in_localArrays, NRWG, N_Gauss);
+      startIndex_in_localArrays += NRWG;
+    }
+  } 
+}
+
 
 void Level::computeSup(blitz::Array<std::complex<float>, 2> & Sup,
                        const std::complex<double>& k,

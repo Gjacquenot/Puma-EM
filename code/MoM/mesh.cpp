@@ -165,74 +165,35 @@ LocalMesh::LocalMesh(const Mesh& target_mesh, const blitz::Array<int, 1>& chosen
   // LocalRWGNumber_CFIE_OK
   localRWGNumber_CFIE_OK.resize(N_local_RWG);
   for (int i=0 ; i<N_local_RWG ; ++i) localRWGNumber_CFIE_OK(i) = target_mesh.RWGNumber_CFIE_OK(localRWGNumbers(i));
-  // NOW THE REAL DEAL: creation of localRWGNumber_trianglesNodes and of local_vertexes_coord
-  // localRWGNumber_trianglesNodes(i,:) = r1, r2, r3, r4 with r1, r2, r3 = first triangle
+  // localRWGNumber_trianglesCoord(i,:) = r1, r2, r3, r4 with r1, r2, r3 = first triangle_adjacentTriangles
   // and r3, r2, r4 the second triangle
-  blitz::Array<int, 1> localRWGNumber_trianglesNodes_tmp;
-  localRWGNumber_trianglesNodes_tmp.resize(N_local_RWG * 4);
+  localRWGNumber_trianglesCoord.resize(N_local_RWG, 12);
   for (int i=0 ; i<N_local_RWG ; ++i) {
     const int nodeEdge0 = target_mesh.RWGNumber_edgeVertexes(localRWGNumbers(i), 0);
     const int nodeEdge1 = target_mesh.RWGNumber_edgeVertexes(localRWGNumbers(i), 1);
+    // we now find the RWG opposite vector coordinates
     const int r_opp_number_0 = target_mesh.RWGNumber_oppVertexes(localRWGNumbers(i), 0);
     const int r_opp_number_1 = target_mesh.RWGNumber_oppVertexes(localRWGNumbers(i), 1);
-    localRWGNumber_trianglesNodes_tmp(4*i) = r_opp_number_0;
-    localRWGNumber_trianglesNodes_tmp(4*i + 1) = nodeEdge0;
-    localRWGNumber_trianglesNodes_tmp(4*i + 2) = nodeEdge1;
-    localRWGNumber_trianglesNodes_tmp(4*i + 3) = r_opp_number_1;
-  }
-  // we create a dictionary that we will need for creating the local_vertexes_coord
-  std::vector< Dictionary<int, int> > oldNodeNumber_to_index;
-  oldNodeNumber_to_index.reserve(N_local_RWG * 4);
-  for (int i=0 ; i<N_local_RWG*4 ; ++i) oldNodeNumber_to_index.push_back(Dictionary<int, int> (localRWGNumber_trianglesNodes_tmp(i), i));
-  // we sort the dictionary by localRWGnumber_triangleNode value
-  sort(oldNodeNumber_to_index.begin(), oldNodeNumber_to_index.end());
-  // we now count the number of different nodes
-  int N_nodes = 1;
-  for (int i=1 ; i<N_local_RWG*4 ; ++i) {
-    if (oldNodeNumber_to_index[i].getKey() != oldNodeNumber_to_index[i-1].getKey()) N_nodes++;
-  }
-  N_local_nodes = N_nodes;
-  // we resize the local_vertexes_coord
-  local_vertexes_coord.resize(N_nodes, 3);
-  // we now start replacing the nodes numbers in localRWGNumber_trianglesNodes_tmp by their new, local number
-  int newNodeNumber = 0;
-  int index = oldNodeNumber_to_index[0].getVal();
-  localRWGNumber_trianglesNodes_tmp(index) = newNodeNumber;
-  local_vertexes_coord(newNodeNumber, all) = target_mesh.vertexes_coord(oldNodeNumber_to_index[0].getKey(), all);
-  for (int i=1 ; i<N_local_RWG*4 ; ++i) {
-    if (oldNodeNumber_to_index[i].getKey() != oldNodeNumber_to_index[i-1].getKey()) {
-      newNodeNumber++;  
-      local_vertexes_coord(newNodeNumber, all) = target_mesh.vertexes_coord(oldNodeNumber_to_index[i].getKey(), all);
+    for (int j=0; j<3; j++) {
+      localRWGNumber_trianglesCoord(i, j) = target_mesh.vertexes_coord(r_opp_number_0, j);
+      localRWGNumber_trianglesCoord(i, j+3) = target_mesh.vertexes_coord(nodeEdge0, j);
+      localRWGNumber_trianglesCoord(i, j+6) = target_mesh.vertexes_coord(nodeEdge1, j);
+      localRWGNumber_trianglesCoord(i, j+9) = target_mesh.vertexes_coord(r_opp_number_1, j);
     }
-    index = oldNodeNumber_to_index[i].getVal();
-    localRWGNumber_trianglesNodes_tmp(index) = newNodeNumber;
-  }
-  // free up some memory
-  oldNodeNumber_to_index.clear();
-  // final assignation
-  localRWGNumber_trianglesNodes.resize(N_local_RWG, 4);
-  for (int i=0 ; i<N_local_RWG ; ++i) {
-    localRWGNumber_trianglesNodes(i, 0) = localRWGNumber_trianglesNodes_tmp(4*i);
-    localRWGNumber_trianglesNodes(i, 1) = localRWGNumber_trianglesNodes_tmp(4*i+1);
-    localRWGNumber_trianglesNodes(i, 2) = localRWGNumber_trianglesNodes_tmp(4*i+2);
-    localRWGNumber_trianglesNodes(i, 3) = localRWGNumber_trianglesNodes_tmp(4*i+3);
   }
 }
 
 void LocalMesh::copyLocalMesh(const LocalMesh& localMeshToCopy) /// copy member function
 {
   N_local_RWG = localMeshToCopy.N_local_RWG;
-  N_local_nodes = localMeshToCopy.N_local_nodes;
   localRWGNumbers.resize(localMeshToCopy.localRWGNumbers.size());
   localRWGNumbers = localMeshToCopy.localRWGNumbers;
   reallyLocalRWGNumbers.resize(localMeshToCopy.reallyLocalRWGNumbers.size());
   reallyLocalRWGNumbers = localMeshToCopy.reallyLocalRWGNumbers;
   localRWGNumber_CFIE_OK.resize(localMeshToCopy.localRWGNumber_CFIE_OK.size());
   localRWGNumber_CFIE_OK = localMeshToCopy.localRWGNumber_CFIE_OK;
-  localRWGNumber_trianglesNodes.resize(localMeshToCopy.localRWGNumber_trianglesNodes.extent(0), localMeshToCopy.localRWGNumber_trianglesNodes.extent(1));
-  localRWGNumber_trianglesNodes = localMeshToCopy.localRWGNumber_trianglesNodes;
-  local_vertexes_coord.resize(localMeshToCopy.local_vertexes_coord.extent(0), 3);
-  local_vertexes_coord = localMeshToCopy.local_vertexes_coord;
+  localRWGNumber_trianglesCoord.resize(localMeshToCopy.localRWGNumber_trianglesCoord.extent(0), localMeshToCopy.localRWGNumber_trianglesCoord.extent(1));
+  localRWGNumber_trianglesCoord = localMeshToCopy.localRWGNumber_trianglesCoord;
 }
 
 LocalMesh::LocalMesh(const LocalMesh& localMeshToCopy) /// copy constructor
@@ -250,16 +211,14 @@ LocalMesh::~LocalMesh() {
   localRWGNumbers.free();
   reallyLocalRWGNumbers.free();
   localRWGNumber_CFIE_OK.free();
-  localRWGNumber_trianglesNodes.free();
-  local_vertexes_coord.free();
+  localRWGNumber_trianglesCoord.free();
 }
 
 void LocalMesh::resizeToZero() {
   localRWGNumbers.resize(0);
   reallyLocalRWGNumbers.resize(0);
   localRWGNumber_CFIE_OK.resize(0);
-  localRWGNumber_trianglesNodes.resize(0,0);
-  local_vertexes_coord.resize(0,0);
+  localRWGNumber_trianglesCoord.resize(0,0);
 }
 
 void LocalMesh::setLocalMeshFromFile(const string path)
@@ -267,15 +226,12 @@ void LocalMesh::setLocalMeshFromFile(const string path)
   {
     string filename = path + "N_local_RWG.txt";
     readIntFromASCIIFile(filename, N_local_RWG);
-    filename = path + "N_local_nodes.txt";
-    readIntFromASCIIFile(filename, N_local_nodes);
   }
   // we resize the arrays
   localRWGNumbers.resize(N_local_RWG);
   reallyLocalRWGNumbers.resize(N_local_RWG);
   localRWGNumber_CFIE_OK.resize(N_local_RWG);
-  localRWGNumber_trianglesNodes.resize(N_local_RWG, 4);
-  local_vertexes_coord.resize(N_local_nodes, 3);
+  localRWGNumber_trianglesCoord.resize(N_local_RWG, 12);
   // reading RWG_numbers
   {
     string filename = path + "localRWGNumbers.txt";
@@ -287,12 +243,8 @@ void LocalMesh::setLocalMeshFromFile(const string path)
     readIntBlitzArray1DFromBinaryFile(filename, localRWGNumber_CFIE_OK);
   }
   {
-    string filename = path + "localRWGNumber_trianglesNodes.txt";
-    readIntBlitzArray2DFromBinaryFile(filename, localRWGNumber_trianglesNodes);
-  }
-  {
-    string filename = path + "local_vertexes_coord.txt";
-    readDoubleBlitzArray2DFromBinaryFile(filename, local_vertexes_coord);
+    string filename = path + "localRWGNumber_trianglesCoord.txt";
+    readFloatBlitzArray2DFromBinaryFile(filename, localRWGNumber_trianglesCoord);
   }
 };
 
@@ -301,26 +253,19 @@ void LocalMesh::writeLocalMeshToFile(const string path)
   {
     string filename = path + "N_local_RWG.txt";
     writeIntToASCIIFile(filename, N_local_RWG);
-    filename = path + "N_local_nodes.txt";
-    writeIntToASCIIFile(filename, N_local_nodes);
   }
   // writing the arrays
   {
     string filename = path + "localRWGNumbers.txt";
     writeIntBlitzArray1DToBinaryFile(filename, localRWGNumbers);
   }
-  for (int i=0 ; i<N_local_RWG ; ++i) reallyLocalRWGNumbers(i) = i;
   {
     string filename = path + "localRWGNumber_CFIE_OK.txt";
     writeIntBlitzArray1DToBinaryFile(filename, localRWGNumber_CFIE_OK);
   }
   {
-    string filename = path + "localRWGNumber_trianglesNodes.txt";
-    writeIntBlitzArray2DToBinaryFile(filename, localRWGNumber_trianglesNodes);
-  }
-  {
-    string filename = path + "local_vertexes_coord.txt";
-    writeDoubleBlitzArray2DToBinaryFile(filename, local_vertexes_coord);
+    string filename = path + "localRWGNumber_trianglesCoord.txt";
+    writeFloatBlitzArray2DToBinaryFile(filename, localRWGNumber_trianglesCoord);
   }
 };
 
@@ -875,8 +820,6 @@ void RWGNumber_oppVertexes_computation(blitz::Array<int, 2>& RWGNumber_oppVertex
     }
   }
 }
-
-
 
 
 

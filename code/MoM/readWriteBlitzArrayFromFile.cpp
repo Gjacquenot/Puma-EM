@@ -362,6 +362,10 @@ void writeIntBlitzArray2DToBinaryFile(const string filename, blitz::Array<int, 2
   const int itemsize = 4;
   writeBlitzArray2DToBinaryFile(filename, A, itemsize);
 }
+void writeFloatBlitzArray2DToBinaryFile(const string filename, blitz::Array<float, 2>& A) {
+  const int itemsize = 4;
+  writeBlitzArray2DToBinaryFile(filename, A, itemsize);
+}
 void writeDoubleBlitzArray2DToBinaryFile(const string filename, blitz::Array<double, 2>& A) {
   const int itemsize = 8;
   writeBlitzArray2DToBinaryFile(filename, A, itemsize);

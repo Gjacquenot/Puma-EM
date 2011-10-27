@@ -129,7 +129,12 @@ class Cube {
       \param N_Gauss int, the number of points per triangles
       \return void
     */
-    void computeGaussLocatedArguments(const Mesh& target_mesh, const int N_Gauss);
+    void computeGaussLocatedArguments(const blitz::Array<int, 1>& local_RWG_numbers,
+                                      const blitz::Array<int, 1>& local_RWG_Numbers_CFIE_OK,
+                                      const blitz::Array<float, 2>& local_RWGNumbers_trianglesCoord,
+                                      const int startIndex_in_localArrays,
+                                      const int NRWG,
+                                      const int N_Gauss);
     const blitz::Array<blitz::TinyVector<float, 3>, 2> getGaussLocatedWeightedRWG(void) const {return GaussLocatedWeightedRWG;};
     const blitz::Array<blitz::TinyVector<float, 3>, 2> getGaussLocatedWeighted_nHat_X_RWG(void) const {return GaussLocatedWeighted_nHat_X_RWG;};
     const blitz::Array<blitz::TinyVector<float, 3>, 2> getGaussLocatedExpArg(void) const {return GaussLocatedExpArg;};

@@ -28,7 +28,7 @@ void gatherAndRedistribute(blitz::Array<std::complex<float>, 1>& x, const int my
 {
   int ierror, N_RWG = x.size();
   blitz::Array<std::complex<float>, 1> recvBuf(N_RWG);
-  ierror = MPI_Allreduce(x.data(), recvBuf.data(), N_RWG, MPI::COMPLEX, MPI::SUM, MPI::COMM_WORLD);
+  ierror = MPI_Allreduce(x.data(), recvBuf.data(), N_RWG, MPI_COMPLEX, MPI_SUM, MPI_COMM_WORLD);
   x = recvBuf;
 }
 
@@ -324,7 +324,7 @@ void computeE_obs(blitz::Array<std::complex<double>, 2>& E_obs,
       J_obs(i) = 1.0;
       local_V_CFIE_dipole (V_tE, J_obs, r_obs(j, all), local_target_mesh, w, eps_r, mu_r, CFIE_for_tE, FULL_PRECISION);
       std::complex<float> local_e_tmp = sum(V_tE * ZI), e_tmp;
-      ierror = MPI_Allreduce(&local_e_tmp, &e_tmp, 1, MPI::COMPLEX, MPI::SUM, MPI::COMM_WORLD);
+      ierror = MPI_Allreduce(&local_e_tmp, &e_tmp, 1, MPI_COMPLEX, MPI_SUM, MPI_COMM_WORLD);
       E_obs(j, i) = e_tmp;
     }
   }
@@ -862,6 +862,7 @@ int main(int argc, char* argv[]) {
   int ierror;
   int num_procs = MPI::COMM_WORLD.Get_size();
   int my_id = MPI::COMM_WORLD.Get_rank();
+  MPI_Status status;
 
   string simuDir = ".";
   if ( argc > 2 ) {
@@ -877,52 +878,165 @@ int main(int argc, char* argv[]) {
   const string V_CFIE_DATA_PATH = TMP + "/V_CFIE/";
   const string ITERATIVE_DATA_PATH = TMP + "/iterative_data/";
 
-  Mesh target_mesh;
-  if (my_id==0) target_mesh.setMeshFromFile(MESH_DATA_PATH);
-  MPI_Bcast(&target_mesh.MAX_N_RWG_per_cube, 1, MPI::INT, 0, MPI::COMM_WORLD);
-  MPI_Bcast(&target_mesh.C, 1, MPI::INT, 0, MPI::COMM_WORLD);
-  MPI_Bcast(&target_mesh.V, 1, MPI::INT, 0, MPI::COMM_WORLD);
-  MPI_Bcast(&target_mesh.S, 1, MPI::INT, 0, MPI::COMM_WORLD);
-  MPI_Bcast(&target_mesh.T, 1, MPI::INT, 0, MPI::COMM_WORLD);
-  MPI_Bcast(&target_mesh.E, 1, MPI::INT, 0, MPI::COMM_WORLD);
-  // resizing of the arrays
-  if (my_id!=0) {
-    target_mesh.vertexes_coord.resize(target_mesh.V, 3);
-    target_mesh.cubes_centroids.resize(target_mesh.C, 3);
-    target_mesh.triangles_surfaces.resize(target_mesh.T);
-    target_mesh.isClosedSurface.resize(target_mesh.S);
-    target_mesh.cubes_RWGsNumbers.resize(target_mesh.C, target_mesh.MAX_N_RWG_per_cube);
-    //target_mesh.RWGNumber_signedTriangles.resize(target_mesh.E, 2); // not needed for the moment (October 2011)
-    target_mesh.RWGNumber_signedTriangles.resize(1, 1); // artificial resizing, see preceding line
-    target_mesh.RWGNumber_edgeVertexes.resize(target_mesh.E, 2);
-    target_mesh.RWGNumber_oppVertexes.resize(target_mesh.E, 2);
-    target_mesh.RWGNumber_CFIE_OK.resize(target_mesh.E);
+  // reading and broadcasting mesh data
+  int C, N_RWG, V, MAX_N_RWG_per_cube;
+  blitz::Array<int, 1> RWGNumber_CFIE_OK;
+  blitz::Array<int, 2> cubes_RWGsNumbers, RWGNumber_edgeVertexes, RWGNumber_oppVertexes;
+  blitz::Array<double, 2> cubes_centroids, vertexes_coord;
+  if (my_id==0)
+  {
+    // reading the arrays sizes
+    string filename = MESH_DATA_PATH + "C.txt";
+    readIntFromASCIIFile(filename, C);
+    
+    filename = MESH_DATA_PATH + "E.txt";
+    readIntFromASCIIFile(filename, N_RWG);
+    
+    filename = MESH_DATA_PATH + "V.txt";
+    readIntFromASCIIFile(filename, V);
+
+    filename = MESH_DATA_PATH + "MAX_N_RWG_per_cube.txt";
+    readIntFromASCIIFile(filename, MAX_N_RWG_per_cube);
+
+    // resizing
+    vertexes_coord.resize(V, 3);
+    cubes_RWGsNumbers.resize(C, MAX_N_RWG_per_cube);
+    cubes_centroids.resize(C, 3);
+    RWGNumber_edgeVertexes.resize(N_RWG, 2);
+    RWGNumber_oppVertexes.resize(N_RWG, 2);
+    RWGNumber_CFIE_OK.resize(N_RWG);
+
+    // reading the arrays
+    filename = MESH_DATA_PATH + "cubes_centroids.txt";
+    readDoubleBlitzArray2DFromBinaryFile(filename, cubes_centroids);
+    
+    filename = MESH_DATA_PATH + "cubes_RWGsNumbers.txt";
+    readIntBlitzArray2DFromBinaryFile(filename, cubes_RWGsNumbers);
+    
+    filename = MESH_DATA_PATH + "vertexes_coord.txt";
+    readDoubleBlitzArray2DFromBinaryFile(filename, vertexes_coord);
+
+    filename = MESH_DATA_PATH + "RWGNumber_edgeVertexes.txt";
+    readIntBlitzArray2DFromBinaryFile(filename, RWGNumber_edgeVertexes);
+
+    filename = MESH_DATA_PATH + "RWGNumber_oppVertexes.txt";
+    readIntBlitzArray2DFromBinaryFile(filename, RWGNumber_oppVertexes);
+
+    filename = MESH_DATA_PATH + "RWGNumber_CFIE_OK.txt";
+    readIntBlitzArray1DFromBinaryFile(filename, RWGNumber_CFIE_OK);
   }
-  MPI_Bcast(target_mesh.vertexes_coord.data(), target_mesh.vertexes_coord.size(), MPI::DOUBLE, 0, MPI::COMM_WORLD);
-  MPI_Bcast(target_mesh.cubes_centroids.data(), target_mesh.cubes_centroids.size(), MPI::DOUBLE, 0, MPI::COMM_WORLD);
-  MPI_Bcast(target_mesh.triangles_surfaces.data(), target_mesh.triangles_surfaces.size(), MPI::INT, 0, MPI::COMM_WORLD);
-  MPI_Bcast(target_mesh.isClosedSurface.data(), target_mesh.isClosedSurface.size(), MPI::INT, 0, MPI::COMM_WORLD);
-  MPI_Bcast(target_mesh.cubes_RWGsNumbers.data(), target_mesh.cubes_RWGsNumbers.size(), MPI::INT, 0, MPI::COMM_WORLD);
-  //MPI_Bcast(target_mesh.RWGNumber_signedTriangles.data(), target_mesh.RWGNumber_signedTriangles.size(), MPI::INT, 0, MPI::COMM_WORLD);
-  MPI_Bcast(target_mesh.RWGNumber_edgeVertexes.data(), target_mesh.RWGNumber_edgeVertexes.size(), MPI::INT, 0, MPI::COMM_WORLD);
-  MPI_Bcast(target_mesh.RWGNumber_oppVertexes.data(), target_mesh.RWGNumber_oppVertexes.size(), MPI::INT, 0, MPI::COMM_WORLD);
-  MPI_Bcast(target_mesh.RWGNumber_CFIE_OK.data(), target_mesh.RWGNumber_CFIE_OK.size(), MPI::INT, 0, MPI::COMM_WORLD);
+  MPI_Bcast(&N_RWG, 1, MPI_INT, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&C, 1, MPI_INT, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&V, 1, MPI_INT, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&MAX_N_RWG_per_cube, 1, MPI_INT, 0, MPI_COMM_WORLD);
+  if (my_id!=0) cubes_centroids.resize(C, 3);
+  MPI_Bcast(cubes_centroids.data(), cubes_centroids.size(), MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  // Octtree creation based upon the cubes_centroids
+  Octtree octtree(OCTTREE_DATA_PATH, cubes_centroids, my_id, num_procs);
+
+  // partitioning of mesh --- UNDER HEAVY DEVELOPMENT!!
+  blitz::Array<int, 1> oldIndexesOfCubes;
+  octtree.computeIndexesOfCubesInOriginalMesh(oldIndexesOfCubes);
+  int N_local_cubes = oldIndexesOfCubes.size();
   
-  const int N_RWG = target_mesh.E;
-  Octtree octtree(OCTTREE_DATA_PATH, target_mesh.cubes_centroids, my_id, num_procs);
-  octtree.computeGaussLocatedArguments(target_mesh);
-  // every process will receive about the same number of lines
-  blitz::Array<int, 1> localIndexesForSolver;
-  const int N_RWGs_per_process = static_cast<int>(floor((N_RWG * 1.0)/num_procs));
-  int startIndex = my_id * N_RWGs_per_process, stopIndex = startIndex + N_RWGs_per_process - 1;
-  if (my_id == num_procs-1) stopIndex = N_RWG - 1;
-  const int N_lines = stopIndex - startIndex + 1;
-  localIndexesForSolver.resize(N_lines);
-  for (int j=0 ; j<N_lines ; ++j) localIndexesForSolver(j) = j + startIndex;
-  // we create a local mesh
-  LocalMesh local_target_mesh(target_mesh, localIndexesForSolver);
+  blitz::Array<int, 1> NumberOfCubesPerProcess;
+  if (my_id==0) NumberOfCubesPerProcess.resize(num_procs);
+  ierror = MPI_Gather(&N_local_cubes, 1, MPI_INT, NumberOfCubesPerProcess.data(), 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+  blitz::Array<int, 1> MPI_Gatherv_scounts, MPI_Gatherv_displs; // it only matters for process 0
+  if (my_id==0) {
+    MPI_Gatherv_scounts.resize(num_procs);
+    MPI_Gatherv_displs.resize(num_procs);
+    int displacement = 0;
+    for (int i=0 ; i<num_procs ; ++i) {
+      MPI_Gatherv_scounts(i) = NumberOfCubesPerProcess(i);
+      MPI_Gatherv_displs(i) = displacement;
+      displacement += MPI_Gatherv_scounts(i);
+    }
+  }
+  // process_OldIndexesOfCubes represents the cubes original numbers in mesh for each process
+  // Only master process has complete overview of these cubes
+  blitz::Array<int, 1> process_OldIndexesOfCubes;
+  if (my_id==0) process_OldIndexesOfCubes.resize(C);
+  ierror = MPI_Gatherv( oldIndexesOfCubes.data(), oldIndexesOfCubes.size(), MPI_INT, process_OldIndexesOfCubes.data(), MPI_Gatherv_scounts.data(), MPI_Gatherv_displs.data(), MPI_INT, 0,  MPI_COMM_WORLD);
+  oldIndexesOfCubes.free();
+  // now we need to scatter the RWG numbers and arrays, according to their original cubes, to each process
+  // we have to begin by the end, to retain the good values for process 0!
+
+  LocalMesh local_target_mesh;
+  blitz::Array<int, 1> local_cubes_NRWG;
+  for (int id=num_procs-1; id>-1; id--) {
+    // first we find the RWGs for each cube of process id
+    if (my_id==0) {
+      const int startIndex = MPI_Gatherv_displs(id);
+      const int Ncubes = MPI_Gatherv_scounts(id);
+      std::vector<int> RWG_numbersTmp;
+      RWG_numbersTmp.reserve(Ncubes * MAX_N_RWG_per_cube);
+      local_cubes_NRWG.resize(Ncubes);
+      // we now find the RWG numbers for each cube of process id
+      for (int i=0; i<Ncubes; i++) {
+        const int cubeNumber = process_OldIndexesOfCubes(startIndex + i);
+        int N_RWG_in_cube = 0;
+        for (int j=0 ; j<MAX_N_RWG_per_cube ; ++j) {
+          if (cubes_RWGsNumbers(cubeNumber, j)<0) break;
+          else {
+            RWG_numbersTmp.push_back(cubes_RWGsNumbers(cubeNumber, j));
+            N_RWG_in_cube += 1;
+          }
+        }
+        local_cubes_NRWG(i) = N_RWG_in_cube;
+      }
+      // now creating a blitz::array from std::vector RWG_numbersTmp
+      blitz::Array<int, 1> localRWGNumbers, localRWGNumber_CFIE_OK;
+      blitz::Array<float, 2> localRWGNumber_trianglesCoord;
+      localRWGNumbers.resize(RWG_numbersTmp.size());
+      for (int i=0; i<localRWGNumbers.size(); i++) localRWGNumbers(i) = RWG_numbersTmp[i];
+      RWG_numbersTmp.clear();
+      // RWG_numbers and cube_NRWG contains all the info about the repartition of RWGs in cubes of process number="id"
+      // we've got to communicate these arrays, and also an array containing the coordinates of the RWGs.
+      localRWGNumber_CFIE_OK.resize(localRWGNumbers.size());
+      localRWGNumber_trianglesCoord.resize(localRWGNumbers.size(), 12);
+      for (int i=0; i<localRWGNumbers.size(); i++) {
+        const int RWG = localRWGNumbers(i);
+        const int n0 = RWGNumber_oppVertexes(RWG, 0);
+        const int n1 = RWGNumber_edgeVertexes(RWG, 0);
+        const int n2 = RWGNumber_edgeVertexes(RWG, 1);
+        const int n3 = RWGNumber_oppVertexes(RWG, 1);
+        for (int j=0; j<3; j++) localRWGNumber_trianglesCoord(i, j) = vertexes_coord(n0, j);
+        for (int j=0; j<3; j++) localRWGNumber_trianglesCoord(i, j+3) = vertexes_coord(n1, j);
+        for (int j=0; j<3; j++) localRWGNumber_trianglesCoord(i, j+6) = vertexes_coord(n2, j);
+        for (int j=0; j<3; j++) localRWGNumber_trianglesCoord(i, j+9) = vertexes_coord(n3, j);
+        localRWGNumber_CFIE_OK(i) = RWGNumber_CFIE_OK(RWG);
+      }
+      MPI_Send(local_cubes_NRWG.data(), local_cubes_NRWG.size(), MPI_INT, id, id, MPI_COMM_WORLD);
+      MPI_Send(localRWGNumbers.data(), localRWGNumbers.size(), MPI_INT, id, id+1, MPI_COMM_WORLD);
+      MPI_Send(localRWGNumber_CFIE_OK.data(), localRWGNumber_CFIE_OK.size(), MPI_INT, id, id+2, MPI_COMM_WORLD);
+      MPI_Send(localRWGNumber_trianglesCoord.data(), localRWGNumber_trianglesCoord.size(), MPI_FLOAT, id, id+3, MPI_COMM_WORLD);
+    }
+    
+    if (my_id==id) {
+      local_cubes_NRWG.resize(N_local_cubes);
+      MPI_Recv(local_cubes_NRWG.data(), local_cubes_NRWG.size(), MPI_INT, 0, id, MPI_COMM_WORLD, &status);
+      const int NRWG = sum(local_cubes_NRWG);
+      local_target_mesh.N_local_RWG = NRWG;
+      local_target_mesh.localRWGNumbers.resize(NRWG);
+      local_target_mesh.localRWGNumber_CFIE_OK.resize(NRWG);
+      MPI_Recv(local_target_mesh.localRWGNumbers.data(), NRWG, MPI_INT, 0, id+1, MPI_COMM_WORLD, &status);
+      MPI_Recv(local_target_mesh.localRWGNumber_CFIE_OK.data(), NRWG, MPI_INT, 0, id+2, MPI_COMM_WORLD, &status);
+
+      local_target_mesh.localRWGNumber_trianglesCoord.resize(NRWG, 12);
+      MPI_Recv(local_target_mesh.localRWGNumber_trianglesCoord.data(), local_target_mesh.localRWGNumber_trianglesCoord.size(), MPI_FLOAT, 0, id+3, MPI_COMM_WORLD, &status);
+    }
+  } // end of distribution loop
+  ierror = MPI_Barrier(MPI_COMM_WORLD);
+  // now let's construct the octtree cubes local meshes!
+  
+  octtree.computeGaussLocatedArguments(local_cubes_NRWG, local_target_mesh.localRWGNumbers, local_target_mesh.localRWGNumber_CFIE_OK, local_target_mesh.localRWGNumber_trianglesCoord);
+  // final moves
+  local_target_mesh.reallyLocalRWGNumbers.resize(local_target_mesh.localRWGNumbers.size());
+  for (int i=0 ; i<local_target_mesh.localRWGNumbers.size() ; ++i) local_target_mesh.reallyLocalRWGNumbers(i) = i;
   local_target_mesh.writeLocalMeshToFile(MESH_DATA_PATH);
-  target_mesh.~Mesh();
+
   // OK, what kind of simulation do we want to run?
   octtree.constructArrays();
   int BISTATIC, MONOSTATIC_RCS, MONOSTATIC_SAR;
@@ -932,7 +1046,7 @@ int main(int argc, char* argv[]) {
   string SOLVER;
   readStringFromASCIIFile(ITERATIVE_DATA_PATH + "SOLVER.txt", SOLVER);
   if (my_id==0) cout << "SOLVER IS = " << SOLVER << endl;
-  ierror = MPI_Barrier(MPI::COMM_WORLD);
+  ierror = MPI_Barrier(MPI_COMM_WORLD);
   // bistatic computation
   if (BISTATIC==1) computeForOneExcitation(octtree, local_target_mesh, SOLVER, SIMU_DIR, TMP, OCTTREE_DATA_PATH, MESH_DATA_PATH, V_CFIE_DATA_PATH, RESULT_DATA_PATH, ITERATIVE_DATA_PATH);
   // monostatic RCS computation

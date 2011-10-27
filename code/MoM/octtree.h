@@ -50,7 +50,11 @@ class Octtree {
     Octtree(const Octtree &); // copy constructor
     Octtree& operator=(const Octtree&); // copy assignment operator
     void constructArrays(void);
-    void computeGaussLocatedArguments(const Mesh & /*target_mesh*/);
+    void computeGaussLocatedArguments(const blitz::Array<int, 1>& /*local_cubes_NRWG*/, 
+                                      const blitz::Array<int, 1>& /*local_RWG_numbers*/, 
+                                      const blitz::Array<int, 1>& /*local_RWG_Numbers_CFIE_OK*/, 
+                                      const blitz::Array<float, 2>& /*local_RWGNumbers_trianglesCoord*/);
+    void computeIndexesOfCubesInOriginalMesh(blitz::Array<int, 1>& /*oldIndexesOfCubes*/);
     ~Octtree();
 
     // functions
