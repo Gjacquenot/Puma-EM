@@ -371,7 +371,7 @@ void computeForOneExcitation(Octtree & octtree,
     // electric dipoles
     readIntFromASCIIFile(V_CFIE_DATA_PATH + "J_DIPOLES_EXCITATION.txt", J_DIPOLES_EXCITATION);
     if (J_DIPOLES_EXCITATION==1) {
-      readBlitzArray2DFromASCIIFile( V_CFIE_DATA_PATH + "J_dip.txt", J_dip);
+      readComplexDoubleBlitzArray2DFromASCIIFile( V_CFIE_DATA_PATH + "J_dip.txt", J_dip);
       readDoubleBlitzArray2DFromASCIIFile( V_CFIE_DATA_PATH + "r_J_dip.txt", r_J_dip);
       if (my_id==0) {
         //cout << "J_dip.txt = " << J_dip << endl;
@@ -385,7 +385,7 @@ void computeForOneExcitation(Octtree & octtree,
     // magnetic dipoles
     readIntFromASCIIFile(V_CFIE_DATA_PATH + "M_DIPOLES_EXCITATION.txt", M_DIPOLES_EXCITATION);
     if (M_DIPOLES_EXCITATION==1) {
-      readBlitzArray2DFromASCIIFile( V_CFIE_DATA_PATH + "M_dip.txt", M_dip);
+      readComplexDoubleBlitzArray2DFromASCIIFile( V_CFIE_DATA_PATH + "M_dip.txt", M_dip);
       readDoubleBlitzArray2DFromASCIIFile( V_CFIE_DATA_PATH + "r_M_dip.txt", r_M_dip);
       if (my_id==0) {
         //cout << "M_dip.txt = " << M_dip << endl;

@@ -305,7 +305,7 @@ void readComplexFloatBlitzArray2DFromASCIIFile(const string filename, blitz::Arr
   readBlitzArray2DFromASCIIFile(filename, A);
 }
 
-void readComplexDoubleBlitzArray2DFromACSIIFile(const string filename, blitz::Array<std::complex<double>, 2>& A)
+void readComplexDoubleBlitzArray2DFromASCIIFile(const string filename, blitz::Array<std::complex<double>, 2>& A)
 {
   readBlitzArray2DFromASCIIFile(filename, A);
 }
