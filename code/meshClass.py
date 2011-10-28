@@ -59,7 +59,7 @@ class MeshClass:
         if self.languageForMeshConstruction=="C" or self.languageForMeshConstruction=="C++":
             t0 = time.clock()
             self.triangles_surfaces, self.IS_CLOSED_SURFACE, self.RWGNumber_signedTriangles, self.RWGNumber_edgeVertexes, self.RWGNumber_oppVertexes = edges_computation_C(self.triangle_vertexes, self.vertexes_coord)
-            self.N_RWG = self.RWGNumber_signedTriangles.shape[0]
+            self.N_RWG = self.RWGNumber_edgeVertexes.shape[0]
             self.S = len(self.IS_CLOSED_SURFACE)
             print "  test of the closed surfaces :", self.IS_CLOSED_SURFACE
             if self.DELTA_GAP:

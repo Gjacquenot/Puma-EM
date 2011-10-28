@@ -154,35 +154,6 @@ LocalMesh::LocalMesh(void){};
 
 LocalMesh::LocalMesh(const string path) {setLocalMeshFromFile(path);};
 
-LocalMesh::LocalMesh(const Mesh& target_mesh, const blitz::Array<int, 1>& chosenRWGNumbers) {
-
-  blitz::Range all = blitz::Range::all();
-  localRWGNumbers.resize(chosenRWGNumbers.size());
-  localRWGNumbers = chosenRWGNumbers;
-  N_local_RWG = localRWGNumbers.size();
-  reallyLocalRWGNumbers.resize(N_local_RWG);
-  for (int i=0 ; i<N_local_RWG ; ++i) reallyLocalRWGNumbers(i) = i;
-  // LocalRWGNumber_CFIE_OK
-  localRWGNumber_CFIE_OK.resize(N_local_RWG);
-  for (int i=0 ; i<N_local_RWG ; ++i) localRWGNumber_CFIE_OK(i) = target_mesh.RWGNumber_CFIE_OK(localRWGNumbers(i));
-  // localRWGNumber_trianglesCoord(i,:) = r1, r2, r3, r4 with r1, r2, r3 = first triangle_adjacentTriangles
-  // and r3, r2, r4 the second triangle
-  localRWGNumber_trianglesCoord.resize(N_local_RWG, 12);
-  for (int i=0 ; i<N_local_RWG ; ++i) {
-    const int nodeEdge0 = target_mesh.RWGNumber_edgeVertexes(localRWGNumbers(i), 0);
-    const int nodeEdge1 = target_mesh.RWGNumber_edgeVertexes(localRWGNumbers(i), 1);
-    // we now find the RWG opposite vector coordinates
-    const int r_opp_number_0 = target_mesh.RWGNumber_oppVertexes(localRWGNumbers(i), 0);
-    const int r_opp_number_1 = target_mesh.RWGNumber_oppVertexes(localRWGNumbers(i), 1);
-    for (int j=0; j<3; j++) {
-      localRWGNumber_trianglesCoord(i, j) = target_mesh.vertexes_coord(r_opp_number_0, j);
-      localRWGNumber_trianglesCoord(i, j+3) = target_mesh.vertexes_coord(nodeEdge0, j);
-      localRWGNumber_trianglesCoord(i, j+6) = target_mesh.vertexes_coord(nodeEdge1, j);
-      localRWGNumber_trianglesCoord(i, j+9) = target_mesh.vertexes_coord(r_opp_number_1, j);
-    }
-  }
-}
-
 void LocalMesh::copyLocalMesh(const LocalMesh& localMeshToCopy) /// copy member function
 {
   N_local_RWG = localMeshToCopy.N_local_RWG;

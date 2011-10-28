@@ -14,7 +14,6 @@
 using namespace blitz;
 
 #include "octtree.h"
-#include "mesh.h"
 #include "EMConstants.h"
 
 int main(int argc, char* argv[]) {
@@ -35,10 +34,16 @@ int main(int argc, char* argv[]) {
   const string MESH_DATA_PATH = TMP + "/mesh/";
   writeIntToASCIIFile(OCTTREE_DATA_PATH + "CUBES_DISTRIBUTION.txt", 1);
   if (my_id==0) {
-      Mesh target_mesh(MESH_DATA_PATH);
-      Octtree octtree(OCTTREE_DATA_PATH, target_mesh.cubes_centroids, my_id, num_procs);
-    }
-  ierror = MPI_Barrier(MPI::COMM_WORLD);
+    int C;
+    string filename = MESH_DATA_PATH + "C.txt";
+    readIntFromASCIIFile(filename, C);
+    blitz::Array<double, 2> cubes_centroids(C, 3);
+    filename = MESH_DATA_PATH + "cubes_centroids.txt";
+    readDoubleBlitzArray2DFromBinaryFile(filename, cubes_centroids);
+
+    Octtree octtree(OCTTREE_DATA_PATH, cubes_centroids, my_id, num_procs);
+  }
+  ierror = MPI_Barrier(MPI_COMM_WORLD);
   // we write 0 on the file
   writeIntToASCIIFile(OCTTREE_DATA_PATH + "CUBES_DISTRIBUTION.txt", 0);
   MPI::Finalize();

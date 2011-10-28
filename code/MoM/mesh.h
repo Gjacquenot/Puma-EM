@@ -66,7 +66,6 @@ class LocalMesh {
     // constructors
     LocalMesh(void);
     LocalMesh(const string /*path*/);
-    LocalMesh(const Mesh& /*target_mesh*/, const blitz::Array<int, 1>& /*localRWGNumbers*/);
     void setLocalMeshFromFile(const string /*path*/); // not really a constructor, but oh well....
     void copyLocalMesh(const LocalMesh&);
     LocalMesh(const LocalMesh&); // copy constructor
