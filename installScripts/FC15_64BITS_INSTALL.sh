@@ -23,11 +23,11 @@ su -c 'yum -y install python-devel gcc-c++ libgfortran gcc-gfortran libstdc++-de
 # repairing shite introduced in FC13 in the Open-MPI packages...
 su -c 'ln -s /usr/lib64/openmpi/bin/mpicc /usr/bin/mpicc; ln -s /usr/lib64/openmpi/bin/mpiCC /usr/bin/mpiCC; ln -s /usr/lib64/openmpi/bin/mpirun /usr/bin/mpirun; ln -s /usr/lib64/openmpi/lib/libmpi.so.1 /usr/lib64/libmpi.so.1; ln -s /usr/lib64/openmpi/lib/libopen-rte.so.1 /usr/lib64/libopen-rte.so.1; ln -s /usr/lib64/openmpi/lib/libopen-pal.so.1 /usr/lib64/libopen-pal.so.1; ln -s /usr/lib64/openmpi/lib/libmpi_cxx.so.1 /usr/lib64/libmpi_cxx.so.1;'
 # installing GMSH from source
-#./installGMSH_fromSource.sh
+./installGMSH_fromSource.sh
 # create makefile.inc
-cd ..
-PUMA_EM_DIR=$PWD
-cp $PUMA_EM_DIR/installScripts/gfortran_makefile.inc $PUMA_EM_DIR/makefile.inc
+#cd ..
+#PUMA_EM_DIR=$PWD
+#cp $PUMA_EM_DIR/installScripts/gfortran_makefile.inc $PUMA_EM_DIR/makefile.inc
 # installing development version of blitz++: released version is too old for gcc >= 4.3.0
 # packages to be installed prior to compiling blitz: cvs autoconf automake sysconftool gettext
 cd $PUMA_EM_DIR/installScripts
