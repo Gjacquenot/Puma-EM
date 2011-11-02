@@ -9,7 +9,7 @@ import copy
 from ReadWriteBlitzArray import *
 
 
-def edges_computation_C(triangle_vertexes, vertexes_coord):
+def edges_computation_C(triangle_vertexes, vertexes_coord, saveDir):
     """This function builds the edges matrix from the triangles"""
 
     # For assigning a "number" and a "kind" to an edge (a set of two vertexes),
@@ -34,7 +34,6 @@ def edges_computation_C(triangle_vertexes, vertexes_coord):
     t10 = time.clock()
     print "    construction of edgeNumber_triangles..."
     sys.stdout.flush()
-    saveDir = "./geo/" # where we will write the temporary files
     T = triangle_vertexes.shape[0]
     V = vertexes_coord.shape[0]
     writeScalarToDisk(T, os.path.join(saveDir, "T.txt"))
@@ -42,20 +41,20 @@ def edges_computation_C(triangle_vertexes, vertexes_coord):
     writeBlitzArrayToDisk(vertexes_coord, os.path.join(saveDir, 'vertexes_coord') + '.txt')
     writeBlitzArrayToDisk(triangle_vertexes, os.path.join(saveDir, 'triangle_vertexes') + '.txt')
 
-    print commands.getoutput("./code/MoM/mesh_functions_seb " + saveDir)
+    print commands.getoutput("./code/MoM/mesh_functions_seb " + saveDir + "/")
    
     print "time C++ execution =", time.clock() - t10
-    N_RWG = readIntFromDisk(saveDir + "N_RWG.txt")
-    RWGNumber_signedTriangles = readBlitzArrayFromDisk(saveDir + "RWGNumber_signedTriangles.txt", N_RWG, 2, 'i')
-    RWGNumber_edgeVertexes = readBlitzArrayFromDisk(saveDir + "RWGNumber_edgeVertexes.txt", N_RWG, 2, 'i')
-    RWGNumber_oppVertexes = readBlitzArrayFromDisk(saveDir + "RWGNumber_oppVertexes.txt", N_RWG, 2, 'i')
-    is_closed_surface = readASCIIBlitzIntArray1DFromDisk(saveDir + "is_closed_surface.txt")
-    triangles_surfaces = readASCIIBlitzIntArray1DFromDisk(saveDir + "triangles_surfaces.txt")
+    N_RWG = readIntFromDisk(os.path.join(saveDir, "N_RWG.txt"))
+    RWGNumber_signedTriangles = readBlitzArrayFromDisk(os.path.join(saveDir, "RWGNumber_signedTriangles.txt"), N_RWG, 2, 'i')
+    RWGNumber_edgeVertexes = readBlitzArrayFromDisk(os.path.join(saveDir, "RWGNumber_edgeVertexes.txt"), N_RWG, 2, 'i')
+    RWGNumber_oppVertexes = readBlitzArrayFromDisk(os.path.join(saveDir, "RWGNumber_oppVertexes.txt"), N_RWG, 2, 'i')
+    is_closed_surface = readASCIIBlitzIntArray1DFromDisk(os.path.join(saveDir, "is_closed_surface.txt"))
+    triangles_surfaces = readASCIIBlitzIntArray1DFromDisk(os.path.join(saveDir, "triangles_surfaces.txt"))
     print "    edgeNumber_triangles construction cumulated time =", time.clock() - t10
     sys.stdout.flush()
     return triangles_surfaces, is_closed_surface, RWGNumber_signedTriangles, RWGNumber_edgeVertexes, RWGNumber_oppVertexes
 
-def edges_computation_C_old(triangle_vertexes, vertexes_coord):
+def edges_computation_C_old(triangle_vertexes, vertexes_coord, saveDir):
     """This function builds the edges matrix from the triangles"""
 
     # For assigning a "number" and a "kind" to an edge (a set of two vertexes),
@@ -80,8 +79,7 @@ def edges_computation_C_old(triangle_vertexes, vertexes_coord):
     t10 = time.clock()
     print "    construction of edgeNumber_triangles..."
     sys.stdout.flush()
-    
-    saveDir = "./geo/" # where we will write the temporary files
+    saveDir = saveDir + "/"
     wrapping_code = """
     const int T = triangle_vertexes.extent(0);
     const int E = 3 * T; // there are 3 edges per triangles
@@ -213,6 +211,7 @@ def edges_computation_C_old(triangle_vertexes, vertexes_coord):
     triangles_surfaces = readASCIIBlitzIntArray1DFromDisk(saveDir + "triangles_surfaces.txt")
     print "    edgeNumber_triangles construction cumulated time =", time.clock() - t10
     sys.stdout.flush()
+    saveDir = saveDir[:-1]
     return triangles_surfaces, is_closed_surface, RWGNumber_signedTriangles, RWGNumber_edgeVertexes, RWGNumber_oppVertexes
 
 

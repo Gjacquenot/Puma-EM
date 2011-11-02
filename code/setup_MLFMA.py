@@ -26,10 +26,11 @@ def communicateParamsFile(filename):
     MPI.COMM_WORLD.Barrier()
 
 
-def setup_excitation(params_simu, tmpDirName):
+def setup_excitation(params_simu, simuDirName):
     num_proc = MPI.COMM_WORLD.Get_size()
     my_id = MPI.COMM_WORLD.Get_rank()
 
+    tmpDirName = os.path.join(simuDirName, 'tmp' + str(my_id))
     # the observation points
     if (params_simu.r_obs_FROM_FILE == 0):
         if (len(params_simu.r_obs_x)==len(params_simu.r_obs_y)) and (len(params_simu.r_obs_x)==len(params_simu.r_obs_z)):
@@ -152,15 +153,17 @@ def setup_excitation(params_simu, tmpDirName):
         writeScalarToDisk(params_simu.SAR_N_y_points, os.path.join(tmpDirName,'V_CFIE/SAR_N_y_points.txt'))
 
 
-def setup_MLFMA(params_simu, tmpDirName):
+def setup_MLFMA(params_simu, simuDirName):
     """Sets up the MLFMA parameters.
        params_simu is a class instance that contains the parameters for the simulation.
     """
     num_procs = MPI.COMM_WORLD.Get_size()
     my_id = MPI.COMM_WORLD.Get_rank()
 
+    tmpDirName = os.path.join(simuDirName, 'tmp' + str(my_id))
+    geoDirName = os.path.join(simuDirName, 'geo')
     # target_mesh construction
-    target_mesh = MeshClass(params_simu.pathToTarget, params_simu.targetName, params_simu.targetDimensions_scaling_factor, params_simu.z_offset, params_simu.languageForMeshConstruction, params_simu.meshFormat, params_simu.meshFileTermination)
+    target_mesh = MeshClass(geoDirName, params_simu.targetName, params_simu.targetDimensions_scaling_factor, params_simu.z_offset, params_simu.languageForMeshConstruction, params_simu.meshFormat, params_simu.meshFileTermination)
     # size of cube at finest level
     a = c/params_simu.f * params_simu.a_factor
     if (my_id==0):
@@ -288,8 +291,8 @@ if __name__=='__main__':
     if (my_id==0):
         params_simu.display()
     if (params_simu.MONOSTATIC_RCS==1) or (params_simu.MONOSTATIC_SAR==1) or (params_simu.BISTATIC==1):
-        setup_excitation(params_simu, tmpDirName)
-        setup_MLFMA(params_simu, tmpDirName)
+        setup_excitation(params_simu, simuDirName)
+        setup_MLFMA(params_simu, simuDirName)
     else:
         print "you should select monostatic RCS or monostatic SAR or bistatic computation, or a combination of these computations. Check the simulation settings."
         sys.exit(1)

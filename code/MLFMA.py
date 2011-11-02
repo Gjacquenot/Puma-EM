@@ -189,8 +189,9 @@ def print_times(params_simu, simuDirName):
 def computeCurrentsVisualization(params_simu, variables, simuDirName):
     my_id = MPI.COMM_WORLD.Get_rank()
     tmpDirName = os.path.join(simuDirName, 'tmp' + str(my_id))
+    geoDirName = os.path.join(simuDirName, 'geo')
     if (my_id == 0):
-        target_mesh = MeshClass(params_simu.pathToTarget, params_simu.targetName, params_simu.targetDimensions_scaling_factor, params_simu.z_offset, params_simu.languageForMeshConstruction, params_simu.meshFormat, params_simu.meshFileTermination)
+        target_mesh = MeshClass(geoDirName, params_simu.targetName, params_simu.targetDimensions_scaling_factor, params_simu.z_offset, params_simu.languageForMeshConstruction, params_simu.meshFormat, params_simu.meshFileTermination)
         # target_mesh.constructFromGmshFile()
         target_mesh.constructFromSavedArrays(os.path.join(tmpDirName, "mesh"))
         CURRENTS_VISUALIZATION = params_simu.CURRENTS_VISUALIZATION and (target_mesh.N_RWG<2e6) and (params_simu.BISTATIC == 1)
@@ -203,8 +204,8 @@ def computeCurrentsVisualization(params_simu, variables, simuDirName):
             I_coeff = read1DBlitzArrayFromDisk(os.path.join(tmpDirName, 'ZI/ZI.txt'), 'F')
             J_centroids_triangles = JMCentroidsTriangles(I_coeff, target_mesh)
             norm_J_centroids_triangles = normJMCentroidsTriangles(J_centroids_triangles, variables['w'], nbTimeSteps)
-            write_VectorFieldTrianglesCentroidsGMSH(os.path.join(params_simu.pathToTarget, params_simu.targetName) + '.J_centroids_triangles.pos', real(J_centroids_triangles), target_mesh)
-            write_ScalarFieldTrianglesCentroidsGMSH(os.path.join(params_simu.pathToTarget, params_simu.targetName) + '.norm_J_centroids_triangles.pos', norm_J_centroids_triangles, target_mesh)
+            write_VectorFieldTrianglesCentroidsGMSH(os.path.join(geoDirName, params_simu.targetName) + '.J_centroids_triangles.pos', real(J_centroids_triangles), target_mesh)
+            write_ScalarFieldTrianglesCentroidsGMSH(os.path.join(geoDirName, params_simu.targetName) + '.norm_J_centroids_triangles.pos', norm_J_centroids_triangles, target_mesh)
             print "............end of currents visualisation construction."
         else:
             "Error in the computeCurrentsVisualization routine. Probably you required currents visualization computation for a mesh too big"
@@ -213,8 +214,9 @@ def computeCurrentsVisualization(params_simu, variables, simuDirName):
 def saveCurrentsCentroids(params_simu, simuDirName):
     my_id = MPI.COMM_WORLD.Get_rank()
     tmpDirName = os.path.join(simuDirName, 'tmp' + str(my_id))
+    geoDirName = os.path.join(simuDirName, 'geo')
     if (my_id == 0):
-        target_mesh = MeshClass(params_simu.pathToTarget, params_simu.targetName, params_simu.targetDimensions_scaling_factor, params_simu.z_offset, params_simu.languageForMeshConstruction, params_simu.meshFormat, params_simu.meshFileTermination)
+        target_mesh = MeshClass(geoDirName, params_simu.targetName, params_simu.targetDimensions_scaling_factor, params_simu.z_offset, params_simu.languageForMeshConstruction, params_simu.meshFormat, params_simu.meshFileTermination)
         # target_mesh.constructFromGmshFile()
         target_mesh.constructFromSavedArrays(os.path.join(tmpDirName, "mesh"))
         SAVE_CURRENTS_CENTROIDS = (params_simu.SAVE_CURRENTS_CENTROIDS and (params_simu.BISTATIC == 1))

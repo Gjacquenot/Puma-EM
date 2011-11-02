@@ -48,9 +48,9 @@ def distribute_Chunks_and_Mesh(params_simu, simuDirName):
     num_procs = MPI.COMM_WORLD.Get_size()
     my_id = MPI.COMM_WORLD.Get_rank()
     tmpDirName = os.path.join(simuDirName, 'tmp' + str(my_id))
-    
+    geoDirName = os.path.join(simuDirName, 'geo')
     # creating the mesh
-    target_mesh = MeshClass(params_simu.pathToTarget, params_simu.targetName, params_simu.targetDimensions_scaling_factor, params_simu.z_offset, params_simu.languageForMeshConstruction, params_simu.meshFormat, params_simu.meshFileTermination)
+    target_mesh = MeshClass(geoDirName, params_simu.targetName, params_simu.targetDimensions_scaling_factor, params_simu.z_offset, params_simu.languageForMeshConstruction, params_simu.meshFormat, params_simu.meshFileTermination)
     if my_id==0:
         target_mesh.constructFromSavedArrays(os.path.join(tmpDirName, "mesh"))
         N_nearBlockDiag, N_near, N_nearPerCube = Z_near_size_computation(target_mesh.cubes_lists_RWGsNumbers, target_mesh.cubesNeighborsIndexes)

@@ -966,9 +966,9 @@ int main(int argc, char* argv[]) {
 
   LocalMesh local_target_mesh;
   blitz::Array<int, 1> local_cubes_NRWG;
-  for (int receive_id=num_procs-1; receive_id>-1; receive_id--) {
-    // first we find the RWGs for each cube of process receive_id
-    if (my_id==master) {
+  if (my_id==master) {
+    for (int receive_id=num_procs-1; receive_id>-1; receive_id--) {
+      // first we find the RWGs for each cube of process receive_id
       const int startIndex = MPI_Gatherv_displs(receive_id);
       const int Ncubes = MPI_Gatherv_scounts(receive_id);
       std::vector<int> RWG_numbersTmp;
@@ -1032,26 +1032,25 @@ int main(int argc, char* argv[]) {
         local_target_mesh.localRWGNumber_trianglesCoord = localRWGNumber_trianglesCoord;
       }
     }
-    
-    if ((my_id==receive_id) && (receive_id!=master)) {
-      local_cubes_NRWG.resize(N_local_cubes);
-      MPI_Recv(local_cubes_NRWG.data(), local_cubes_NRWG.size(), MPI_INT, 0, receive_id, MPI_COMM_WORLD, &status);
-      const int NRWG = sum(local_cubes_NRWG);
-      local_target_mesh.N_local_RWG = NRWG;
-      local_target_mesh.localRWGNumbers.resize(NRWG);
-      local_target_mesh.localRWGNumber_CFIE_OK.resize(NRWG);
-      local_target_mesh.localRWGNumber_trianglesCoord.resize(NRWG, 12);
-      
-      MPI_Recv(local_target_mesh.localRWGNumbers.data(), NRWG, MPI_INT, 0, receive_id+1, MPI_COMM_WORLD, &status);
-      MPI_Recv(local_target_mesh.localRWGNumber_CFIE_OK.data(), NRWG, MPI_INT, 0, receive_id+2, MPI_COMM_WORLD, &status);
-      cout << "receive to P" << receive_id << " : " << "local_target_mesh.localRWGNumber_CFIE_OK.size() = " << local_target_mesh.localRWGNumber_CFIE_OK.size() << endl;
-      flush(cout);
-      MPI_Recv(local_target_mesh.localRWGNumber_trianglesCoord.data(), local_target_mesh.localRWGNumber_trianglesCoord.size(), MPI_FLOAT, 0, receive_id+3, MPI_COMM_WORLD, &status);
-      cout << "receive to P" << receive_id << " : " << "local_target_mesh.localRWGNumber_trianglesCoord.size() = " << local_target_mesh.localRWGNumber_trianglesCoord.size() << endl;
-      flush(cout);
-    }
-    
   } // end of distribution loop
+  if (my_id!=master) {
+    local_cubes_NRWG.resize(N_local_cubes);
+    MPI_Recv(local_cubes_NRWG.data(), local_cubes_NRWG.size(), MPI_INT, 0, my_id, MPI_COMM_WORLD, &status);
+    const int NRWG = sum(local_cubes_NRWG);
+    local_target_mesh.N_local_RWG = NRWG;
+    local_target_mesh.localRWGNumbers.resize(NRWG);
+    local_target_mesh.localRWGNumber_CFIE_OK.resize(NRWG);
+    local_target_mesh.localRWGNumber_trianglesCoord.resize(NRWG, 12);
+      
+    MPI_Recv(local_target_mesh.localRWGNumbers.data(), NRWG, MPI_INT, 0, my_id+1, MPI_COMM_WORLD, &status);
+    MPI_Recv(local_target_mesh.localRWGNumber_CFIE_OK.data(), NRWG, MPI_INT, 0, my_id+2, MPI_COMM_WORLD, &status);
+    cout << "receive to P" << my_id << " : " << "local_target_mesh.localRWGNumber_CFIE_OK.size() = " << local_target_mesh.localRWGNumber_CFIE_OK.size() << endl;
+    flush(cout);
+    MPI_Recv(local_target_mesh.localRWGNumber_trianglesCoord.data(), local_target_mesh.localRWGNumber_trianglesCoord.size(), MPI_FLOAT, 0, my_id+3, MPI_COMM_WORLD, &status);
+    cout << "receive to P" << my_id << " : " << "local_target_mesh.localRWGNumber_trianglesCoord.size() = " << local_target_mesh.localRWGNumber_trianglesCoord.size() << endl;
+    flush(cout);
+  }
+     
   ierror = MPI_Barrier(MPI_COMM_WORLD);
 
   // now let's construct the octtree cubes local meshes!

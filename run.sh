@@ -21,7 +21,7 @@ echo " "
 MPI_CMD="mpirun --hostfile $MPI_HOSTFILE -np $N_PROCESSES "
 
 # first the mesh setup and generation. Only on one process
-python code/setup_GMSH.py 
+python code/setup_GMSH.py --simudir ${SIMU_DIR}
 ./GMSHcommand.sh
 
 # setup of the MLFMA simulation
