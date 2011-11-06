@@ -32,6 +32,7 @@ if [ $DISTRIB_TYPE = "1" ]; then
     echo "  (9) Fedora Core 14, 32 bits"
     echo "  (10) Fedora Core 14, 64 bits"
     echo "  (11) Fedora Core 15, 64 bits"
+    echo "  (12) Fedora Core 16, 64 bits"
     echo " "
     echo "Enter the correct number here: "
     read DISTRIB
@@ -101,6 +102,12 @@ if [ $DISTRIB_TYPE = "1" ]; then
         echo " read the file if you want more info about what will be installed..."
         cd $DIR_INSTALL_SCRIPTS
         ./FC15_64BITS_INSTALL.sh
+        cd ..
+    elif [ $DISTRIB = "11" ]; then
+        echo " OK, running install script for Fedora Core 15, 64 bits: $DIR_INSTALL_SCRIPTS/FC15_64BITS_INSTALL.sh"
+        echo " read the file if you want more info about what will be installed..."
+        cd $DIR_INSTALL_SCRIPTS
+        ./FC16_64BITS_INSTALL.sh
         cd ..
     fi
 
