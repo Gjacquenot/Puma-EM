@@ -103,8 +103,8 @@ if [ $DISTRIB_TYPE = "1" ]; then
         cd $DIR_INSTALL_SCRIPTS
         ./FC15_64BITS_INSTALL.sh
         cd ..
-    elif [ $DISTRIB = "11" ]; then
-        echo " OK, running install script for Fedora Core 15, 64 bits: $DIR_INSTALL_SCRIPTS/FC15_64BITS_INSTALL.sh"
+    elif [ $DISTRIB = "12" ]; then
+        echo " OK, running install script for Fedora Core 16, 64 bits: $DIR_INSTALL_SCRIPTS/FC16_64BITS_INSTALL.sh"
         echo " read the file if you want more info about what will be installed..."
         cd $DIR_INSTALL_SCRIPTS
         ./FC16_64BITS_INSTALL.sh

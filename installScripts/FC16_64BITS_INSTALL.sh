@@ -25,8 +25,8 @@ su -c 'ln -s /usr/lib64/openmpi/bin/mpicc /usr/bin/mpicc; ln -s /usr/lib64/openm
 # installing GMSH from source
 ./installGMSH_fromSource.sh
 # create makefile.inc
-#cd ..
-#PUMA_EM_DIR=$PWD
+cd ..
+PUMA_EM_DIR=$PWD
 #cp $PUMA_EM_DIR/installScripts/gfortran_makefile.inc $PUMA_EM_DIR/makefile.inc
 # installing development version of blitz++: released version is too old for gcc >= 4.3.0
 # packages to be installed prior to compiling blitz: cvs autoconf automake sysconftool gettext
@@ -46,7 +46,6 @@ echo " Root password for replacing scipy buggy blitz++ library by the newest ver
 su -c 'cp -r ./blitz /usr/lib64/python2.7/site-packages/scipy/weave/blitz'
 # installing mpi4py. No rpm yet for this one...
 cd $PUMA_EM_DIR/installScripts
-#wget http://pypi.python.org/packages/source/m/mpi4py/mpi4py-0.6.0.tar.gz
 wget http://mpi4py.googlecode.com/files/mpi4py-1.2.2.tar.gz
 tar xzf mpi4py-1.2.2.tar.gz
 cd mpi4py-1.2.2
