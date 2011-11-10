@@ -21,14 +21,16 @@ def scatterMesh(target_mesh, ZprocessNumber_to_ChunksNumbers, ZchunkNumber_to_cu
             for cubeNumber in ZchunkNumber_to_cubesNumbers[chunkNumber]:
                 # for each one we compute the necessary information for individual Zcube computation
                 if (my_id == 0): # master node
-                    cubeIntArrays, cubeDoubleArrays = target_mesh.computeCubeLocalArrays(cubeNumber)
+                    #cubeIntArrays, cubeDoubleArrays = target_mesh.computeCubeLocalArrays(cubeNumber)
+                    cubeIntArrays, cubeDoubleArrays = target_mesh.computeCubeLocalArrays_C(cubeNumber)
                     # we append the cube lists to new lists
                     list_cubeIntArrays.append(cubeIntArrays)
                     list_cubeDoubleArrays.append(cubeDoubleArrays)
             # communicating the arrays
             # we exchange the concatenated arrays
-            list_cubeIntArrays = MPI.COMM_WORLD.bcast(list_cubeIntArrays)
-            list_cubeDoubleArrays = MPI.COMM_WORLD.bcast(list_cubeDoubleArrays)
+            if (identity!=0):
+                list_cubeIntArrays = MPI.COMM_WORLD.bcast(list_cubeIntArrays)
+                list_cubeDoubleArrays = MPI.COMM_WORLD.bcast(list_cubeDoubleArrays)
             # writing the local cube data to disk
             if (my_id==identity):
                 pathToSaveToChunk = os.path.join(pathToSaveTo, "chunk" + str(chunkNumber))

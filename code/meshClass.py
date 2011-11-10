@@ -313,6 +313,138 @@ class MeshClass:
         cubeDoubleArrays[nodesCoord.shape[0]*3:] = rCubeCenter
         return cubeIntArrays, cubeDoubleArrays
 
+    def computeCubeLocalArrays_C(self, cubeNumber):
+        """this function writes to disk the arrays pertaining to a cube.
+        this should allow for localized near field and preconditioner computation, 
+        i.e. only with local mesh info."""
+        list_of_test_RWGsNumbers, list_of_src_RWGsNumbers = self.list_testSrc_RWGs_computation(cubeNumber)
+        array_of_test_RWGsNumbers, array_of_src_RWGsNumbers = array(list_of_test_RWGsNumbers), array(list_of_src_RWGsNumbers)
+        N_RWG_test, N_RWG_src = len(list_of_test_RWGsNumbers), len(list_of_src_RWGsNumbers)
+        cubeNeighborsIndexes = array(self.cubesNeighborsIndexes[cubeNumber], 'i')
+        N_neighbors = len(cubeNeighborsIndexes)
+        cubeIntArrays = zeros(5 + N_RWG_src + 2*N_RWG_src + 4*N_RWG_src + N_RWG_test + N_RWG_src + N_neighbors, 'i')
+        # creation of pointers
+        RWGNumber_signedTriangles = self.RWGNumber_signedTriangles
+        RWGNumber_CFIE_OK = self.RWGNumber_CFIE_OK
+        RWGNumber_M_CURRENT_OK = self.RWGNumber_M_CURRENT_OK
+        RWGNumber_edgeVertexes = self.RWGNumber_edgeVertexes
+        RWGNumber_oppVertexes = self.RWGNumber_oppVertexes
+        vertexes_coord = self.vertexes_coord
+        local_vertexes_coord = zeros((4*N_RWG_src, 3), 'd') # we won't need the whole array
+        N_nodes = zeros(1, 'i')
+        wrapping_code = """
+        blitz::Range all = blitz::Range::all();
+        const int N_RWG_test = array_of_test_RWGsNumbers.size(); 
+        const int N_RWG_src = array_of_src_RWGsNumbers.size();
+        blitz::Array<int, 1> localTestSrcRWGNumber_signedTriangles(N_RWG_src * 2);
+        for (int i=0; i<N_RWG_src; i++) {
+         int index = array_of_src_RWGsNumbers(i);
+         localTestSrcRWGNumber_signedTriangles(2*i) = RWGNumber_signedTriangles(index, 0);
+         localTestSrcRWGNumber_signedTriangles(2*i + 1) = RWGNumber_signedTriangles(index, 1);
+        }
+
+        blitz::Array<int, 1> localSrcRWGNumber_M_CURRENT_OK(N_RWG_src);
+        for (int i=0; i<N_RWG_src; i++) localSrcRWGNumber_M_CURRENT_OK(i) = RWGNumber_M_CURRENT_OK(array_of_src_RWGsNumbers(i));
+
+        blitz::Array<int, 1> localTestRWGNumber_CFIE_OK(N_RWG_test);
+        for (int i=0; i<N_RWG_test; i++) localTestRWGNumber_CFIE_OK(i) = RWGNumber_CFIE_OK(array_of_test_RWGsNumbers(i));
+        
+        blitz::Array<int, 1> localTestSrcRWGNumber_nodes(N_RWG_src * 4);
+        for (int i=0; i<N_RWG_src; i++) {
+          const int RWG_number = array_of_src_RWGsNumbers(i);
+          const int nodeEdge_0 = RWGNumber_edgeVertexes(RWG_number, 0);
+          const int nodeEdge_1 = RWGNumber_edgeVertexes(RWG_number, 1);
+          const int oppNodeEdge_0 = RWGNumber_oppVertexes(RWG_number, 0);
+          const int oppNodeEdge_1 = RWGNumber_oppVertexes(RWG_number, 1);
+          localTestSrcRWGNumber_nodes(4*i) = oppNodeEdge_0;
+          localTestSrcRWGNumber_nodes(4*i + 1) = nodeEdge_0;
+          localTestSrcRWGNumber_nodes(4*i + 2) = nodeEdge_1;
+          localTestSrcRWGNumber_nodes(4*i + 3) = oppNodeEdge_1;
+        }
+        // we create a dictionary that we will need for creating the local_vertexes_coord
+        std::vector< Dictionary<int, int> > oldNodeNumber_to_index;
+        oldNodeNumber_to_index.reserve(N_RWG_src * 4);
+        for (int i=0; i<N_RWG_src * 4; i++) oldNodeNumber_to_index.push_back( Dictionary<int, int> (localTestSrcRWGNumber_nodes(i), i) );
+
+        // we sort the dictionary by its "localTestSrcRWGNumber_nodes" values (the "key" field)
+        sort(oldNodeNumber_to_index.begin(), oldNodeNumber_to_index.end());
+        
+        // we now count the number of different nodes
+        N_nodes(0) = 1;
+        for (int i=0; i<N_RWG_src * 4; i++) {
+          if (oldNodeNumber_to_index[i].getKey() != oldNodeNumber_to_index[i-1].getKey()) N_nodes(0) += 1;
+        }
+        // we now resize the local_vertexes_coord
+        // local_vertexes_coord.resize(N_nodes(0), 3);
+        // we now start replacing the nodes numbers in localTestSrcRWGNumber_nodes by their new, local number
+        int newNodeNumber = 0;
+        int index = oldNodeNumber_to_index[0].getVal();
+        localTestSrcRWGNumber_nodes(index) = newNodeNumber;
+        local_vertexes_coord(newNodeNumber, all) = vertexes_coord(oldNodeNumber_to_index[0].getKey(), all);
+        for (int i=0; i<N_RWG_src * 4; i++) {
+          if (oldNodeNumber_to_index[i].getKey() != oldNodeNumber_to_index[i-1].getKey()) {
+            newNodeNumber++;
+            local_vertexes_coord(newNodeNumber, all) = vertexes_coord(oldNodeNumber_to_index[i].getKey(), all);
+          }
+          index = oldNodeNumber_to_index[i].getVal();
+          localTestSrcRWGNumber_nodes(index) = newNodeNumber;
+        }
+
+        // now we fill up the cubeIntArrays
+        
+        int startIndex = 5;
+        int stopIndex = startIndex + N_RWG_src;
+        for (int i=startIndex; i<stopIndex; i++) cubeIntArrays(i) = array_of_src_RWGsNumbers(i-startIndex);
+        
+        startIndex = stopIndex;
+        stopIndex = startIndex + 2*N_RWG_src;
+        for (int i=startIndex; i<stopIndex; i++) cubeIntArrays(i) = localTestSrcRWGNumber_signedTriangles(i-startIndex);
+
+        startIndex = stopIndex;
+        stopIndex = startIndex + 4*N_RWG_src;
+        for (int i=startIndex; i<stopIndex; i++) cubeIntArrays(i) = localTestSrcRWGNumber_nodes(i-startIndex);
+
+        startIndex = stopIndex;
+        stopIndex = startIndex + N_RWG_test;
+        for (int i=startIndex; i<stopIndex; i++) cubeIntArrays(i) = localTestRWGNumber_CFIE_OK(i-startIndex);
+        
+        startIndex = stopIndex;
+        stopIndex = startIndex + N_RWG_src;
+        for (int i=startIndex; i<stopIndex; i++) cubeIntArrays(i) = localSrcRWGNumber_M_CURRENT_OK(i-startIndex);
+        
+        int N_neighbors = cubeNeighborsIndexes.size();
+        startIndex = stopIndex;
+        stopIndex = startIndex + N_neighbors;
+        for (int i=startIndex; i<stopIndex; i++) cubeIntArrays(i) = cubeNeighborsIndexes(i-startIndex);
+        """
+        weave.inline(wrapping_code,
+                    ['array_of_test_RWGsNumbers', 
+                     'array_of_src_RWGsNumbers', 
+                     'cubeIntArrays', 
+                     'RWGNumber_signedTriangles', 
+                     'RWGNumber_CFIE_OK', 
+                     'RWGNumber_M_CURRENT_OK',
+                     'RWGNumber_edgeVertexes',
+                     'RWGNumber_oppVertexes',
+                     'vertexes_coord',
+                     'cubeNeighborsIndexes',
+                     'local_vertexes_coord',
+                     'N_nodes'],
+                     type_converters = converters.blitz,
+                     include_dirs = ['./code/MoM/'],
+                     library_dirs = ['./code/MoM/'],
+                     libraries = ['MoM'],
+                     headers = ['<iostream>','<string>','<vector>','<algorithm>','"mesh.h"'],
+                     compiler = 'gcc',
+                     extra_compile_args = ['-O3', '-pthread', '-w'])
+        cubeIntArrays[:5] = array([N_RWG_test, N_RWG_src, N_neighbors, N_nodes[0], self.S], 'i')
+        cubeDoubleArrays = zeros((N_nodes[0]+1, 3), 'd')
+        cubeDoubleArrays[:N_nodes[0]] = local_vertexes_coord[:N_nodes[0]]
+        rCubeCenter = self.cubes_centroids[cubeNumber]
+        cubeDoubleArrays[N_nodes[0]] = rCubeCenter
+        return cubeIntArrays, cubeDoubleArrays.flat[:]
+
+
     def write_cubes(self):
         write_cubes(os.path.join(self.path, self.targetName) + '.cubes', self.cubes_centroids, self.a)
 
