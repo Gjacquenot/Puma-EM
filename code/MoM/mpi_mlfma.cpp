@@ -13,6 +13,7 @@
 
 using namespace std;
 
+#include "GetMemUsage.h"
 #include "readWriteBlitzArrayFromFile.h"
 #include "Z_sparse_MLFMA.h"
 #include "octtree.h"
@@ -1077,6 +1078,11 @@ int main(int argc, char* argv[]) {
   // monostatic SAR computation
   local_target_mesh.setLocalMeshFromFile(MESH_DATA_PATH);
   if (MONOSTATIC_SAR==1) computeMonostaticSAR(octtree, local_target_mesh, SOLVER, SIMU_DIR, TMP, OCTTREE_DATA_PATH, MESH_DATA_PATH, V_CFIE_DATA_PATH, RESULT_DATA_PATH, ITERATIVE_DATA_PATH);
+
+  // Get peak memory usage of each rank
+  long memusage_local = MemoryUsageGetPeak();
+  std::cout << "MEMINFO " << argv[0] << " rank " << my_id << " mem=" << memusage_local/(1024*1024) << " MB" << std::endl;
+  flush(std::cout);
   MPI::Finalize();
   return 0;
 }

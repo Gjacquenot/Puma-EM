@@ -6,6 +6,7 @@
 
 using namespace blitz;
 
+#include "GetMemUsage.h"
 #include "readWriteBlitzArrayFromFile.h"
 
 /****************************************************************************/
@@ -234,6 +235,11 @@ int main(int argc, char* argv[]) {
     }
   }
   ierror = MPI_Barrier(MPI::COMM_WORLD);
+
+  // Get peak memory usage of each rank
+  long memusage_local = MemoryUsageGetPeak();
+  std::cout << "MEMINFO " << argv[0] << " rank " << my_id << " mem=" << memusage_local/(1024*1024) << " MB" << std::endl;
+
   MPI::Finalize();
   return 0;
 }

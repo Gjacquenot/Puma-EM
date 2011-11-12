@@ -13,6 +13,7 @@
 
 using namespace blitz;
 
+#include "GetMemUsage.h"
 #include "octtree.h"
 #include "EMConstants.h"
 
@@ -46,6 +47,10 @@ int main(int argc, char* argv[]) {
   ierror = MPI_Barrier(MPI_COMM_WORLD);
   // we write 0 on the file
   writeIntToASCIIFile(OCTTREE_DATA_PATH + "CUBES_DISTRIBUTION.txt", 0);
+
+  // Get peak memory usage of each rank
+  long memusage_local = MemoryUsageGetPeak();
+  std::cout << "MEMINFO " << argv[0] << " rank " << my_id << " mem=" << memusage_local/(1024*1024) << " MB" << std::endl;
   MPI::Finalize();
   return 0;
 }

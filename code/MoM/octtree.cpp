@@ -1098,8 +1098,8 @@ void Octtree::computeFarField(blitz::Array<std::complex<float>, 2>& e_theta_far,
     }
   }
   if (this->getProcNumber()==0) {
-    cout << "finished!";
-    flush(cout);
+    std::cout << "finished!" << std::endl;
+    flush(std::cout);
   }
 }
 

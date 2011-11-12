@@ -7,6 +7,7 @@
 
 using namespace blitz;
 
+#include "GetMemUsage.h"
 #include "mesh.h"
 
 int main(int argc, char *argv[]) {
@@ -136,5 +137,9 @@ int main(int argc, char *argv[]) {
   writeIntBlitzArray1DToASCIIFile(READING_PATH + "is_closed_surface.txt", is_closed_surface);
   writeIntBlitzArray1DToASCIIFile(READING_PATH + "triangles_surfaces.txt", triangles_surfaces);
 
+  // Get peak memory usage of each rank
+  long memusage_local = MemoryUsageGetPeak();
+  std::cout << "MEMINFO " << argv[0] << " mem=" << memusage_local/(1024*1024) << " MB" << std::endl;
+  flush(std::cout);
   return 0;
 }
