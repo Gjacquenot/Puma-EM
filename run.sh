@@ -8,7 +8,12 @@ N_PROCESSES=${1:-$n_processes}
 simu_dir="$DIR/simuDir"
 SIMU_DIR=${2:-$simu_dir}
 
+result_dir="$DIR/resultDir"
+RESULT_DIR=${3:-$result_dir}
+
 [ ! -e "${SIMU_DIR}" ] && mkdir -p ${SIMU_DIR}
+rm -rf ${SIMU_DIR}/tmp*
+rm -rf ${SIMU_DIR}/geo/*.msh* ${SIMU_DIR}/geo/*.txt  
 mkdir -p ${SIMU_DIR}/result
 
 echo " "
@@ -22,7 +27,7 @@ MPI_CMD="mpirun --hostfile $MPI_HOSTFILE -np $N_PROCESSES "
 
 # first the mesh setup and generation. Only on one process
 python code/setup_GMSH.py --simudir ${SIMU_DIR}
-./GMSHcommand.sh
+{ time -p ./GMSHcommand.sh; } 2> ${SIMU_DIR}/result/CPU_time_GMSH.txt
 
 # setup of the MLFMA simulation
 ${MPI_CMD} python code/setup_MLFMA.py --simudir ${SIMU_DIR}
@@ -36,7 +41,7 @@ ${MPI_CMD} python code/compute_Z_near_MLFMA.py --simudir ${SIMU_DIR}
 
 # hereafter we exchange the Z_near blocks for SAI computation
 # we do this in C++ as it is faster
-${MPI_CMD} ./code/MoM/communicateZnearBlocks --simudir ${SIMU_DIR}
+{ time -p ${MPI_CMD} ./code/MoM/communicateZnearBlocks --simudir ${SIMU_DIR}; } 2> ${SIMU_DIR}/result/CPU_time_CommunicateZnearBlocks.txt
 
 # now computation of the SAI preconditioner
 ${MPI_CMD} python code/compute_SAI_precond_MLFMA.py --simudir ${SIMU_DIR}
@@ -48,7 +53,8 @@ ${MPI_CMD} python code/compute_SAI_precond_MLFMA.py --simudir ${SIMU_DIR}
 mpirun -np 1 python code/RCS_MLFMA.py --simudir ${SIMU_DIR}
 
 # copying the result in the puma-em directory
-cp -r ${SIMU_DIR}/result/ ${DIR}/result
+[ ! -e "${RESULT_DIR}" ] && mkdir -p ${RESULT_DIR}
+cp -r ${SIMU_DIR}/result/ ${RESULT_DIR}
 
 # echo " "
 # echo "=========================================================================="
