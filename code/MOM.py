@@ -1,8 +1,8 @@
 import os
 from math import pi
 from scipy import zeros, array, arange, dot
-from scipy import linalg, cos, sin, conj, log10, real, sum, imag
-from scipy.linalg import gmres, bicgstab
+from scipy import sparse, linalg, cos, sin, conj, log10, real, sum, imag
+from scipy.sparse.linalg import gmres, bicgstab
 from meshClass import MeshClass
 from PyGmsh import executeGmsh, write_geo
 from Z_MoM import Z_MoM
@@ -90,9 +90,9 @@ if __name__=="__main__":
     # Frob-EFIE convergence is difficult or impossible at the corresponding frequencies,
     # especially for order 5.5, a = 0.3, for which f = 1487993627.3926289, tol = 1e-3
     # However, Frob-CFIE convergence is more than OK: it is guaranteed
-    f = 2.12e9
+    f = 1.12e9
     fileName = targetName
-    write_geo(path, fileName, 'lc', c/f/15.)
+    write_geo(path, fileName, 'lc', c/f/20.)
     write_geo(path, fileName, 'lx', 0.07)
     write_geo(path, fileName, 'ly', 0.07)
     write_geo(path, fileName, 'lz', 0.07)
@@ -130,9 +130,10 @@ if __name__=="__main__":
             # excitation computation
             target_MoM.V_EH_computation(CFIE, target_mesh, J_dip, r_dip, w, eps_r, mu_r, list_of_test_edges_numbers, EXCITATION)
             target_MoM.solveByInversion()
+            print "inverted MoM RCS =", sum(target_MoM.I_CFIE*target_MoM.V_EH[:,0])
             #computeCurrentsVisualization(w, target_mesh, target_MoM.I_CFIE)
             # now we try the iterative method
-            I_CFIE_bicgstab = bicgstab(target_MoM, target_MoM.V_CFIE, x0=None, tol=1.0e-05, maxiter=1000, xtype=None)
+            I_CFIE_bicgstab = bicgstab(target_MoM.Z_CFIE_J, target_MoM.V_CFIE, x0=None, tol=1.0e-05, maxiter=1000, xtype=None)
             print "bicgstab MoM RCS =", sum(I_CFIE_bicgstab[0]*target_MoM.V_EH[:,0]), "# of iterations =", target_MoM.iter_counter
 
     if CHOICE=="fields verification":

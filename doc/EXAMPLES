@@ -115,7 +115,7 @@ and are in the "Puma-EM/geo" directory:
   - EMCC 3D targets = EMCC_almond, EMCC_cone-gap-sphere, EMCC_cone-sphere, EMCC_double-ogive, 
                       EMCC_ogive
 
-First set params_simu.VOLAKIS_TESTING to 1. Then, set your own desired frequency and choose your target.
+First choose params_simu.targetName = EMCC_target_name. Then, set your own desired frequency.
 
 The frequency doesn't matter for plate targets, as their dimensions are calculated in wavelengths.
 
@@ -124,6 +124,13 @@ For the 3D targets, the frequencies used in [2] are:
   - 1.18 GHz and 9 GHz for the ogive
   - 1.57 GHz and 9 GHz for the double ogive
   - 0.869 GHz and 9 GHz for the cone-sphere and the cone-gap-sphere
+
+Also set:
+params_simu.BISTATIC = 0
+params_simu.MONOSTATIC_RCS = 1
+
+and also:
+params_simu.STOP_PHI = pi
 
 also set params_simu.SHOW_FIGURE to 1, for viewing the RCS of the target.
 

@@ -45,7 +45,7 @@ def testVolakisMoM(path, targetName, f, M0M_FULL_PRECISION):
             # unit vectors computation
             r_hat = array([sin(theta)*cos(phi), sin(theta)*sin(phi), cos(theta)], 'd');
             theta_hat = array([cos(theta)*cos(phi), cos(theta)*sin(phi), -sin(theta)], 'd');
-            phi_hat = array([-sin(phi), cos(phi), 0.0], 'f');
+            phi_hat = array([-sin(phi), cos(phi), 0.0], 'd');
             # excitation parameters computation
             J_dip_factor = -(1.0 + 0.0j)
             if polarization=='HH':
