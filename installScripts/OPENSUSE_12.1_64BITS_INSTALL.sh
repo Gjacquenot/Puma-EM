@@ -23,9 +23,9 @@ sudo zypper ar -c http://download.opensuse.org/repositories/Education/openSUSE_1
 sudo zypper refresh
 sudo zypper install gcc-c++ gcc-fortran autoconf automake make libtool python-devel python-scipy python-matplotlib python-matplotlib-tk python-tk python-numpy-devel openmpi openmpi-devel cvs doxygen cmake
 # modifying the PATH variables
-mpi-selector --set openmpi-1.4.3
-export LD_LIBRARY_PATH=/usr/lib64/mpi/gcc/openmpi/lib64:
-export PATH=/usr/lib64/mpi/gcc/openmpi/bin:$PATH
+#mpi-selector --set openmpi-1.4.3
+#export LD_LIBRARY_PATH=/usr/lib64/mpi/gcc/openmpi/lib64:
+#export PATH=/usr/lib64/mpi/gcc/openmpi/bin:$PATH
 # installing GMSH from source
 ./installGMSH_fromSource.sh
 # create makefile.inc
