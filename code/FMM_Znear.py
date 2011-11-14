@@ -51,7 +51,7 @@ def compute_list_cubes(cubesNumbers, pathToReadFrom):
 
 def chunk_of_Z_nearCRS_Computation(CFIE, cubesNumbers, w, eps_r, mu_r, ELEM_TYPE, Z_TMP_ELEM_TYPE, TDS_APPROX, Z_s, MOM_FULL_PRECISION, pathToSaveTo):
     """this function computes a chunk of the near non-diagonal part of the MoM matrix,
-    but saves all the atomic elements on the disk. These elementsz will be later on used 
+    but saves all the atomic elements on the disk. These elements will later on be used 
     by chunk_of_Z_nearCRS_Assembling and MgPrecondition"""
     pathToReadCubeFrom = pathToSaveTo
     list_cubes = compute_list_cubes(cubesNumbers, pathToReadCubeFrom)
