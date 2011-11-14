@@ -21,11 +21,7 @@ echo " You will be asked for your root password so that the machine can install 
 echo " sudo password for installing main dependencies... "
 sudo zypper ar -c http://download.opensuse.org/repositories/Education/openSUSE_12.1/ Education
 sudo zypper refresh
-sudo zypper install gcc-c++ gcc-fortran autoconf automake make libtool python-devel python-scipy python-matplotlib python-matplotlib-tk python-tk python-numpy-devel openmpi openmpi-devel cvs doxygen cmake
-# modifying the PATH variables
-#mpi-selector --set openmpi-1.4.3
-#export LD_LIBRARY_PATH=/usr/lib64/mpi/gcc/openmpi/lib64:
-#export PATH=/usr/lib64/mpi/gcc/openmpi/bin:$PATH
+sudo zypper install gcc-c++ gcc-fortran autoconf automake make libtool python-devel python-scipy python-scipy-devel python-matplotlib python-matplotlib-tk python-tk python-numpy python-numpy-devel openmpi openmpi-devel cvs doxygen cmake
 # installing GMSH from source
 ./installGMSH_fromSource.sh
 # create makefile.inc
