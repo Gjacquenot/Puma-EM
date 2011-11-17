@@ -33,7 +33,7 @@ python code/setup_GMSH.py --simudir ${SIMU_DIR}
 ${MPI_CMD} python code/setup_MLFMA.py --simudir ${SIMU_DIR}
 
 # distribution of data across processes
-${MPI_CMD} ./code/MoM/distribute_Z_cubes --simudir ${SIMU_DIR}
+{ time -p ${MPI_CMD} ./code/MoM/distribute_Z_cubes --simudir ${SIMU_DIR}; } 2> ${SIMU_DIR}/result/CPU_time_distribute_Z_cubes.txt
 ${MPI_CMD} python code/distribute_ZChunks_and_Mesh.py --simudir ${SIMU_DIR}
 
 # computation of the Z_near blocks
@@ -41,7 +41,7 @@ ${MPI_CMD} python code/compute_Z_near_MLFMA.py --simudir ${SIMU_DIR}
 
 # hereafter we exchange the Z_near blocks for SAI computation
 # we do this in C++ as it is faster
-{ time -p ${MPI_CMD} ./code/MoM/communicateZnearBlocks --simudir ${SIMU_DIR}; } 2> ${SIMU_DIR}/result/CPU_time_CommunicateZnearBlocks.txt
+{ time -p ${MPI_CMD} ./code/MoM/communicateZnearBlocks --simudir ${SIMU_DIR}; } 2> ${SIMU_DIR}/result/CPU_time_communicateZnearBlocks.txt
 
 # now computation of the SAI preconditioner
 ${MPI_CMD} python code/compute_SAI_precond_MLFMA.py --simudir ${SIMU_DIR}

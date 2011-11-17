@@ -1,6 +1,6 @@
 import sys, os, argparse
 import time, copy, commands, pickle, cPickle
-from mpi4py import *
+from mpi4py import MPI
 from scipy import zeros, array, sqrt
 from meshClass import MeshClass, CubeClass
 from ReadWriteBlitzArray import writeScalarToDisk, writeASCIIBlitzArrayToDisk
@@ -296,5 +296,5 @@ if __name__=='__main__':
     else:
         print "you should select monostatic RCS or monostatic SAR or bistatic computation, or a combination of these computations. Check the simulation settings."
         sys.exit(1)
-    MPI.Finalize()
+    #MPI.Finalize()
 

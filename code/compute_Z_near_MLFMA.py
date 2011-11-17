@@ -1,5 +1,5 @@
 import sys, os, cPickle, time, argparse
-from mpi4py import *
+from mpi4py import MPI
 from FMM_Znear import Z_nearCRS_Computation
 from FMM_precond import Mg_listsOfZnearBlocks_ToTransmitAndReceive
 
@@ -47,5 +47,5 @@ if __name__=='__main__':
     else:
         print "you should select monostatic RCS or monostatic SAR or bistatic computation, or a combination of these computations. Check the simulation settings."
         sys.exit(1)
-    MPI.Finalize()
+    #MPI.Finalize()
 
