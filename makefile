@@ -35,4 +35,4 @@ clean:
 	cd doc; make clean;
 	rm -rf Puma-EM;
 	rm -rf tmp*;
-	rm -rf result;
+	rm -rf result* simuDir*;
