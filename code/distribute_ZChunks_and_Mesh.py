@@ -12,39 +12,49 @@ def scatterMesh(target_mesh, ZprocessNumber_to_ChunksNumbers, ZchunkNumber_to_cu
     if (my_id == 0 ):
         print "Exchanging local meshes-cubes data..."
     # I create the necessary directories for Z_tmp
-    for identity in range(num_proc):
-        for chunkNumber in ZprocessNumber_to_ChunksNumbers[identity]:
-            if (my_id == 0): # master node
+    if (my_id == 0): # master node
+        for recv_id in range(num_proc-1, -1, -1):
+            for chunkNumber in ZprocessNumber_to_ChunksNumbers[recv_id]:
                 list_cubeIntArrays, list_cubeDoubleArrays = [], []
-            else:
-                list_cubeIntArrays, list_cubeDoubleArrays = ['blabla'], ['blabla']
-            for cubeNumber in ZchunkNumber_to_cubesNumbers[chunkNumber]:
-                # for each one we compute the necessary information for individual Zcube computation
-                if (my_id == 0): # master node
+                for cubeNumber in ZchunkNumber_to_cubesNumbers[chunkNumber]:
+                    # for each one we compute the necessary information for individual Zcube computation
                     #cubeIntArrays, cubeDoubleArrays = target_mesh.computeCubeLocalArrays(cubeNumber)
                     cubeIntArrays, cubeDoubleArrays = target_mesh.computeCubeLocalArrays_C(cubeNumber)
                     # we append the cube lists to new lists
                     list_cubeIntArrays.append(cubeIntArrays)
                     list_cubeDoubleArrays.append(cubeDoubleArrays)
-            # communicating the arrays
-            # we exchange the concatenated arrays
-            if (identity!=0):
-                list_cubeIntArrays = MPI.COMM_WORLD.bcast(list_cubeIntArrays)
-                list_cubeDoubleArrays = MPI.COMM_WORLD.bcast(list_cubeDoubleArrays)
+                # communicating the arrays
+                # we exchange the concatenated arrays
+                if (recv_id!=0): # master node
+                    MPI.COMM_WORLD.send(list_cubeIntArrays, dest=recv_id, tag=chunkNumber)
+                    MPI.COMM_WORLD.send(list_cubeDoubleArrays, dest=recv_id, tag=chunkNumber+1)
+                else:
+                    pathToSaveToChunk = os.path.join(pathToSaveTo, "chunk" + str(chunkNumber))
+                    os.mkdir(pathToSaveToChunk)
+                    for j in range(len(ZchunkNumber_to_cubesNumbers[chunkNumber])):
+                        cubeNumber = ZchunkNumber_to_cubesNumbers[chunkNumber][j]
+                        cube = CubeClass()
+                        cube.cubeIntArrays = list_cubeIntArrays[j]
+                        cube.cubeDoubleArrays = list_cubeDoubleArrays[j]
+                        cube.writeIntDoubleArraysToFile(pathToSaveToChunk, cubeNumber)
+    else:
+        for chunkNumber in ZprocessNumber_to_ChunksNumbers[my_id]:
+            list_cubeIntArrays, list_cubeDoubleArrays = ['blabla'], ['blabla']
+            list_cubeIntArrays = MPI.COMM_WORLD.recv(list_cubeIntArrays, source=0, tag=chunkNumber)
+            list_cubeDoubleArrays = MPI.COMM_WORLD.recv(list_cubeDoubleArrays, source=0, tag=chunkNumber+1)
             # writing the local cube data to disk
-            if (my_id==identity):
-                pathToSaveToChunk = os.path.join(pathToSaveTo, "chunk" + str(chunkNumber))
-                os.mkdir(pathToSaveToChunk)
-                for j in range(len(ZchunkNumber_to_cubesNumbers[chunkNumber])):
-                    cubeNumber = ZchunkNumber_to_cubesNumbers[chunkNumber][j]
-                    cube = CubeClass()
-                    cube.cubeIntArrays = list_cubeIntArrays[j]
-                    cube.cubeDoubleArrays = list_cubeDoubleArrays[j]
-                    cube.writeIntDoubleArraysToFile(pathToSaveToChunk, cubeNumber)
+            pathToSaveToChunk = os.path.join(pathToSaveTo, "chunk" + str(chunkNumber))
+            os.mkdir(pathToSaveToChunk)
+            for j in range(len(ZchunkNumber_to_cubesNumbers[chunkNumber])):
+                cubeNumber = ZchunkNumber_to_cubesNumbers[chunkNumber][j]
+                cube = CubeClass()
+                cube.cubeIntArrays = list_cubeIntArrays[j]
+                cube.cubeDoubleArrays = list_cubeDoubleArrays[j]
+                cube.writeIntDoubleArraysToFile(pathToSaveToChunk, cubeNumber)
 
     CPU_time, Wall_time = time.clock() - CPU_time, time.time() - Wall_time
-    print "mesh scattering: CPU time =", CPU_time, "sec"
-    print "mesh scattering: Wall time =", Wall_time, "sec"
+    print "Process", my_id, "mesh scattering: CPU time =", CPU_time, "sec"
+    print "Process", my_id, "mesh scattering: Wall time =", Wall_time, "sec"
 
 def distribute_Chunks_and_Mesh(params_simu, simuDirName):
     num_procs = MPI.COMM_WORLD.Get_size()
