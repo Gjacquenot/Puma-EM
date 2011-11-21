@@ -3,25 +3,9 @@ import os, sys, commands
 from scipy import zeros, array, floor, compress, reshape
 from scipy import sort, argsort, take, arange
 from Z_MoM import Z_MoM, Z_MoM_triangles_arraysFromCube
-from ReadWriteBlitzArray import *
+from ReadWriteBlitzArray import writeBlitzArrayToDisk, readBlitzArrayFromDisk, writeToDisk_chunk_of_Z_sparse, writeASCIIBlitzArrayToDisk
 from meshClass import MeshClass, CubeClass
 import copy
-
-def Z_near_size_computation(cubes_lists_edges_numbers, cubesNeighborsIndexes):
-    N_nearBlockDiag = 0.0
-    N_near = 0.0
-    C = len(cubes_lists_edges_numbers)
-    N_nearPerCube = zeros(C, 'd')
-    for i in range(C):
-	N_tmp = cubes_lists_edges_numbers[i].shape[0]
-        N_nearBlockDiag += 1.0 * N_tmp**2
-	N_nearPerCubeTmp = 0
-        for j in cubesNeighborsIndexes[i]:
-            tmp = cubes_lists_edges_numbers[int(i)].shape[0] * cubes_lists_edges_numbers[int(j)].shape[0]
-            N_nearPerCubeTmp += tmp
-            N_near += tmp
-        N_nearPerCube[i] = N_nearPerCubeTmp
-    return N_nearBlockDiag, N_near, N_nearPerCube
 
 def Z_nearPerCube(path, cube, CFIE, cubeNumber, w, eps_r, mu_r, ELEM_TYPE, Z_TMP_ELEM_TYPE, TDS_APPROX, Z_s, MOM_FULL_PRECISION):
     """this function computes the part of the MoM Z matrix corresponding to
@@ -33,6 +17,33 @@ def Z_nearPerCube(path, cube, CFIE, cubeNumber, w, eps_r, mu_r, ELEM_TYPE, Z_TMP
     Z_CFIE_nearPerCube = array(Z_CFIE_near_local.astype(ELEM_TYPE).flat)
     writeBlitzArrayToDisk(Z_CFIE_near_local.astype(Z_TMP_ELEM_TYPE), os.path.join(path, str(cubeNumber)))
     return Z_CFIE_nearPerCube
+
+def chunk_of_Z_nearCRS_Computation(CFIE, cubesNumbers, w, eps_r, mu_r, ELEM_TYPE, Z_TMP_ELEM_TYPE, TDS_APPROX, Z_s, MOM_FULL_PRECISION, pathToSaveTo):
+    """this function computes a chunk of the near non-diagonal part of the MoM matrix,
+    but saves all the atomic elements on the disk. These elements will later on be used 
+    by chunk_of_Z_nearCRS_Assembling and MgPrecondition"""
+    pathToReadCubeFrom = pathToSaveTo
+    list_cubes = compute_list_cubes(cubesNumbers, pathToReadCubeFrom)
+    for cubeNumber, cube in list_cubes.iteritems():
+        Z_CFIE_near_tmp = Z_nearPerCube(pathToSaveTo, cube, CFIE, cubeNumber, w, eps_r, mu_r, ELEM_TYPE, Z_TMP_ELEM_TYPE, TDS_APPROX, Z_s, MOM_FULL_PRECISION)
+
+def Z_nearCRS_Computation(my_id, processNumber_to_ChunksNumbers, chunkNumber_to_cubesNumbers, CFIE, MAX_BLOCK_SIZE, w, eps_r, mu_r, ELEM_TYPE, Z_TMP_ELEM_TYPE, TDS_APPROX, Z_s, MOM_FULL_PRECISION, pathToSaveTo):
+    """this function computes Z_CFIE_near by slices and stores them on the disk."""
+    index, percentage = 0, 0
+    for chunkNumber in processNumber_to_ChunksNumbers[my_id]:
+        if my_id==0:
+            newPercentage = int(index * 100.0/len(processNumber_to_ChunksNumbers[my_id]))
+            if (newPercentage - percentage)>=5:
+                print "Process", my_id, ": computing Z_CFIE_near chunk.", newPercentage, "% completed"
+                sys.stdout.flush()
+                percentage = newPercentage
+        pathToSaveToChunk = os.path.join(pathToSaveTo, "chunk" + str(chunkNumber))
+        cubesNumbers = chunkNumber_to_cubesNumbers[chunkNumber]
+        chunk_of_Z_nearCRS_Computation(CFIE, cubesNumbers, w, eps_r, mu_r, ELEM_TYPE, Z_TMP_ELEM_TYPE, TDS_APPROX, Z_s, MOM_FULL_PRECISION, pathToSaveToChunk)
+        index += 1
+
+
+# Assembling
 
 def read_Z_perCube_fromFile(path, cubeNumber, cube, Z_TMP_ELEM_TYPE):
     Z_tmp = readBlitzArrayFromDisk(os.path.join(path, str(cubeNumber)), cube.N_RWG_test, cube.N_RWG_src, Z_TMP_ELEM_TYPE)
@@ -48,15 +59,6 @@ def compute_list_cubes(cubesNumbers, pathToReadFrom):
         cube.setIntDoubleArraysFromFile(pathToReadCubeFrom, cubeNumber)
         list_cubes[cubeNumber] = copy.copy(cube)
     return list_cubes
-
-def chunk_of_Z_nearCRS_Computation(CFIE, cubesNumbers, w, eps_r, mu_r, ELEM_TYPE, Z_TMP_ELEM_TYPE, TDS_APPROX, Z_s, MOM_FULL_PRECISION, pathToSaveTo):
-    """this function computes a chunk of the near non-diagonal part of the MoM matrix,
-    but saves all the atomic elements on the disk. These elements will later on be used 
-    by chunk_of_Z_nearCRS_Assembling and MgPrecondition"""
-    pathToReadCubeFrom = pathToSaveTo
-    list_cubes = compute_list_cubes(cubesNumbers, pathToReadCubeFrom)
-    for cubeNumber, cube in list_cubes.iteritems():
-        Z_CFIE_near_tmp = Z_nearPerCube(pathToSaveTo, cube, CFIE, cubeNumber, w, eps_r, mu_r, ELEM_TYPE, Z_TMP_ELEM_TYPE, TDS_APPROX, Z_s, MOM_FULL_PRECISION)
 
 def chunk_of_Z_nearCRS_Assembling(cubesNumbers, ELEM_TYPE, Z_TMP_ELEM_TYPE, pathToReadFrom):
     """this function computes a chunk of the near non-diagonal part of the MoM matrix
@@ -106,69 +108,6 @@ def chunk_of_Z_nearCRS_Assembling(cubesNumbers, ELEM_TYPE, Z_TMP_ELEM_TYPE, path
         # update startIndexInQArray
         startIndexInQArray += cube.N_RWG_src
     return Z_CFIE_near, q_array, rowIndexToColumnIndexes, RWG_numbers
-
-def Z_nearChunksDistribution(MAX_BLOCK_SIZE, N_nearPerCube, C, pathToWriteTo):
-    num_procs = MPI.COMM_WORLD.Get_size()
-    my_id = MPI.COMM_WORLD.Get_rank()
-    if ( (MAX_BLOCK_SIZE<0.1) | (MAX_BLOCK_SIZE>250.) ):
-        print "Error: Z_nearChunksDistribution: MAX_BLOCK_SIZE too big or too small"
-        sys.exit(1)
-
-    chunkNumber_to_cubesIndexes, cubeIndex_to_chunkNumber, chunkNumber_to_processNumber, processNumber_to_ChunksNumbers = ['blabla'], ['blabla'], ['blabla'], ['blabla']
-    if my_id==0:
-        Total_Z_near_size = sum(N_nearPerCube)*(2.0*4.0/(1024.**2))
-        Forecasted_number_of_chunks = max(int(floor(Total_Z_near_size/MAX_BLOCK_SIZE) + 1), num_procs*2)
-        Average_N_cubes = C * 1./Forecasted_number_of_chunks
-        print "Total size of Z_near matrix =", Total_Z_near_size, "MBytes"
-        print "Number of leaf cubes =", C
-        print "Forecasted number of chunks =", Forecasted_number_of_chunks
-        cubesIndexAndNumberToProcessNumber = readASCIIBlitzIntArray2DFromDisk(os.path.join(pathToWriteTo, 'octtree_data/cubesIndexAndNumberToProcessNumber_FOR_Z_NEAR.txt') )
-        # processNumber_to_cubesIndexes
-        processNumber_to_cubesIndexes = {}
-        for i in range(num_procs):
-            processNumber_to_cubesIndexes[i] = []
-        for elem in cubesIndexAndNumberToProcessNumber:
-            cubeIndex, ProcNum = elem[0], elem[2]
-            processNumber_to_cubesIndexes[ProcNum].append(cubeIndex)
-        for i in range(num_procs):
-            processNumber_to_cubesIndexes[i].sort() # we sort by cube index
-        # processNumber_to_ChunksNumbers, chunkNumber_to_cubesIndexes
-        processNumber_to_ChunksNumbers, chunkNumber_to_cubesIndexes, chunkNumber_to_processNumber= [], [], []
-        # cubeIndex_to_chunkNumber
-        cubeIndex_to_chunkNumber = zeros(C, 'i')
-        for i in range(num_procs):
-            processNumber_to_ChunksNumbers.append([])
-        chunkNumber = 0
-        for i in range(num_procs):
-            elem = processNumber_to_cubesIndexes[i]
-            NC = len(elem) # number of cubes per process
-            startIndex, stopIndex = 0, int(min(floor(Average_N_cubes), NC))
-            while (startIndex<NC):
-                processNumber_to_ChunksNumbers[i].append(chunkNumber)
-                chunkNumber_to_cubesIndexes.append(elem[startIndex:stopIndex])
-                # cubeIndex_to_chunkNumber
-                cubeIndex_to_chunkNumber[elem[startIndex:stopIndex]] = chunkNumber
-                chunkNumber_to_processNumber.append(i)
-                startIndex = stopIndex
-                stopIndex += int(floor(Average_N_cubes))
-                stopIndex = min(stopIndex, NC)
-                chunkNumber += 1
-    return chunkNumber_to_cubesIndexes, cubeIndex_to_chunkNumber, chunkNumber_to_processNumber, processNumber_to_ChunksNumbers
-
-def Z_nearCRS_Computation(my_id, processNumber_to_ChunksNumbers, chunkNumber_to_cubesNumbers, CFIE, MAX_BLOCK_SIZE, w, eps_r, mu_r, ELEM_TYPE, Z_TMP_ELEM_TYPE, TDS_APPROX, Z_s, MOM_FULL_PRECISION, pathToSaveTo):
-    """this function computes Z_CFIE_near by slices and stores them on the disk."""
-    index, percentage = 0, 0
-    for chunkNumber in processNumber_to_ChunksNumbers[my_id]:
-        if my_id==0:
-            newPercentage = int(index * 100.0/len(processNumber_to_ChunksNumbers[my_id]))
-            if (newPercentage - percentage)>=5:
-                print "Process", my_id, ": computing Z_CFIE_near chunk.", newPercentage, "% completed"
-                sys.stdout.flush()
-                percentage = newPercentage
-        pathToSaveToChunk = os.path.join(pathToSaveTo, "chunk" + str(chunkNumber))
-        cubesNumbers = chunkNumber_to_cubesNumbers[chunkNumber]
-        chunk_of_Z_nearCRS_Computation(CFIE, cubesNumbers, w, eps_r, mu_r, ELEM_TYPE, Z_TMP_ELEM_TYPE, TDS_APPROX, Z_s, MOM_FULL_PRECISION, pathToSaveToChunk)
-        index += 1
 
 def Z_nearCRS_Assembling(processNumber_to_ChunksNumbers, chunkNumber_to_cubesNumbers, MAX_BLOCK_SIZE, C, ELEM_TYPE, Z_TMP_ELEM_TYPE, pathToReadFrom, pathToSaveTo):
     """this function computes Z_CFIE_near by slices and stores them on the disk.
