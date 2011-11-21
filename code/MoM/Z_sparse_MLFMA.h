@@ -9,17 +9,17 @@ using namespace std;
  
 class Z_sparse_MLFMA {
     int N_near;
-    int N_RWG;
-    int N_q_array;
-    blitz::Array<int, 1> RWG_numbers;
-    blitz::Array<int, 1> q_array;
+    int N_test_RWG;
+    int N_src_RWG;
+    blitz::Array<int, 1> test_RWG_numbers;
+    blitz::Array<int, 1> src_RWG_numbers;
     blitz::Array<int, 2> rowIndexToColumnIndexes;
     blitz::Array<std::complex<float>, 1> Z_CFIE_near;
   public:
     // constructors
     Z_sparse_MLFMA(void);
-    Z_sparse_MLFMA(const blitz::Array<int, 1> /*RWG_numbers*/,
-                   const blitz::Array<int, 1> /*q_array*/,
+    Z_sparse_MLFMA(const blitz::Array<int, 1> /*test_RWG_numbers*/,
+                   const blitz::Array<int, 1> /*src_RWG_numbers*/,
                    const blitz::Array<int, 2> /*rowIndexToColumnIndexes*/,
                    const blitz::Array<std::complex<float>, 1> /*Z_CFIE_near*/);
     // not really a constructor, but oh well....
@@ -34,15 +34,15 @@ class Z_sparse_MLFMA {
     // specific functions
     const int getN_near(void) const {return N_near;};
     void setN_near(const int N) {N_near = N;};
-    const int getN_RWG(void) const {return N_RWG;};
-    void setN_RWG(const int N) {N_RWG = N;};
-    const int getN_q_array(void) const {return N_q_array;};
-    void setN_q_Array(const int N) {N_q_array = N;};
+    const int getN_test_RWG(void) const {return N_test_RWG;};
+    void setN_test_RWG(const int N) {N_test_RWG = N;};
+    const int getN_src_RWG(void) const {return N_src_RWG;};
+    void setN_src_RWG(const int N) {N_src_RWG = N;};
 
-    const blitz::Array<int, 1> getRWG_numbers(void) const {return RWG_numbers;};
-    void setRWG_numbers(const blitz::Array<int, 1>& V) {RWG_numbers.resize(V.size()); RWG_numbers = V;};
-    const blitz::Array<int, 1> getQ_array(void) const {return q_array;};
-    void setQ_array(const blitz::Array<int, 1>& V) {q_array.resize(V.size()); q_array = V;};
+    const blitz::Array<int, 1> get_test_RWG_numbers(void) const {return test_RWG_numbers;};
+    void set_test_RWG_numbers(const blitz::Array<int, 1>& V) {test_RWG_numbers.resize(V.size()); test_RWG_numbers = V;};
+    const blitz::Array<int, 1> get_src_RWG_numbers(void) const {return src_RWG_numbers;};
+    void set_src_RWG_numbers(const blitz::Array<int, 1>& V) {src_RWG_numbers.resize(V.size()); src_RWG_numbers = V;};
     const blitz::Array<int, 2> getRowIndexToColumnIndexes(void) const {return rowIndexToColumnIndexes;};
     void setRowIndexToColumnIndexes(const blitz::Array<int, 2>& V) {rowIndexToColumnIndexes.resize(V.size()); rowIndexToColumnIndexes = V;};
     const blitz::Array<std::complex<float>, 1> getZ_CFIE_near(void) const {return Z_CFIE_near;};
@@ -54,27 +54,27 @@ class Z_sparse_MLFMA {
 
 Z_sparse_MLFMA::Z_sparse_MLFMA(void){};
 
-Z_sparse_MLFMA::Z_sparse_MLFMA(const blitz::Array<int, 1> RWG_numbers,
-                   const blitz::Array<int, 1> q_array,
+Z_sparse_MLFMA::Z_sparse_MLFMA(const blitz::Array<int, 1> test_RWG_numbers,
+                   const blitz::Array<int, 1> src_RWG_numbers,
                    const blitz::Array<int, 2> rowIndexToColumnIndexes,
                    const blitz::Array<std::complex<float>, 1> Z_CFIE_near) 
 {
-  setRWG_numbers(RWG_numbers);
-  setQ_array(q_array);
+  set_test_RWG_numbers(test_RWG_numbers);
+  set_src_RWG_numbers(src_RWG_numbers);
   setRowIndexToColumnIndexes(rowIndexToColumnIndexes);
   setZ_CFIE_near(Z_CFIE_near);
-  setN_RWG(RWG_numbers.size());
+  setN_test_RWG(test_RWG_numbers.size());
   setN_near(Z_CFIE_near.size());
-  setN_q_Array(q_array.size());
+  setN_src_RWG(src_RWG_numbers.size());
 };
 
 void Z_sparse_MLFMA::copyZ_sparse_MLFMA(const Z_sparse_MLFMA& Z_sparse_MLFMAToCopy) /// copy member function
 {
   N_near = Z_sparse_MLFMAToCopy.getN_near();
-  N_RWG = Z_sparse_MLFMAToCopy.getN_RWG();
-  N_q_array = Z_sparse_MLFMAToCopy.getN_q_array();
-  setRWG_numbers(Z_sparse_MLFMAToCopy.getRWG_numbers());
-  setQ_array(Z_sparse_MLFMAToCopy.getQ_array());
+  N_test_RWG = Z_sparse_MLFMAToCopy.getN_test_RWG();
+  N_src_RWG = Z_sparse_MLFMAToCopy.getN_src_RWG();
+  set_test_RWG_numbers(Z_sparse_MLFMAToCopy.get_test_RWG_numbers());
+  set_src_RWG_numbers(Z_sparse_MLFMAToCopy.get_src_RWG_numbers());
   setRowIndexToColumnIndexes(Z_sparse_MLFMAToCopy.getRowIndexToColumnIndexes());
   setZ_CFIE_near(Z_sparse_MLFMAToCopy.getZ_CFIE_near());
 };
@@ -90,8 +90,8 @@ Z_sparse_MLFMA& Z_sparse_MLFMA::operator=(const Z_sparse_MLFMA& Z_sparse_MLFMATo
 };
 
 Z_sparse_MLFMA::~Z_sparse_MLFMA() {
-  RWG_numbers.free();
-  q_array.free();
+  test_RWG_numbers.free();
+  src_RWG_numbers.free();
   rowIndexToColumnIndexes.free();
   Z_CFIE_near.free();
 };
@@ -101,11 +101,11 @@ void Z_sparse_MLFMA::setZ_sparse_MLFMAFromFile(const string path, const string Z
   int N_RWG, N_near, N_q_array;
   const string chunkNumberString = intToString(chunkNumber);
   {
-    string filename = path + "N_RWG" + chunkNumberString + ".txt";
+    string filename = path + "N_test_RWG" + chunkNumberString + ".txt";
     readIntFromASCIIFile(filename, N_RWG);
   }
   {
-    string filename = path + "N_q_array" + chunkNumberString + ".txt";
+    string filename = path + "N_src_RWG" + chunkNumberString + ".txt";
     readIntFromASCIIFile(filename, N_q_array);
   }
   {
@@ -113,25 +113,25 @@ void Z_sparse_MLFMA::setZ_sparse_MLFMAFromFile(const string path, const string Z
     readIntFromASCIIFile(filename, N_near);
   }
   setN_near(N_near);
-  setN_RWG(N_RWG);
-  RWG_numbers.resize(N_RWG);
+  setN_test_RWG(N_RWG);
+  test_RWG_numbers.resize(N_RWG);
   rowIndexToColumnIndexes.resize(N_RWG, 2);
-  q_array.resize(N_q_array);
+  src_RWG_numbers.resize(N_q_array);
   Z_CFIE_near.resize(N_near);
-  // reading RWG_numbers
+  // reading test_RWG_numbers
   {
-    string filename = path + "RWG_numbers" + chunkNumberString + ".txt";
-    readIntBlitzArray1DFromBinaryFile(filename, RWG_numbers);
+    string filename = path + "test_RWG_numbers" + chunkNumberString + ".txt";
+    readIntBlitzArray1DFromBinaryFile(filename, test_RWG_numbers);
   }
   // reading rowIndexToColumnIndexes
   {
     string filename = path + "rowIndexToColumnIndexes" + chunkNumberString + ".txt";
     readIntBlitzArray2DFromBinaryFile(filename, rowIndexToColumnIndexes);
   }
-  // reading q_array
+  // reading src_RWG_numbers
   {
-    string filename = path + "q_array" + chunkNumberString + ".txt";
-    readIntBlitzArray1DFromBinaryFile(filename, q_array);
+    string filename = path + "src_RWG_numbers" + chunkNumberString + ".txt";
+    readIntBlitzArray1DFromBinaryFile(filename, src_RWG_numbers);
   }
   // reading Z_CFIE_near
   {
@@ -148,12 +148,12 @@ void Z_sparse_MLFMA::matvec_Z_PQ_near(blitz::Array<std::complex<float>, 1>& ZI_P
  */
 {
   int indexInZ_CFIE = 0;
-  for (int i=0 ; i<N_RWG ; i++) {
-    const int RWG_number = RWG_numbers(i);
-    const int startIndexInQArray = rowIndexToColumnIndexes(i, 0);
-    const int stopIndexInQArray = rowIndexToColumnIndexes(i, 1);
-    for (int j=startIndexInQArray ; j<stopIndexInQArray ; j++) {
-      ZI_PQ(RWG_number) += Z_CFIE_near(indexInZ_CFIE) * I_PQ(q_array(j));
+  for (int i=0 ; i<N_test_RWG ; i++) {
+    const int test_RWG_number = test_RWG_numbers(i);
+    const int startIndexInSrcRWG_numbers = rowIndexToColumnIndexes(i, 0);
+    const int stopIndexInSrc_RWG_numbers = rowIndexToColumnIndexes(i, 1);
+    for (int j=startIndexInSrcRWG_numbers ; j<stopIndexInSrc_RWG_numbers ; j++) {
+      ZI_PQ(test_RWG_number) += Z_CFIE_near(indexInZ_CFIE) * I_PQ(src_RWG_numbers(j));
       indexInZ_CFIE++;
     }
   }

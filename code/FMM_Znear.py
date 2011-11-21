@@ -1,9 +1,8 @@
 from mpi4py import MPI
 import os, sys, commands
-from scipy import zeros, array, floor, compress, reshape
-from scipy import sort, argsort, take, arange
+from scipy import zeros, array
 from Z_MoM import Z_MoM, Z_MoM_triangles_arraysFromCube
-from ReadWriteBlitzArray import writeBlitzArrayToDisk, readBlitzArrayFromDisk, writeToDisk_chunk_of_Z_sparse, writeASCIIBlitzArrayToDisk
+from ReadWriteBlitzArray import writeBlitzArrayToDisk, readBlitzArrayFromDisk, writeScalarToDisk, writeASCIIBlitzArrayToDisk
 from meshClass import MeshClass, CubeClass
 import copy
 
@@ -79,15 +78,15 @@ def chunk_of_Z_nearCRS_Assembling(cubesNumbers, ELEM_TYPE, Z_TMP_ELEM_TYPE, path
         N_RWG += Nl
         N_near += Nl * Nc
         N_srcFromNeighbors += Nc
-    RWG_numbers = zeros(N_RWG, 'i')
+    test_RWG_numbers = zeros(N_RWG, 'i')
     # number of elements in the Z_near chunk
     Z_CFIE_near = zeros(N_near, ELEM_TYPE) # matrix elements
-    # for the q_array, each src function for all the testing functions of a cube appears only once
-    # instead of once per testing function. This allows a dramatic reduction in q_array.shape.
+    # for the src_RWG_numbers, each src function for all the testing functions of a cube appears only once
+    # instead of once per testing function. This allows a dramatic reduction in src_RWG_numbers.shape.
     # See the help for this function.
-    q_array = zeros(N_srcFromNeighbors, 'i') # column indexes
+    src_RWG_numbers = zeros(N_srcFromNeighbors, 'i') # column indexes
     rowIndexToColumnIndexes = zeros((N_RWG, 2), 'i') # start and end indexes
-    startIndex, startIndexInRWGNumbers, startIndexInQArray = 0, 0, 0
+    startIndex, startIndexInTestRWGNumbers, startIndexInSrcRWGNumbers = 0, 0, 0
     index_in_rowIndexToColumnIndexes = 0
     for cubeNumber, cube in list_cubes.iteritems():
         # reading the sparse matrix
@@ -95,19 +94,19 @@ def chunk_of_Z_nearCRS_Assembling(cubesNumbers, ELEM_TYPE, Z_TMP_ELEM_TYPE, path
         Z_CFIE_near_tmp = array(Z_CFIE_near_tmp1.astype(ELEM_TYPE).flat)
         Z_CFIE_near[startIndex:startIndex + len(Z_CFIE_near_tmp)] = Z_CFIE_near_tmp.tolist()
         startIndex += Z_CFIE_near_tmp.shape[0] # index update
-        # q_array gives the column indexes. This is the second column of pq_array
-        q_array[startIndexInQArray:startIndexInQArray + cube.N_RWG_src] = cube.testSrc_RWGsNumbers
+        # src_RWG_numbers gives the column indexes. This is the second column of pq_array
+        src_RWG_numbers[startIndexInSrcRWGNumbers:startIndexInSrcRWGNumbers + cube.N_RWG_src] = cube.testSrc_RWGsNumbers
         # finding the RWGs numbers
-        RWG_numbers[startIndexInRWGNumbers:startIndexInRWGNumbers + cube.N_RWG_test] = cube.testSrc_RWGsNumbers[:cube.N_RWG_test]
-        startIndexInRWGNumbers += cube.N_RWG_test
+        test_RWG_numbers[startIndexInTestRWGNumbers:startIndexInTestRWGNumbers + cube.N_RWG_test] = cube.testSrc_RWGsNumbers[:cube.N_RWG_test]
+        startIndexInTestRWGNumbers += cube.N_RWG_test
         # now we have to construct rowIndexToColumnIndexes
         for j in range(cube.N_RWG_test):
-            rowIndexToColumnIndexes[index_in_rowIndexToColumnIndexes, 0] = startIndexInQArray
-            rowIndexToColumnIndexes[index_in_rowIndexToColumnIndexes, 1] = startIndexInQArray + cube.N_RWG_src
+            rowIndexToColumnIndexes[index_in_rowIndexToColumnIndexes, 0] = startIndexInSrcRWGNumbers
+            rowIndexToColumnIndexes[index_in_rowIndexToColumnIndexes, 1] = startIndexInSrcRWGNumbers + cube.N_RWG_src
             index_in_rowIndexToColumnIndexes += 1
-        # update startIndexInQArray
-        startIndexInQArray += cube.N_RWG_src
-    return Z_CFIE_near, q_array, rowIndexToColumnIndexes, RWG_numbers
+        # update startIndexInSrcArray
+        startIndexInSrcRWGNumbers += cube.N_RWG_src
+    return Z_CFIE_near, src_RWG_numbers, rowIndexToColumnIndexes, test_RWG_numbers
 
 def Z_nearCRS_Assembling(processNumber_to_ChunksNumbers, chunkNumber_to_cubesNumbers, MAX_BLOCK_SIZE, C, ELEM_TYPE, Z_TMP_ELEM_TYPE, pathToReadFrom, pathToSaveTo):
     """this function computes Z_CFIE_near by slices and stores them on the disk.
@@ -126,10 +125,25 @@ def Z_nearCRS_Assembling(processNumber_to_ChunksNumbers, chunkNumber_to_cubesNum
     for chunkNumber in chunkNumbers:
         cubesNumbers = chunkNumber_to_cubesNumbers[chunkNumber]
         pathToReadFromChunk = os.path.join(pathToReadFrom, "chunk" + str(chunkNumber))
-        Z_CFIE_near, q_array, rowIndexToColumnIndexes, RWG_numbers = chunk_of_Z_nearCRS_Assembling(cubesNumbers, ELEM_TYPE, Z_TMP_ELEM_TYPE, pathToReadFromChunk)
-        writeToDisk_chunk_of_Z_sparse(pathToSaveTo, NAME, Z_CFIE_near, q_array, rowIndexToColumnIndexes, RWG_numbers, chunkNumber)
-        del Z_CFIE_near, q_array, rowIndexToColumnIndexes, RWG_numbers
+        Z_CFIE_near, src_RWG_numbers, rowIndexToColumnIndexes, test_RWG_numbers = chunk_of_Z_nearCRS_Assembling(cubesNumbers, ELEM_TYPE, Z_TMP_ELEM_TYPE, pathToReadFromChunk)
+        writeToDisk_chunk_of_Z_sparse(pathToSaveTo, NAME, Z_CFIE_near, src_RWG_numbers, rowIndexToColumnIndexes, test_RWG_numbers, chunkNumber)
+        del Z_CFIE_near, src_RWG_numbers, rowIndexToColumnIndexes, test_RWG_numbers
         commands.getoutput("rm -rf " + os.path.join(pathToReadFromChunk))
     # we write the chunks numbers of the process
     writeASCIIBlitzArrayToDisk(array(chunkNumbers).astype('i'), os.path.join(pathToSaveTo, 'chunkNumbers.txt'))
     #commands.getoutput("rm -rf " + os.path.join(pathToReadFrom))
+
+def writeToDisk_chunk_of_Z_sparse(path, name, Z, src_RWG_numbers, rowIndexToColumnIndexes, test_RWG_numbers, chunkNumber):
+    """this function writes to disk the chunks of Z sparse and the corresponding indexes arrays, each with a number"""
+    chunkNumberString = str(chunkNumber)
+    writeBlitzArrayToDisk(Z, os.path.join(path, name) + str(chunkNumber) + '.txt')
+    writeBlitzArrayToDisk(src_RWG_numbers, os.path.join(path, 'src_RWG_numbers') + str(chunkNumber) + '.txt')
+    writeBlitzArrayToDisk(rowIndexToColumnIndexes, os.path.join(path, 'rowIndexToColumnIndexes') + str(chunkNumber) + '.txt')
+    writeBlitzArrayToDisk(test_RWG_numbers, os.path.join(path, 'test_RWG_numbers') + str(chunkNumber) + '.txt')
+    # now we write the scalar values
+    N_test_RWG_File = os.path.join(path, 'N_test_RWG') + str(chunkNumber) + '.txt'
+    writeScalarToDisk(test_RWG_numbers.shape[0], N_test_RWG_File)
+    N_near_File = os.path.join(path, 'N_near') + str(chunkNumber) + '.txt'
+    writeScalarToDisk(Z.shape[0], N_near_File)
+    N_src_RWG_File = os.path.join(path, 'N_src_RWG') + str(chunkNumber) + '.txt'
+    writeScalarToDisk(src_RWG_numbers.shape[0], N_src_RWG_File)

@@ -347,26 +347,9 @@ def read1DBlitzArrayFromDisk(filename, ELEM_TYPE):
                  extra_compile_args = ['-O3', '-pthread', '-w'])
     return A
 
-def writeToDisk_chunk_of_Z_sparse(path, name, Z, q_array, rowIndexToColumnIndexes, RWG_numbers, chunkNumber):
-    """this function writes to disk the chunks of Z sparse and the corresponding indexes arrays, each with a number"""
-    chunkNumberString = str(chunkNumber)
-    writeBlitzArrayToDisk(Z, os.path.join(path, name) + str(chunkNumber) + '.txt')
-    writeBlitzArrayToDisk(q_array, os.path.join(path, 'q_array') + str(chunkNumber) + '.txt')
-    writeBlitzArrayToDisk(rowIndexToColumnIndexes, os.path.join(path, 'rowIndexToColumnIndexes') + str(chunkNumber) + '.txt')
-    writeBlitzArrayToDisk(RWG_numbers, os.path.join(path, 'RWG_numbers') + str(chunkNumber) + '.txt')
-    # now we write the scalar values
-    N_RWG_File = os.path.join(path, 'N_RWG') + str(chunkNumber) + '.txt'
-    writeScalarToDisk(RWG_numbers.shape[0], N_RWG_File)
-    N_near_File = os.path.join(path, 'N_near') + str(chunkNumber) + '.txt'
-    writeScalarToDisk(Z.shape[0], N_near_File)
-    N_q_array_File = os.path.join(path, 'N_q_array') + str(chunkNumber) + '.txt'
-    writeScalarToDisk(q_array.shape[0], N_q_array_File)
-
 
 if __name__=="__main__":
     x = 4.0 + 1.j * 3.3
     filename = './tmp/x.txt'
     writeScalarToDisk(x, filename)
 
-    
-    

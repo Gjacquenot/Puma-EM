@@ -1,10 +1,11 @@
 from mpi4py import MPI
 import sys, os, copy
-from scipy import zeros, array, floor, compress, arange, take, product, dot, sort, argsort, ones
+from scipy import zeros, array, floor, compress, arange, take, product, dot, sort, argsort, ones, weave
+from scipy.weave import converters
 from scipy import prod, rand, eye, put, transpose #, linalg
 from myPseudoInv import computeMyPinvCC #, computeMyPinv
-from FMM_Znear import read_Z_perCube_fromFile, compute_list_cubes
-from ReadWriteBlitzArray import *
+from FMM_Znear import read_Z_perCube_fromFile, compute_list_cubes, writeToDisk_chunk_of_Z_sparse
+from ReadWriteBlitzArray import writeBlitzArrayToDisk, readBlitzArrayFromDisk, writeScalarToDisk, writeASCIIBlitzArrayToDisk
 from meshClass import CubeClass
 
 def findEdgesInRadiusAroundCube(RWGNumber_nodes, nodesCoord, rCubeCenter, R_NORM_TYPE_1):
@@ -151,7 +152,7 @@ def chunk_of_Mg_CSR(cubesNumbers, chunkNumber, a, R_NORM_TYPE_1, ELEM_TYPE, Z_TM
     for cubeNumber, cube in list_cubes.iteritems():
         Nl, Nc = cube.N_RWG_test, cube.N_RWG_src
         N_RWG += Nl
-    RWG_numbers = zeros(N_RWG, 'i')
+    test_RWG_numbers = zeros(N_RWG, 'i')
     # number of elements in the preconditioner chunk
     N_precond, N_ColumnsPerCube, list_Z_tmp = numberOfElemsInPrecond(list_cubes, pathToReadFrom, cubeNumber_to_chunkNumber, R_NORM_TYPE_1, Z_TMP_ELEM_TYPE)
     Mg = zeros(N_precond, ELEM_TYPE)
@@ -164,7 +165,7 @@ def chunk_of_Mg_CSR(cubesNumbers, chunkNumber, a, R_NORM_TYPE_1, ELEM_TYPE, Z_TM
     for cubeNumber, cube in list_cubes.iteritems():
         # finding the RWGs numbers
         chunkNumber = cubeNumber_to_chunkNumber[cubeNumber]
-        RWG_numbers[startIndexInRWGNumbers:startIndexInRWGNumbers + cube.N_RWG_test] = cube.testSrc_RWGsNumbers[:cube.N_RWG_test]
+        test_RWG_numbers[startIndexInRWGNumbers:startIndexInRWGNumbers + cube.N_RWG_test] = cube.testSrc_RWGsNumbers[:cube.N_RWG_test]
         startIndexInRWGNumbers += cube.N_RWG_test
         # computing the sparse matrix
         Mg_tmp, Mg_q_array = MgPreconditionerComputationPerCube(cube, list_cubes_with_neighbors, list_Z_tmp, pathToReadFrom, cubeNumber_to_chunkNumber, a, R_NORM_TYPE_1, ELEM_TYPE, Z_TMP_ELEM_TYPE, LIB_G2C)
@@ -180,7 +181,7 @@ def chunk_of_Mg_CSR(cubesNumbers, chunkNumber, a, R_NORM_TYPE_1, ELEM_TYPE, Z_TM
         # update startIndexInQArray
         startIndexInQArray += N_ColumnsPerCube[indexN_ColumnsPerCube]
         indexN_ColumnsPerCube += 1
-    return Mg, q_array, rowIndexToColumnIndexes, RWG_numbers
+    return Mg, q_array, rowIndexToColumnIndexes, test_RWG_numbers
 
 def reduceListRedundancy(listToReduce):
     if len(listToReduce) > 1:
@@ -284,8 +285,8 @@ def Mg_CSR(my_id, processNumber_to_ChunksNumbers, chunkNumber_to_cubesNumbers, c
         pathToSaveToChunk = os.path.join(pathToSaveTo, "chunk" + str(chunkNumber))
         os.mkdir(pathToSaveToChunk)
         cubesNumbers = chunkNumber_to_cubesNumbers[chunkNumber]
-        Mg, q_array, rowIndexToColumnIndexes, RWG_numbers = chunk_of_Mg_CSR(cubesNumbers, chunkNumber, a, R_NORM_TYPE_1, ELEM_TYPE, Z_TMP_ELEM_TYPE, LIB_G2C, pathToReadFrom, cubeNumber_to_chunkNumber)
-        writeToDisk_chunk_of_Z_sparse(pathToSaveTo, NAME, Mg, q_array, rowIndexToColumnIndexes, RWG_numbers, chunkNumber)
+        Mg, src_RWG_numbers, rowIndexToColumnIndexes, test_RWG_numbers = chunk_of_Mg_CSR(cubesNumbers, chunkNumber, a, R_NORM_TYPE_1, ELEM_TYPE, Z_TMP_ELEM_TYPE, LIB_G2C, pathToReadFrom, cubeNumber_to_chunkNumber)
+        writeToDisk_chunk_of_Z_sparse(pathToSaveTo, NAME, Mg, src_RWG_numbers, rowIndexToColumnIndexes, test_RWG_numbers, chunkNumber)
         index += 1
     # we write the chunks numbers of the process
     writeASCIIBlitzArrayToDisk(array(chunkNumbers).astype('i'), os.path.join(pathToSaveTo, 'chunkNumbers.txt'))
