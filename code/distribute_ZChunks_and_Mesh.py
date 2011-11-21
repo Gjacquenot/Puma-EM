@@ -6,20 +6,15 @@ from meshClass import MeshClass, CubeClass
 from ReadWriteBlitzArray import writeScalarToDisk, writeASCIIBlitzArrayToDisk, readASCIIBlitzIntArray2DFromDisk
 
 def Z_near_size_computation(cubes_lists_edges_numbers, cubesNeighborsIndexes):
-    N_nearBlockDiag = 0.0
-    N_near = 0.0
     C = len(cubes_lists_edges_numbers)
     N_nearPerCube = zeros(C, 'd')
     for i in range(C):
-	N_tmp = cubes_lists_edges_numbers[i].shape[0]
-        N_nearBlockDiag += 1.0 * N_tmp**2
 	N_nearPerCubeTmp = 0
         for j in cubesNeighborsIndexes[i]:
             tmp = cubes_lists_edges_numbers[int(i)].shape[0] * cubes_lists_edges_numbers[int(j)].shape[0]
             N_nearPerCubeTmp += tmp
-            N_near += tmp
         N_nearPerCube[i] = N_nearPerCubeTmp
-    return N_nearBlockDiag, N_near, N_nearPerCube
+    return N_nearPerCube
 
 def Z_nearChunksDistribution(MAX_BLOCK_SIZE, N_nearPerCube, C, pathToWriteTo):
     num_procs = MPI.COMM_WORLD.Get_size()
@@ -129,7 +124,7 @@ def distribute_Chunks_and_Mesh(params_simu, simuDirName):
     target_mesh = MeshClass(geoDirName, params_simu.targetName, params_simu.targetDimensions_scaling_factor, params_simu.z_offset, params_simu.languageForMeshConstruction, params_simu.meshFormat, params_simu.meshFileTermination)
     if my_id==0:
         target_mesh.constructFromSavedArrays(os.path.join(tmpDirName, "mesh"))
-        N_nearBlockDiag, N_near, N_nearPerCube = Z_near_size_computation(target_mesh.cubes_lists_RWGsNumbers, target_mesh.cubesNeighborsIndexes)
+        N_nearPerCube = Z_near_size_computation(target_mesh.cubes_lists_RWGsNumbers, target_mesh.cubesNeighborsIndexes)
     else:
         N_nearPerCube = ['blabla']
     N_nearPerCube = MPI.COMM_WORLD.bcast(N_nearPerCube)

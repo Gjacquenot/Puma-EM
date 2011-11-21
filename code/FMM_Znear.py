@@ -131,7 +131,6 @@ def Z_nearCRS_Assembling(processNumber_to_ChunksNumbers, chunkNumber_to_cubesNum
         commands.getoutput("rm -rf " + os.path.join(pathToReadFromChunk))
     # we write the chunks numbers of the process
     writeASCIIBlitzArrayToDisk(array(chunkNumbers).astype('i'), os.path.join(pathToSaveTo, 'chunkNumbers.txt'))
-    #commands.getoutput("rm -rf " + os.path.join(pathToReadFrom))
 
 def writeToDisk_chunk_of_Z_sparse(path, name, Z, src_RWG_numbers, rowIndexToColumnIndexes, test_RWG_numbers, chunkNumber):
     """this function writes to disk the chunks of Z sparse and the corresponding indexes arrays, each with a number"""
