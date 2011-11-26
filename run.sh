@@ -46,6 +46,9 @@ ${MPI_CMD} python code/compute_Z_near_MLFMA.py --simudir ${SIMU_DIR}
 # now computation of the SAI preconditioner
 ${MPI_CMD} python code/compute_SAI_precond_MLFMA.py --simudir ${SIMU_DIR}
 
+# now renumbering of the RWGs for Znear and preconditioner multiplications
+{ time -p ${MPI_CMD} ./code/MoM/RWGs_renumbering --simudir ${SIMU_DIR}; } 2> ${SIMU_DIR}/result/CPU_time_RWGs_renumbering.txt
+
 # now the real deal: the MLFMA computation
 { time -p ${MPI_CMD} ./code/MoM/mpi_mlfma --simudir ${SIMU_DIR}; } 2> ${SIMU_DIR}/result/CPU_time_MLFMA.txt
 
