@@ -122,15 +122,20 @@ def Z_nearCRS_Assembling(processNumber_to_ChunksNumbers, chunkNumber_to_cubesNum
         print "Number of leaf cubes =", C
         print "assembling Z_CFIE_near chunks..."
     chunkNumbers = processNumber_to_ChunksNumbers[my_id]
+    local_test_RWG_numbers = []
     for chunkNumber in chunkNumbers:
         cubesNumbers = chunkNumber_to_cubesNumbers[chunkNumber]
         pathToReadFromChunk = os.path.join(pathToReadFrom, "chunk" + str(chunkNumber))
         Z_CFIE_near, src_RWG_numbers, rowIndexToColumnIndexes, test_RWG_numbers = chunk_of_Z_nearCRS_Assembling(cubesNumbers, ELEM_TYPE, Z_TMP_ELEM_TYPE, pathToReadFromChunk)
         writeToDisk_chunk_of_Z_sparse(pathToSaveTo, NAME, Z_CFIE_near, src_RWG_numbers, rowIndexToColumnIndexes, test_RWG_numbers, chunkNumber)
+        local_test_RWG_numbers += test_RWG_numbers.tolist()
         del Z_CFIE_near, src_RWG_numbers, rowIndexToColumnIndexes, test_RWG_numbers
         commands.getoutput("rm -rf " + os.path.join(pathToReadFromChunk))
     # we write the chunks numbers of the process
     writeASCIIBlitzArrayToDisk(array(chunkNumbers).astype('i'), os.path.join(pathToSaveTo, 'chunkNumbers.txt'))
+    # we write the local_test_RWG_numbers
+    writeBlitzArrayToDisk(array(local_test_RWG_numbers).astype('i'), os.path.join(pathToSaveTo, 'local_test_RWG_numbers.txt'))
+    writeScalarToDisk(len(local_test_RWG_numbers), os.path.join(pathToSaveTo, 'local_N_test_RWG_numbers.txt'))
 
 def writeToDisk_chunk_of_Z_sparse(path, name, Z, src_RWG_numbers, rowIndexToColumnIndexes, test_RWG_numbers, chunkNumber):
     """this function writes to disk the chunks of Z sparse and the corresponding indexes arrays, each with a number"""

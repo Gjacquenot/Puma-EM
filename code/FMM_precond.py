@@ -275,6 +275,7 @@ def Mg_CSR(my_id, processNumber_to_ChunksNumbers, chunkNumber_to_cubesNumbers, c
     NAME = "Mg_LeftFrob"
     chunkNumbers = processNumber_to_ChunksNumbers[my_id]
     index, percentage = 0, 0
+    local_test_RWG_numbers = []
     for chunkNumber in chunkNumbers:
         if my_id==0:
             newPercentage = int(index * 100.0/len(processNumber_to_ChunksNumbers[my_id]))
@@ -287,7 +288,10 @@ def Mg_CSR(my_id, processNumber_to_ChunksNumbers, chunkNumber_to_cubesNumbers, c
         cubesNumbers = chunkNumber_to_cubesNumbers[chunkNumber]
         Mg, src_RWG_numbers, rowIndexToColumnIndexes, test_RWG_numbers = chunk_of_Mg_CSR(cubesNumbers, chunkNumber, a, R_NORM_TYPE_1, ELEM_TYPE, Z_TMP_ELEM_TYPE, LIB_G2C, pathToReadFrom, cubeNumber_to_chunkNumber)
         writeToDisk_chunk_of_Z_sparse(pathToSaveTo, NAME, Mg, src_RWG_numbers, rowIndexToColumnIndexes, test_RWG_numbers, chunkNumber)
+        local_test_RWG_numbers += test_RWG_numbers.tolist()
         index += 1
     # we write the chunks numbers of the process
     writeASCIIBlitzArrayToDisk(array(chunkNumbers).astype('i'), os.path.join(pathToSaveTo, 'chunkNumbers.txt'))
-
+    # we write the local_test_RWG_numbers
+    writeBlitzArrayToDisk(array(local_test_RWG_numbers).astype('i'), os.path.join(pathToSaveTo, 'local_test_RWG_numbers.txt'))
+    writeScalarToDisk(len(local_test_RWG_numbers), os.path.join(pathToSaveTo, 'local_N_test_RWG_numbers.txt'))
