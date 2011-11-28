@@ -28,9 +28,11 @@ using namespace std;
 void gatherAndRedistribute(blitz::Array<std::complex<float>, 1>& x, const int my_id, const int num_procs)
 {
   int ierror, N_RWG = x.size();
-  blitz::Array<std::complex<float>, 1> recvBuf(N_RWG);
-  ierror = MPI_Allreduce(x.data(), recvBuf.data(), N_RWG, MPI_COMPLEX, MPI_SUM, MPI_COMM_WORLD);
-  x = recvBuf;
+  blitz::Array<std::complex<float>, 1> recvBuf;
+  if (my_id==0) recvBuf.resize(N_RWG);
+  ierror = MPI_Reduce(x.data(), recvBuf.data(), N_RWG, MPI_COMPLEX, MPI_SUM, 0, MPI_COMM_WORLD);
+  if (my_id==0) x = recvBuf;
+  ierror = MPI_Bcast(x.data(), N_RWG, MPI_COMPLEX, 0, MPI_COMM_WORLD);
 }
 
 class MatvecMLFMA {
@@ -120,24 +122,47 @@ void MatvecMLFMA::matvecZnear(blitz::Array<std::complex<float>, 1> & y, const bl
 blitz::Array<std::complex<float>, 1> MatvecMLFMA::matvec(const blitz::Array<std::complex<float>, 1> & x)
 {
   // distribution of x among processes
-  blitz::Array<std::complex<float>, 1> xTmp(this->N_RWG);
-  xTmp = 0.0;
-  for (int i=0 ; i<this->localRWGnumbers.size() ; ++i) xTmp(this->localRWGnumbers(i)) = x(i);
+  const int my_id = MPI::COMM_WORLD.Get_rank();
+  blitz::Array<std::complex<float>, 1> x_global(this->N_RWG);
+  x_global = 0.0;
+  for (int i=0 ; i<this->localRWGnumbers.size() ; ++i) x_global(this->localRWGnumbers(i)) = x(i);
   // we should now gather and redistribute the result among the processes
-  gatherAndRedistribute(xTmp, getProcNumber(), getTotalProcNumber());
+  gatherAndRedistribute(x_global, getProcNumber(), getTotalProcNumber());
 
-  blitz::Array<std::complex<float>, 1> y(this->N_RWG);
-  y = 0.0;
+  blitz::Array<std::complex<float>, 1> y_global(this->N_RWG);
+  y_global = 0.0;
   // far-field multiplication
-  pOcttree->ZIFarComputation(y, xTmp);
+  pOcttree->ZIFarComputation(y_global, x_global);
+  
   // near-field multiplication
-  matvecZnear(y, xTmp);
-  xTmp.free();
+  const string pathToReadFrom = simuDir + "/tmp" + intToString(my_id) + "/Z_near/";
+  int local_N_src_RWG;
+  string filename = pathToReadFrom + "local_N_src_RWG.txt";
+  readIntFromASCIIFile(filename, local_N_src_RWG);
+  blitz::Array<int, 1> local_src_RWG_numbers(local_N_src_RWG);
+  filename = pathToReadFrom + "local_src_RWG_numbers.txt";
+  readIntBlitzArray1DFromBinaryFile(filename, local_src_RWG_numbers);
+  blitz::Array<std::complex<float>, 1> x_local_Z(local_N_src_RWG);
+  for (int i=0; i<local_N_src_RWG; i++) x_local_Z(i) = x_global(local_src_RWG_numbers(i));
+  x_global.free();
+  
+  int local_N_test_RWG;
+  filename = pathToReadFrom + "local_N_test_RWG.txt";
+  readIntFromASCIIFile(filename, local_N_test_RWG);
+  blitz::Array<int, 1> local_test_RWG_numbers(local_N_test_RWG);
+  filename = pathToReadFrom + "local_test_RWG_numbers.txt";
+  readIntBlitzArray1DFromBinaryFile(filename, local_test_RWG_numbers);
+  blitz::Array<std::complex<float>, 1> y_local_Z(local_N_test_RWG);
+  y_local_Z = 0.0;
+  matvecZnear(y_local_Z, x_local_Z);
+  x_local_Z.free();
   // we should now gather and redistribute the result among the processes
-  gatherAndRedistribute(y, getProcNumber(), getTotalProcNumber());
+  for (int i=0; i<local_N_test_RWG; i++) y_global(local_test_RWG_numbers(i)) += y_local_Z(i);
+  y_local_Z.free();
+  gatherAndRedistribute(y_global, getProcNumber(), getTotalProcNumber());
   // we now select only the elements to return
   blitz::Array<std::complex<float>, 1> yTmp(this->localRWGnumbers.size());
-  for (int i=0 ; i<this->localRWGnumbers.size() ; ++i) yTmp(i) = y(this->localRWGnumbers(i));
+  for (int i=0 ; i<this->localRWGnumbers.size() ; ++i) yTmp(i) = y_global(this->localRWGnumbers(i));
   return yTmp;
 }
 
@@ -204,14 +229,30 @@ LeftFrobPsolveMLFMA& LeftFrobPsolveMLFMA::operator=(const LeftFrobPsolveMLFMA& l
 blitz::Array<std::complex<float>, 1> LeftFrobPsolveMLFMA::psolve(const blitz::Array<std::complex<float>, 1> & x)
 {
   const int my_id = MPI::COMM_WORLD.Get_rank();
-  blitz::Array<std::complex<float>, 1> xTmp(this->N_RWG);
-  xTmp = 0.0;
-  for (int i=0 ; i<localRWGnumbers.size() ; ++i) xTmp(localRWGnumbers(i)) = x(i);
-  gatherAndRedistribute(xTmp, procNumber, totalProcNumber);
+  blitz::Array<std::complex<float>, 1> x_global(this->N_RWG);
+  x_global = 0.0;
+  for (int i=0 ; i<localRWGnumbers.size() ; ++i) x_global(localRWGnumbers(i)) = x(i);
+  gatherAndRedistribute(x_global, procNumber, totalProcNumber);
 
-  blitz::Array<std::complex<float>, 1> y(this->N_RWG);
-  y = 0.0;
   const string pathToReadFrom = simuDir + "/tmp" + intToString(my_id) + "/Mg_LeftFrob/", Z_name = "Mg_LeftFrob";
+  int local_N_src_RWG;
+  string filename = pathToReadFrom + "local_N_src_RWG.txt";
+  readIntFromASCIIFile(filename, local_N_src_RWG);
+  blitz::Array<int, 1> local_src_RWG_numbers(local_N_src_RWG);
+  filename = pathToReadFrom + "local_src_RWG_numbers.txt";
+  readIntBlitzArray1DFromBinaryFile(filename, local_src_RWG_numbers);
+  blitz::Array<std::complex<float>, 1> x_local_Y(local_N_src_RWG);
+  for (int i=0; i<local_N_src_RWG; i++) x_local_Y(i) = x_global(local_src_RWG_numbers(i));
+  x_global.free();  
+  
+  int local_N_test_RWG;
+  filename = pathToReadFrom + "local_N_test_RWG.txt";
+  readIntFromASCIIFile(filename, local_N_test_RWG);
+  blitz::Array<int, 1> local_test_RWG_numbers(local_N_test_RWG);
+  filename = pathToReadFrom + "local_test_RWG_numbers.txt";
+  readIntBlitzArray1DFromBinaryFile(filename, local_test_RWG_numbers);
+  blitz::Array<std::complex<float>, 1> y_local_Y(local_N_test_RWG);
+  y_local_Y = 0.0;
   blitz::Array<int, 1> chunkNumbers;
   readIntBlitzArray1DFromASCIIFile(pathToReadFrom + "chunkNumbers.txt", chunkNumbers);
   Z_sparse_MLFMA Mg_LeftFrob;
@@ -219,14 +260,18 @@ blitz::Array<std::complex<float>, 1> LeftFrobPsolveMLFMA::psolve(const blitz::Ar
     int number = chunkNumbers(i);
     Mg_LeftFrob.setZ_sparse_MLFMAFromFile(pathToReadFrom, Z_name, number);
     //Mg_LeftFrob.printZ_CFIE_near();
-    Mg_LeftFrob.matvec_Z_PQ_near(y, xTmp);
+    Mg_LeftFrob.matvec_Z_PQ_near(y_local_Y, x_local_Y);
   }
-  xTmp.free();
+  x_local_Y.free();
   // we should now gather and redistribute the result among the processes
-  gatherAndRedistribute(y, procNumber, totalProcNumber);
+  blitz::Array<std::complex<float>, 1> y_global(this->N_RWG);
+  y_global = 0.0;
+  for (int i=0; i<local_N_test_RWG; i++) y_global(local_test_RWG_numbers(i)) += y_local_Y(i);
+  y_local_Y.free();
+  gatherAndRedistribute(y_global, procNumber, totalProcNumber);
   // we now select only the elements to return
   blitz::Array<std::complex<float>, 1> yTmp(localRWGnumbers.size());
-  for (int i=0 ; i<localRWGnumbers.size() ; ++i) yTmp(i) = y(localRWGnumbers(i));
+  for (int i=0 ; i<localRWGnumbers.size() ; ++i) yTmp(i) = y_global(localRWGnumbers(i));
   return yTmp;
 }
 
