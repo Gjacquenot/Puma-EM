@@ -151,17 +151,18 @@ class MeshClass:
         #print "N levels =", self.N_levels, ", max N cubes 1D =", self.max_N_cubes_1D
         RWGNumber_edgeCentroidCoord = compute_RWGNumber_edgeCentroidCoord(self.vertexes_coord, self.RWGNumber_edgeVertexes)
         RWGNumber_cube, RWGNumber_cubeNumber, RWGNumber_cubeCentroidCoord = RWGNumber_cubeNumber_computation(a, self.max_N_cubes_1D, self.big_cube_lower_coord, RWGNumber_edgeCentroidCoord)
-        self.cubes_RWGsNumbers, self.cubes_lists_RWGsNumbers, self.cubes_Ei, self.cubes_centroids = cubeIndex_RWGNumbers_computation(RWGNumber_cubeNumber, RWGNumber_cubeCentroidCoord)
+        self.cubes_RWGsNumbers, self.cubes_lists_RWGsNumbers, self.cube_N_RWGs, self.cubes_centroids = cubeIndex_RWGNumbers_computation(RWGNumber_cubeNumber, RWGNumber_cubeCentroidCoord)
         self.C = self.cubes_centroids.shape[0]
         self.cubesNeighborsIndexes = findCubeNeighbors(self.max_N_cubes_1D, self.big_cube_lower_coord, self.cubes_centroids, self.a, self.N_levels)
         self.cubes_indexes_to_numbers = cubes_indexes_to_numbers_computation(self.a, self.big_cube_lower_coord, self.cubes_centroids, self.N_levels)
-        #print "Average number of RWGs per cube:", mean(self.cubes_Ei)
+        #print "Average number of RWGs per cube:", mean(self.cube_N_RWGs)
         #print "Exiting cubes_data_computation.............."
 
     def saveToDisk(self, path):
         """this function writes to disk the arrays necessary for MLFMA to work."""
         writeBlitzArrayToDisk(self.cubes_centroids, os.path.join(path, 'cubes_centroids') + '.txt')
         writeBlitzArrayToDisk(self.cubes_RWGsNumbers, os.path.join(path, 'cubes_RWGsNumbers') + '.txt')
+        writeBlitzArrayToDisk(self.cube_N_RWGs, os.path.join(path, 'cube_N_RWGs') + '.txt')
         file = open(os.path.join(path, 'cubes_lists_RWGsNumbers.txt'), 'w')
         cPickle.dump(self.cubes_lists_RWGsNumbers, file)
         file.close()
@@ -186,7 +187,6 @@ class MeshClass:
         writeScalarToDisk(self.S, os.path.join(path, "S.txt"))
         writeScalarToDisk(self.vertexes_coord.shape[0], os.path.join(path, "V.txt"))
         writeScalarToDisk(self.N_levels, os.path.join(path, "N_levels.txt"))
-        writeScalarToDisk(self.cubes_RWGsNumbers.shape[1], os.path.join(path, "MAX_N_RWG_per_cube.txt"))
 
     def constructFromSavedArrays(self, path):
         self.C = readIntFromDisk(os.path.join(path, "C.txt"))
@@ -195,11 +195,9 @@ class MeshClass:
         self.T = readIntFromDisk(os.path.join(path, "T.txt"))
         self.V = readIntFromDisk(os.path.join(path, "V.txt"))
         self.N_levels = readIntFromDisk(os.path.join(path, "N_levels.txt"))
-        self.MAX_N_RWG_per_cube = readIntFromDisk(os.path.join(path, "MAX_N_RWG_per_cube.txt"))
         self.N_RWG = self.E
         # now the arrays
         self.cubes_centroids = readBlitzArrayFromDisk(os.path.join(path, "cubes_centroids.txt"), self.C, 3, 'd')
-        self.cubes_RWGsNumbers = readBlitzArrayFromDisk(os.path.join(path, "cubes_RWGsNumbers.txt"), self.C, self.MAX_N_RWG_per_cube, 'i')
         file = open(os.path.join(path, 'cubes_lists_RWGsNumbers.txt'), 'r')
         self.cubes_lists_RWGsNumbers = cPickle.load(file)
         file.close()

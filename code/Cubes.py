@@ -66,15 +66,17 @@ def cubeIndex_RWGNumbers_computation(RWGNumber_cubeNumber, RWGNumber_cubeCentroi
     if len(cube_list_edges_numbers_tmp) > maxlength:
         maxlength = len(cube_list_edges_numbers_tmp)
 
-    # we transform the "cubes_lists_edges_numbers" in a rectangular array, useful for the C++ code
+    # we transform the "cubes_lists_edges_numbers" in a linear array, useful for the C++ code
     C = len(cubes_lists_edges_numbers)
-    cubes_edges_numbers = ones((C, maxlength), 'i') * -1
-    cubes_Ei = zeros(C, 'i')
+    cubes_edges_numbers = zeros(E, 'i')
+    cube_N_RWGs = zeros(C, 'i')
+    startIndex = 0
     for j in range(C):
         length = cubes_lists_edges_numbers[j].shape[0]
-        cubes_Ei[j] = length
-        cubes_edges_numbers[j, :length] = cubes_lists_edges_numbers[j]
-    return cubes_edges_numbers.astype('i'), cubes_lists_edges_numbers, cubes_Ei.astype('i'), (array(cubes_centroids)).astype('d')
+        cube_N_RWGs[j] = length
+        cubes_edges_numbers[startIndex:startIndex + length] = cubes_lists_edges_numbers[j]
+        startIndex += length
+    return cubes_edges_numbers, cubes_lists_edges_numbers, cube_N_RWGs.astype('i'), (array(cubes_centroids)).astype('d')
 
 def findCubeNeighbors(max_N_cubes_1D, big_cube_lower_coord, cubes_centroids, a, N_levels):
     """for each cubes finds its neighbors.

@@ -4,7 +4,6 @@ Mesh::Mesh(const string path) {setMeshFromFile(path);};
 
 void Mesh::copyMesh(const Mesh& meshToCopy) /// copy member function
 {
-  MAX_N_RWG_per_cube = meshToCopy.MAX_N_RWG_per_cube;
   C = meshToCopy.C;
   V = meshToCopy.V;
   T = meshToCopy.T;
@@ -12,7 +11,7 @@ void Mesh::copyMesh(const Mesh& meshToCopy) /// copy member function
   S = meshToCopy.S;
   vertexes_coord.resize(V, 3);
   cubes_centroids.resize(C, 3);
-  cubes_RWGsNumbers.resize(meshToCopy.cubes_RWGsNumbers.extent(0), meshToCopy.cubes_RWGsNumbers.extent(1));
+  cubes_RWGsNumbers.resize(meshToCopy.cubes_RWGsNumbers.size());
   RWGNumber_signedTriangles.resize(meshToCopy.RWGNumber_signedTriangles.extent(0), meshToCopy.RWGNumber_signedTriangles.extent(1));
   RWGNumber_edgeVertexes.resize(meshToCopy.RWGNumber_edgeVertexes.extent(0), meshToCopy.RWGNumber_edgeVertexes.extent(1));
   RWGNumber_oppVertexes.resize(meshToCopy.RWGNumber_oppVertexes.extent(0), meshToCopy.RWGNumber_oppVertexes.extent(1));
@@ -57,10 +56,6 @@ Mesh::~Mesh() {
 void Mesh::setMeshFromFile(const string path)
 {
   {
-    string filename = path + "MAX_N_RWG_per_cube.txt";
-    readIntFromASCIIFile(filename, MAX_N_RWG_per_cube);
-  }
-  {
     string filename = path + "C.txt";
     readIntFromASCIIFile(filename, C);
   }
@@ -84,7 +79,7 @@ void Mesh::setMeshFromFile(const string path)
   vertexes_coord.resize(V, 3);
   triangles_surfaces.resize(T);
   isClosedSurface.resize(S);
-  cubes_RWGsNumbers.resize(C, MAX_N_RWG_per_cube);
+  cubes_RWGsNumbers.resize(E);
   cubes_centroids.resize(C, 3);
   RWGNumber_signedTriangles.resize(E, 2);
   RWGNumber_edgeVertexes.resize(E, 2);
@@ -105,7 +100,7 @@ void Mesh::setMeshFromFile(const string path)
   }
   {
     string filename = path + "cubes_RWGsNumbers.txt";
-    readIntBlitzArray2DFromBinaryFile(filename, cubes_RWGsNumbers);
+    readIntBlitzArray1DFromBinaryFile(filename, cubes_RWGsNumbers);
   }
   {
     string filename = path + "cubes_centroids.txt";
@@ -134,7 +129,7 @@ void Mesh::resizeToZero() {
   triangles_surfaces.resize(0);
   isClosedSurface.resize(0);
   vertexes_coord.resize(0,0);
-  cubes_RWGsNumbers.resize(0,0);
+  cubes_RWGsNumbers.resize(0);
   cubes_centroids.resize(0,0);
   RWGNumber_signedTriangles.resize(0,0);
   RWGNumber_edgeVertexes.resize(0,0);

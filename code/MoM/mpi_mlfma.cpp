@@ -925,9 +925,9 @@ int main(int argc, char* argv[]) {
   const string ITERATIVE_DATA_PATH = TMP + "/iterative_data/";
 
   // reading and broadcasting mesh data
-  int C, N_RWG, V, MAX_N_RWG_per_cube;
-  blitz::Array<int, 1> RWGNumber_CFIE_OK;
-  blitz::Array<int, 2> cubes_RWGsNumbers, RWGNumber_edgeVertexes, RWGNumber_oppVertexes;
+  int C, N_RWG, V;
+  blitz::Array<int, 1> RWGNumber_CFIE_OK, cubes_RWGsNumbers, cube_N_RWGs, cube_startIndex_RWGs;
+  blitz::Array<int, 2> RWGNumber_edgeVertexes, RWGNumber_oppVertexes;
   blitz::Array<double, 2> cubes_centroids, vertexes_coord;
   if (my_id==0)
   {
@@ -941,12 +941,11 @@ int main(int argc, char* argv[]) {
     filename = MESH_DATA_PATH + "V.txt";
     readIntFromASCIIFile(filename, V);
 
-    filename = MESH_DATA_PATH + "MAX_N_RWG_per_cube.txt";
-    readIntFromASCIIFile(filename, MAX_N_RWG_per_cube);
-
     // resizing
     vertexes_coord.resize(V, 3);
-    cubes_RWGsNumbers.resize(C, MAX_N_RWG_per_cube);
+    cube_N_RWGs.resize(C);
+    cube_startIndex_RWGs.resize(C);
+    cubes_RWGsNumbers.resize(N_RWG);
     cubes_centroids.resize(C, 3);
     RWGNumber_edgeVertexes.resize(N_RWG, 2);
     RWGNumber_oppVertexes.resize(N_RWG, 2);
@@ -957,7 +956,17 @@ int main(int argc, char* argv[]) {
     readDoubleBlitzArray2DFromBinaryFile(filename, cubes_centroids);
     
     filename = MESH_DATA_PATH + "cubes_RWGsNumbers.txt";
-    readIntBlitzArray2DFromBinaryFile(filename, cubes_RWGsNumbers);
+    readIntBlitzArray1DFromBinaryFile(filename, cubes_RWGsNumbers);
+    
+    filename = MESH_DATA_PATH + "cube_N_RWGs.txt";
+    readIntBlitzArray1DFromBinaryFile(filename, cube_N_RWGs);
+    
+    // creation of cube_startIndex_RWGs
+    int startIndex = 0;
+    for (int i=0; i<C; i++) {
+      cube_startIndex_RWGs(i) = startIndex;
+      startIndex += cube_N_RWGs(i);
+    }
     
     filename = MESH_DATA_PATH + "vertexes_coord.txt";
     readDoubleBlitzArray2DFromBinaryFile(filename, vertexes_coord);
@@ -974,13 +983,12 @@ int main(int argc, char* argv[]) {
   MPI_Bcast(&N_RWG, 1, MPI_INT, 0, MPI_COMM_WORLD);
   MPI_Bcast(&C, 1, MPI_INT, 0, MPI_COMM_WORLD);
   MPI_Bcast(&V, 1, MPI_INT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(&MAX_N_RWG_per_cube, 1, MPI_INT, 0, MPI_COMM_WORLD);
   if (my_id!=0) cubes_centroids.resize(C, 3);
   MPI_Bcast(cubes_centroids.data(), cubes_centroids.size(), MPI_DOUBLE, 0, MPI_COMM_WORLD);
   // Octtree creation based upon the cubes_centroids
   Octtree octtree(OCTTREE_DATA_PATH, cubes_centroids, my_id, num_procs);
 
-  // partitioning of mesh --- UNDER HEAVY DEVELOPMENT!!
+  // partitioning of mesh
   blitz::Array<int, 1> oldIndexesOfCubes;
   octtree.computeIndexesOfCubesInOriginalMesh(oldIndexesOfCubes);
   int N_local_cubes = oldIndexesOfCubes.size();
@@ -1014,22 +1022,16 @@ int main(int argc, char* argv[]) {
   if (my_id==master) {
     for (int receive_id=num_procs-1; receive_id>-1; receive_id--) {
       // first we find the RWGs for each cube of process receive_id
-      const int startIndex = MPI_Gatherv_displs(receive_id);
+      const int startIndexOfCube = MPI_Gatherv_displs(receive_id);
       const int Ncubes = MPI_Gatherv_scounts(receive_id);
       std::vector<int> RWG_numbersTmp;
-      RWG_numbersTmp.reserve(Ncubes * MAX_N_RWG_per_cube);
       blitz::Array<int, 1> local_cubes_NRWG_tmp(Ncubes);
       // we now find the RWG numbers for each cube of process receive_id
       for (int i=0; i<Ncubes; i++) {
-        const int cubeNumber = process_OldIndexesOfCubes(startIndex + i);
-        int N_RWG_in_cube = 0;
-        for (int j=0 ; j<MAX_N_RWG_per_cube ; ++j) {
-          if (cubes_RWGsNumbers(cubeNumber, j)<0) break;
-          else {
-            RWG_numbersTmp.push_back(cubes_RWGsNumbers(cubeNumber, j));
-            N_RWG_in_cube += 1;
-          }
-        }
+        const int cubeNumber = process_OldIndexesOfCubes(startIndexOfCube + i);
+        int N_RWG_in_cube = cube_N_RWGs(cubeNumber);
+        int startIndex = cube_startIndex_RWGs(cubeNumber);
+        for (int j=startIndex ; j<startIndex + N_RWG_in_cube ; ++j) RWG_numbersTmp.push_back(cubes_RWGsNumbers(j));
         local_cubes_NRWG_tmp(i) = N_RWG_in_cube;
       }
       // now creating a blitz::array from std::vector RWG_numbersTmp

@@ -11,7 +11,6 @@ using namespace std;
 class Mesh {
 
   public:
-    int MAX_N_RWG_per_cube; // maximum number of RWGs for one cube
     int C; // number of cubes
     int V; // number of vertexes
     int T; // number of triangles
@@ -21,7 +20,7 @@ class Mesh {
     blitz::Array<int, 1> isClosedSurface;
     blitz::Array<double, 2> cubes_centroids;
     blitz::Array<double, 2> vertexes_coord;
-    blitz::Array<int, 2> cubes_RWGsNumbers;
+    blitz::Array<int, 1> cubes_RWGsNumbers;
     blitz::Array<int, 2> RWGNumber_signedTriangles;
     blitz::Array<int, 2> RWGNumber_edgeVertexes;
     blitz::Array<int, 2> RWGNumber_oppVertexes;
@@ -39,8 +38,6 @@ class Mesh {
     void resizeToZero(void);
     ~Mesh(void);
 
-    const int getMAX_N_RWG_per_cube(void) const {return MAX_N_RWG_per_cube;};
-    void setMAX_N_RWG_per_cube(int N) {MAX_N_RWG_per_cube = N;};
     const int getC(void) const {return C;};
     void setC(int N) {C = N;};
     const int getV(void) const {return V;};

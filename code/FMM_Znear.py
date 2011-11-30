@@ -1,7 +1,7 @@
 from mpi4py import MPI
 import os, sys, commands
 from scipy import zeros, array
-from Z_MoM import Z_MoM, Z_MoM_triangles_arraysFromCube
+from Z_MoM import Z_MoM_triangles_arraysFromCube
 from ReadWriteBlitzArray import writeBlitzArrayToDisk, readBlitzArrayFromDisk, writeScalarToDisk, writeASCIIBlitzArrayToDisk
 from meshClass import MeshClass, CubeClass
 import copy
