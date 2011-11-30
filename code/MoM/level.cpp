@@ -847,6 +847,19 @@ void Level::computeGaussLocatedArguments(const blitz::Array<int, 1>& local_cubes
   } 
 }
 
+void Level::RWGs_renumbering(void)
+{
+  if ( getLeaf() ) {
+    const int N_local_cubes = localCubesIndexes.size();
+    int startIndex = 0;
+    for (int i=0 ; i<N_local_cubes ; ++i) {
+      const int indexLocalCube = cubesIndexesAfterReduction[localCubesIndexes[i]];      
+      const int NRWG = cubes[indexLocalCube].RWG_numbers.size();
+      for (int j=0; j<NRWG; j++) cubes[indexLocalCube].RWG_numbers[j] = startIndex + j;
+      startIndex += NRWG;
+    }
+  } 
+}
 
 void Level::computeSup(blitz::Array<std::complex<float>, 2> & Sup,
                        const std::complex<double>& k,

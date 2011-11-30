@@ -319,6 +319,11 @@ void Octtree::computeGaussLocatedArguments(const blitz::Array<int, 1>& local_cub
   levels[0].computeGaussLocatedArguments(local_cubes_NRWG, local_RWG_numbers, local_RWG_Numbers_CFIE_OK, local_RWGNumbers_trianglesCoord, this->N_GaussOnTriangle);
 }
 
+void Octtree::RWGs_renumbering(void)
+{
+  levels[0].RWGs_renumbering();
+}
+
 void Octtree::constructArrays(void) 
 {
   const int N_levels = levels.size();

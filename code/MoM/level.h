@@ -275,6 +275,7 @@ class Level {
                                       const blitz::Array<int, 1>& /*local_RWG_Numbers_CFIE_OK*/, 
                                       const blitz::Array<float, 2>& /*local_RWGNumbers_trianglesCoord*/,
                                       const int /*N_Gauss*/);
+    void RWGs_renumbering(void);
     void shiftingArraysComputation(void);
     const double getShiftingArraysSizeMB(void) const {return shiftingArrays.size() *  2.0*4.0/(1024.0*1024.0);};
     const blitz::Array<int, 1> getAlphaTranslationsExtents(void) const;

@@ -121,20 +121,22 @@ void MatvecMLFMA::matvecZnear(blitz::Array<std::complex<float>, 1> & y, const bl
 
 blitz::Array<std::complex<float>, 1> MatvecMLFMA::matvec(const blitz::Array<std::complex<float>, 1> & x)
 {
+  // creation of a local solution vector for MLFMA
+  blitz::Array<std::complex<float>, 1> y_local_MLFMA(this->localRWGnumbers.size());
+  y_local_MLFMA = 0.0;
+
+  // far-field multiplication
+  pOcttree->ZIFarComputation(y_local_MLFMA, x);
+  
   // distribution of x among processes
-  const int my_id = MPI::COMM_WORLD.Get_rank();
   blitz::Array<std::complex<float>, 1> x_global(this->N_RWG);
   x_global = 0.0;
   for (int i=0 ; i<this->localRWGnumbers.size() ; ++i) x_global(this->localRWGnumbers(i)) = x(i);
   // we should now gather and redistribute the result among the processes
   gatherAndRedistribute(x_global, getProcNumber(), getTotalProcNumber());
 
-  blitz::Array<std::complex<float>, 1> y_global(this->N_RWG);
-  y_global = 0.0;
-  // far-field multiplication
-  pOcttree->ZIFarComputation(y_global, x_global);
-  
   // near-field multiplication
+  const int my_id = MPI::COMM_WORLD.Get_rank();
   const string pathToReadFrom = simuDir + "/tmp" + intToString(my_id) + "/Z_near/";
   int local_N_src_RWG;
   string filename = pathToReadFrom + "local_N_src_RWG.txt";
@@ -157,8 +159,13 @@ blitz::Array<std::complex<float>, 1> MatvecMLFMA::matvec(const blitz::Array<std:
   matvecZnear(y_local_Z, x_local_Z);
   x_local_Z.free();
   // we should now gather and redistribute the result among the processes
+  // but first we add the results from the multiplications
+  blitz::Array<std::complex<float>, 1> y_global(this->N_RWG);
+  y_global = 0.0;
   for (int i=0; i<local_N_test_RWG; i++) y_global(local_test_RWG_numbers(i)) += y_local_Z(i);
   y_local_Z.free();
+  for (int i=0 ; i<this->localRWGnumbers.size() ; ++i) y_global(this->localRWGnumbers(i)) += y_local_MLFMA(i);
+  y_local_MLFMA.free();
   gatherAndRedistribute(y_global, getProcNumber(), getTotalProcNumber());
   // we now select only the elements to return
   blitz::Array<std::complex<float>, 1> yTmp(this->localRWGnumbers.size());
@@ -511,17 +518,12 @@ void computeForOneExcitation(Octtree & octtree,
   if (my_id==master) writeComplexDoubleBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "E_obs.txt", E_obs);
   if (my_id==master) writeDoubleBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "r_obs.txt", r_obs);
 
-  // we now gather all the ZI from the other processes
-  blitz::Array<std::complex<float>, 1> ZI_tmp(N_RWG);
-  ZI_tmp = 0.0;
-  for (int i=0 ; i<N_local_RWG ; ++i) ZI_tmp(localRWGNumbers(i)) = ZI(i);
-  gatherAndRedistribute(ZI_tmp, my_id, num_procs);
   // calculating the far fields
   blitz::Array<float, 1> octtreeXthetas_coarsest, octtreeXphis_coarsest;
   readFloatBlitzArray1DFromASCIIFile(OCTTREE_DATA_PATH + "octtreeXphis_coarsest.txt", octtreeXphis_coarsest);
   readFloatBlitzArray1DFromASCIIFile(OCTTREE_DATA_PATH + "octtreeXthetas_coarsest.txt", octtreeXthetas_coarsest);
   blitz::Array<std::complex<float>, 2> e_theta_far, e_phi_far;
-  octtree.computeFarField(e_theta_far, e_phi_far, octtreeXthetas_coarsest, octtreeXphis_coarsest, ZI_tmp, OCTTREE_DATA_PATH);
+  octtree.computeFarField(e_theta_far, e_phi_far, octtreeXthetas_coarsest, octtreeXphis_coarsest, ZI, OCTTREE_DATA_PATH);
   if (my_id==master) {
     writeComplexFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "e_theta_far_ASCII.txt", e_theta_far);
     writeComplexFloatBlitzArray2DToBinaryFile(RESULT_DATA_PATH + "e_theta_far_Binary.txt", e_theta_far);
@@ -533,9 +535,10 @@ void computeForOneExcitation(Octtree & octtree,
   }
   // we now write the solution to disk...
   if ( my_id == master ) {
+    // only local ZI are stored on disk
     string filename = TMP + "/ZI/ZI.txt";
     ofstream ofs(filename.c_str(), blitz::ios::binary);
-    ofs.write((char *)(ZI_tmp.data()), ZI_tmp.size()*8);
+    ofs.write((char *)(ZI.data()), ZI.size()*8);
     ofs.close();
     writeIntToASCIIFile(ITERATIVE_DATA_PATH + "numberOfMatvecs.txt", octtree.getNumberOfUpdates());
     writeIntToASCIIFile(ITERATIVE_DATA_PATH + "iter.txt", iter);
@@ -680,11 +683,7 @@ void computeMonostaticRCS(Octtree & octtree,
               phis(BetaPoints-1-j) = phi_inc + Beta - j * space;
             }
           }
-          blitz::Array<std::complex<float>, 1> ZI_tmp(N_RWG);
-          ZI_tmp = 0.0;
-          for (int i=0 ; i<N_local_RWG ; ++i) ZI_tmp(localRWGNumbers(i)) = ZI(i);
-          gatherAndRedistribute(ZI_tmp, my_id, num_procs);
-          octtree.computeFarField(e_theta_far, e_phi_far, thetas, phis, ZI_tmp, OCTTREE_DATA_PATH);
+          octtree.computeFarField(e_theta_far, e_phi_far, thetas, phis, ZI, OCTTREE_DATA_PATH);
           // filling of the RCS Arrays
           if (HH || HV) {
             for (int j=0 ; j<BetaPoints ; ++j) {
@@ -1101,6 +1100,7 @@ int main(int argc, char* argv[]) {
 
   // now let's construct the octtree cubes local meshes!
   octtree.computeGaussLocatedArguments(local_cubes_NRWG, local_target_mesh.localRWGNumbers, local_target_mesh.localRWGNumber_CFIE_OK, local_target_mesh.localRWGNumber_trianglesCoord);
+  octtree.RWGs_renumbering();
   // final moves
   local_target_mesh.reallyLocalRWGNumbers.resize(local_target_mesh.localRWGNumbers.size());
   for (int i=0 ; i<local_target_mesh.localRWGNumbers.size() ; ++i) local_target_mesh.reallyLocalRWGNumbers(i) = i;

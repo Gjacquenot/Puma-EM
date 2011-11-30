@@ -54,6 +54,7 @@ class Octtree {
                                       const blitz::Array<int, 1>& /*local_RWG_numbers*/, 
                                       const blitz::Array<int, 1>& /*local_RWG_Numbers_CFIE_OK*/, 
                                       const blitz::Array<float, 2>& /*local_RWGNumbers_trianglesCoord*/);
+    void RWGs_renumbering(void);
     void computeIndexesOfCubesInOriginalMesh(blitz::Array<int, 1>& /*oldIndexesOfCubes*/);
     ~Octtree();
 
