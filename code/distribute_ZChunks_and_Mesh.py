@@ -1,16 +1,15 @@
 import sys, os, argparse
 import time, copy, commands, pickle, cPickle
 from mpi4py import MPI
-from scipy import zeros, floor
-from meshClass import MeshClass, CubeClass
-from ReadWriteBlitzArray import writeScalarToDisk, writeASCIIBlitzArrayToDisk, readASCIIBlitzIntArray2DFromDisk
+from scipy import zeros, floor, array
+from ReadWriteBlitzArray import writeScalarToDisk, writeASCIIBlitzArrayToDisk, readASCIIBlitzIntArray2DFromDisk, writeBlitzArrayToDisk
 
-def Z_near_size_computation(cubes_lists_edges_numbers, cubesNeighborsIndexes):
+def Z_near_size_computation(cubes_lists_edges_numbers, cubes_lists_NeighborsIndexes):
     C = len(cubes_lists_edges_numbers)
     N_nearPerCube = zeros(C, 'd')
     for i in range(C):
 	N_nearPerCubeTmp = 0
-        for j in cubesNeighborsIndexes[i]:
+        for j in cubes_lists_NeighborsIndexes[i]:
             tmp = cubes_lists_edges_numbers[int(i)].shape[0] * cubes_lists_edges_numbers[int(j)].shape[0]
             N_nearPerCubeTmp += tmp
         N_nearPerCube[i] = N_nearPerCubeTmp
@@ -64,67 +63,25 @@ def Z_nearChunksDistribution(MAX_BLOCK_SIZE, N_nearPerCube, C, pathToWriteTo):
                 chunkNumber += 1
     return chunkNumber_to_cubesIndexes, cubeIndex_to_chunkNumber, chunkNumber_to_processNumber, processNumber_to_ChunksNumbers
 
-def scatterMesh(target_mesh, ZprocessNumber_to_ChunksNumbers, ZchunkNumber_to_cubesNumbers, tmpDirName, my_id, num_proc):
-    # we now exchange the local (cubes) meshes data...
-    CPU_time, Wall_time = time.clock(), time.time()
+def createChunkDirs(ZprocessNumber_to_ChunksNumbers, tmpDirName, my_id):
     pathToSaveTo = os.path.join(tmpDirName, 'Z_tmp')
-    if (my_id == 0 ):
-        print "Exchanging local meshes-cubes data..."
-    # I create the necessary directories for Z_tmp
-    if (my_id == 0): # master node
-        for recv_id in range(num_proc-1, -1, -1):
-            for chunkNumber in ZprocessNumber_to_ChunksNumbers[recv_id]:
-                list_cubeIntArrays, list_cubeDoubleArrays = [], []
-                for cubeNumber in ZchunkNumber_to_cubesNumbers[chunkNumber]:
-                    # for each one we compute the necessary information for individual Zcube computation
-                    #cubeIntArrays, cubeDoubleArrays = target_mesh.computeCubeLocalArrays(cubeNumber)
-                    cubeIntArrays, cubeDoubleArrays = target_mesh.computeCubeLocalArrays_C(cubeNumber)
-                    # we append the cube lists to new lists
-                    list_cubeIntArrays.append(cubeIntArrays)
-                    list_cubeDoubleArrays.append(cubeDoubleArrays)
-                # communicating the arrays
-                # we exchange the concatenated arrays
-                if (recv_id!=0): # master node
-                    MPI.COMM_WORLD.send(list_cubeIntArrays, dest=recv_id, tag=chunkNumber)
-                    MPI.COMM_WORLD.send(list_cubeDoubleArrays, dest=recv_id, tag=chunkNumber+1)
-                else:
-                    pathToSaveToChunk = os.path.join(pathToSaveTo, "chunk" + str(chunkNumber))
-                    os.mkdir(pathToSaveToChunk)
-                    for j in range(len(ZchunkNumber_to_cubesNumbers[chunkNumber])):
-                        cubeNumber = ZchunkNumber_to_cubesNumbers[chunkNumber][j]
-                        cube = CubeClass()
-                        cube.cubeIntArrays = list_cubeIntArrays[j]
-                        cube.cubeDoubleArrays = list_cubeDoubleArrays[j]
-                        cube.writeIntDoubleArraysToFile(pathToSaveToChunk, cubeNumber)
-    else:
-        for chunkNumber in ZprocessNumber_to_ChunksNumbers[my_id]:
-            list_cubeIntArrays, list_cubeDoubleArrays = ['blabla'], ['blabla']
-            list_cubeIntArrays = MPI.COMM_WORLD.recv(list_cubeIntArrays, source=0, tag=chunkNumber)
-            list_cubeDoubleArrays = MPI.COMM_WORLD.recv(list_cubeDoubleArrays, source=0, tag=chunkNumber+1)
-            # writing the local cube data to disk
-            pathToSaveToChunk = os.path.join(pathToSaveTo, "chunk" + str(chunkNumber))
-            os.mkdir(pathToSaveToChunk)
-            for j in range(len(ZchunkNumber_to_cubesNumbers[chunkNumber])):
-                cubeNumber = ZchunkNumber_to_cubesNumbers[chunkNumber][j]
-                cube = CubeClass()
-                cube.cubeIntArrays = list_cubeIntArrays[j]
-                cube.cubeDoubleArrays = list_cubeDoubleArrays[j]
-                cube.writeIntDoubleArraysToFile(pathToSaveToChunk, cubeNumber)
+    for chunkNumber in ZprocessNumber_to_ChunksNumbers[my_id]:
+        pathToSaveToChunk = os.path.join(pathToSaveTo, "chunk" + str(chunkNumber))
+        os.mkdir(pathToSaveToChunk)
 
-    CPU_time, Wall_time = time.clock() - CPU_time, time.time() - Wall_time
-    print "Process", my_id, "mesh scattering: CPU time =", CPU_time, "sec"
-    print "Process", my_id, "mesh scattering: Wall time =", Wall_time, "sec"
-
-def distribute_Chunks_and_Mesh(params_simu, simuDirName):
+def distribute_Chunks(params_simu, simuDirName):
     num_procs = MPI.COMM_WORLD.Get_size()
     my_id = MPI.COMM_WORLD.Get_rank()
     tmpDirName = os.path.join(simuDirName, 'tmp' + str(my_id))
     geoDirName = os.path.join(simuDirName, 'geo')
-    # creating the mesh
-    target_mesh = MeshClass(geoDirName, params_simu.targetName, params_simu.targetDimensions_scaling_factor, params_simu.z_offset, params_simu.languageForMeshConstruction, params_simu.meshFormat, params_simu.meshFileTermination)
     if my_id==0:
-        target_mesh.constructFromSavedArrays(os.path.join(tmpDirName, "mesh"))
-        N_nearPerCube = Z_near_size_computation(target_mesh.cubes_lists_RWGsNumbers, target_mesh.cubesNeighborsIndexes)
+        file = open(os.path.join(tmpDirName, "mesh", 'cubes_lists_RWGsNumbers.txt'), 'r')
+        cubes_lists_RWGsNumbers = cPickle.load(file)
+        file.close()
+        file = open(os.path.join(tmpDirName, "mesh", 'cubes_lists_NeighborsIndexes.txt'), 'r')
+        cubes_lists_NeighborsIndexes = cPickle.load(file)
+        file.close()
+        N_nearPerCube = Z_near_size_computation(cubes_lists_RWGsNumbers, cubes_lists_NeighborsIndexes)
     else:
         N_nearPerCube = ['blabla']
     N_nearPerCube = MPI.COMM_WORLD.bcast(N_nearPerCube)
@@ -137,9 +94,23 @@ def distribute_Chunks_and_Mesh(params_simu, simuDirName):
     chunkNumber_to_processNumber = MPI.COMM_WORLD.bcast(chunkNumber_to_processNumber)
     processNumber_to_ChunksNumbers = MPI.COMM_WORLD.bcast(processNumber_to_ChunksNumbers)
     # distributing chunks of the mesh
-    scatterMesh(target_mesh, processNumber_to_ChunksNumbers, chunkNumber_to_cubesNumbers, tmpDirName, my_id, num_procs)
-    del target_mesh
-    # we now dump-pickle the necessary variables
+    local_ChunksNumbers = processNumber_to_ChunksNumbers[my_id]
+    local_chunkNumber_to_cubesNumbers = []
+    local_chunkNumber_N_cubesNumbers = []
+    startIndex = 0
+    for chunkNumber in local_ChunksNumbers:
+        list_cubes_tmp = chunkNumber_to_cubesNumbers[chunkNumber]
+        local_chunkNumber_to_cubesNumbers += list_cubes_tmp
+        length = len(list_cubes_tmp)
+        local_chunkNumber_N_cubesNumbers += [length]
+    writeBlitzArrayToDisk(array(local_ChunksNumbers, 'i'), os.path.join(tmpDirName, 'Z_tmp', 'local_ChunksNumbers.txt'))
+    writeBlitzArrayToDisk(array(local_chunkNumber_to_cubesNumbers, 'i'), os.path.join(tmpDirName, 'Z_tmp', 'local_chunkNumber_to_cubesNumbers.txt'))
+    writeBlitzArrayToDisk(array(local_chunkNumber_N_cubesNumbers, 'i'), os.path.join(tmpDirName, 'Z_tmp', 'local_chunkNumber_N_cubesNumbers.txt'))
+    writeScalarToDisk(len(local_ChunksNumbers), os.path.join(tmpDirName, 'Z_tmp', "N_local_Chunks.txt"))
+    writeScalarToDisk(len(local_chunkNumber_to_cubesNumbers), os.path.join(tmpDirName, 'Z_tmp', "N_local_cubes.txt"))
+
+    createChunkDirs(processNumber_to_ChunksNumbers, tmpDirName, my_id)
+
     variables['chunkNumber_to_cubesNumbers'] = chunkNumber_to_cubesNumbers
     variables['cubeNumber_to_chunkNumber'] = cubeNumber_to_chunkNumber
     variables['chunkNumber_to_processNumber'] = chunkNumber_to_processNumber
@@ -158,7 +129,12 @@ if __name__=='__main__':
         simuDirName = '.'
     from simulation_parameters import *
     if (params_simu.MONOSTATIC_RCS==1) or (params_simu.MONOSTATIC_SAR==1) or (params_simu.BISTATIC==1):
-        distribute_Chunks_and_Mesh(params_simu, simuDirName)
+        my_id = MPI.COMM_WORLD.Get_rank()
+        CPU_time, Wall_time = time.clock(), time.time()
+        distribute_Chunks(params_simu, simuDirName)
+        CPU_time, Wall_time = time.clock() - CPU_time, time.time() - Wall_time
+        print "Process", my_id, "chunks numbers distribution/folders creation: CPU time =", CPU_time, "sec"
+        print "Process", my_id, "chunks numbers distribution/folders creation: Wall time =", Wall_time, "sec"
     else:
         print "you should select monostatic RCS or monostatic SAR or bistatic computation, or a combination of these computations. Check the simulation settings."
         sys.exit(1)

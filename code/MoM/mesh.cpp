@@ -1,6 +1,6 @@
 #include "mesh.h"
 
-Mesh::Mesh(const string path) {setMeshFromFile(path);};
+/*Mesh::Mesh(const string path) {setMeshFromFile(path);};
 
 void Mesh::copyMesh(const Mesh& meshToCopy) /// copy member function
 {
@@ -68,7 +68,7 @@ void Mesh::setMeshFromFile(const string path)
     readIntFromASCIIFile(filename, T);
   }
   {
-    string filename = path + "E.txt";
+    string filename = path + "N_RWG.txt";
     readIntFromASCIIFile(filename, E);
   }
   {
@@ -136,7 +136,7 @@ void Mesh::resizeToZero() {
   RWGNumber_oppVertexes.resize(0,0);
   RWGNumber_CFIE_OK.resize(0);
 }
-
+*/
 /******************************************************/
 /******************** end of Mesh *********************/
 /******************************************************/

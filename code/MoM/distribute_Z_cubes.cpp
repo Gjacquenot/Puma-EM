@@ -3,10 +3,7 @@
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <complex>
-#include <cmath>
 #include <blitz/array.h>
-#include <blitz/tinyvec-et.h>
 #include <vector>
 #include <algorithm>
 #include <mpi.h>

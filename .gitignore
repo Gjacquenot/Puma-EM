@@ -13,6 +13,7 @@ code/MoM/communicateZnearBlocks
 code/MoM/mpi_mlfma
 code/MoM/distribute_Z_cubes
 code/MoM/RWGs_renumbering
+code/MoM/scatter_mesh_per_cube
 code/MoM/mesh_functions_seb
 code/MoM/testMPI
 diff.out

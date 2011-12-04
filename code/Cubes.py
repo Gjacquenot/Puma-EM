@@ -143,17 +143,28 @@ def findCubeNeighbors(max_N_cubes_1D, big_cube_lower_coord, cubes_centroids, a, 
                  compiler = 'gcc',
                  extra_compile_args = ['-O3', '-pthread', '-w'])
     # construction of "cubesNeighborsIndexes"
-    cubesNeighborsIndexes2 = {}
+    cubes_lists_NeighborsIndexes2 = {}
+    N_total_neighbors = 0
     for i in range(C):
-        cubesNeighborsIndexes2[i] = []
+        cubes_lists_NeighborsIndexes2[i] = []
     for i in range(C):
         listTmp = []
         j = 0
         while cubesNeighborsIndexesTmp2[i, j] > -1:
             listTmp.append(cubesNeighborsIndexesTmp2[i, j])
             j += 1
-        cubesNeighborsIndexes2[i] = listTmp
-    return cubesNeighborsIndexes2
+        cubes_lists_NeighborsIndexes2[i] = listTmp
+        N_total_neighbors += len(listTmp)
+    # we also have to save the cubesNeighborsIndexes under a form easily readable by C++ code
+    cubes_neighborsIndexes = zeros(N_total_neighbors, 'i')
+    cube_N_neighbors = zeros(C, 'i')
+    startIndex = 0
+    for j in range(C):
+        length = len(cubes_lists_NeighborsIndexes2[j])
+        cube_N_neighbors[j] = length
+        cubes_neighborsIndexes[startIndex:startIndex + length] = cubes_lists_NeighborsIndexes2[j]
+        startIndex += length
+    return cubes_lists_NeighborsIndexes2, cubes_neighborsIndexes, cube_N_neighbors
 
 def cubes_indexes_to_numbers_computation(a, big_cube_lower_coord, cubes_centroids, N_levels):
     """this function performs the same action as the cube number computation in octtree.cpp

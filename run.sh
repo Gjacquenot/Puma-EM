@@ -35,12 +35,12 @@ ${MPI_CMD} python code/setup_MLFMA.py --simudir ${SIMU_DIR}
 # distribution of data across processes
 { time -p ${MPI_CMD} ./code/MoM/distribute_Z_cubes --simudir ${SIMU_DIR}; } 2> ${SIMU_DIR}/result/CPU_time_distribute_Z_cubes.txt
 ${MPI_CMD} python code/distribute_ZChunks_and_Mesh.py --simudir ${SIMU_DIR}
+{ time -p ${MPI_CMD} ./code/MoM/scatter_mesh_per_cube --simudir ${SIMU_DIR}; } 2> ${SIMU_DIR}/result/CPU_time_scatter_mesh_per_cube.txt
 
 # computation of the Z_near blocks
 ${MPI_CMD} python code/compute_Z_near_MLFMA.py --simudir ${SIMU_DIR}
 
 # hereafter we exchange the Z_near blocks for SAI computation
-# we do this in C++ as it is faster
 { time -p ${MPI_CMD} ./code/MoM/communicateZnearBlocks --simudir ${SIMU_DIR}; } 2> ${SIMU_DIR}/result/CPU_time_communicateZnearBlocks.txt
 
 # now computation of the SAI preconditioner

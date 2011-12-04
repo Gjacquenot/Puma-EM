@@ -8,48 +8,48 @@ using namespace std;
 
 #include "readWriteBlitzArrayFromFile.h"
 
-class Mesh {
-
-  public:
-    int C; // number of cubes
-    int V; // number of vertexes
-    int T; // number of triangles
-    int E; // number of edges
-    int S; // number of surfaces
-    blitz::Array<int, 1> triangles_surfaces;
-    blitz::Array<int, 1> isClosedSurface;
-    blitz::Array<double, 2> cubes_centroids;
-    blitz::Array<double, 2> vertexes_coord;
-    blitz::Array<int, 1> cubes_RWGsNumbers;
-    blitz::Array<int, 2> RWGNumber_signedTriangles;
-    blitz::Array<int, 2> RWGNumber_edgeVertexes;
-    blitz::Array<int, 2> RWGNumber_oppVertexes;
-    blitz::Array<int, 1> RWGNumber_CFIE_OK;
-    // triangles_normals can easily be computed. See vector_functions.cpp
-
-//  public:
-    // constructors
-    Mesh(void){};
-    Mesh(const string /*path*/);
-    void setMeshFromFile(const string /*path*/); // not really a constructor, but oh well....
-    void copyMesh(const Mesh&);
-    Mesh(const Mesh&); // copy constructor
-    Mesh& operator=(const Mesh&); // copy assignment operator
-    void resizeToZero(void);
-    ~Mesh(void);
-
-    const int getC(void) const {return C;};
-    void setC(int N) {C = N;};
-    const int getV(void) const {return V;};
-    void setV(int N) {V = N;};
-    const int getT(void) const {return T;};
-    void setT(int N) {T = N;};
-    const int getE(void) const {return E;};
-    void setE(int N) {E = N;};
-    const int getS(void) const {return S;};
-    void setS(int N) {S = N;};
-
-};
+// class Mesh {
+// 
+//   public:
+//     int C; // number of cubes
+//     int V; // number of vertexes
+//     int T; // number of triangles
+//     int E; // number of edges
+//     int S; // number of surfaces
+//     blitz::Array<int, 1> triangles_surfaces;
+//     blitz::Array<int, 1> isClosedSurface;
+//     blitz::Array<double, 2> cubes_centroids;
+//     blitz::Array<double, 2> vertexes_coord;
+//     blitz::Array<int, 1> cubes_RWGsNumbers;
+//     blitz::Array<int, 2> RWGNumber_signedTriangles;
+//     blitz::Array<int, 2> RWGNumber_edgeVertexes;
+//     blitz::Array<int, 2> RWGNumber_oppVertexes;
+//     blitz::Array<int, 1> RWGNumber_CFIE_OK;
+//     // triangles_normals can easily be computed. See vector_functions.cpp
+// 
+// //  public:
+//     // constructors
+//     Mesh(void){};
+//     Mesh(const string /*path*/);
+//     void setMeshFromFile(const string /*path*/); // not really a constructor, but oh well....
+//     void copyMesh(const Mesh&);
+//     Mesh(const Mesh&); // copy constructor
+//     Mesh& operator=(const Mesh&); // copy assignment operator
+//     void resizeToZero(void);
+//     ~Mesh(void);
+// 
+//     const int getC(void) const {return C;};
+//     void setC(int N) {C = N;};
+//     const int getV(void) const {return V;};
+//     void setV(int N) {V = N;};
+//     const int getT(void) const {return T;};
+//     void setT(int N) {T = N;};
+//     const int getE(void) const {return E;};
+//     void setE(int N) {E = N;};
+//     const int getS(void) const {return S;};
+//     void setS(int N) {S = N;};
+// 
+// };
 
 class LocalMesh {
 

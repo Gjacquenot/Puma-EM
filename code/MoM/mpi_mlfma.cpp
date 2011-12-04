@@ -189,7 +189,7 @@ class LeftFrobPsolveMLFMA {
     LeftFrobPsolveMLFMA(void){;};
     LeftFrobPsolveMLFMA(const int /*numberOfRWG*/,
                         const blitz::Array<int, 1>& /*localRWGindexes*/,
-			const string & /*simuDir*/);
+                        const string & /*simuDir*/);
     // destructor
     ~LeftFrobPsolveMLFMA(void){localRWGnumbers.free();};
     // copy operators
@@ -935,7 +935,7 @@ int main(int argc, char* argv[]) {
     string filename = MESH_DATA_PATH + "C.txt";
     readIntFromASCIIFile(filename, C);
     
-    filename = MESH_DATA_PATH + "E.txt";
+    filename = MESH_DATA_PATH + "N_RWG.txt";
     readIntFromASCIIFile(filename, N_RWG);
     
     filename = MESH_DATA_PATH + "V.txt";
@@ -1091,7 +1091,7 @@ int main(int argc, char* argv[]) {
       
     MPI_Recv(local_target_mesh.localRWGNumbers.data(), NRWG, MPI_INT, 0, my_id+1, MPI_COMM_WORLD, &status);
     MPI_Recv(local_target_mesh.localRWGNumber_CFIE_OK.data(), NRWG, MPI_INT, 0, my_id+2, MPI_COMM_WORLD, &status);
-    cout << "receive to P" << my_id << " : " << "local_target_mesh.localRWGNumber_CFIE_OK.size() = " << local_target_mesh.localRWGNumber_CFIE_OK.size() << endl;
+    cout << "receive to P" << my_id << " : " << "N_local_RWGs = " << local_target_mesh.localRWGNumber_CFIE_OK.size() << endl;
     flush(cout);
     MPI_Recv(local_target_mesh.localRWGNumber_trianglesCoord.data(), local_target_mesh.localRWGNumber_trianglesCoord.size(), MPI_FLOAT, 0, my_id+3, MPI_COMM_WORLD, &status);
     cout << "receive to P" << my_id << " : " << "local_target_mesh.localRWGNumber_trianglesCoord.size() = " << local_target_mesh.localRWGNumber_trianglesCoord.size() << endl;
