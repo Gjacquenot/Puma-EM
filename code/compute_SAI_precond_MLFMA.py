@@ -1,6 +1,6 @@
 import sys, os, cPickle, time, argparse
 from mpi4py import MPI
-from FMM_precond import MgPreconditionerComputation, Mg_CSR
+from FMM_precond import Mg_CSR
 from FMM_Znear import Z_nearCRS_Assembling
 
 def compute_SAIpreconditioner(tmpDirName, a, C, chunkNumber_to_cubesNumbers, cubeNumber_to_chunkNumber, chunkNumber_to_processNumber, processNumber_to_ChunksNumbers, MAX_BLOCK_SIZE):
