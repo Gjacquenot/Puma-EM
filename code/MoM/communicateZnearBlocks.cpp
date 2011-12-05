@@ -90,7 +90,6 @@ int main(int argc, char* argv[]) {
             IntArraysToSend(i).resize(N_IntArraysToSend(i));
             readIntBlitzArray1DFromBinaryFile(File_IntArray, IntArraysToSend(i));
             // Now the arrays of Double
-            // readIntFromASCIIFile(File_N_DoubleArray, N_DoubleArraysToSend(i));
             N_DoubleArraysToSend(i) = IntArraysToSend(i)(3) * 3 + 3;
             DoubleArraysToSend(i).resize(N_DoubleArraysToSend(i));
             readDoubleBlitzArray1DFromBinaryFile(File_DoubleArray, DoubleArraysToSend(i));
@@ -168,11 +167,8 @@ int main(int argc, char* argv[]) {
                 writeDoubleBlitzArray1DToBinaryFile(fileToWrite, DoubleArraysToReceive(i));
               }
 
-              string fileToWrite = Z_BLOCKS_PATH + CHUNK_PATH + "/" + intToString(CubesNumbersToReceive(i)) + "_N_IntArrays.txt";
-              writeIntToASCIIFile(fileToWrite, N_IntArraysToReceive(i));
-
-              fileToWrite = Z_BLOCKS_PATH + CHUNK_PATH + "/" + intToString(CubesNumbersToReceive(i)) + "_N_DoubleArrays.txt";
-              writeIntToASCIIFile(fileToWrite, N_DoubleArraysToReceive(i));
+//              string fileToWrite = Z_BLOCKS_PATH + CHUNK_PATH + "/" + intToString(CubesNumbersToReceive(i)) + "_N_IntArrays.txt";
+//              writeIntToASCIIFile(fileToWrite, N_IntArraysToReceive(i));
             }
           }
         }

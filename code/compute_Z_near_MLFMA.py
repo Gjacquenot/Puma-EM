@@ -16,7 +16,7 @@ def compute_Z_near(params_simu, simuDirName):
     Wall_t0 = time.time()
     CPU_t0 = time.clock()
     pathToSaveTo = os.path.join(tmpDirName, 'Z_tmp')
-    Z_nearCRS_Computation(my_id, variables['processNumber_to_ChunksNumbers'], variables['chunkNumber_to_cubesNumbers'], variables['CFIE'], params_simu.MAX_BLOCK_SIZE, variables['w'], params_simu.eps_r, params_simu.mu_r, ELEM_TYPE, Z_TMP_ELEM_TYPE, params_simu.TDS_APPROX, params_simu.Z_s, params_simu.MOM_FULL_PRECISION, pathToSaveTo)
+    #Z_nearCRS_Computation(my_id, variables['processNumber_to_ChunksNumbers'], variables['chunkNumber_to_cubesNumbers'], variables['CFIE'], params_simu.MAX_BLOCK_SIZE, variables['w'], params_simu.eps_r, params_simu.mu_r, ELEM_TYPE, Z_TMP_ELEM_TYPE, params_simu.TDS_APPROX, params_simu.Z_s, params_simu.MOM_FULL_PRECISION, pathToSaveTo)
     # we exchange the missing Z_near parts for each process
     pathToReadFrom = os.path.join(tmpDirName, 'Z_tmp')
     Mg_listsOfZnearBlocks_ToTransmitAndReceive(variables['chunkNumber_to_cubesNumbers'], variables['cubeNumber_to_chunkNumber'], variables['chunkNumber_to_processNumber'], variables['processNumber_to_ChunksNumbers'], pathToReadFrom, 'F')

@@ -39,6 +39,7 @@ ${MPI_CMD} python code/distribute_ZChunks_and_cubes.py --simudir ${SIMU_DIR}
 
 # computation of the Z_near blocks
 ${MPI_CMD} python code/compute_Z_near_MLFMA.py --simudir ${SIMU_DIR}
+{ time -p ${MPI_CMD} ./code/MoM/compute_Z_near --simudir ${SIMU_DIR}; } 2> ${SIMU_DIR}/result/CPU_time_compute_Z_near.txt
 
 # hereafter we exchange the Z_near blocks for SAI computation
 { time -p ${MPI_CMD} ./code/MoM/communicateZnearBlocks --simudir ${SIMU_DIR}; } 2> ${SIMU_DIR}/result/CPU_time_communicateZnearBlocks.txt

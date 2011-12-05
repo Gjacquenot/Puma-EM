@@ -222,6 +222,8 @@ def setup_MLFMA(params_simu, simuDirName):
     writeScalarToDisk(params_simu.BE_BH_N_Gauss_points, os.path.join(tmpDirName, 'octtree_data/N_GaussOnTriangle.txt') )
     writeScalarToDisk(params_simu.MOM_FULL_PRECISION*1, os.path.join(tmpDirName, 'octtree_data/MOM_FULL_PRECISION.txt') )
     writeScalarToDisk(params_simu.VERBOSE*1, os.path.join(tmpDirName, 'octtree_data/VERBOSE.txt') )
+    writeScalarToDisk(params_simu.TDS_APPROX*1, os.path.join(tmpDirName, 'octtree_data/TDS_APPROX.txt') )
+    writeScalarToDisk(params_simu.Z_s, os.path.join(tmpDirName, 'octtree_data/Z_s.txt') )
     # what type of simulation are we running?
     writeScalarToDisk(params_simu.BISTATIC*1, os.path.join(tmpDirName, 'BISTATIC.txt') )
     writeScalarToDisk(params_simu.MONOSTATIC_RCS*1, os.path.join(tmpDirName, 'MONOSTATIC_RCS.txt') )
