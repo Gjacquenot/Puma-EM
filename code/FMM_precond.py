@@ -68,22 +68,11 @@ def Mg_listsOfZnearBlocks_ToTransmitAndReceive(ZnearChunkNumber_to_cubesNumbers,
         for i in L:
             if 'chunk'+ str(i) not in os.listdir(pathToReadFrom):
                 os.mkdir(os.path.join(pathToReadFrom, 'chunk'+ str(i)))
-    ## we find the dimensions of the cubes to exchange
-    dimensionsOfCubesToSend = []
-    for L in listCubesNumbersToSend:
-        dimensionsOfCubesToSend.append([])
-        for cubeNumber in L:
-            chunkNumber = ZnearCubeNumber_to_chunkNumber[cubeNumber]
-            pathToReadCubeFrom = os.path.join(pathToReadFrom, "chunk" + str(chunkNumber))
-            cube = CubeClass()
-            cube.setIntDoubleArraysFromFile(pathToReadCubeFrom, cubeNumber)
-            dimensionsOfCubesToSend[-1].append([cube.N_RWG_test, cube.N_RWG_src])
     ## now we write the data to be exchanged to disk
     for i in range(num_proc):
         if not (my_id==i):
             writeASCIIBlitzArrayToDisk(array(listCubesNumbersToReceive[i]).astype('i'), os.path.join(pathToReadFrom,  "CubesNumbersToReceiveFromP" + str(i) + ".txt"))
             writeASCIIBlitzArrayToDisk(array(listCubesNumbersToSend[i]).astype('i'), os.path.join(pathToReadFrom, "CubesNumbersToSendToP" + str(i) + ".txt"))
-            writeASCIIBlitzArrayToDisk(array(dimensionsOfCubesToSend[i]).astype('i'), os.path.join(pathToReadFrom, "dimensionsOfCubesToSendToP" + str(i) + ".txt"))
             writeASCIIBlitzArrayToDisk(array(listChunkNumbersToReceive[i]).astype('i'), os.path.join(pathToReadFrom, "ChunkNumbersToReceiveFromP" + str(i) + ".txt"))
             writeASCIIBlitzArrayToDisk(array(listChunkNumbersToSend[i]).astype('i'), os.path.join(pathToReadFrom, "ChunkNumbersToSendToP" + str(i) + ".txt"))
     #MPI.COMM_WORLD.Barrier()

@@ -39,26 +39,18 @@ int main(int argc, char* argv[]) {
   // we loop on the process numbers
   for (int recv_proc_number = 0; recv_proc_number<num_procs; recv_proc_number++) {
     blitz::Array<int, 1> CubesNumbersToReceive, ChunkNumbersToReceive;
-    blitz::Array<int, 2> dimensionsOfCubesToReceive;
 
     for (int send_proc_number = 0; send_proc_number<num_procs; send_proc_number++) {
       if (recv_proc_number != send_proc_number) {
         blitz::Array<int, 1> CubesNumbersToSend, ChunkNumbersToSend;
-        blitz::Array<int, 2> dimensionsOfCubesToSend;
         if (my_id==recv_proc_number) {
           readIntBlitzArray1DFromASCIIFile(Z_BLOCKS_PATH + "CubesNumbersToReceiveFromP" + intToString(send_proc_number) + ".txt", CubesNumbersToReceive);
           readIntBlitzArray1DFromASCIIFile(Z_BLOCKS_PATH + "ChunkNumbersToReceiveFromP" + intToString(send_proc_number) + ".txt", ChunkNumbersToReceive);
-          dimensionsOfCubesToReceive.resize(CubesNumbersToReceive.size(), 2);
-          ierror = MPI_Irecv(dimensionsOfCubesToReceive.data(), dimensionsOfCubesToReceive.size(), MPI::INT, send_proc_number, 22, MPI::COMM_WORLD, &irecv_request);
         }
         if (my_id==send_proc_number) {
           readIntBlitzArray1DFromASCIIFile(Z_BLOCKS_PATH + "CubesNumbersToSendToP" + intToString(recv_proc_number) + ".txt", CubesNumbersToSend);
           readIntBlitzArray1DFromASCIIFile(Z_BLOCKS_PATH + "ChunkNumbersToSendToP" + intToString(recv_proc_number) + ".txt", ChunkNumbersToSend);
-          readIntBlitzArray2DFromASCIIFile(Z_BLOCKS_PATH + "dimensionsOfCubesToSendToP" + intToString(recv_proc_number) + ".txt", dimensionsOfCubesToSend);
-          ierror = MPI_Isend(dimensionsOfCubesToSend.data(), dimensionsOfCubesToSend.size(), MPI::INT, recv_proc_number, 22, MPI::COMM_WORLD, &isend_request);
         }
-        if (my_id == recv_proc_number) ierror = MPI_Wait(&irecv_request, &irecv_status);
-        if (my_id == send_proc_number) ierror = MPI_Wait(&isend_request, &isend_status);
 
         const int NCubesToReceive = CubesNumbersToReceive.size(), NCubesToSend = CubesNumbersToSend.size();
         blitz::Array< MPI_Request, 1 > Array_isend_request(NCubesToSend), Array_irecv_request(NCubesToReceive);
@@ -180,13 +172,13 @@ int main(int argc, char* argv[]) {
           for (int i=0 ; i<NCubesToSend ; ++i) {
             int cubeNumber = CubesNumbersToSend(i), chunkNumber = ChunkNumbersToSend(i), dest = recv_proc_number;
             if (my_id == dest) cout << "PROCESS " << my_id <<  ": SENDING FAILED!!!!!!!" << endl;
-            const int Nl = dimensionsOfCubesToSend(i, 0), Nc = dimensionsOfCubesToSend(i, 1);
+            const int Nl = IntArraysToSend(i)(0), Nc = IntArraysToSend(i)(1);
             send_buff(i).resize(Nl, Nc);
             const string CHUNK_PATH = "chunk" + intToString(chunkNumber), filename = intToString(cubeNumber);
             const string fileToRead = Z_BLOCKS_PATH + CHUNK_PATH + "/" + filename;
             if (itemsize==8) readComplexFloatBlitzArray2DFromBinaryFile(fileToRead, send_buff(i));
             int BUF_SIZE = send_buff(i).size();
-            ierror = MPI_Isend(send_buff(i).data(), BUF_SIZE, MPI::COMPLEX, dest, cubeNumber, MPI::COMM_WORLD, &Array_isend_request(i));
+            ierror = MPI_Isend(send_buff(i).data(), BUF_SIZE, MPI_COMPLEX, dest, cubeNumber, MPI_COMM_WORLD, &Array_isend_request(i));
           }
         }
         // we post the receives of recv_proc_number
@@ -194,13 +186,13 @@ int main(int argc, char* argv[]) {
           for (int i=0 ; i<NCubesToReceive ; ++i) {
             int cubeNumber = CubesNumbersToReceive(i), src = send_proc_number;
             if (my_id == src) cout << "RECEIVING FAILED!!!!!!!" << endl;
-            const int Nl = dimensionsOfCubesToReceive(i, 0), Nc = dimensionsOfCubesToReceive(i, 1);
+            const int Nl = IntArraysToReceive(i)(0), Nc = IntArraysToReceive(i)(1);
             recv_buff(i).resize(Nl, Nc);
             // we post the receives only if my_id == recv_proc_number, in order to not post
             // all the receives at the same time, which could deadlock
             // because of too many communications
             int BUF_SIZE = recv_buff(i).size();
-            ierror = MPI_Irecv(recv_buff(i).data(), BUF_SIZE, MPI::COMPLEX, src, cubeNumber, MPI::COMM_WORLD, &Array_irecv_request(i));
+            ierror = MPI_Irecv(recv_buff(i).data(), BUF_SIZE, MPI_COMPLEX, src, cubeNumber, MPI_COMM_WORLD, &Array_irecv_request(i));
           }
         }
 
