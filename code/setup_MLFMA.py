@@ -264,17 +264,22 @@ if __name__=='__main__':
     my_id = MPI.COMM_WORLD.Get_rank()
     parser = argparse.ArgumentParser(description='...')
     parser.add_argument('--simudir')
+    parser.add_argument('--simuparams')
     cmdline = parser.parse_args()
     simuDirName = cmdline.simudir
+    simuParams = cmdline.simuparams
     if simuDirName==None:
         simuDirName = '.'
+    if simuParams==None:
+        simuParams = 'simulation_parameters'
+
     if (my_id==0):
         if 'result' not in os.listdir(simuDirName):
             os.mkdir(os.path.join(simuDirName, 'result'))
     # MLFMA parameters
     # we communicate to the others processors the params files
-    communicateParamsFile("MLFMA_parameters.py")
-    communicateParamsFile("simulation_parameters.py")
+    #communicateParamsFile("MLFMA_parameters.py")
+    #communicateParamsFile("simulation_parameters.py")
     # creation of the directories
     sys.path.append(os.path.abspath('.'))
     tmpDirName = os.path.join(simuDirName, 'tmp' + str(my_id))
@@ -289,7 +294,7 @@ if __name__=='__main__':
     os.mkdir( os.path.join(tmpDirName,'iterative_data') )
     os.mkdir( os.path.join(tmpDirName,'pickle') )
     # the simulation itself
-    from simulation_parameters import *
+    exec 'from ' + simuParams + ' import *'
     if (my_id==0):
         params_simu.display()
     if (params_simu.MONOSTATIC_RCS==1) or (params_simu.MONOSTATIC_SAR==1) or (params_simu.BISTATIC==1):

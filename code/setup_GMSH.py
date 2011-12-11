@@ -4,17 +4,21 @@ from PyGmsh import executeGmsh, write_geo, isGeoFileThere
 if __name__=='__main__':
     parser = argparse.ArgumentParser(description='...')
     parser.add_argument('--simudir')
+    parser.add_argument('--simuparams')
     cmdline = parser.parse_args()
     simuDirName = cmdline.simudir
+    simuParams = cmdline.simuparams
     if simuDirName==None:
         simuDirName = '.'
+    if simuParams==None:
+        simuParams = 'simulation_parameters'
 
     if 'geo' not in os.listdir(simuDirName):
         os.mkdir(os.path.join(simuDirName, 'geo'))
     geoDirName = os.path.join(simuDirName, 'geo')
 
     sys.path.append(os.path.abspath('.'))
-    from simulation_parameters import *
+    exec 'from ' + simuParams + ' import *'
     filename = 'GMSHcommand.sh'
     if params_simu.meshToMake:
         os.system("cp " + os.path.join(params_simu.pathToTarget, params_simu.targetName + '.geo') + ' ' + geoDirName)
