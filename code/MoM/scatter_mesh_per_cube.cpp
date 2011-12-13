@@ -2,6 +2,9 @@
 #include <iostream>
 #include <string>
 #include <blitz/array.h>
+#include <map>
+#include <vector>
+#include <algorithm>
 #include <mpi.h>
 
 using namespace std;
@@ -178,6 +181,87 @@ void compute_cube_local_arrays(blitz::Array<int, 1>& cubeIntArrays,
   }
 }
 
+void Mg_listsOfZnearBlocks_ToTransmitAndReceive(const blitz::Array<int, 1>& local_chunkNumber_to_cubesNumbers,
+                                                const blitz::Array<int, 1>& local_cubeNumber_to_chunkNumbers,
+                                                const blitz::Array<blitz::Array<int, 1>, 1>& allCubeIntArrays,
+                                                const string Z_TMP_DATA_PATH)
+{
+  const int N_local_cubes = local_chunkNumber_to_cubesNumbers.size();
+  const int num_procs = MPI::COMM_WORLD.Get_size();
+  const int my_id = MPI::COMM_WORLD.Get_rank();
+  const int master = 0;
+  int ierror;
+
+  // we will need a multimap
+  multimap <int, int> local_cubes, neighbor_cubes;
+  multimap <int, int>::iterator itr, itr_2;
+  for (int i=0; i<N_local_cubes; i++) local_cubes.insert(pair<int, int> (local_chunkNumber_to_cubesNumbers(i), local_cubeNumber_to_chunkNumbers(i)));
+
+  // we construct a list of the non local cubes neighbors, that is,
+  // the neighbors which are contained in another process
+  std::vector<int> listOfNonLocalCubesNeighborsTmp;
+  for (int i=0; i<N_local_cubes; i++) {
+    const int N_neighbors = allCubeIntArrays(i)(2);
+    const int N_int = allCubeIntArrays(i).size();
+    blitz::Array<int, 1> neighbors(N_neighbors);
+    const int startIndex = N_int-N_neighbors;
+    for (int j=0; j<N_neighbors; j++) neighbors(j) = allCubeIntArrays(i)(startIndex + j);
+    for (int j=0; j<N_neighbors; j++) {
+      itr = neighbor_cubes.find(neighbors(j));
+      if ( itr == neighbor_cubes.end() ) {
+        neighbor_cubes.insert( pair<int, int> (neighbors(j), 0) );
+        itr_2 = local_cubes.find(neighbors(j));
+        if ( itr_2 == local_cubes.end() ) listOfNonLocalCubesNeighborsTmp.push_back(neighbors(j));
+      }
+    }
+  }
+  sort(listOfNonLocalCubesNeighborsTmp.begin(), listOfNonLocalCubesNeighborsTmp.end());
+  // we put the non local cubes into an array for MPI sending
+  const int N_non_local = listOfNonLocalCubesNeighborsTmp.size();
+  blitz::Array<int, 1> listOfNonLocalCubesNeighbors(N_non_local);
+  for (int i=0; i<N_non_local; i++) listOfNonLocalCubesNeighbors(i) = listOfNonLocalCubesNeighborsTmp[i];
+
+  for (int P=0; P<num_procs; P++) {
+    // first we broadcast the listOfNonLocalCubesNeighbors from process P to all processes
+    int N_non_local_cubes_process_P;
+    if (my_id==P) N_non_local_cubes_process_P = N_non_local;
+    MPI_Bcast(&N_non_local_cubes_process_P, 1, MPI_INT, P, MPI_COMM_WORLD);
+    blitz::Array<int, 1> listOfNonLocalCubesNeighbors_process_P(N_non_local_cubes_process_P);
+    if (my_id==P) {
+      for (int i=0; i<N_non_local_cubes_process_P; i++) listOfNonLocalCubesNeighbors_process_P(i) = listOfNonLocalCubesNeighbors(i);
+    }
+    MPI_Bcast(listOfNonLocalCubesNeighbors_process_P.data(), N_non_local_cubes_process_P, MPI_INT, P, MPI_COMM_WORLD);
+    
+    // now we evaluate for each process the list of cubes it has to send to process P
+    blitz::Array<int, 1> listCubesToSendToProcessP(0), listChunksToSendToProcessP(0);
+    int N_to_send = 0;
+    if (my_id!=P) {
+      std::vector<int> listCubesToSendToProcessP_tmp, listChunksToSendToProcessP_tmp;
+      for (int i=0; i<N_non_local_cubes_process_P; i++) {
+        const int Non_local_cube_number = listOfNonLocalCubesNeighbors_process_P(i);
+        itr = local_cubes.find(Non_local_cube_number);
+        if ( itr != local_cubes.end() ) {
+          listCubesToSendToProcessP_tmp.push_back(Non_local_cube_number);
+          listChunksToSendToProcessP_tmp.push_back((*itr).second);
+        }
+      }
+      N_to_send = listCubesToSendToProcessP_tmp.size();
+      listCubesToSendToProcessP.resize(N_to_send);
+      listChunksToSendToProcessP.resize(N_to_send);
+      for (int i=0; i<N_to_send; i++) {
+        listCubesToSendToProcessP(i) = listCubesToSendToProcessP_tmp[i];
+        listChunksToSendToProcessP(i) = listChunksToSendToProcessP_tmp[i];
+      }
+      // now we write the arrays to the disk
+      string filename = Z_TMP_DATA_PATH + "CubesNumbersToSendToP" + intToString(P) + ".txt";
+      writeIntBlitzArray1DToASCIIFile(filename, listCubesToSendToProcessP);
+      filename = Z_TMP_DATA_PATH + "ChunkNumbersToSendToP" + intToString(P) + ".txt";
+      writeIntBlitzArray1DToASCIIFile(filename, listChunksToSendToProcessP);
+    }
+    
+  }
+  
+}
 
 int main(int argc, char* argv[]) {
 
@@ -348,6 +432,9 @@ int main(int argc, char* argv[]) {
   if (my_id==0) process_cubesNumbers.resize(C);
   ierror = MPI_Gatherv(local_chunkNumber_to_cubesNumbers.data(), N_local_cubes, MPI_INT, process_cubesNumbers.data(), MPI_Gatherv_scounts.data(), MPI_Gatherv_displs.data(), MPI_INT, 0,  MPI_COMM_WORLD);
   
+  blitz::Array<int, 1> cubeArraysSizes(2);
+  blitz::Array<blitz::Array<int, 1>, 1> allCubeIntArrays(N_local_cubes);
+  blitz::Array<blitz::Array<double, 1>, 1> allCubeDoubleArrays(N_local_cubes);
   if (my_id==master) {
     for (int receive_id=num_procs-1; receive_id>-1; receive_id--) {
       // first we find the RWGs for each cube of process receive_id
@@ -358,17 +445,20 @@ int main(int argc, char* argv[]) {
         blitz::Array<double, 1> cubeDoubleArrays; 
         const int cubeNumber = process_cubesNumbers(startIndexOfCube + i);
         compute_cube_local_arrays(cubeIntArrays, cubeDoubleArrays, cubeNumber, S, cubes_neighborsIndexes, cube_N_neighbors, cube_startIndex_neighbors, cubes_RWGsNumbers, cube_N_RWGs, cube_startIndex_RWGs, RWGNumber_CFIE_OK, RWGNumber_M_CURRENT_OK, RWGNumber_signedTriangles, RWGNumber_edgeVertexes, RWGNumber_oppVertexes, vertexes_coord, cubes_centroids);
+        cubeArraysSizes(0) = cubeIntArrays.size();
+        cubeArraysSizes(1) = cubeDoubleArrays.size();
         if (receive_id!=master) {
           // we send the arrays to the receiving process
-          blitz::Array<int, 1> cubeArraysSizes(2);
-          cubeArraysSizes(0) = cubeIntArrays.size();
-          cubeArraysSizes(1) = cubeDoubleArrays.size();
           MPI_Send(cubeArraysSizes.data(), cubeArraysSizes.size(), MPI_INT, receive_id, receive_id, MPI_COMM_WORLD);
           MPI_Send(cubeIntArrays.data(), cubeIntArrays.size(), MPI_INT, receive_id, cubeNumber, MPI_COMM_WORLD);
           MPI_Send(cubeDoubleArrays.data(), cubeDoubleArrays.size(), MPI_DOUBLE, receive_id, cubeNumber+1, MPI_COMM_WORLD);
         }
         else {
           // we are on master node, we write the cube arrays to disk
+          allCubeIntArrays(i).resize(cubeArraysSizes(0));
+          allCubeDoubleArrays(i).resize(cubeArraysSizes(1));
+          allCubeIntArrays(i) = cubeIntArrays;
+          allCubeDoubleArrays(i) = cubeDoubleArrays;
           const int chunkNumber = local_cubeNumber_to_chunkNumbers(i);
           const string filenameIntArray = Z_TMP_DATA_PATH + "chunk" + intToString(chunkNumber) + "/" + intToString(cubeNumber) + "_IntArrays.txt";
           const string filenameDoubleArray = Z_TMP_DATA_PATH + "chunk" + intToString(chunkNumber) + "/" + intToString(cubeNumber) + "_DoubleArrays.txt";
@@ -380,9 +470,6 @@ int main(int argc, char* argv[]) {
   }
   if (my_id!=master) {
     // we receive the cubes arrays and write them to disk
-    blitz::Array<int, 1> cubeArraysSizes(2);
-    blitz::Array<blitz::Array<int, 1>, 1> allCubeIntArrays(N_local_cubes);
-    blitz::Array<blitz::Array<double, 1>, 1> allCubeDoubleArrays(N_local_cubes);
     for (int i=0; i<N_local_cubes; i++) {
       const int cubeNumber = local_chunkNumber_to_cubesNumbers(i);
       MPI_Recv(cubeArraysSizes.data(), cubeArraysSizes.size(), MPI_INT, 0, my_id, MPI_COMM_WORLD, &status);
@@ -401,6 +488,8 @@ int main(int argc, char* argv[]) {
       writeDoubleBlitzArray1DToBinaryFile(filenameDoubleArray, allCubeDoubleArrays(i));
     }
   }
+
+//   Mg_listsOfZnearBlocks_ToTransmitAndReceive(local_chunkNumber_to_cubesNumbers, local_cubeNumber_to_chunkNumbers, allCubeIntArrays, Z_TMP_DATA_PATH);
 
   // Get peak memory usage of each rank
   long memusage_local = MemoryUsageGetPeak();

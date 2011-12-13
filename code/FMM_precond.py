@@ -71,9 +71,7 @@ def Mg_listsOfZnearBlocks_ToTransmitAndReceive(ZnearChunkNumber_to_cubesNumbers,
     ## now we write the data to be exchanged to disk
     for i in range(num_proc):
         if not (my_id==i):
-            writeASCIIBlitzArrayToDisk(array(listCubesNumbersToReceive[i]).astype('i'), os.path.join(pathToReadFrom,  "CubesNumbersToReceiveFromP" + str(i) + ".txt"))
             writeASCIIBlitzArrayToDisk(array(listCubesNumbersToSend[i]).astype('i'), os.path.join(pathToReadFrom, "CubesNumbersToSendToP" + str(i) + ".txt"))
-            writeASCIIBlitzArrayToDisk(array(listChunkNumbersToReceive[i]).astype('i'), os.path.join(pathToReadFrom, "ChunkNumbersToReceiveFromP" + str(i) + ".txt"))
             writeASCIIBlitzArrayToDisk(array(listChunkNumbersToSend[i]).astype('i'), os.path.join(pathToReadFrom, "ChunkNumbersToSendToP" + str(i) + ".txt"))
     #MPI.COMM_WORLD.Barrier()
     ## finally we write the format of the Near Field matrix elements
