@@ -45,6 +45,7 @@ def edges_computation_C(triangle_vertexes, vertexes_coord, saveDir):
    
     print "time C++ execution =", time.clock() - t10
     N_RWG = readIntFromDisk(os.path.join(saveDir, "N_RWG.txt"))
+    reordered_triangle_vertexes = readBlitzArrayFromDisk(os.path.join(saveDir, "triangle_vertexes.txt"), T, 3, 'i')
     RWGNumber_signedTriangles = readBlitzArrayFromDisk(os.path.join(saveDir, "RWGNumber_signedTriangles.txt"), N_RWG, 2, 'i')
     RWGNumber_edgeVertexes = readBlitzArrayFromDisk(os.path.join(saveDir, "RWGNumber_edgeVertexes.txt"), N_RWG, 2, 'i')
     RWGNumber_oppVertexes = readBlitzArrayFromDisk(os.path.join(saveDir, "RWGNumber_oppVertexes.txt"), N_RWG, 2, 'i')
@@ -52,7 +53,7 @@ def edges_computation_C(triangle_vertexes, vertexes_coord, saveDir):
     triangles_surfaces = readASCIIBlitzIntArray1DFromDisk(os.path.join(saveDir, "triangles_surfaces.txt"))
     print "    edgeNumber_triangles construction cumulated time =", time.clock() - t10
     sys.stdout.flush()
-    return triangles_surfaces, is_closed_surface, RWGNumber_signedTriangles, RWGNumber_edgeVertexes, RWGNumber_oppVertexes
+    return triangles_surfaces, is_closed_surface, RWGNumber_signedTriangles, RWGNumber_edgeVertexes, RWGNumber_oppVertexes, reordered_triangle_vertexes
 
 def edges_computation_C_old(triangle_vertexes, vertexes_coord, saveDir):
     """This function builds the edges matrix from the triangles"""

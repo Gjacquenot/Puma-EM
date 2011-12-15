@@ -1,7 +1,6 @@
 #include <iostream>
 #include <string>
 #include <blitz/array.h>
-#include <blitz/tinyvec-et.h>
 #include <vector>
 #include <algorithm>
 
@@ -20,9 +19,6 @@ int main(int argc, char *argv[]) {
   readIntFromASCIIFile(READING_PATH + "T.txt", T);
   readIntFromASCIIFile(READING_PATH + "V.txt", V);
   
-  blitz::Array<double, 2> vertexes_coord(V, 3);
-  readDoubleBlitzArray2DFromBinaryFile(READING_PATH + "vertexes_coord.txt", vertexes_coord);
-
   blitz::Array<int, 2> triangle_vertexes(T, 3);
   readIntBlitzArray2DFromBinaryFile(READING_PATH + "triangle_vertexes.txt", triangle_vertexes);
   
@@ -53,27 +49,28 @@ int main(int argc, char *argv[]) {
   decimal_e_v_ToIndexes.reserve(E);
   for (int j=0 ; j<E ; j++) decimal_e_v_ToIndexes.push_back(Dictionary<double, int> (decimal_e_v(j), j));
   stable_sort(decimal_e_v_ToIndexes.begin(), decimal_e_v_ToIndexes.end());
-  blitz::Array<double, 1> sorted_decimal_e_v(E), diff(E);
+
   blitz::Array<int, 1> ind_sorted_e_v(E);
   for (int j=0 ; j<E ; j++) {
-    sorted_decimal_e_v(j) = decimal_e_v(decimal_e_v_ToIndexes[j].getVal());
     ind_sorted_e_v(j) = decimal_e_v_ToIndexes[j].getVal();
   }
-
-  diff = 1.0;
-  for (int j=1 ; j<E ; j++) diff(j) = abs(sorted_decimal_e_v(j) - sorted_decimal_e_v(j-1));
-    
-  blitz::Array<int, 1> indexesEqualPreceding;
+  decimal_e_v_ToIndexes.clear();
+  std::vector< Dictionary<double, int> > (decimal_e_v_ToIndexes).swap(decimal_e_v_ToIndexes);
+  
   std::vector<int> indexesEqualPrecedingTmp;
-  for (int j=0 ; j<E ; j++) {
-    if (diff(j)==0.0) indexesEqualPrecedingTmp.push_back(j);
+  for (int j=1 ; j<E ; j++) {
+    const double sorted_decimal_j = decimal_e_v(ind_sorted_e_v(j));
+    const double sorted_decimal_j_1 = decimal_e_v(ind_sorted_e_v(j-1));
+    const double diff = abs(sorted_decimal_j - sorted_decimal_j_1);
+    if (diff==0.0) indexesEqualPrecedingTmp.push_back(j);
   }
+  decimal_e_v.free();
   const int N_indexesEqualPreceding = indexesEqualPrecedingTmp.size();
-  indexesEqualPreceding.resize(N_indexesEqualPreceding);
+  blitz::Array<int, 1> indexesEqualPreceding(N_indexesEqualPreceding);
   for (int j=0 ; j<N_indexesEqualPreceding ; j++) indexesEqualPreceding(j) = indexesEqualPrecedingTmp[j];
   indexesEqualPrecedingTmp.clear();
+  std::vector<int> (indexesEqualPrecedingTmp).swap(indexesEqualPrecedingTmp);
 
-     
   std::string SaveDir = READING_PATH;
   std::cout << std::endl;
   // compute_indexesEqualEdges
@@ -96,6 +93,7 @@ int main(int argc, char *argv[]) {
   blitz::Array<int, 2> edgeNumber_triangles;
   compute_edgeNumber_triangles(edgeNumber_triangles, indexesEqualEdges);
   indexesEqualEdges.clear(); // not needed anymore
+  std::vector<std::vector<int> > (indexesEqualEdges).swap(indexesEqualEdges);
 
   // compute_triangle_adjacentTriangles
   std::cout << "compute_triangle_adjacentTriangles" << std::endl;
@@ -108,8 +106,11 @@ int main(int argc, char *argv[]) {
   std::flush(std::cout);
   blitz::Array<int, 1> triangles_surfaces(T);
   for (int j=0 ; j<T ; j++) triangles_surfaces(j) = -1;
+  blitz::Array<double, 2> vertexes_coord(V, 3);
+  readDoubleBlitzArray2DFromBinaryFile(READING_PATH + "vertexes_coord.txt", vertexes_coord);
   reorder_triangle_vertexes(triangle_vertexes, triangles_surfaces, vertexes_coord, triangle_adjacentTriangles);
   triangle_adjacentTriangles.clear();
+  std::vector<std::vector<int> > (triangle_adjacentTriangles).swap(triangle_adjacentTriangles);
 
   // finding the open and closed surfaces
   std::cout << "is_surface_closed" << std::endl;
@@ -125,12 +126,15 @@ int main(int argc, char *argv[]) {
   RWGNumber_signedTriangles_computation(RWGNumber_signedTriangles, RWGNumber_edgeVertexes, edgeNumber_triangles, edgeNumber_vertexes, triangles_surfaces, is_closed_surface, triangle_vertexes, vertexes_coord);
   edgeNumber_triangles.free();
   edgeNumber_vertexes.free();
+  vertexes_coord.free();
+
   // computation of opposite vertexes of RWGs in triangles
   blitz::Array<int, 2> RWGNumber_oppVertexes;
   RWGNumber_oppVertexes_computation(RWGNumber_oppVertexes, RWGNumber_signedTriangles, RWGNumber_edgeVertexes, triangle_vertexes);
   // writing to files
   writeIntToASCIIFile(READING_PATH + "N_edges.txt", N_edges);
   writeIntToASCIIFile(READING_PATH + "N_RWG.txt", RWGNumber_signedTriangles.extent(0));
+  writeIntBlitzArray2DToBinaryFile(READING_PATH + "triangle_vertexes.txt", triangle_vertexes);
   writeIntBlitzArray2DToBinaryFile(READING_PATH + "RWGNumber_signedTriangles.txt", RWGNumber_signedTriangles);
   writeIntBlitzArray2DToBinaryFile(READING_PATH + "RWGNumber_edgeVertexes.txt", RWGNumber_edgeVertexes);
   writeIntBlitzArray2DToBinaryFile(READING_PATH + "RWGNumber_oppVertexes.txt", RWGNumber_oppVertexes);
