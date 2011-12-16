@@ -38,7 +38,6 @@ ${MPI_CMD} python code/setup_MLFMA.py --simudir ${SIMU_DIR} --simuparams ${SIMU_
 # distribution of data across processes
 { time -p ${MPI_CMD} ./code/MoM/distribute_Z_cubes --simudir ${SIMU_DIR}; } 2> ${SIMU_DIR}/result/CPU_time_distribute_Z_cubes.txt
 ${MPI_CMD} python code/distribute_ZChunks_and_cubes.py --simudir ${SIMU_DIR} --simuparams ${SIMU_PARAMS}
-{ time -p ${MPI_CMD} ./code/MoM/scatter_mesh_per_cube --simudir ${SIMU_DIR}; } 2> ${SIMU_DIR}/result/CPU_time_scatter_mesh_per_cube.txt
 
 # computation of the Z_near blocks
 { time -p ${MPI_CMD} ./code/MoM/compute_Z_near --simudir ${SIMU_DIR}; } 2> ${SIMU_DIR}/result/CPU_time_compute_Z_near.txt

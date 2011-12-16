@@ -1,3 +1,5 @@
+#ifndef GETMEMUSAGE_H
+#define GETMEMUSAGE_H
 #include "stdlib.h"
 #include "stdio.h"
 #include "string.h"
@@ -31,3 +33,5 @@ long MemoryUsageGetPeak()
     fclose(file);
     return result*1024;
 }
+
+#endif

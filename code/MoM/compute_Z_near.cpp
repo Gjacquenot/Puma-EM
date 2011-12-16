@@ -10,6 +10,7 @@ using namespace std;
 #include "GetMemUsage.h"
 #include "readWriteBlitzArrayFromFile.h"
 #include "Z_EJ_Z_HJ.h"
+#include "scatter_mesh_per_cube.h"
 
 void compute_cube_local_arrays(int & N_RWG_test,
                                int & N_RWG_src,
@@ -151,8 +152,11 @@ int main(int argc, char* argv[]) {
     startIndex += N_cubes_in_chunk;
   }
 
-  // now we read the necessary cubes arrays. 
-  // We could avoid disk I/O if done directly within scatter_mesh_per_cube
+  blitz::Array<blitz::Array<int, 1>, 1> allCubeIntArrays;
+  blitz::Array<blitz::Array<double, 1>, 1> allCubeDoubleArrays;
+  scatter_mesh_per_cube(allCubeIntArrays, allCubeDoubleArrays, SIMU_DIR, local_ChunksNumbers, local_chunkNumber_N_cubesNumbers, local_chunkNumber_to_cubesNumbers, local_cubeNumber_to_chunkNumbers);
+
+  // now we compute the Z near and write them to disk
   float percentage = 0.0;
   for (int i=0; i<N_local_cubes; i++) {
     if (my_id==master) {
@@ -163,33 +167,13 @@ int main(int argc, char* argv[]) {
         percentage = newPercentage;
       }
     }
-    const int chunkNumber = local_cubeNumber_to_chunkNumbers(i);
-    const int cubeNumber = local_chunkNumber_to_cubesNumbers(i);
-    const string filenameIntArray = Z_TMP_DATA_PATH + "chunk" + intToString(chunkNumber) + "/" + intToString(cubeNumber) + "_IntArrays.txt";
-    const string filenameDoubleArray = Z_TMP_DATA_PATH + "chunk" + intToString(chunkNumber) + "/" + intToString(cubeNumber) + "_DoubleArrays.txt";
-    // reading the size of the int array
-    blitz::ifstream ifs(filenameIntArray.c_str(), blitz::ios::binary);
-    ifs.seekg (0, blitz::ios::end);
-    int length = ifs.tellg();
-    ifs.close();
-    int N_IntArray = length/4;
-
-    // reading the int array
-    blitz::Array<int, 1> cubeIntArrays(N_IntArray);
-    readIntBlitzArray1DFromBinaryFile(filenameIntArray, cubeIntArrays);
-
-    // reading the double array
-    int N_DoubleArray = cubeIntArrays(3) * 3 + 3; // the "+3" is due to the cube centroid
-    blitz::Array<double, 1> cubeDoubleArrays(N_DoubleArray); 
-    readDoubleBlitzArray1DFromBinaryFile(filenameDoubleArray, cubeDoubleArrays);
-
     // computing the local arrays
     int N_RWG_test, N_RWG_src, N_neighbors, N_nodes, S;
     blitz::Array<int, 1> test_RWGsNumbers, src_RWGsNumbers;
     blitz::Array<int, 1> localTestRWGNumber_CFIE_OK, localSrcRWGNumber_M_CURRENT_OK;
     blitz::Array<int, 2> localTestSrcRWGNumber_signedTriangles, localTestSrcRWGNumber_nodes;
     blitz::Array<double, 2> nodesCoord;
-    compute_cube_local_arrays(N_RWG_test, N_RWG_src, N_neighbors, N_nodes, S, test_RWGsNumbers, src_RWGsNumbers, localTestRWGNumber_CFIE_OK, localSrcRWGNumber_M_CURRENT_OK, localTestSrcRWGNumber_signedTriangles, localTestSrcRWGNumber_nodes, nodesCoord, cubeIntArrays, cubeDoubleArrays);
+    compute_cube_local_arrays(N_RWG_test, N_RWG_src, N_neighbors, N_nodes, S, test_RWGsNumbers, src_RWGsNumbers, localTestRWGNumber_CFIE_OK, localSrcRWGNumber_M_CURRENT_OK, localTestSrcRWGNumber_signedTriangles, localTestSrcRWGNumber_nodes, nodesCoord, allCubeIntArrays(i), allCubeDoubleArrays(i));
 
     // computing the Z_CFIE
     blitz::Array<std::complex<double>, 2> Z_CFIE_J(N_RWG_test, N_RWG_src), Z_CFIE_M(1, 1);
@@ -201,11 +185,17 @@ int main(int argc, char* argv[]) {
 
     // transforming and writing the matrix to the disk
     blitz::Array<std::complex<float>, 1> Z_CFIE_J_linear(N_RWG_test * N_RWG_src);
-    for (int i=0; i<N_RWG_test; i++) {
-      for (int j=0; j<N_RWG_src; j++) Z_CFIE_J_linear(i*N_RWG_src + j) = Z_CFIE_J(i, j);
+    for (int ii=0; ii<N_RWG_test; ii++) {
+      for (int jj=0; jj<N_RWG_src; jj++) Z_CFIE_J_linear(ii*N_RWG_src + jj) = Z_CFIE_J(ii, jj);
     }
+    const int chunkNumber = local_cubeNumber_to_chunkNumbers(i);
+    const int cubeNumber = local_chunkNumber_to_cubesNumbers(i);
+    const string filenameIntArray = Z_TMP_DATA_PATH + "chunk" + intToString(chunkNumber) + "/" + intToString(cubeNumber) + "_IntArrays.txt";
+    const string filenameDoubleArray = Z_TMP_DATA_PATH + "chunk" + intToString(chunkNumber) + "/" + intToString(cubeNumber) + "_DoubleArrays.txt";
     const string filenameZnear = Z_TMP_DATA_PATH + "chunk" + intToString(chunkNumber) + "/" + intToString(cubeNumber);
     writeComplexFloatBlitzArray1DToBinaryFile(filenameZnear, Z_CFIE_J_linear);
+    writeIntBlitzArray1DToBinaryFile(filenameIntArray, allCubeIntArrays(i));
+    writeDoubleBlitzArray1DToBinaryFile(filenameDoubleArray, allCubeDoubleArrays(i));
   }
   
   // Get peak memory usage of each rank

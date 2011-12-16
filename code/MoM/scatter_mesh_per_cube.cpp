@@ -1,17 +1,4 @@
-#include <fstream>
-#include <iostream>
-#include <string>
-#include <blitz/array.h>
-#include <map>
-#include <vector>
-#include <algorithm>
-#include <mpi.h>
-
-using namespace std;
-
-#include "GetMemUsage.h"
-#include "readWriteBlitzArrayFromFile.h"
-#include "mesh.h"
+#include "scatter_mesh_per_cube.h"
 
 void list_testSrc_RWGs_computation(blitz::Array<int, 1>& test_RWGs_numbers,
                                    blitz::Array<int, 1>& src_RWGs_numbers,
@@ -60,23 +47,23 @@ void list_testSrc_RWGs_computation(blitz::Array<int, 1>& test_RWGs_numbers,
   }
 }
 
-void compute_cube_local_arrays(blitz::Array<int, 1>& cubeIntArrays,
-                               blitz::Array<double, 1>& cubeDoubleArrays,
-                               const int cubeNumber,
-                               const int S,
-                               const blitz::Array<int, 1>& cubes_NeighborsIndexes, // sizeInt approx C*27
-                               const blitz::Array<int, 1>& cubes_N_neighbors, // sizeInt C
-                               const blitz::Array<int, 1>& cube_startIndex_neighbors, // sizeInt C
-                               const blitz::Array<int, 1>& cubes_RWGsNumbers, // sizeInt N_RWG
-                               const blitz::Array<int, 1>& cube_N_RWGs, // sizeInt C
-                               const blitz::Array<int, 1>& cube_startIndex_RWGs, // sizeInt C
-                               const blitz::Array<int, 1>& RWGNumber_CFIE_OK, // sizeInt N_RWG
-                               const blitz::Array<int, 1>& RWGNumber_M_CURRENT_OK, // sizeInt N_RWG
-                               const blitz::Array<int, 2>& RWGNumber_signedTriangles, // sizeInt (N_RWG, 2)
-                               const blitz::Array<int, 2>& RWGNumber_edgeVertexes, // sizeInt (N_RWG, 2)
-                               const blitz::Array<int, 2>& RWGNumber_oppVertexes, // sizeInt (N_RWG, 2)
-                               const blitz::Array<double, 2>& vertexes_coord, // sizeDouble (V, 3)
-                               const blitz::Array<double, 2>& cubes_centroids) // sizeDouble (C, 3)
+void compute_cube_arrays_from_mesh(blitz::Array<int, 1>& cubeIntArrays,
+                                   blitz::Array<double, 1>& cubeDoubleArrays,
+                                   const int cubeNumber,
+                                   const int S,
+                                   const blitz::Array<int, 1>& cubes_NeighborsIndexes, // sizeInt approx C*27
+                                   const blitz::Array<int, 1>& cubes_N_neighbors, // sizeInt C
+                                   const blitz::Array<int, 1>& cube_startIndex_neighbors, // sizeInt C
+                                   const blitz::Array<int, 1>& cubes_RWGsNumbers, // sizeInt N_RWG
+                                   const blitz::Array<int, 1>& cube_N_RWGs, // sizeInt C
+                                   const blitz::Array<int, 1>& cube_startIndex_RWGs, // sizeInt C
+                                   const blitz::Array<int, 1>& RWGNumber_CFIE_OK, // sizeInt N_RWG
+                                   const blitz::Array<int, 1>& RWGNumber_M_CURRENT_OK, // sizeInt N_RWG
+                                   const blitz::Array<int, 2>& RWGNumber_signedTriangles, // sizeInt (N_RWG, 2)
+                                   const blitz::Array<int, 2>& RWGNumber_edgeVertexes, // sizeInt (N_RWG, 2)
+                                   const blitz::Array<int, 2>& RWGNumber_oppVertexes, // sizeInt (N_RWG, 2)
+                                   const blitz::Array<double, 2>& vertexes_coord, // sizeDouble (V, 3)
+                                   const blitz::Array<double, 2>& cubes_centroids) // sizeDouble (C, 3)
 {
   blitz::Range all = blitz::Range::all();
   blitz::Array<int, 1> test_RWGs_numbers, src_RWGs_numbers, cube_neighborsIndexes;
@@ -181,7 +168,7 @@ void compute_cube_local_arrays(blitz::Array<int, 1>& cubeIntArrays,
   }
 }
 
-void Mg_listsOfZnearBlocks_ToTransmitAndReceive(const blitz::Array<int, 1>& local_chunkNumber_to_cubesNumbers,
+/*void Mg_listsOfZnearBlocks_ToTransmitAndReceive(const blitz::Array<int, 1>& local_chunkNumber_to_cubesNumbers,
                                                 const blitz::Array<int, 1>& local_cubeNumber_to_chunkNumbers,
                                                 const blitz::Array<blitz::Array<int, 1>, 1>& allCubeIntArrays,
                                                 const string Z_TMP_DATA_PATH)
@@ -257,25 +244,23 @@ void Mg_listsOfZnearBlocks_ToTransmitAndReceive(const blitz::Array<int, 1>& loca
       writeIntBlitzArray1DToASCIIFile(filename, listCubesToSendToProcessP);
       filename = Z_TMP_DATA_PATH + "ChunkNumbersToSendToP" + intToString(P) + ".txt";
       writeIntBlitzArray1DToASCIIFile(filename, listChunksToSendToProcessP);
-    }
-    
+    } 
   }
-  
-}
+}*/
 
-int main(int argc, char* argv[]) {
-
-  MPI::Init();
+void scatter_mesh_per_cube(blitz::Array<blitz::Array<int, 1>, 1>& allCubeIntArrays,
+                           blitz::Array<blitz::Array<double, 1>, 1>& allCubeDoubleArrays,
+                           const string simuDir,
+                           const blitz::Array<int, 1>& local_ChunksNumbers,
+                           const blitz::Array<int, 1>& local_chunkNumber_N_cubesNumbers,
+                           const blitz::Array<int, 1>& local_chunkNumber_to_cubesNumbers,
+                           const blitz::Array<int, 1>& local_cubeNumber_to_chunkNumbers)
+{
   int ierror;
   const int num_procs = MPI::COMM_WORLD.Get_size();
   const int my_id = MPI::COMM_WORLD.Get_rank();
   const int master = 0;
   MPI_Status status;
-
-  string simuDir = ".";
-  if ( argc > 2 ) {
-     if( string(argv[1]) == "--simudir" ) simuDir = argv[2];
-  }
 
   // general variables
   const string SIMU_DIR = simuDir;
@@ -379,36 +364,8 @@ int main(int argc, char* argv[]) {
 
   // now we have to read the local chunks numbers, and the local cubes numbers. 
   // They will be communicated to the master process. Copy beginning of mpi_mlfma.cpp for this.
-  int N_local_Chunks, N_local_cubes;
-
-  filename = Z_TMP_DATA_PATH + "N_local_Chunks.txt";
-  readIntFromASCIIFile(filename, N_local_Chunks);
-
-  filename = Z_TMP_DATA_PATH + "N_local_cubes.txt";
-  readIntFromASCIIFile(filename, N_local_cubes);
-  
-  blitz::Array<int, 1> local_ChunksNumbers(N_local_Chunks);
-  blitz::Array<int, 1> local_chunkNumber_N_cubesNumbers(N_local_Chunks);
-  blitz::Array<int, 1> local_chunkNumber_to_cubesNumbers(N_local_cubes);
-
-  filename = Z_TMP_DATA_PATH + "local_ChunksNumbers.txt";
-  readIntBlitzArray1DFromBinaryFile(filename, local_ChunksNumbers);
-  
-  filename = Z_TMP_DATA_PATH + "local_chunkNumber_N_cubesNumbers.txt";
-  readIntBlitzArray1DFromBinaryFile(filename, local_chunkNumber_N_cubesNumbers);
-  
-  filename = Z_TMP_DATA_PATH + "local_chunkNumber_to_cubesNumbers.txt";
-  readIntBlitzArray1DFromBinaryFile(filename, local_chunkNumber_to_cubesNumbers);
-
-  // creating a cube_to_chunk correspondance. Needed for saving the files.
-  blitz::Array<int, 1> local_cubeNumber_to_chunkNumbers(N_local_cubes);
-  int startIndex = 0;
-  for (int i=0; i<N_local_Chunks; i++) {
-    const int chunkNumber = local_ChunksNumbers(i);
-    const int N_cubes_in_chunk = local_chunkNumber_N_cubesNumbers(i);
-    for (int j=0; j<N_cubes_in_chunk; j++) local_cubeNumber_to_chunkNumbers(startIndex + j) = chunkNumber;
-    startIndex += N_cubes_in_chunk;
-  }
+  int N_local_Chunks = local_ChunksNumbers.size();
+  int N_local_cubes = local_chunkNumber_to_cubesNumbers.size();
 
   // preparing the terrain for gathering the cubes numbers for each process  
   blitz::Array<int, 1> NumberOfCubesPerProcess;
@@ -430,11 +387,12 @@ int main(int argc, char* argv[]) {
 
   blitz::Array<int, 1> process_cubesNumbers;
   if (my_id==0) process_cubesNumbers.resize(C);
-  ierror = MPI_Gatherv(local_chunkNumber_to_cubesNumbers.data(), N_local_cubes, MPI_INT, process_cubesNumbers.data(), MPI_Gatherv_scounts.data(), MPI_Gatherv_displs.data(), MPI_INT, 0,  MPI_COMM_WORLD);
+  blitz::Array<int, 1> local_cubes(local_chunkNumber_to_cubesNumbers);
+  ierror = MPI_Gatherv(local_cubes.data(), N_local_cubes, MPI_INT, process_cubesNumbers.data(), MPI_Gatherv_scounts.data(), MPI_Gatherv_displs.data(), MPI_INT, 0,  MPI_COMM_WORLD);
   
   blitz::Array<int, 1> cubeArraysSizes(2);
-  blitz::Array<blitz::Array<int, 1>, 1> allCubeIntArrays(N_local_cubes);
-  blitz::Array<blitz::Array<double, 1>, 1> allCubeDoubleArrays(N_local_cubes);
+  allCubeIntArrays.resize(N_local_cubes);
+  allCubeDoubleArrays.resize(N_local_cubes);
   if (my_id==master) {
     for (int receive_id=num_procs-1; receive_id>-1; receive_id--) {
       // first we find the RWGs for each cube of process receive_id
@@ -444,7 +402,7 @@ int main(int argc, char* argv[]) {
         blitz::Array<int, 1> cubeIntArrays;
         blitz::Array<double, 1> cubeDoubleArrays; 
         const int cubeNumber = process_cubesNumbers(startIndexOfCube + i);
-        compute_cube_local_arrays(cubeIntArrays, cubeDoubleArrays, cubeNumber, S, cubes_neighborsIndexes, cube_N_neighbors, cube_startIndex_neighbors, cubes_RWGsNumbers, cube_N_RWGs, cube_startIndex_RWGs, RWGNumber_CFIE_OK, RWGNumber_M_CURRENT_OK, RWGNumber_signedTriangles, RWGNumber_edgeVertexes, RWGNumber_oppVertexes, vertexes_coord, cubes_centroids);
+        compute_cube_arrays_from_mesh(cubeIntArrays, cubeDoubleArrays, cubeNumber, S, cubes_neighborsIndexes, cube_N_neighbors, cube_startIndex_neighbors, cubes_RWGsNumbers, cube_N_RWGs, cube_startIndex_RWGs, RWGNumber_CFIE_OK, RWGNumber_M_CURRENT_OK, RWGNumber_signedTriangles, RWGNumber_edgeVertexes, RWGNumber_oppVertexes, vertexes_coord, cubes_centroids);
         cubeArraysSizes(0) = cubeIntArrays.size();
         cubeArraysSizes(1) = cubeDoubleArrays.size();
         if (receive_id!=master) {
@@ -459,11 +417,6 @@ int main(int argc, char* argv[]) {
           allCubeDoubleArrays(i).resize(cubeArraysSizes(1));
           allCubeIntArrays(i) = cubeIntArrays;
           allCubeDoubleArrays(i) = cubeDoubleArrays;
-          const int chunkNumber = local_cubeNumber_to_chunkNumbers(i);
-          const string filenameIntArray = Z_TMP_DATA_PATH + "chunk" + intToString(chunkNumber) + "/" + intToString(cubeNumber) + "_IntArrays.txt";
-          const string filenameDoubleArray = Z_TMP_DATA_PATH + "chunk" + intToString(chunkNumber) + "/" + intToString(cubeNumber) + "_DoubleArrays.txt";
-          writeIntBlitzArray1DToBinaryFile(filenameIntArray, cubeIntArrays);
-          writeDoubleBlitzArray1DToBinaryFile(filenameDoubleArray, cubeDoubleArrays);
         }
       }
     }
@@ -478,23 +431,5 @@ int main(int argc, char* argv[]) {
       MPI_Recv(allCubeIntArrays(i).data(), allCubeIntArrays(i).size(), MPI_INT, 0, cubeNumber, MPI_COMM_WORLD, &status);
       MPI_Recv(allCubeDoubleArrays(i).data(), allCubeDoubleArrays(i).size(), MPI_DOUBLE, 0, cubeNumber+1, MPI_COMM_WORLD, &status);
     }
-    // now we write the arrays to disk
-    for (int i=0; i<N_local_cubes; i++) {
-      const int chunkNumber = local_cubeNumber_to_chunkNumbers(i);
-      const int cubeNumber = local_chunkNumber_to_cubesNumbers(i);
-      const string filenameIntArray = Z_TMP_DATA_PATH + "chunk" + intToString(chunkNumber) + "/" + intToString(cubeNumber) + "_IntArrays.txt";
-      const string filenameDoubleArray = Z_TMP_DATA_PATH + "chunk" + intToString(chunkNumber) + "/" + intToString(cubeNumber) + "_DoubleArrays.txt";
-      writeIntBlitzArray1DToBinaryFile(filenameIntArray, allCubeIntArrays(i));
-      writeDoubleBlitzArray1DToBinaryFile(filenameDoubleArray, allCubeDoubleArrays(i));
-    }
   }
-
-//   Mg_listsOfZnearBlocks_ToTransmitAndReceive(local_chunkNumber_to_cubesNumbers, local_cubeNumber_to_chunkNumbers, allCubeIntArrays, Z_TMP_DATA_PATH);
-
-  // Get peak memory usage of each rank
-  long memusage_local = MemoryUsageGetPeak();
-  std::cout << "MEMINFO " << argv[0] << " rank " << my_id << " mem=" << memusage_local/(1024*1024) << " MB" << std::endl;
-  flush(std::cout);
-  MPI::Finalize();
-  return 0;
 }

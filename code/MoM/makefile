@@ -19,11 +19,8 @@ communicateZnearBlocks: communicateZnearBlocks.o readWriteBlitzArrayFromFile.o
 RWGs_renumbering: RWGs_renumbering.o readWriteBlitzArrayFromFile.o
 	$(MPICC) $(INCLUDE_PATH) RWGs_renumbering.o readWriteBlitzArrayFromFile.o $(LIB_SEARCH_PATH) -lblitz -lm -o RWGs_renumbering
 
-scatter_mesh_per_cube: scatter_mesh_per_cube.o readWriteBlitzArrayFromFile.o
-	$(MPICC) $(INCLUDE_PATH) scatter_mesh_per_cube.o readWriteBlitzArrayFromFile.o $(LIB_SEARCH_PATH) -lblitz -lm -o scatter_mesh_per_cube
-
-compute_Z_near: compute_Z_near.o $(OBJECTS_LIBMOM)
-	$(MPICC) $(INCLUDE_PATH) compute_Z_near.o -L$(WORKING_DIR_PATH) -lMoM $(LIB_SEARCH_PATH) -lblitz -lm -o compute_Z_near
+compute_Z_near: compute_Z_near.o scatter_mesh_per_cube.o $(OBJECTS_LIBMOM)
+	$(MPICC) $(INCLUDE_PATH) compute_Z_near.o scatter_mesh_per_cube.o -L$(WORKING_DIR_PATH) -lMoM $(LIB_SEARCH_PATH) -lblitz -lm -o compute_Z_near
 
 mpi_mlfma: mpi_mlfma.o $(OBJECTS_LIBMLFMA)
 #	$(MPICC) $(INCLUDE_PATH) mpi_mlfma.o -L$(WORKING_DIR_PATH) -lMoM -L$(WORKING_DIR_PATH) -lMLFMA -L$(WORKING_DIR_PATH)/amos/zbesh -lAMOS -l$(G2C) -lblitz -lm -o mpi_mlfma
@@ -58,9 +55,9 @@ communicateZnearBlocks.o: communicateZnearBlocks.cpp readWriteBlitzArrayFromFile
 	$(MPICC) $(INCLUDE_PATH) $(CFLAGS) communicateZnearBlocks.cpp
 RWGs_renumbering.o: RWGs_renumbering.cpp readWriteBlitzArrayFromFile.h
 	$(MPICC) $(INCLUDE_PATH) $(CFLAGS) RWGs_renumbering.cpp
-scatter_mesh_per_cube.o: scatter_mesh_per_cube.cpp readWriteBlitzArrayFromFile.h mesh.h
+scatter_mesh_per_cube.o: scatter_mesh_per_cube.cpp readWriteBlitzArrayFromFile.h mesh.h scatter_mesh_per_cube.h
 	$(MPICC) $(INCLUDE_PATH) $(CFLAGS) scatter_mesh_per_cube.cpp
-compute_Z_near.o: compute_Z_near.cpp readWriteBlitzArrayFromFile.h Z_EJ_Z_HJ.h
+compute_Z_near.o: compute_Z_near.cpp readWriteBlitzArrayFromFile.h Z_EJ_Z_HJ.h scatter_mesh_per_cube.h scatter_mesh_per_cube.cpp
 	$(MPICC) $(INCLUDE_PATH) $(CFLAGS) compute_Z_near.cpp
 mpi_mlfma.o: mpi_mlfma.cpp  Z_sparse_MLFMA.h mesh.h octtree.h octtree.cpp level.h level.cpp ./iterative/iterative.h V_E_V_H.h alpha_computation.h V_E_V_H_dipole.cpp V_E_V_H_plane.cpp EMConstants.h
 	$(MPICC) $(INCLUDE_PATH) $(CFLAGS) mpi_mlfma.cpp
@@ -100,7 +97,7 @@ GL.o: GL.cpp
 
 
 clean: 
-	rm -f *.o *.a *.txt *~ *.pyc octtree mpi_mlfma testMPI communicateZnearBlocks mesh_functions_seb distribute_Z_cubes RWGs_renumbering scatter_mesh_per_cube compute_Z_near; 
+	rm -f *.o *.a *.txt *~ *.pyc octtree mpi_mlfma testMPI communicateZnearBlocks mesh_functions_seb distribute_Z_cubes RWGs_renumbering compute_Z_near; 
 	cd $(LIBAMOS_ZBESH_PATH); make clean; 
 	cd $(LIBLAPACK_PATH); make clean; 
 	cd $(LIBITERATIVE_PATH); make clean;

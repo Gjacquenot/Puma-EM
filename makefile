@@ -16,7 +16,7 @@ package:
 	make clean;
 	python $(PROGR_DIR_PATH)/makePackage.py;
 libs: 
-	cd $(PROGR_DIR_PATH)/MoM; make libs; make communicateZnearBlocks; make mpi_mlfma; make mesh_functions_seb; make distribute_Z_cubes; make RWGs_renumbering; make scatter_mesh_per_cube; make compute_Z_near;
+	cd $(PROGR_DIR_PATH)/MoM; make libs; make communicateZnearBlocks; make mpi_mlfma; make mesh_functions_seb; make distribute_Z_cubes; make RWGs_renumbering; make compute_Z_near;
 communicateZnearBlocks:
 	cd $(PROGR_DIR_PATH)/MoM; make communicateZnearBlocks;
 mpi_mlfma:
@@ -25,8 +25,6 @@ distribute_Z_cubes:
 	cd $(PROGR_DIR_PATH)/MoM; make distribute_Z_cubes;
 RWGs_renumbering:
 	cd $(PROGR_DIR_PATH)/MoM; make RWGs_renumbering;
-scatter_mesh_per_cube:
-	cd $(PROGR_DIR_PATH)/MoM; make scatter_mesh_per_cube;
 compute_Z_near:
 	cd $(PROGR_DIR_PATH)/MoM; make compute_Z_near;
 mesh_functions_seb:
