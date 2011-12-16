@@ -4,7 +4,7 @@
 #include <vector>
 #include <algorithm>
 
-using namespace blitz;
+using namespace std;
 
 #include "GetMemUsage.h"
 #include "mesh.h"
@@ -24,6 +24,7 @@ int main(int argc, char *argv[]) {
   
   const int E = 3 * T; // there are 3 edges per triangles
   blitz::Array<int, 2> col_sorted_e_v(E, 2);
+  int max_decimal;
   for (int i=0 ; i<T ; i++) {
     for (int j=0 ; j<3 ; j++) {
       int n_orig = j;
@@ -33,38 +34,39 @@ int main(int argc, char *argv[]) {
       int index = i*3 + j;
       col_sorted_e_v(index, 0) = std::min(r_orig, r_end);
       col_sorted_e_v(index, 1) = std::max(r_orig, r_end);
+      max_decimal = std::max(max_decimal, col_sorted_e_v(index, 1));
     }
   }
   
-  const int max_decimal = max(col_sorted_e_v(blitz::Range::all(), 1));
   double X = 10.0;
   while (X<max_decimal) X *= 10.0; // we look for smallest "X" such that "1eX > max_decimal"
 
-  blitz::Array<double, 1> decimal_e_v(E);
-  decimal_e_v = col_sorted_e_v(blitz::Range::all(), 0) + col_sorted_e_v(blitz::Range::all(), 1)/X;
-
   // we now sort the decimal_e_v
   // we need an argsort type function, given by the Dictionary class (see mesh.h)
-  std::vector< Dictionary<double, int> > decimal_e_v_ToIndexes;
+  std::vector< pair<double, int> > decimal_e_v_ToIndexes;
   decimal_e_v_ToIndexes.reserve(E);
-  for (int j=0 ; j<E ; j++) decimal_e_v_ToIndexes.push_back(Dictionary<double, int> (decimal_e_v(j), j));
-  stable_sort(decimal_e_v_ToIndexes.begin(), decimal_e_v_ToIndexes.end());
+  for (int j=0 ; j<E ; j++) {
+    const double decimal_e_v = col_sorted_e_v(j, 0) + col_sorted_e_v(j, 1)/X;
+    decimal_e_v_ToIndexes.push_back(pair<double, int> (decimal_e_v, j));
+  }
+
+  sort(decimal_e_v_ToIndexes.begin(), decimal_e_v_ToIndexes.end());
 
   blitz::Array<int, 1> ind_sorted_e_v(E);
   for (int j=0 ; j<E ; j++) {
-    ind_sorted_e_v(j) = decimal_e_v_ToIndexes[j].getVal();
+    ind_sorted_e_v(j) = decimal_e_v_ToIndexes[j].second;
   }
-  decimal_e_v_ToIndexes.clear();
-  std::vector< Dictionary<double, int> > (decimal_e_v_ToIndexes).swap(decimal_e_v_ToIndexes);
   
   std::vector<int> indexesEqualPrecedingTmp;
   for (int j=1 ; j<E ; j++) {
-    const double sorted_decimal_j = decimal_e_v(ind_sorted_e_v(j));
-    const double sorted_decimal_j_1 = decimal_e_v(ind_sorted_e_v(j-1));
+    const double sorted_decimal_j = decimal_e_v_ToIndexes[j].first;
+    const double sorted_decimal_j_1 = decimal_e_v_ToIndexes[j-1].first;
     const double diff = abs(sorted_decimal_j - sorted_decimal_j_1);
     if (diff==0.0) indexesEqualPrecedingTmp.push_back(j);
   }
-  decimal_e_v.free();
+  decimal_e_v_ToIndexes.clear();
+  std::vector< pair<double, int> > (decimal_e_v_ToIndexes).swap(decimal_e_v_ToIndexes);
+
   const int N_indexesEqualPreceding = indexesEqualPrecedingTmp.size();
   blitz::Array<int, 1> indexesEqualPreceding(N_indexesEqualPreceding);
   for (int j=0 ; j<N_indexesEqualPreceding ; j++) indexesEqualPreceding(j) = indexesEqualPrecedingTmp[j];
@@ -131,6 +133,7 @@ int main(int argc, char *argv[]) {
   // computation of opposite vertexes of RWGs in triangles
   blitz::Array<int, 2> RWGNumber_oppVertexes;
   RWGNumber_oppVertexes_computation(RWGNumber_oppVertexes, RWGNumber_signedTriangles, RWGNumber_edgeVertexes, triangle_vertexes);
+
   // writing to files
   writeIntToASCIIFile(READING_PATH + "N_edges.txt", N_edges);
   writeIntToASCIIFile(READING_PATH + "N_RWG.txt", RWGNumber_signedTriangles.extent(0));

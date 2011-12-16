@@ -298,11 +298,10 @@ void compute_edgeNumber_vertexes(blitz::Array<int, 2>& edgeNumber_vertexes,
                                  const blitz::Array<int, 2>& col_sorted_e_v)
 {
   // renumbering of the edges
-  edgeNumber_vertexes.resize(indexesEqualEdges.size(), 2);
-  int number = 0;
-  for (int i=0 ; i<indexesEqualEdges.size() ; i++) {
-    for (int j=0 ; j<edgeNumber_vertexes.extent(1); j++) edgeNumber_vertexes(number, j) = col_sorted_e_v(indexesEqualEdges[i][0], j);
-    number++;
+  int N_equalEdges = indexesEqualEdges.size();
+  edgeNumber_vertexes.resize(N_equalEdges, 2);
+  for (int i=0 ; i<N_equalEdges ; i++) {
+    for (int j=0 ; j<2; j++) edgeNumber_vertexes(i, j) = col_sorted_e_v(indexesEqualEdges[i][0], j);
   }
 }
 
