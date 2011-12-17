@@ -239,7 +239,7 @@ class CubeClass:
         writeBlitzArrayToDisk(self.cubeIntArrays, os.path.join(pathToSaveTo, str(cubeNumber) + "_IntArrays.txt"))
         writeBlitzArrayToDisk(self.cubeDoubleArrays, os.path.join(pathToSaveTo, str(cubeNumber) + "_DoubleArrays.txt"))
 
-    def setIntDoubleArraysFromFile(self, pathToReadFrom, cubeNumber):
+    def setIntArraysFromFile(self, pathToReadFrom, cubeNumber):
         cubeIntArrays = read1DBlitzArrayFromDisk(os.path.join(pathToReadFrom, str(cubeNumber) + "_IntArrays.txt"), 'i')
         self.N_cubeIntArrays = len(cubeIntArrays)
         self.N_RWG_test = cubeIntArrays[0]
@@ -255,27 +255,20 @@ class CubeClass:
         #startIndex = stopIndex
         stopIndex = startIndex + self.N_RWG_src
         self.testSrc_RWGsNumbers = cubeIntArrays[startIndex:stopIndex]
-    
-        startIndex = stopIndex
-        stopIndex = startIndex + self.N_RWG_src * 2
-        self.localTestSrcRWGNumber_signedTriangles = reshape(cubeIntArrays[startIndex:stopIndex], (-1, 2))
-        
+
         startIndex = stopIndex
         stopIndex = startIndex + self.N_RWG_src * 4
         self.localTestSrcRWGNumber_nodes = reshape(cubeIntArrays[startIndex:stopIndex], (-1, 4))
     
         startIndex = stopIndex
-        stopIndex = startIndex + self.N_RWG_test
-        self.localTestRWGNumber_CFIE_OK = cubeIntArrays[startIndex:stopIndex]
-        
-        startIndex = stopIndex
-        stopIndex = startIndex + self.N_RWG_src
-        self.localSrcRWGNumber_M_CURRENT_OK = cubeIntArrays[startIndex:stopIndex]
-        
-        startIndex = stopIndex
         stopIndex = startIndex + self.N_neighbors
         self.cubeNeighborsIndexes = cubeIntArrays[startIndex:stopIndex]
-        
+
+
+    def setIntDoubleArraysFromFile(self, pathToReadFrom, cubeNumber):
+        # we need the int Array
+        self.setIntArraysFromFile(pathToReadFrom, cubeNumber)
+
         # the double arrays
         self.N_cubeDoubleArrays = self.N_nodes * 3 + 3
         #cubeDoubleArrays = zeros(self.N_cubeDoubleArrays, 'd')
@@ -290,7 +283,7 @@ class CubeClass:
         self.rCubeCenter = cubeDoubleArrays[startIndex:stopIndex]
    
     def getIntArrays(self):
-        return self.N_RWG_test, self.N_RWG_src, self.N_neighbors, self.N_nodes, self.S, self.testSrc_RWGsNumbers, self.localTestSrcRWGNumber_signedTriangles, self.localTestSrcRWGNumber_nodes, self.localTestRWGNumber_CFIE_OK, self.localSrcRWGNumber_M_CURRENT_OK, self.cubeNeighborsIndexes
+        return self.N_RWG_test, self.N_RWG_src, self.N_neighbors, self.N_nodes, self.S, self.testSrc_RWGsNumbers, self.localTestSrcRWGNumber_nodes, self.cubeNeighborsIndexes
 
     def getDoubleArrays(self):
         return self.nodesCoord, self.rCubeCenter

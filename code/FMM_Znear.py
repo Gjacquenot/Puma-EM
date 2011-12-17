@@ -55,7 +55,7 @@ def compute_list_cubes(cubesNumbers, pathToReadFrom):
         cubeNumber = cubesNumbers[i]
         pathToReadCubeFrom = pathToReadFrom
         cube = CubeClass()
-        cube.setIntDoubleArraysFromFile(pathToReadCubeFrom, cubeNumber)
+        cube.setIntArraysFromFile(pathToReadCubeFrom, cubeNumber)
         list_cubes[cubeNumber] = copy.copy(cube)
     return list_cubes
 

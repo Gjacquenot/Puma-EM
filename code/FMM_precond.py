@@ -4,10 +4,9 @@ from scipy import zeros, array, floor, compress, arange, take, product, dot, sor
 from scipy.weave import converters
 from scipy import prod, rand, eye, put, transpose #, linalg
 from myPseudoInv import computeMyPinvCC #, computeMyPinv
-from FMM_Znear import read_Z_perCube_fromFile, compute_list_cubes, writeToDisk_chunk_of_Z_sparse
+from FMM_Znear import read_Z_perCube_fromFile, writeToDisk_chunk_of_Z_sparse
 from ReadWriteBlitzArray import writeBlitzArrayToDisk, readBlitzArrayFromDisk, writeScalarToDisk, writeASCIIBlitzArrayToDisk
 from meshClass import CubeClass
-
 
 def reduceListRedundancy(listToReduce):
     if len(listToReduce) > 1:
@@ -39,7 +38,7 @@ def Mg_listsOfZnearBlocks_ToTransmitAndReceive(ZnearChunkNumber_to_cubesNumbers,
             chunkNumber = ZnearCubeNumber_to_chunkNumber[localCube]
             pathToReadCubeFrom = os.path.join(pathToReadFrom, "chunk" + str(chunkNumber))
             cube = CubeClass()
-            cube.setIntDoubleArraysFromFile(pathToReadCubeFrom, localCube)
+            cube.setIntArraysFromFile(pathToReadCubeFrom, localCube)
             for j in cube.cubeNeighborsIndexes:
                 ZnearChunkNumber = ZnearCubeNumber_to_chunkNumber[j]
                 ZnearProcessNumber = ZnearChunkNumber_to_processNumber[int(ZnearChunkNumber)]
@@ -84,6 +83,17 @@ def Mg_listsOfZnearBlocks_ToTransmitAndReceive(ZnearChunkNumber_to_cubesNumbers,
     MPI.COMM_WORLD.Barrier()
 
 # preconditioner computation
+
+def compute_list_cubes(cubesNumbers, pathToReadFrom):
+    """returns a list of cubes"""
+    list_cubes = {}
+    for i in range(len(cubesNumbers)):
+        cubeNumber = cubesNumbers[i]
+        pathToReadCubeFrom = pathToReadFrom
+        cube = CubeClass()
+        cube.setIntDoubleArraysFromFile(pathToReadCubeFrom, cubeNumber)
+        list_cubes[cubeNumber] = copy.copy(cube)
+    return list_cubes
 
 def findEdgesInRadiusAroundCube(RWGNumber_nodes, nodesCoord, rCubeCenter, R_NORM_TYPE_1):
     """this function yields a 1 to an edge number if it is within
