@@ -60,7 +60,9 @@ mpirun -np 1 python code/RCS_MLFMA.py --simudir ${SIMU_DIR} --simuparams ${SIMU_
 
 # copying the result in the puma-em directory
 [ ! -e "${RESULT_DIR}" ] && mkdir -p ${RESULT_DIR}
+cp -r ${SIMU_DIR}/tmp0/iterative_data ${SIMU_DIR}/result/
 cp -r ${SIMU_DIR}/result/ ${RESULT_DIR}
+rm -rf ${SIMU_DIR}/tmp* 
 
 # echo " "
 # echo "=========================================================================="

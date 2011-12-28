@@ -1,6 +1,6 @@
 from mpi4py import MPI
 import sys, os, copy
-from scipy import zeros, array, floor, compress, arange, take, product, dot, sort, argsort, ones, weave
+from scipy import zeros, array, compress, arange, take, product, dot, sort, argsort, ones, weave
 from scipy.weave import converters
 from scipy import prod, rand, eye, put, transpose #, linalg
 from myPseudoInv import computeMyPinvCC #, computeMyPinv
@@ -8,81 +8,6 @@ from FMM_Znear import read_Z_perCube_fromFile, writeToDisk_chunk_of_Z_sparse
 from ReadWriteBlitzArray import writeBlitzArrayToDisk, readBlitzArrayFromDisk, writeScalarToDisk, writeASCIIBlitzArrayToDisk
 from meshClass import CubeClass
 
-def reduceListRedundancy(listToReduce):
-    if len(listToReduce) > 1:
-        listToReduce.sort()
-        tmp = array(listToReduce, 'i')
-        tmp2 = ones(len(tmp), 'i')
-        tmp2[1:] = tmp[1:] - tmp[:-1]
-        newList = compress(tmp2!=0, listToReduce, axis=0).astype('i')
-    else:
-        newList = array(listToReduce, 'i')
-    return newList
-
-def Mg_listsOfZnearBlocks_ToTransmitAndReceive(ZnearChunkNumber_to_cubesNumbers, ZnearCubeNumber_to_chunkNumber, ZnearChunkNumber_to_processNumber, ZnearProcessNumber_to_ChunksNumbers, pathToReadFrom, Z_TMP_ELEM_TYPE):
-    """this function creates 2 lists: Mg_listsOfZ_nearToTransmit and Mg_listsOfZ_nearToReceive"""
-    num_proc = MPI.COMM_WORLD.Get_size()
-    my_id = MPI.COMM_WORLD.Get_rank()
-    chunkNumbers = ZnearProcessNumber_to_ChunksNumbers[my_id]
-    localPreconditionedCubesNumbers = []
-    for i in chunkNumbers:
-        localPreconditionedCubesNumbers.append(ZnearChunkNumber_to_cubesNumbers[i])
-    listCubesNumbersToReceiveTmp, listCubesNumbersToSendTmp = [], []
-    # initialization of the lists
-    for i in range(num_proc):
-        listCubesNumbersToReceiveTmp.append([])
-        listCubesNumbersToSendTmp.append([])
-    # we now fill the lists
-    for elem in localPreconditionedCubesNumbers:
-        for localCube in elem: # elem is a list of cubes Numbers
-            chunkNumber = ZnearCubeNumber_to_chunkNumber[localCube]
-            pathToReadCubeFrom = os.path.join(pathToReadFrom, "chunk" + str(chunkNumber))
-            cube = CubeClass()
-            cube.setIntArraysFromFile(pathToReadCubeFrom, localCube)
-            for j in cube.cubeNeighborsIndexes:
-                ZnearChunkNumber = ZnearCubeNumber_to_chunkNumber[j]
-                ZnearProcessNumber = ZnearChunkNumber_to_processNumber[int(ZnearChunkNumber)]
-                if not (my_id==ZnearProcessNumber):
-                    listCubesNumbersToReceiveTmp[ZnearProcessNumber].append(j)
-                    listCubesNumbersToSendTmp[ZnearProcessNumber].append(localCube)
-    # we now reduce the redundancy of the lists
-    listCubesNumbersToReceive, listCubesNumbersToSend = [], []
-    for i in range(num_proc):
-        tmp = reduceListRedundancy(listCubesNumbersToReceiveTmp[i])
-        listCubesNumbersToReceive.append(tmp)
-        tmp = reduceListRedundancy(listCubesNumbersToSendTmp[i])
-        listCubesNumbersToSend.append(tmp)
-    # now we construct the corresponding chunkNumbers and processNumbers lists
-    listChunkNumbersToReceive, listChunkNumbersToSend = [], []
-    for L in listCubesNumbersToReceive:
-        listChunkNumbersToReceive.append([])
-        for i in L:
-            listChunkNumbersToReceive[-1].append(ZnearCubeNumber_to_chunkNumber[i])
-    for L in listCubesNumbersToSend:
-        listChunkNumbersToSend.append([])
-        for i in L:
-            listChunkNumbersToSend[-1].append(ZnearCubeNumber_to_chunkNumber[i])
-    ## we create the missing directories
-    for L in listChunkNumbersToReceive:
-        for i in L:
-            if 'chunk'+ str(i) not in os.listdir(pathToReadFrom):
-                os.mkdir(os.path.join(pathToReadFrom, 'chunk'+ str(i)))
-    ## now we write the data to be exchanged to disk
-    for i in range(num_proc):
-        if not (my_id==i):
-            writeASCIIBlitzArrayToDisk(array(listCubesNumbersToSend[i]).astype('i'), os.path.join(pathToReadFrom, "CubesNumbersToSendToP" + str(i) + ".txt"))
-            writeASCIIBlitzArrayToDisk(array(listChunkNumbersToSend[i]).astype('i'), os.path.join(pathToReadFrom, "ChunkNumbersToSendToP" + str(i) + ".txt"))
-    #MPI.COMM_WORLD.Barrier()
-    ## finally we write the format of the Near Field matrix elements
-    NBytes = 8
-    if Z_TMP_ELEM_TYPE=='D':
-        NBytes = 16
-        print "16 Bytes not supported yet in data transfer in communicateZnearBlocks. Exiting...."
-        sys.exit(1)
-    writeScalarToDisk(NBytes, os.path.join(pathToReadFrom, "itemsize.txt"))
-    MPI.COMM_WORLD.Barrier()
-
-# preconditioner computation
 
 def compute_list_cubes(cubesNumbers, pathToReadFrom):
     """returns a list of cubes"""
