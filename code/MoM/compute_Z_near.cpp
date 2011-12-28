@@ -99,7 +99,7 @@ void compute_cubeSmallIntArray(blitz::Array<int, 1>& cubeSmallIntArray,
   const int N_RWG_src = cubeIntArrays(1);
   const int N_neighbors = cubeIntArrays(2);
   // we will only save the 5 first elements, the RWG numbers, the nodes numbers, and the cube neighbors
-  const int size_small_array = 5 + N_RWG_src + 4 * N_RWG_src + N_neighbors;
+  const int size_small_array = 5 + N_RWG_src + 2 * N_RWG_src + N_neighbors;
   cubeSmallIntArray.resize(size_small_array);
   cubeSmallIntArray(0) = cubeIntArrays(0);
   cubeSmallIntArray(1) = cubeIntArrays(1);
@@ -114,12 +114,10 @@ void compute_cubeSmallIntArray(blitz::Array<int, 1>& cubeSmallIntArray,
 
   // the local nodes
   startIndex = stopIndex;
-  stopIndex = startIndex + N_RWG_src * 4;
+  stopIndex = startIndex + N_RWG_src * 2;
   for (int i=0; i<N_RWG_src; i++) {
-    cubeSmallIntArray(startIndex + i*4) = localTestSrcRWGNumber_nodes(i, 0);
-    cubeSmallIntArray(startIndex + i*4 + 1) = localTestSrcRWGNumber_nodes(i, 1);
-    cubeSmallIntArray(startIndex + i*4 + 2) = localTestSrcRWGNumber_nodes(i, 2);
-    cubeSmallIntArray(startIndex + i*4 + 3) = localTestSrcRWGNumber_nodes(i, 3);
+    cubeSmallIntArray(startIndex + i*2) = localTestSrcRWGNumber_nodes(i, 1);
+    cubeSmallIntArray(startIndex + i*2 + 1) = localTestSrcRWGNumber_nodes(i, 2);
   }
 
   // neighbors cubes

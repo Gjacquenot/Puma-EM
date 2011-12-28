@@ -257,8 +257,8 @@ class CubeClass:
         self.testSrc_RWGsNumbers = cubeIntArrays[startIndex:stopIndex]
 
         startIndex = stopIndex
-        stopIndex = startIndex + self.N_RWG_src * 4
-        self.localTestSrcRWGNumber_nodes = reshape(cubeIntArrays[startIndex:stopIndex], (-1, 4))
+        stopIndex = startIndex + self.N_RWG_src * 2
+        self.localTestSrcRWGNumber_nodes = reshape(cubeIntArrays[startIndex:stopIndex], (-1, 2))
     
         startIndex = stopIndex
         stopIndex = startIndex + self.N_neighbors
@@ -287,33 +287,6 @@ class CubeClass:
 
     def getDoubleArrays(self):
         return self.nodesCoord, self.rCubeCenter
-
-
-def testScalingMesh(path, targetName, lc, languageForMeshConstruction):
-    z_offset = 0.0
-    targetDimensions_scaling_factor = 1.0
-    NRWG = []
-    time_meshing, time_reading, time_edges_classification, time_reordering_normals, time_effective_RWG_functions_computation = [], [], [], [], []
-    for i in lc:
-        write_geo(path, targetName, 'lc', i)
-        t0 = time.time()
-        executeGmsh(path, targetName, 0)
-        time_meshing.append(time.time()-t0)
-        target_mesh = MeshClass(path, targetName, targetDimensions_scaling_factor, z_offset, languageForMeshConstruction)
-        target_mesh.constructFromGmshFile()
-        time_reading.append(target_mesh.time_reading)
-        time_edges_classification.append(target_mesh.time_edges_classification)
-        time_reordering_normals.append(target_mesh.time_reordering_normals)
-        time_effective_RWG_functions_computation.append(target_mesh.time_effective_RWG_functions_computation)
-        NRWG.append(target_mesh.N_RWG)
-    from pylab import plot, rc, subplot, xlabel, ylabel, legend, xticks, yticks, grid, gca, setp, show, title
-    #rc('text', usetex=True)
-    FontSize=20
-    LineWidth=1
-    plot(array(NRWG), array(time_meshing), 'ko-', array(NRWG), array(time_reading), 'bo-', array(NRWG), array(time_edges_classification), 'ro-', array(NRWG), array(time_reordering_normals), 'go-', array(NRWG), array(time_effective_RWG_functions_computation), 'yo-')
-    legend([r'meshing',r'reading',r'edges classification',r'reordering normals',r'effective RWG functions computation'])
-    grid(True)
-    show()
 
 
 if __name__=="__main__":

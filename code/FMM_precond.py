@@ -102,7 +102,7 @@ def findEdgesInRadiusAroundCube(RWGNumber_nodes, nodesCoord, rCubeCenter, R_NORM
     wrapping_code = """
     int N_edges = isEdgeInCartesianRadius.size();
     for (int i=0 ; i<N_edges ; ++i) {
-      const int node1 = RWGNumber_nodes(i, 1), node2 = RWGNumber_nodes(i, 2);
+      const int node1 = RWGNumber_nodes(i, 0), node2 = RWGNumber_nodes(i, 1);
       for (int j=0 ; j<3 ; ++j) {
         const double center_coord = (nodesCoord(node1, j) + nodesCoord(node2, j))/2.0;
         if (std::abs(center_coord - rCubeCenter(j)) > R_NORM_TYPE_1) {
