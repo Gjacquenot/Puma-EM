@@ -303,8 +303,8 @@ void ITs_free (std::complex<double>& ITs_G,
                const int EXTRACT_R)
 {
   int j;
-  double sum_weigths, norm_factor, R, IT_1_R, IT_R;
-  std::complex<double> G_j, I_k_R, exp_minus_I_k_R, k_square;
+  double sum_weigths, norm_factor, R, R_square, IT_1_R, IT_R;
+  std::complex<double> G_j, I_k_R, exp_minus_I_k_R;
   blitz::TinyVector<double, 3> rprime, rprime_r, IT_1_R_rprime_r, IT_R_rprime_r, IT_grad_1_R, IT_grad_R;
 
   const double *xi, *eta, *weigths;
@@ -318,13 +318,13 @@ void ITs_free (std::complex<double>& ITs_G,
     for (j=0 ; j<N_points ; j++) {
       rprime = Ts.r_nodes (0)*xi[j] + Ts.r_nodes (1)*eta[j] + Ts.r_nodes (2)*(1.0-xi[j]-eta[j]);
       rprime_r = rprime-r;
-      R = sqrt(dot(rprime_r, rprime_r));
+      R_square = dot(rprime_r, rprime_r);
+      R = sqrt(R_square);
       I_k_R = I*k*R;
-      exp_minus_I_k_R = exp(-I_k_R);
-      G_j = exp_minus_I_k_R/R * weigths[j];
+      G_j = exp(-I_k_R) * (weigths[j]/R);
       ITs_G += G_j;
       ITs_G_rprime_r += G_j * rprime_r;
-      ITs_grad_G += (G_j * (1.0+I_k_R)/(R*R)) * rprime_r;
+      ITs_grad_G += (G_j * (1.0+I_k_R)/(R_square)) * rprime_r;
     }
     ITs_G *= norm_factor;
     ITs_G_rprime_r *= norm_factor;
@@ -335,13 +335,14 @@ void ITs_free (std::complex<double>& ITs_G,
     for (j=0 ; j<N_points ; j++) {
       rprime = Ts.r_nodes (0)*xi[j] + Ts.r_nodes (1)*eta[j] + Ts.r_nodes (2)*(1-xi[j]-eta[j]);
       rprime_r = rprime-r;
-      R = sqrt(dot(rprime_r, rprime_r));
+      R_square = dot(rprime_r, rprime_r);
+      R = sqrt(R_square);
       I_k_R = I*k*R;
       exp_minus_I_k_R = exp(-I_k_R);
-      G_j = (R>1.0e-10) ? (exp_minus_I_k_R - 1.0)/R * weigths[j] : -I * k * weigths[j];
+      G_j = (R>1.0e-10) ? (exp_minus_I_k_R - 1.0) * (weigths[j]/R) : -I * k * weigths[j];
       ITs_G += G_j;
       ITs_G_rprime_r += G_j * rprime_r;
-      if (R>1.0e-10) ITs_grad_G -= ( (-exp_minus_I_k_R*(1.0+I_k_R) + 1.0)/(R*R*R) * weigths[j] ) * rprime_r;
+      if (R>1.0e-10) ITs_grad_G -= ( (-exp_minus_I_k_R*(1.0+I_k_R) + 1.0)/(R*R_square) * weigths[j] ) * rprime_r;
     }
     IT_singularities (IT_1_R, IT_R, IT_1_R_rprime_r, IT_R_rprime_r, IT_grad_1_R, IT_grad_R, r, Ts);
     ITs_G = ITs_G * norm_factor + IT_1_R;
@@ -350,17 +351,18 @@ void ITs_free (std::complex<double>& ITs_G,
   }
 
   else if ((EXTRACT_1_R==1) && (EXTRACT_R==1)) { // 1/R and R singularity extraction
-    k_square = k*k;
+    const std::complex<double> k_square = k*k;
     for (j=0 ; j<N_points ; j++) {
       rprime = Ts.r_nodes (0)*xi[j] + Ts.r_nodes (1)*eta[j] + Ts.r_nodes (2)*(1-xi[j]-eta[j]);
       rprime_r = rprime-r;
-      R = sqrt(dot(rprime_r, rprime_r));
+      R_square = dot(rprime_r, rprime_r);
+      R = sqrt(R_square);
       I_k_R = I*k*R;
       exp_minus_I_k_R = exp(-I_k_R);
       G_j = (R>1.0e-10) ? ( (exp_minus_I_k_R - 1.0)/R + k_square/2.0 * R ) * weigths[j] : -I * k * weigths[j];
       ITs_G += G_j;
       ITs_G_rprime_r += G_j * rprime_r;
-      if (R>1.0e-10) ITs_grad_G -= ( (-exp_minus_I_k_R*(1.0+I_k_R) + 1.0 + k_square/2.0 * R*R)/(R*R*R) * weigths[j] ) * rprime_r;
+      if (R>1.0e-10) ITs_grad_G -= ( (-exp_minus_I_k_R*(1.0+I_k_R) + 1.0 + k_square/2.0 * R_square)/(R*R_square) * weigths[j] ) * rprime_r;
     }
     IT_singularities (IT_1_R, IT_R, IT_1_R_rprime_r, IT_R_rprime_r, IT_grad_1_R, IT_grad_R, r, Ts);
     ITs_G = ITs_G * norm_factor + IT_1_R - k_square/2.0 * IT_R;

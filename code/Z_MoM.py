@@ -74,14 +74,15 @@ if __name__=="__main__":
     z_offset = 0.0
     targetDimensions_scaling_factor = 1.0
     languageForMeshConstruction = "Python"
-    target_mesh = MeshClass(path, targetName, targetDimensions_scaling_factor, z_offset, languageForMeshConstruction)
+    meshFormat = 'GMSH' 
+    meshFileTermination = '.msh'
+    target_mesh = MeshClass(path, targetName, targetDimensions_scaling_factor, z_offset, languageForMeshConstruction, meshFormat, meshFileTermination)
     target_mesh.constructFromGmshFile()
     N_RWG = target_mesh.N_RWG
 
     w = 2. * pi * f
     eps_r = 1.
     mu_r = 1.
-    MOM_FULL_PRECISION = 1
     TDS_APPROX = 0
     Z_s = 0.0
     list_of_test_edges_numbers = arange(N_RWG).astype('i')
@@ -89,8 +90,9 @@ if __name__=="__main__":
     CFIE = array([0, 0, 0, 1], 'D')
     signSurfObs, signSurfSrc = 1.0, 1.0
     t0 = time.clock()
+    MOM_FULL_PRECISION = 1
     Z_CFIE_J, Z_CFIE_M = Z_MoM(CFIE, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh.RWGNumber_CFIE_OK, target_mesh.RWGNumber_M_CURRENT_OK, target_mesh.RWGNumber_signedTriangles, target_mesh.RWGNumber_edgeVertexes, target_mesh.RWGNumber_oppVertexes, target_mesh.vertexes_coord, w, eps_r, mu_r, signSurfObs, signSurfSrc, TDS_APPROX, Z_s, MOM_FULL_PRECISION)
-    
+
     SAVE = False
     if SAVE:
         f = open("Z.txt","w")
