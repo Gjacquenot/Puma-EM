@@ -69,7 +69,7 @@ def copySources(SHORT_LICENCE, COPYRIGHT, CONTACT, pathToCopyFrom, pathToCopyTo)
 
                 COPY = True
 
-            elif '.f' in sourceFileName or '.sh' in sourceFileName or 'COPYING' in sourceFileName or 'REFERENCES' in sourceFileName or 'GUIDE' in sourceFileName or 'hostfile' in sourceFileName or 'repo' in sourceFileName:
+            elif '.f' in sourceFileName or '.sh' in sourceFileName or 'COPYING' in sourceFileName or 'REFERENCES' in sourceFileName or 'GUIDE' in sourceFileName or 'hostfile' in sourceFileName or 'repo' in sourceFileName or '.tex' in sourceFileName:
                 COPY = True
 
             elif 'Doxyfile' in sourceFileName or 'README' in sourceFileName or 'EXAMPLES' in sourceFileName:
@@ -92,7 +92,7 @@ if __name__=="__main__":
     RELEASE = '0.0.0'
     MAIN_DIR = '.'
     SHORT_LICENCE = ['This file is part of Puma-EM.\n', '\n', 'Puma-EM is free software: you can redistribute it and/or modify\n', 'it under the terms of the GNU General Public License as published by\n', 'the Free Software Foundation, either version 3 of the License, or\n', '(at your option) any later version.\n', '\n', 'Puma-EM is distributed in the hope that it will be useful,\n', 'but WITHOUT ANY WARRANTY; without even the implied warranty of\n', 'MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n', 'GNU General Public License for more details.\n', '\n', 'You should have received a copy of the GNU General Public License\n', 'along with Puma-EM.  If not, see <http://www.gnu.org/licenses/>.\n']
-    COPYRIGHT = "Copyright (C) 2011 Idesbald Van den Bosch"
+    COPYRIGHT = "Copyright (C) 2012 Idesbald Van den Bosch"
     CONTACT = "Suggestions/bugs : <vandenbosch.idesbald@gmail.com>"
 
     arborescence = constructArborescense(MAIN_DIR)

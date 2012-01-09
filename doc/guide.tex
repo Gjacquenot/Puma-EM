@@ -5,7 +5,8 @@
 \usepackage{amsmath,amssymb}
 \usepackage{epsfig}
 %\usepackage{fourier}
-\usepackage{times}
+\usepackage{utopia}
+\usepackage[T1]{fontenc}
 \usepackage{a4wide}
 \usepackage{url}
 \usepackage{fancyhdr}
@@ -59,6 +60,11 @@ In addition to the MLFMM, Puma-EM is parallelized and can run on laptop, desktop
 \section{Linux}
 %
 \par
+For ease of installation, the puma-em directory should be located on an NFS disk and directory which can be seen by all machines on which it is intended to run (for example, your \texttt{\$HOME} directory). Of course, all machines should have the same Linux distribution! If you install Puma-EM on a single machine, it doesn't matter where it is located.
+
+\subsection{You have admin rights to the machine}
+%
+\par
 Installing can be tricky, as Puma-EM depends upon numerous libraries, some of which are still under active development. However, to make it easier, some distributions are supported through an automated installation procedure. These are Ubuntu, Fedora, OpenSuse and CentOS. To install on these distributions, simply type 
 \begin{verbatim}
 puma-em$ ./install.sh
@@ -73,13 +79,232 @@ If your distribution is not supported out-of-the-box and is not a close relative
 \begin{enumerate}
 \item the compiler suite g++ and gfortran (or g77)
 \item the python interpreter (included by default in most distributions)
+\item open-mpi or lam-mpi, an open-source message passing interface library
+\item GMSH, an open source CAD and mesh generator
+\item blitz++, a C++ array and container library
+\item numpy, an array library for python
 \item scipy, an open source scientific library for python
 \item matplotlib, a powerful plotting tool for python
-\item GMSH, an open source CAD and mesh generator
-\item blitz++
-\item open-mpi or lam-mpi, an open-source message passing interface library
-\item mpi4py 0.6.0, an open-source message passing interface library tuned for Python
+\item mpi4py 1.2.2, an open-source message passing interface library tuned for Python
+\item argparse (optionally, for Python $< 2.7$ or Python $< 3.2$)
 \end{enumerate}
+%
+\par
+In order to see how to install these libraries and perform a first run of the code, just have a look at the section \ref{subsec:simple_user}.
+
+
+\subsection{You are a simple user}
+\label{subsec:simple_user}
+%
+\par
+Then you'll have to install the libraries locally. This is quite simple, actually. Let's first assume that gcc, g++ and a fortran compiler are installed. Let's also assume that python is installed, and also Open-MPI. Finally, BLAS and ATLAS libraries also must have been installed and their paths correctly defined.
+%
+\par
+The libraries and binaries we must install are:
+\begin{enumerate}
+\item GMSH
+\item blitz++
+\item numpy
+\item scipy
+\item mpi4py
+\item matplotlib
+\item argparse (optionally, for Python $< 2.7$ or Python $< 3.2$)
+\end{enumerate}
+%
+\par
+For the rest of the explanations, we'll assume that you have a \texttt{local} folder in your \texttt{home} folder (designated by \texttt{$\sim$/local}), that your login name is \texttt{jack}, and that everything is downloaded to a \texttt{Downloads} folder in your \texttt{home} folder. It is also understood that you use the tcsh shell.
+
+\subsubsection{Installing GMSH}
+%
+\par
+Download the latest binary from the website \url{http://geuz.org/gmsh/#Download}. Uncompress the \texttt{*.tgz} file, and copy the \texttt{gmsh} binary file into a \texttt{$\sim$/local/bin} folder. Then set up the environment variable such that your system will be able to see GMSH.
+%
+\par
+In "tcsh" shell, it is done as follows by entering in the shell:
+\begin{verbatim}
+set path = ( $path ~/local/bin )
+\end{verbatim}
+or by modifying the \texttt{.tcshrc} accordingly. If using the bash shell, enter 
+\begin{verbatim}
+export PATH=$PATH:/home/jack/local/bin
+\end{verbatim}
+
+\subsubsection{Installing blitz++}
+\label{subsec:blitz_install}
+%
+\par
+Download the latest CVS version here: \url{http://blitz.cvs.sourceforge.net/blitz/blitz/} (click on the "Download gnu tarball" at the bottom of the page). Then uncompress the tarball. Then type in succession:
+\begin{enumerate}
+\item \texttt{autoreconf -vif}
+\item \texttt{./configure -{}-prefix=\$HOME/local}
+\item \texttt{make lib}
+\item \texttt{make install}
+\end{enumerate}
+%
+\par
+Then the environment variables. There's an easy solution here. In the \file{makefile.inc} file of Puma-EM, you have to change the following lines:
+\begin{verbatim}
+#INCLUDE_PATH= -I/path/to/include
+#LIB_SEARCH_PATH= -L/path/to/lib
+\end{verbatim}
+into
+\begin{verbatim}
+INCLUDE_PATH= -I/home/jack/local/include
+LIB_SEARCH_PATH= -L/home/jack/local/lib
+\end{verbatim}
+%
+\par
+You could also set up a LD\_LIBRARY\_PATH and other global variables, but the \file{makefile.inc} included in puma-em makes this unnecessary. 
+%
+\par
+To test if the installation was successful, go into Puma-EM directory and issue the commands:
+\begin{verbatim}
+puma-em$ make clean
+puma-em$ make libs
+\end{verbatim}
+If it compiles smoothly with no error messages, you're good to continue!
+
+\subsubsection{Installing numpy}
+%
+\par
+Download the latest version from \url{http://numpy.scipy.org/}, say, \texttt{numpy-1.6.1}. Then go into \texttt{$\sim$/Downloads}, untar the package, and \texttt{cd} into \texttt{numpy-1.6.1}.
+%
+\par
+First, read the \texttt{INSTALL.txt} file. The installation steps are summarized hereafter. But first, make sure that BLAS and ATLAS libraries are installed. Sorry, I won't help you there, ask your administrator.
+%
+\par
+To build with g77 (on older systems), enter in the shell:
+\begin{verbatim}
+python setup.py build --fcompiler=gnu
+\end{verbatim}
+%
+\par
+To build with gfortran (on modern systems), enter:
+\begin{verbatim}
+python setup.py build --fcompiler=gnu95
+\end{verbatim}
+%
+\par
+Now you need to install the libraries. just enter:
+\begin{verbatim}
+python setup.py install --prefix=$HOME/local
+\end{verbatim}
+%
+\par
+Then set up the environment variable such that your python will be able to import numpy, and also necessary to install SciPy. Type: 
+\begin{verbatim}
+setenv PYTHONPATH $HOME/local/lib64/python2.5/site-packages
+\end{verbatim}
+or by modifying the \texttt{$\sim$/.tcshrc} accordingly, so that you don't have to do it each time you log into your machine. In bash shell, you'd type:
+\begin{verbatim}
+export PYTHONPATH=$HOME/local/lib64/python2.5/site-packages
+\end{verbatim}
+or modify the \texttt{.bashrc} or \texttt{.bash\_profile} accordingly. (Please note that the example above is for Python 2.5)
+%
+\par
+To test if all is ok, do the following in your shell:
+\begin{verbatim}
+jack@linux-5pa8:~> python
+Python 2.7 (r27:82500, Aug 07 2010, 16:54:59) [GCC] on linux2
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import numpy
+>>> numpy.version.version
+'1.6.1'
+>>> 
+\end{verbatim}
+
+\subsubsection{Installing SciPy}
+%
+\par
+Download the latest version from \url{http://www.scipy.org/}, say, \texttt{scipy-0.10.0}. Then go into \texttt{$\sim$/Downloads}, untar the package, and \texttt{cd} into \texttt{scipy-0.10.0}.
+%
+\par
+Then follow almost the same steps as for numpy. First type in the shell:
+\begin{verbatim}
+python setup.py build
+\end{verbatim}
+%
+\par
+To install the libraries. Just enter:
+\begin{verbatim}
+python setup.py install --prefix=$HOME/local
+\end{verbatim}
+%
+\par
+Then setup the environment variables. Normally the environment variables have been setup when installing numpy (see above).
+%
+\par
+To test if all is ok, do the following in your shell:
+\begin{verbatim}
+jack@linux-5pa8:~> python
+Python 2.7 (r27:82500, Aug 07 2010, 16:54:59) [GCC] on linux2
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import scipy
+>>> scipy.version.version
+'0.8.0'
+>>> 
+\end{verbatim}
+%
+\par
+One last thing though. SciPy also ships Blitz++ modules, which are used for interfacing Python and C++, but they are buggy. Therefore, we need to replace them by the ones that we downloaded (see section \ref{subsec:blitz_install}).
+We do this by issuing the following command from the \texttt{/home/jack} folder:
+\begin{verbatim}
+cp -r local/include/blitz/* 
+    local/lib64/python2.5/site-packages/scipy/weave/blitz/blitz/
+\end{verbatim}
+This is important, don't forget to do it! (And again, example valid for Python 2.5, see the above command)
+
+
+\subsubsection{Installing mpi4py and matplotlib}
+%
+\par
+Same steps as for other python modules. Download and install the latest packages at \url{http://code.google.com/p/mpi4py/downloads/list} and \url{http://matplotlib.sourceforge.net/}. Uncompress both packages, and for each do:
+\begin{verbatim}
+python setup.py build
+\end{verbatim}
+then
+\begin{verbatim}
+python setup.py install --prefix=$HOME/local
+\end{verbatim}
+
+\subsubsection{Installing argparse}
+%
+\par
+The Python \texttt{argparse} module is needed by Puma-EM. This module is included within Python since Python $>= 2.7$ and Python $>= 3.2$. Do not install for these versions of Python, it is not needed. And maybe it's installed on your machine. To check:
+\begin{verbatim}
+jack@linux-5pa8:~> python
+Python 2.7 (r27:82500, Aug 07 2010, 16:54:59) [GCC] on linux2
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import argparse
+>>> argparse.__version__
+'1.1'
+>>> 
+\end{verbatim}
+%
+\par
+Otherwise you'll need to download it from here: \url{http://code.google.com/p/argparse/downloads/list}. For installing, same steps as for other python modules. Uncompress the package, and do:
+\begin{verbatim}
+python setup.py build
+\end{verbatim}
+then
+\begin{verbatim}
+python setup.py install --prefix=$HOME/local
+\end{verbatim}
+%
+\par
+This module installs itself in the \texttt{$\sim$/local/lib} directory, so we need to make Python aware of that by modifying the variable \parameter{PYTHONPATH} (tcsh shell):
+\begin{verbatim}
+setenv PYTHONPATH $HOME/local/lib64/python2.5/site-packages:$HOME/local/lib/python2.5/site-packages
+\end{verbatim}
+
+\subsubsection{First puma-em run}
+%
+\par
+Installation is almost complete now. There are the C++--Python modules to be compiled though. Go into Puma-EM directory and issue the following simple command:
+\begin{verbatim}
+puma-em$ ./run.sh
+\end{verbatim}
+Yes, that's it, only this command. The code will run on a simple target, and compile in the process all the necessary C++--Python modules. So it will run a bit slowly the first time. Re-issue the command a second time if you like, and see the speed boost! If the run fails, something can have been wrong in the above steps, double-check them.
 
 \section{Mac OS X}
 %
@@ -111,11 +336,36 @@ It is possible to use Puma-EM on Windows... Through a Linux Virtual Machine runn
 Your starting point is the configuration file \file{simulation\_parameters.py}. While it may be repellent at first (no graphical user interface?? Are you freakin' kiddin' me??), it is actually not so difficult to get acquainted with. It contains the parameters that will define the simulation, such as the frequency, the target, the type of result you want (RCS, bistatic RCS, array of dipoles excitation, antenna pattern), and some post-processing possibilities. 
 %
 \par
-Once you have modified \file{simulation\_parameters.py} to suit your needs, simply type:
+Once you have modified \file{simulation\_parameters.py} to suit your needs (see below), simply type:
 \begin{verbatim}
 puma-em$ ./run.sh
 \end{verbatim}
 To run the code on the set of parameters that you have defined. The results of the run will be stored in \texttt{result} directory.
+%
+\par
+To run the code on $n$ processes, simply type:
+\begin{verbatim}
+puma-em$ ./run.sh n
+\end{verbatim}
+%
+\par
+To run the code on $n$ processes and on the local fast disks of each machine (i.e. non-NFS disks), simply type:
+\begin{verbatim}
+puma-em$ ./run.sh n /path/to/local/disks
+\end{verbatim}
+%
+\par
+To run the code on $n$ processes and on the local fast disks of each machine (i.e. non-NFS disks), simply type:
+\begin{verbatim}
+puma-em$ ./run.sh n /path/to/local/disks/simulation_dir
+\end{verbatim}
+%
+\par
+And finally, if you want to save the result in a given place:
+\begin{verbatim}
+puma-em$ ./run.sh n /path/to/local/disks/simulation_dir /path/to/result/dir/result-10-10-2013
+\end{verbatim}
+
 
 \section{CAD models and meshes}
 %
@@ -123,7 +373,7 @@ To run the code on the set of parameters that you have defined. The results of t
 Puma-EM supports GMSH, and it is strongly advised to use it for your project. Explaining how to use GMSH is beyond the scope of this document. But here are a few facts. Basically, a CAD file comes with a \texttt{*.geo} extension, and is a written in a scripting language. A good starting point is to open one of the \texttt{geo} files and start playing with it, and visualise the result in GMSH. A mesh file comes with a \texttt{*.msh} extension. You don't need to know what's inside (nodes of triangles and nodes coordinates), Puma-EM can read it and interpret it. The good thing is that the density of the mesh will vary with the frequency (to follow the requirement that each RWG function be around $\lambda/10$ in size), so you don't need to worry about setting yourself the parameter that controls mesh size. Well, this is true for the targets shipped with Puma-EM. When designing your own target, you will make sure to parametrize the mesh size (look at the shipped targets to see how it is done).
 %
 \par
-At the request of users, Puma-EM also supports 2 other mesh formats from proprietary CAD programs, GiD (mesh extension \texttt{*.msh}) and ANSYS (generates 2 mesh files, \file{ELIST.lis} and \file{NLIST.lis}). Below is explained how to specify the mesh format for Puma-EM. But beforehand, you must know that since these programs are proprietary, no scripting exists that allows parametrization as for GMSH. Therefore, before running Puma-EM, you will have to make sure that the mesh is generated, located in the correct directory (usually \texttt{puma-em/geo}), and that the mean RWG size is around $\lambda/10$.
+At the request of users, Puma-EM also supports two other mesh formats from proprietary CAD programs, GiD (mesh extension \texttt{*.msh}) and ANSYS (generates 2 mesh files, \file{ELIST.lis} and \file{NLIST.lis}). Below is explained how to specify the mesh format for Puma-EM. But beforehand, you must know that since these programs are proprietary, no scripting exists that allows parametrization as for GMSH. Therefore, before running Puma-EM, you will have to make sure that the mesh is generated, located in the correct directory (usually \texttt{puma-em/geo}), and that the mean RWG size is around $\lambda/10$.
 %
 \par
 Support could easily be added for other mesh formats. If you want that, just post on the Puma-EM forum and join an example of the mesh format that has to be interpreted.

@@ -120,7 +120,7 @@ def MgPreconditionerComputationPerCube(cube, list_cubes_with_neighbors, list_Z_t
             for RWGnumber in neighborCube.testSrc_RWGsNumbers[:neighborCube.N_RWG_test]:
                 Z_local_lines_indexes[index] = src_edges_numbers_local_src_edges_numbers[RWGnumber]
                 index += 1
-            columnsOfNeighborCubeToBeConsidered = findEdgesInRadiusAroundCube(neighborCube.localTestSrcRWGNumber_nodes, neighborCube.nodesCoord, cube.rCubeCenter, a * 1.5)
+            columnsOfNeighborCubeToBeConsidered = findEdgesInRadiusAroundCube(neighborCube.localTestSrcRWGNumber_nodes, neighborCube.nodesCoord, cube.rCubeCenter, a * 1.4999)
             srcEdgesNumbersOfNeighborCubeToBeConsidered = compress(columnsOfNeighborCubeToBeConsidered, neighborCube.testSrc_RWGsNumbers, axis=0)
             Z_local_columns_indexes = 0 * srcEdgesNumbersOfNeighborCubeToBeConsidered
             index = 0

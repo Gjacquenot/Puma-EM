@@ -61,7 +61,7 @@ Follow the instructions for the installation.
 This process will issue a lot of output at the terminal, and the code will run on
 a small example in order to compile the interfaces between Python and C++.
 
-This process has to be performed on all machines that you intend to use.
+For more details, or if you have to install Puma-EM locally, see the guide.pdf.
 
 
 4. Ready to Go
