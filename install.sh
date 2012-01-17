@@ -57,58 +57,30 @@ if [ $DISTRIB_TYPE = "1" ]; then
 
 elif [ $DISTRIB_TYPE = "2" ]; then
     echo "What is the version of your Ubuntu distribution?"
-    echo "  (1) Ubuntu 8.04"
-    echo "  (2) Ubuntu 8.10"
-    echo "  (3) Ubuntu 9.04"
-    echo "  (4) Ubuntu 10.04"
-    echo "  (5) Ubuntu 10.10"
-    echo "  (6) Ubuntu 11.04"
-    echo "  (7) Ubuntu 11.10"
+    echo "  (1) Ubuntu 10.04"
+    echo "  (2) Ubuntu 10.10"
+    echo "  (3) Ubuntu 11.04"
     echo " "
     echo "Enter the correct number here: "
     read DISTRIB
 
     if [ $DISTRIB = "1" ]; then
-        echo " OK, running install script for Ubuntu 8.04: $DIR_INSTALL_SCRIPTS/UBUNTU_8.04_INSTALL.sh"
-        echo " read the file if you want more info about what will be installed..."
-        cd $DIR_INSTALL_SCRIPTS
-        ./UBUNTU_8.04_INSTALL.sh
-        cd ..
-    elif [ $DISTRIB = "2" ]; then
-        echo " OK, running install script for Ubuntu 8.10: $DIR_INSTALL_SCRIPTS/UBUNTU_8.10_INSTALL.sh"
-        echo " read the file if you want more info about what will be installed..."
-        cd $DIR_INSTALL_SCRIPTS
-        ./UBUNTU_8.10_INSTALL.sh
-        cd ..
-    elif [ $DISTRIB = "3" ]; then
-        echo " OK, running install script for Ubuntu 9.04: $DIR_INSTALL_SCRIPTS/UBUNTU_9.04_INSTALL.sh"
-        echo " read the file if you want more info about what will be installed..."
-        cd $DIR_INSTALL_SCRIPTS
-        ./UBUNTU_9.04_INSTALL.sh
-        cd ..
-    elif [ $DISTRIB = "4" ]; then
         echo " OK, running install script for Ubuntu 10.04: $DIR_INSTALL_SCRIPTS/UBUNTU_10.04_INSTALL.sh"
         echo " read the file if you want more info about what will be installed..."
         cd $DIR_INSTALL_SCRIPTS
         ./UBUNTU_10.04_INSTALL.sh
         cd ..
-    elif [ $DISTRIB = "5" ]; then
+    elif [ $DISTRIB = "2" ]; then
         echo " OK, running install script for Ubuntu 10.10: $DIR_INSTALL_SCRIPTS/UBUNTU_10.10_INSTALL.sh"
         echo " read the file if you want more info about what will be installed..."
         cd $DIR_INSTALL_SCRIPTS
         ./UBUNTU_10.10_INSTALL.sh
         cd ..
-    elif [ $DISTRIB = "6" ]; then
+    elif [ $DISTRIB = "3" ]; then
         echo " OK, running install script for Ubuntu 11.04: $DIR_INSTALL_SCRIPTS/UBUNTU_11.04_INSTALL.sh"
         echo " read the file if you want more info about what will be installed..."
         cd $DIR_INSTALL_SCRIPTS
         ./UBUNTU_11.04_INSTALL.sh
-        cd ..
-    elif [ $DISTRIB = "7" ]; then
-        echo " OK, running install script for Ubuntu 11.10: $DIR_INSTALL_SCRIPTS/UBUNTU_11.10_INSTALL.sh"
-        echo " read the file if you want more info about what will be installed..."
-        cd $DIR_INSTALL_SCRIPTS
-        ./UBUNTU_11.10_INSTALL.sh
         cd ..
     fi
 
