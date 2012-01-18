@@ -9,16 +9,17 @@ from ReadWriteBlitzArray import writeBlitzArrayToDisk, readBlitzArrayFromDisk, w
 from meshClass import CubeClass
 
 
-def compute_list_cubes(cubesNumbers, pathToReadFrom):
+def compute_list_cubes(cubesNumbers, pathToReadCubesFrom, Z_TMP_ELEM_TYPE):
     """returns a list of cubes"""
     list_cubes = {}
+    list_Z_tmp = {}
     for i in range(len(cubesNumbers)):
         cubeNumber = cubesNumbers[i]
-        pathToReadCubeFrom = pathToReadFrom
         cube = CubeClass()
-        cube.setIntDoubleArraysFromFile(pathToReadCubeFrom, cubeNumber)
+        cube.setIntDoubleArraysFromFile(pathToReadCubesFrom, cubeNumber)
         list_cubes[cubeNumber] = copy.copy(cube)
-    return list_cubes
+        list_Z_tmp[cubeNumber] = read_Z_perCube_fromFile(pathToReadCubesFrom, cubeNumber, cube, Z_TMP_ELEM_TYPE)
+    return list_cubes, list_Z_tmp
 
 def findEdgesInRadiusAroundCube(RWGNumber_nodes, nodesCoord, rCubeCenter, R_NORM_TYPE_1):
     """this function yields a 1 to an edge number if it is within
@@ -47,30 +48,28 @@ def findEdgesInRadiusAroundCube(RWGNumber_nodes, nodesCoord, rCubeCenter, R_NORM
     #isEdgeInCartesianRadius = product(diff, axis=1).astype('i')
     return isEdgeInCartesianRadius
 
-def computePreconditionerColumnsPerCube(list_cubes, pathToReadFrom, cubeNumber_to_chunkNumber, R_NORM_TYPE_1, Z_TMP_ELEM_TYPE):
+def computePreconditionerColumnsPerCube(list_cubes, pathToReadFrom, cubeNumber_to_chunkNumber, R_NORM_TYPE_1):
     """this function computes the number of columns per cube for the Frobenius preconditioner"""
     NumberOfColumnsPerCube = zeros(len(list_cubes), 'i')
-    list_Z_tmp = {}
     i = 0
     for cubeNumber, cube in list_cubes.iteritems():
         areEdgesInRadiusAroundCube = findEdgesInRadiusAroundCube(cube.localTestSrcRWGNumber_nodes, cube.nodesCoord, cube.rCubeCenter, R_NORM_TYPE_1)
         cube.localEdgesInRadiusAroundCube = (compress(areEdgesInRadiusAroundCube==1, arange(len(areEdgesInRadiusAroundCube)))).astype('i')
         chunkNumber = cubeNumber_to_chunkNumber[cubeNumber]
         pathToReadFromChunk = os.path.join( pathToReadFrom, "chunk" + str(chunkNumber) )
-        list_Z_tmp[cubeNumber] = read_Z_perCube_fromFile(pathToReadFromChunk, cubeNumber, cube, Z_TMP_ELEM_TYPE)
         NumberOfColumnsPerCube[i] = sum(areEdgesInRadiusAroundCube)
         i += 1
-    return NumberOfColumnsPerCube, list_Z_tmp
+    return NumberOfColumnsPerCube
 
-def numberOfElemsInPrecond(list_cubes, pathToReadFrom, cubeNumber_to_chunkNumber, R_NORM_TYPE_1, Z_TMP_ELEM_TYPE):
+def numberOfElemsInPrecond(list_cubes, pathToReadFrom, cubeNumber_to_chunkNumber, R_NORM_TYPE_1):
     """computes the number of elements in the preconditioner"""
-    preconditionerColumnsPerCube, list_Z_tmp = computePreconditionerColumnsPerCube(list_cubes, pathToReadFrom, cubeNumber_to_chunkNumber, R_NORM_TYPE_1, Z_TMP_ELEM_TYPE)
+    preconditionerColumnsPerCube = computePreconditionerColumnsPerCube(list_cubes, pathToReadFrom, cubeNumber_to_chunkNumber, R_NORM_TYPE_1)
     N_precond = 0
     i = 0
     for cubeNumber, cube in list_cubes.iteritems():
         N_precond += preconditionerColumnsPerCube[i] * cube.N_RWG_test
         i += 1
-    return N_precond, preconditionerColumnsPerCube, list_Z_tmp
+    return N_precond, preconditionerColumnsPerCube
 
 def assignValuesToMatrix(M_toFill, M_toCopy, indexes_lines, indexes_columns):
     wrapping_code = """
@@ -142,7 +141,7 @@ def MgPreconditionerComputationPerCube(cube, list_cubes_with_neighbors, list_Z_t
 def chunk_of_Mg_CSR(cubesNumbers, chunkNumber, a, R_NORM_TYPE_1, ELEM_TYPE, Z_TMP_ELEM_TYPE, LIB_G2C, pathToReadFrom, cubeNumber_to_chunkNumber):
     """same as for chunk_of_Z_near_CRS, but for the preconditioner"""
     pathToReadChunkFrom = os.path.join(pathToReadFrom, "chunk" + str(chunkNumber))
-    list_cubes = compute_list_cubes(cubesNumbers, pathToReadChunkFrom)
+    list_cubes, list_Z_tmp = compute_list_cubes(cubesNumbers, pathToReadChunkFrom, Z_TMP_ELEM_TYPE)
     list_cubes_with_neighbors = copy.copy(list_cubes)
     N_RWG = 0
     for cubeNumber, cube in list_cubes.iteritems():
@@ -150,7 +149,7 @@ def chunk_of_Mg_CSR(cubesNumbers, chunkNumber, a, R_NORM_TYPE_1, ELEM_TYPE, Z_TM
         N_RWG += Nl
     test_RWG_numbers = zeros(N_RWG, 'i')
     # number of elements in the preconditioner chunk
-    N_precond, N_ColumnsPerCube, list_Z_tmp = numberOfElemsInPrecond(list_cubes, pathToReadFrom, cubeNumber_to_chunkNumber, R_NORM_TYPE_1, Z_TMP_ELEM_TYPE)
+    N_precond, N_ColumnsPerCube = numberOfElemsInPrecond(list_cubes, pathToReadFrom, cubeNumber_to_chunkNumber, R_NORM_TYPE_1)
     Mg = zeros(N_precond, ELEM_TYPE)
     # for the q_array, each src function for all the testing functions of a cube appears only once
     # instead of once per testing function. This allows a dramatic reduction in q_array.size
