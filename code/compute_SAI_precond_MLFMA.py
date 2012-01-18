@@ -3,7 +3,7 @@ from mpi4py import MPI
 from FMM_precond import Mg_CSR
 from FMM_Znear import Z_nearCRS_Assembling
 
-def compute_SAIpreconditioner(tmpDirName, a, C, chunkNumber_to_cubesNumbers, cubeNumber_to_chunkNumber, chunkNumber_to_processNumber, processNumber_to_ChunksNumbers, MAX_BLOCK_SIZE):
+def compute_SAIpreconditioner(tmpDirName, C, chunkNumber_to_cubesNumbers, cubeNumber_to_chunkNumber, chunkNumber_to_processNumber, processNumber_to_ChunksNumbers, MAX_BLOCK_SIZE):
     my_id = MPI.COMM_WORLD.Get_rank()
     num_proc = MPI.COMM_WORLD.Get_size()
     # computation of near interactions matrix
@@ -24,8 +24,7 @@ def compute_SAIpreconditioner(tmpDirName, a, C, chunkNumber_to_cubesNumbers, cub
     if (my_id == 0):
         print "SAI preconditioner computation..."
     MPI.COMM_WORLD.Barrier()
-    R_NORM_TYPE_1 = a
-    Mg_CSR(my_id, processNumber_to_ChunksNumbers, chunkNumber_to_cubesNumbers, cubeNumber_to_chunkNumber, a, R_NORM_TYPE_1, ELEM_TYPE, Z_TMP_ELEM_TYPE, LIB_G2C, pathToReadFrom, pathToSaveTo)
+    Mg_CSR(my_id, processNumber_to_ChunksNumbers, chunkNumber_to_cubesNumbers, cubeNumber_to_chunkNumber, ELEM_TYPE, Z_TMP_ELEM_TYPE, LIB_G2C, pathToReadFrom, pathToSaveTo)
     MPI.COMM_WORLD.Barrier()
     CPU_time_Mg_computation = time.clock() - CPU_t0 
     Wall_time_Mg_computation = time.time() - Wall_t0
@@ -46,7 +45,7 @@ def compute_SAI(params_simu, simuDirName):
     file = open(os.path.join(tmpDirName, 'pickle', 'variables.txt'), 'r')
     variables = cPickle.load(file)
     file.close()
-    Wall_time_Mg_computation, CPU_time_Mg_computation = compute_SAIpreconditioner(tmpDirName, variables['a'], variables['C'], variables['chunkNumber_to_cubesNumbers'], variables['cubeNumber_to_chunkNumber'], variables['chunkNumber_to_processNumber'], variables['processNumber_to_ChunksNumbers'], params_simu.MAX_BLOCK_SIZE)
+    Wall_time_Mg_computation, CPU_time_Mg_computation = compute_SAIpreconditioner(tmpDirName, variables['C'], variables['chunkNumber_to_cubesNumbers'], variables['cubeNumber_to_chunkNumber'], variables['chunkNumber_to_processNumber'], variables['processNumber_to_ChunksNumbers'], params_simu.MAX_BLOCK_SIZE)
     variables['Wall_time_Mg_computation'] = Wall_time_Mg_computation
     variables['CPU_time_Mg_computation'] = CPU_time_Mg_computation
     if (my_id == 0) and (params_simu.VERBOSE == 1):

@@ -25,6 +25,7 @@ void compute_cube_local_arrays(int & N_RWG_test,
                                blitz::Array<int, 2>& localTestSrcRWGNumber_signedTriangles,
                                blitz::Array<int, 2>& localTestSrcRWGNumber_nodes,
                                blitz::Array<double, 2>& nodesCoord,
+                               blitz::Array<double, 1>& rCubeCenter,
                                const blitz::Array<int, 1>& cubeIntArrays,
                                const blitz::Array<double, 1>& cubeDoubleArrays)
 {
@@ -89,17 +90,49 @@ void compute_cube_local_arrays(int & N_RWG_test,
     nodesCoord(i, 1) = cubeDoubleArrays(3*i + 1);
     nodesCoord(i, 2) = cubeDoubleArrays(3*i + 2);
   }
+  
+  // rCubeCenter
+  rCubeCenter(0) = cubeDoubleArrays(3*N_nodes);
+  rCubeCenter(1) = cubeDoubleArrays(3*N_nodes + 1);
+  rCubeCenter(2) = cubeDoubleArrays(3*N_nodes + 2);
 }
+
+void findRWGsInRadiusAroundCube(blitz::Array<int, 1>& isRWGInCartesianRadius,
+                                const int N_RWG_src,
+                                const blitz::Array<int, 2>& RWGNumber_nodes,
+                                const blitz::Array<double, 2>& nodesCoord,
+                                const blitz::Array<double, 1>& rCubeCenter,
+                                const double R_NORM_TYPE_1)
+{
+  // this function yields a 1 to an edge number if it is within
+  // a certain 1-Norm around the center of the cube to which it belongs
+  isRWGInCartesianRadius.resize(N_RWG_src);
+  isRWGInCartesianRadius = 1;
+  for (int i=0 ; i<N_RWG_src ; ++i) {
+    const int node1 = RWGNumber_nodes(i, 1), node2 = RWGNumber_nodes(i, 2);
+    for (int j=0 ; j<3 ; ++j) {
+      const double center_coord = (nodesCoord(node1, j) + nodesCoord(node2, j))/2.0;
+      if (std::abs(center_coord - rCubeCenter(j)) > R_NORM_TYPE_1) {
+        isRWGInCartesianRadius(i) = 0;
+        break;
+      }
+    }
+  }
+}
+
 
 void compute_cubeSmallIntArray(blitz::Array<int, 1>& cubeSmallIntArray,
                                const blitz::Array<int, 1>& cubeIntArrays,
                                const blitz::Array<int, 1>& neighbors_cubes,
-                               const blitz::Array<int, 2>& localTestSrcRWGNumber_nodes)
+                               const blitz::Array<int, 2>& localTestSrcRWGNumber_nodes,
+                               const blitz::Array<double, 2>& nodesCoord, 
+                               const blitz::Array<double, 1>& rCubeCenter,
+                               const double R_NORM_TYPE_1)
 {
   const int N_RWG_src = cubeIntArrays(1);
   const int N_neighbors = cubeIntArrays(2);
   // we will only save the 5 first elements, the RWG numbers, the nodes numbers, and the cube neighbors
-  const int size_small_array = 5 + N_RWG_src + 2 * N_RWG_src + N_neighbors;
+  const int size_small_array = 5 + N_RWG_src + N_RWG_src + N_neighbors;
   cubeSmallIntArray.resize(size_small_array);
   cubeSmallIntArray(0) = cubeIntArrays(0);
   cubeSmallIntArray(1) = cubeIntArrays(1);
@@ -112,13 +145,11 @@ void compute_cubeSmallIntArray(blitz::Array<int, 1>& cubeSmallIntArray,
   int stopIndex = startIndex + N_RWG_src;
   for (int i=0; i<N_RWG_src; i++) cubeSmallIntArray(startIndex + i) = cubeIntArrays(startIndex + i);
 
-  // the local nodes
+  blitz::Array<int, 1> isRWGInCartesianRadius;
+  findRWGsInRadiusAroundCube(isRWGInCartesianRadius, N_RWG_src, localTestSrcRWGNumber_nodes, nodesCoord, rCubeCenter, R_NORM_TYPE_1);
   startIndex = stopIndex;
-  stopIndex = startIndex + N_RWG_src * 2;
-  for (int i=0; i<N_RWG_src; i++) {
-    cubeSmallIntArray(startIndex + i*2) = localTestSrcRWGNumber_nodes(i, 1);
-    cubeSmallIntArray(startIndex + i*2 + 1) = localTestSrcRWGNumber_nodes(i, 2);
-  }
+  stopIndex = startIndex + N_RWG_src;
+  for (int i=0; i<N_RWG_src; i++) cubeSmallIntArray(startIndex + i) = isRWGInCartesianRadius(i);
 
   // neighbors cubes
   startIndex = stopIndex;
@@ -160,7 +191,8 @@ int main(int argc, char* argv[]) {
   readComplexFloatFromASCIIFile(OCTTREE_DATA_PATH  + "eps_r.txt", eps_r);
   readComplexFloatFromASCIIFile(OCTTREE_DATA_PATH  + "mu_r.txt", mu_r);
   readComplexFloatFromASCIIFile(OCTTREE_DATA_PATH  + "Z_s.txt", Z_s);
-
+  double R_NORM_TYPE_1;
+  readDoubleFromASCIIFile(OCTTREE_DATA_PATH  + "leaf_side_length.txt", R_NORM_TYPE_1);
   
   // reading mesh data
   int N_local_Chunks, N_local_cubes;
@@ -215,7 +247,8 @@ int main(int argc, char* argv[]) {
     blitz::Array<int, 1> localTestRWGNumber_CFIE_OK, localSrcRWGNumber_M_CURRENT_OK, neighbors_cubes;
     blitz::Array<int, 2> localTestSrcRWGNumber_signedTriangles, localTestSrcRWGNumber_nodes;
     blitz::Array<double, 2> nodesCoord;
-    compute_cube_local_arrays(N_RWG_test, N_RWG_src, N_neighbors, N_nodes, S, test_RWGsNumbers, src_RWGsNumbers, localTestRWGNumber_CFIE_OK, localSrcRWGNumber_M_CURRENT_OK, neighbors_cubes, localTestSrcRWGNumber_signedTriangles, localTestSrcRWGNumber_nodes, nodesCoord, allCubeIntArrays(i), allCubeDoubleArrays(i));
+    blitz::Array<double, 1> rCubeCenter(3);
+    compute_cube_local_arrays(N_RWG_test, N_RWG_src, N_neighbors, N_nodes, S, test_RWGsNumbers, src_RWGsNumbers, localTestRWGNumber_CFIE_OK, localSrcRWGNumber_M_CURRENT_OK, neighbors_cubes, localTestSrcRWGNumber_signedTriangles, localTestSrcRWGNumber_nodes, nodesCoord, rCubeCenter, allCubeIntArrays(i), allCubeDoubleArrays(i));
 
     // computing the Z_CFIE
     blitz::Array<std::complex<double>, 2> Z_CFIE_J(N_RWG_test, N_RWG_src), Z_CFIE_M(1, 1);
@@ -234,13 +267,11 @@ int main(int argc, char* argv[]) {
     const int chunkNumber = local_cubeNumber_to_chunkNumbers(i);
     const int cubeNumber = local_chunkNumber_to_cubesNumbers(i);
     const string filenameIntArray = Z_TMP_DATA_PATH + "chunk" + intToString(chunkNumber) + "/" + intToString(cubeNumber) + "_IntArrays.txt";
-    const string filenameDoubleArray = Z_TMP_DATA_PATH + "chunk" + intToString(chunkNumber) + "/" + intToString(cubeNumber) + "_DoubleArrays.txt";
     const string filenameZnear = Z_TMP_DATA_PATH + "chunk" + intToString(chunkNumber) + "/" + intToString(cubeNumber);
     writeComplexFloatBlitzArray1DToBinaryFile(filenameZnear, Z_CFIE_J_linear);
-    writeDoubleBlitzArray1DToBinaryFile(filenameDoubleArray, allCubeDoubleArrays(i));
     // we now create a smaller version of the int array to save
     blitz::Array<int, 1> cubeSmallIntArray;
-    compute_cubeSmallIntArray(cubeSmallIntArray, allCubeIntArrays(i), neighbors_cubes, localTestSrcRWGNumber_nodes);
+    compute_cubeSmallIntArray(cubeSmallIntArray, allCubeIntArrays(i), neighbors_cubes, localTestSrcRWGNumber_nodes, nodesCoord, rCubeCenter, R_NORM_TYPE_1);
     writeIntBlitzArray1DToBinaryFile(filenameIntArray, cubeSmallIntArray);
   }
   

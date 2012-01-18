@@ -257,36 +257,36 @@ class CubeClass:
         self.testSrc_RWGsNumbers = cubeIntArrays[startIndex:stopIndex]
 
         startIndex = stopIndex
-        stopIndex = startIndex + self.N_RWG_src * 2
-        self.localTestSrcRWGNumber_nodes = reshape(cubeIntArrays[startIndex:stopIndex], (-1, 2))
+        stopIndex = startIndex + self.N_RWG_src
+        self.isEdgeInCartesianRadius = cubeIntArrays[startIndex:stopIndex]
     
         startIndex = stopIndex
         stopIndex = startIndex + self.N_neighbors
         self.cubeNeighborsIndexes = cubeIntArrays[startIndex:stopIndex]
 
 
-    def setIntDoubleArraysFromFile(self, pathToReadFrom, cubeNumber):
-        # we need the int Array
-        self.setIntArraysFromFile(pathToReadFrom, cubeNumber)
+    #def setIntDoubleArraysFromFile(self, pathToReadFrom, cubeNumber):
+        ## we need the int Array
+        #self.setIntArraysFromFile(pathToReadFrom, cubeNumber)
 
-        # the double arrays
-        self.N_cubeDoubleArrays = self.N_nodes * 3 + 3
-        #cubeDoubleArrays = zeros(self.N_cubeDoubleArrays, 'd')
-        cubeDoubleArrays = read1DBlitzArrayFromDisk(os.path.join(pathToReadFrom, str(cubeNumber) + "_DoubleArrays.txt"), 'd')
+        ## the double arrays
+        #self.N_cubeDoubleArrays = self.N_nodes * 3 + 3
+        ##cubeDoubleArrays = zeros(self.N_cubeDoubleArrays, 'd')
+        #cubeDoubleArrays = read1DBlitzArrayFromDisk(os.path.join(pathToReadFrom, str(cubeNumber) + "_DoubleArrays.txt"), 'd')
         
-        startIndex = 0
-        stopIndex = startIndex + self.N_nodes * 3
-        self.nodesCoord = reshape(cubeDoubleArrays[startIndex:stopIndex], (-1, 3))
+        #startIndex = 0
+        #stopIndex = startIndex + self.N_nodes * 3
+        #self.nodesCoord = reshape(cubeDoubleArrays[startIndex:stopIndex], (-1, 3))
         
-        startIndex = stopIndex
-        stopIndex = startIndex + 3
-        self.rCubeCenter = cubeDoubleArrays[startIndex:stopIndex]
+        #startIndex = stopIndex
+        #stopIndex = startIndex + 3
+        #self.rCubeCenter = cubeDoubleArrays[startIndex:stopIndex]
    
     def getIntArrays(self):
         return self.N_RWG_test, self.N_RWG_src, self.N_neighbors, self.N_nodes, self.S, self.testSrc_RWGsNumbers, self.localTestSrcRWGNumber_nodes, self.cubeNeighborsIndexes
 
-    def getDoubleArrays(self):
-        return self.nodesCoord, self.rCubeCenter
+    #def getDoubleArrays(self):
+        #return self.nodesCoord, self.rCubeCenter
 
 
 if __name__=="__main__":
