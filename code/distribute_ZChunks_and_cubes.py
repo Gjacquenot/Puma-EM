@@ -18,7 +18,7 @@ def Z_near_size_computation(cubes_lists_edges_numbers, cubes_lists_NeighborsInde
 def Z_nearChunksDistribution(MAX_BLOCK_SIZE, N_nearPerCube, C, pathToWriteTo):
     num_procs = MPI.COMM_WORLD.Get_size()
     my_id = MPI.COMM_WORLD.Get_rank()
-    if ( (MAX_BLOCK_SIZE<0.1) | (MAX_BLOCK_SIZE>250.) ):
+    if ( (MAX_BLOCK_SIZE<0.1) | (MAX_BLOCK_SIZE>10000.) ):
         print "Error: Z_nearChunksDistribution: MAX_BLOCK_SIZE too big or too small"
         sys.exit(1)
 

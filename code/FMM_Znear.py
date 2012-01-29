@@ -112,7 +112,7 @@ def Z_nearCRS_Assembling(processNumber_to_ChunksNumbers, chunkNumber_to_cubesNum
     """this function computes Z_CFIE_near by slices and stores them on the disk.
     The maximum size of a block is given by the variable MAX_BLOCK_SIZE in MegaBytes"""
     # test on MAX_BLOCK_SIZE
-    if ( (MAX_BLOCK_SIZE<0.1) | (MAX_BLOCK_SIZE>250.) ):
+    if ( (MAX_BLOCK_SIZE<0.1) | (MAX_BLOCK_SIZE>10000.) ):
         print "Error: MAX_BLOCK_SIZE too big or too small"
         sys.exit(1)
     num_procs = MPI.COMM_WORLD.Get_size()

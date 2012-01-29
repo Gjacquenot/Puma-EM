@@ -26,7 +26,6 @@ def computePreconditionerColumnsPerCube(list_cubes, pathToReadFrom, cubeNumber_t
     NumberOfColumnsPerCube = zeros(len(list_cubes), 'i')
     i = 0
     for cubeNumber, cube in list_cubes.iteritems():
-        cube.localEdgesInRadiusAroundCube = (compress(cube.isEdgeInCartesianRadius==1, arange(len(cube.isEdgeInCartesianRadius)))).astype('i')
         chunkNumber = cubeNumber_to_chunkNumber[cubeNumber]
         pathToReadFromChunk = os.path.join( pathToReadFrom, "chunk" + str(chunkNumber) )
         NumberOfColumnsPerCube[i] = sum(cube.isEdgeInCartesianRadius)
@@ -113,8 +112,8 @@ def MgPreconditionerComputationPerCube(cube, list_cubes_with_neighbors, list_Z_t
                 index += 1
             Z_tmp2 = take(Z_neighbor, columnsOfNeighborCubeToBeConsidered, axis=1)
             assignValuesToMatrix(Z_local, Z_tmp2, Z_local_lines_indexes, Z_local_columns_indexes)
-    Z_local_2 = take(Z_local, cube.localEdgesInRadiusAroundCube, axis=0).astype('D')
-    src_edges_numbers_2 = take(cube.testSrc_RWGsNumbers, cube.localEdgesInRadiusAroundCube, axis=0)
+    Z_local_2 = compress(cube.isEdgeInCartesianRadius, Z_local, axis=0).astype('D')
+    src_edges_numbers_2 = compress(cube.isEdgeInCartesianRadius, cube.testSrc_RWGsNumbers, axis=0)
     #Y_CFIE_near_local = linalg.pinv(Z_local_2)
     #Y_CFIE_near_local = computeMyPinv(Z_local_2)
     Y_CFIE_near_local = computeMyPinvCC(Z_local_2, LIB_G2C)
