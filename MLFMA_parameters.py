@@ -57,7 +57,7 @@ params_simu.MAXIMUM_DELTA_PHASE = 0.0 # in degrees
 # max block size for the near field and preconditioner matrices (in MBytes)
 # the near field and preconditioner matrices are sliced in blocks and 
 # dumped to the disk in order to minimize RAM memory occupation
-params_simu.MAX_BLOCK_SIZE = 10.
+params_simu.MAX_BLOCK_SIZE = 100.
 
 # the integration type. Usually Gauss-Legendre for theta and Poncelet for phi.
 params_simu.int_method_theta = "GAUSSL" 
