@@ -5,6 +5,7 @@ from scipy import zeros, array, sqrt
 from meshClass import MeshClass, CubeClass
 from ReadWriteBlitzArray import writeScalarToDisk, writeASCIIBlitzArrayToDisk
 from MLFMA import computeTreeParameters
+from read_dipole_excitation import read_dipole_excitation, read_observation_points
 
 def communicateParamsFile(filename):
     my_id = MPI.COMM_WORLD.Get_rank()

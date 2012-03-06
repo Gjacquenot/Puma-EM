@@ -240,7 +240,7 @@ def computeCurrentsVisualization(params_simu, variables, simuDirName):
         target_mesh = MeshClass(geoDirName, params_simu.targetName, params_simu.targetDimensions_scaling_factor, params_simu.z_offset, params_simu.languageForMeshConstruction, params_simu.meshFormat, params_simu.meshFileTermination)
         # target_mesh.constructFromGmshFile()
         target_mesh.constructFromSavedArrays(os.path.join(tmpDirName, "mesh"))
-        readIntFromDisk(os.path.join(tmpDirName, "mesh", "N_RWG.txt"))
+        N_RWG = readIntFromDisk(os.path.join(tmpDirName, "mesh", "N_RWG.txt"))
         CURRENTS_VISUALIZATION = params_simu.CURRENTS_VISUALIZATION and (N_RWG<2e6) and (params_simu.BISTATIC == 1)
         if CURRENTS_VISUALIZATION:
             print "............Constructing visualisation of currents"
