@@ -29,7 +29,7 @@ if [ $DISTRIB_TYPE = "1" ]; then
     echo "Enter the correct number here: "
     read DISTRIB
 
-    elif [ $DISTRIB = "1" ]; then
+    if [ $DISTRIB = "1" ]; then
         echo " OK, running install script for Fedora Core 13, 64 bits: $DIR_INSTALL_SCRIPTS/FC13_64BITS_INSTALL.sh"
         echo " read the file if you want more info about what will be installed..."
         cd $DIR_INSTALL_SCRIPTS

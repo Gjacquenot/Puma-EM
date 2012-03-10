@@ -19,9 +19,9 @@ rm -rf ~/.python*_compile
 echo " You will be asked for your root password so that the machine can install some programs as root"
 # installing the main dependencies...
 echo " sudo password for installing main dependencies... "
-sudo zypper ar -c http://download.opensuse.org/repositories/Education/openSUSE_12.1/ Education
+sudo zypper ar -c http://download.opensuse.org/repositories/science/openSUSE_12.1/ Science
 sudo zypper refresh
-sudo zypper install gcc-c++ gcc-fortran Mesa Mesa-devel autoconf automake make libtool python-devel python-scipy python-scipy-devel python-matplotlib python-matplotlib-tk python-tk python-numpy python-numpy-devel openmpi openmpi-devel cvs doxygen cmake
+sudo zypper install gcc-c++ gcc-fortran Mesa Mesa-devel Mesa-32bit autoconf automake make libtool python-devel python-scipy python-scipy-devel python-matplotlib python-matplotlib-tk python-tk python-numpy python-numpy-devel openmpi openmpi-devel cvs doxygen cmake
 # installing GMSH from source
 sudo python installGMSH.py
 # create makefile.inc
