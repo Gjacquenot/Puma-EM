@@ -534,11 +534,18 @@ void computeForOneExcitation(Octtree & octtree,
     writeFloatBlitzArray1DToASCIIFile(RESULT_DATA_PATH + "thetas_far_field_ASCII.txt", octtreeXthetas_coarsest);
   }
   // we now write the solution to disk...
+  blitz::Array<std::complex<float>, 1> ZI_global(N_RWG), recvBuf;
+  ZI_global = 0.0;
   if ( my_id == master ) {
-    // only local ZI are stored on disk
+    recvBuf.resize(N_RWG);
+    recvBuf = 0.0;
+  }
+  for (int i=0 ; i<localRWGNumbers.size() ; ++i) ZI_global(localRWGNumbers(i)) = ZI(i);
+  int ierror = MPI_Reduce(ZI_global.data(), recvBuf.data(), N_RWG, MPI_COMPLEX, MPI_SUM, 0, MPI_COMM_WORLD);
+  if ( my_id == master ) {
     string filename = TMP + "/ZI/ZI.txt";
     ofstream ofs(filename.c_str(), blitz::ios::binary);
-    ofs.write((char *)(ZI.data()), ZI.size()*8);
+    ofs.write((char *)(recvBuf.data()), recvBuf.size()*8);
     ofs.close();
     writeIntToASCIIFile(ITERATIVE_DATA_PATH + "numberOfMatvecs.txt", octtree.getNumberOfUpdates());
     writeIntToASCIIFile(ITERATIVE_DATA_PATH + "iter.txt", iter);
