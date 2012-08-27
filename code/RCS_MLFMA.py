@@ -14,13 +14,15 @@ def monostatic_SAR(params_simu, simuDirName):
         r_SAR = readASCIIBlitzFloatArray2DFromDisk(os.path.join(simuDirName, 'result/r_SAR.txt'))
         SAR_RCS_HH = readASCIIBlitzFloatArray1DFromDisk(os.path.join(simuDirName, 'result/SAR_RCS_HH_ASCII.txt'))
         SAR_RCS_HV = readASCIIBlitzFloatArray1DFromDisk(os.path.join(simuDirName, 'result/SAR_RCS_HV_ASCII.txt'))
+        SAR_RCS_VH = readASCIIBlitzFloatArray1DFromDisk(os.path.join(simuDirName, 'result/SAR_RCS_VH_ASCII.txt'))
         SAR_RCS_VV = readASCIIBlitzFloatArray1DFromDisk(os.path.join(simuDirName, 'result/SAR_RCS_VV_ASCII.txt'))
     else:
         r_SAR = zeros((1, 1))
         SAR_RCS_HH = zeros(1)
         SAR_RCS_HV = zeros(1)
+        SAR_RCS_VH = zeros(1)
         SAR_RCS_VV = zeros(1)
-    return SAR_RCS_HH, SAR_RCS_VV, SAR_RCS_HV, r_SAR
+    return SAR_RCS_HH, SAR_RCS_VV, SAR_RCS_HV, SAR_RCS_VH, r_SAR
 
 def monostatic_RCS(params_simu, simuDirName):
     my_id = MPI.COMM_WORLD.Get_rank()
@@ -29,14 +31,16 @@ def monostatic_RCS(params_simu, simuDirName):
         thetas_far_field = 180./pi * readASCIIBlitzFloatArray1DFromDisk(os.path.join(simuDirName, 'result/thetas_far_field_ASCII.txt'))
         RCS_HH = readASCIIBlitzFloatArray2DFromDisk(os.path.join(simuDirName, 'result/RCS_HH_ASCII.txt'))
         RCS_HV = readASCIIBlitzFloatArray2DFromDisk(os.path.join(simuDirName, 'result/RCS_HV_ASCII.txt'))
+        RCS_VH = readASCIIBlitzFloatArray2DFromDisk(os.path.join(simuDirName, 'result/RCS_VH_ASCII.txt'))
         RCS_VV = readASCIIBlitzFloatArray2DFromDisk(os.path.join(simuDirName, 'result/RCS_VV_ASCII.txt'))
     else:
         phis_far_field = zeros(1)
         thetas_far_field = zeros(1)
         RCS_HH = zeros((1, 1))
         RCS_HV = zeros((1, 1))
+        RCS_VH = zeros((1, 1))
         RCS_VV = zeros((1, 1))
-    return RCS_HH, RCS_VV, RCS_HV, thetas_far_field, phis_far_field
+    return RCS_HH, RCS_VV, RCS_HV, RCS_VH, thetas_far_field, phis_far_field
 
 def bistatic_RCS(params_simu, simuDirName):
     my_id = MPI.COMM_WORLD.Get_rank()
@@ -98,7 +102,7 @@ if __name__=='__main__':
         print "you should select monostatic RCS or monostatic SAR or bistatic computation, or a combination of these computations. Check the simulation settings."
         sys.exit(1)
     if params_simu.MONOSTATIC_RCS==1:
-        RCS_HH, RCS_VV, RCS_HV, thetas_far_field, phis_far_field = monostatic_RCS(params_simu, simuDirName)
+        RCS_HH, RCS_VV, RCS_HV, RCS_VH, thetas_far_field, phis_far_field = monostatic_RCS(params_simu, simuDirName)
         if (my_id==0):
             nameOfFileToSaveTo = os.path.join(simuDirName, 'result', "simulation_parameters.txt") 
             params_simu.saveTo(nameOfFileToSaveTo)
@@ -117,6 +121,9 @@ if __name__=='__main__':
             if (params_simu.COMPUTE_RCS_HV==1):
                 plot(phis_far_field, 10 * log10(RCS_HV[0]), 'gv-', linewidth = LineWidth)
                 LEGEND.append(r'RCS$_{HV}$')
+            if (params_simu.COMPUTE_RCS_VH==1):
+                plot(phis_far_field, 10 * log10(RCS_VH[0]), 'gv-', linewidth = LineWidth)
+                LEGEND.append(r'RCS$_{VH}$')
             figureTitle = ""
             for elem in params_simu.targetName.split("_"):
                 figureTitle += elem + " "
@@ -172,7 +179,7 @@ if __name__=='__main__':
             show()
 
     if params_simu.MONOSTATIC_SAR==1:
-        SAR_RCS_HH, SAR_RCS_VV, SAR_RCS_HV, r_SAR = monostatic_SAR(params_simu, simuDirName)
+        SAR_RCS_HH, SAR_RCS_VV, SAR_RCS_HV, SAR_RCS_VH, r_SAR = monostatic_SAR(params_simu, simuDirName)
 
     #MPI.Finalize()
 

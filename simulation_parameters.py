@@ -58,6 +58,7 @@ params_simu.MONOSTATIC_SAR = 0
 params_simu.COMPUTE_RCS_HH = 1
 params_simu.COMPUTE_RCS_VV = 1
 params_simu.COMPUTE_RCS_HV = 0
+params_simu.COMPUTE_RCS_VH = 0
 # safeguard against bad user choices
 if (params_simu.COMPUTE_RCS_HH==0) and (params_simu.COMPUTE_RCS_VV==0):
     params_simu.COMPUTE_RCS_VV = 1

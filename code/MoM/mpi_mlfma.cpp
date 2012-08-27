@@ -608,13 +608,15 @@ void computeMonostaticRCS(Octtree & octtree,
   readFloatBlitzArray1DFromASCIIFile(OCTTREE_DATA_PATH + "octtreeXphis_coarsest.txt", octtreeXphis_coarsest);
   readFloatBlitzArray1DFromASCIIFile(OCTTREE_DATA_PATH + "octtreeXthetas_coarsest.txt", octtreeXthetas_coarsest);
   const int N_theta(octtreeXthetas_coarsest.size()), N_phi(octtreeXphis_coarsest.size());
-  blitz::Array<float, 2> RCS_VV(N_theta, N_phi), RCS_HH(N_theta, N_phi), RCS_HV(N_theta, N_phi);
+  blitz::Array<float, 2> RCS_VV(N_theta, N_phi), RCS_HH(N_theta, N_phi), RCS_HV(N_theta, N_phi), RCS_VH(N_theta, N_phi);
   RCS_VV = 1.0;
   RCS_HH = 1.0;
   RCS_HV = 1.0;
-  int COMPUTE_RCS_HH, COMPUTE_RCS_HV, COMPUTE_RCS_VV;
+  RCS_VH = 1.0;
+  int COMPUTE_RCS_HH, COMPUTE_RCS_HV, COMPUTE_RCS_VH, COMPUTE_RCS_VV;
   readIntFromASCIIFile(TMP + "/COMPUTE_RCS_HH.txt", COMPUTE_RCS_HH);
   readIntFromASCIIFile(TMP + "/COMPUTE_RCS_HV.txt", COMPUTE_RCS_HV);
+  readIntFromASCIIFile(TMP + "/COMPUTE_RCS_VH.txt", COMPUTE_RCS_VH);
   readIntFromASCIIFile(TMP + "/COMPUTE_RCS_VV.txt", COMPUTE_RCS_VV);
   // r_ref
   blitz::Array<double, 1> r_ref(3);
@@ -634,8 +636,9 @@ void computeMonostaticRCS(Octtree & octtree,
   for (int excitation=0 ; excitation<2 ; ++excitation) { // 0 for H, 1 for V
     const bool HH = ((excitation==0) && (COMPUTE_RCS_HH==1));
     const bool HV = ((excitation==0) && (COMPUTE_RCS_HV==1));
+    const bool VH = ((excitation==1) && (COMPUTE_RCS_VH==1));
     const bool VV = ((excitation==1) && (COMPUTE_RCS_VV==1));
-    const bool cond = (HH || HV || VV);
+    const bool cond = (HH || HV || VH || VV);
     if (cond) {
       for (int t=0 ; t<N_theta ; ++t) {
         blitz::Array<std::complex<float>, 1> ZI(N_local_RWG);
@@ -647,7 +650,7 @@ void computeMonostaticRCS(Octtree & octtree,
           octtree.resizeSdownLevelsToZero();
           if (my_id==master) {
             if (HH || HV) cout << "\nHH and HV, theta = "<< theta * 180.0/M_PI << ", phi = " << phi_inc * 180.0/M_PI << endl;
-            else cout << "\nVV, theta = "<< theta * 180.0/M_PI << ", phi = " << phi_inc * 180.0/M_PI << endl;
+            else cout << "\nVV and VH, theta = "<< theta * 180.0/M_PI << ", phi = " << phi_inc * 180.0/M_PI << endl;
             flush(cout);
           }
           // local coordinate system
@@ -701,6 +704,7 @@ void computeMonostaticRCS(Octtree & octtree,
           else {
             for (int j=0 ; j<BetaPoints ; ++j) {
               RCS_VV(t, startIndexPhi + j) = real(e_theta_far(0, j) * conj(e_theta_far(0, j)))/real(sum(E_0 * conj(E_0)) * 4.0*M_PI);
+              RCS_VH(t, startIndexPhi + j) = real(e_phi_far(0, j) * conj(e_phi_far(0, j)))/real(sum(E_0 * conj(E_0)) * 4.0*M_PI);
             }
           }
           // phi update
@@ -710,6 +714,7 @@ void computeMonostaticRCS(Octtree & octtree,
             writeFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "RCS_HH_ASCII.txt", RCS_HH);
             writeFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "RCS_HV_ASCII.txt", RCS_HV);
             writeFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "RCS_VV_ASCII.txt", RCS_VV);
+            writeFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "RCS_VH_ASCII.txt", RCS_VH);
           }
         }
       }
@@ -718,6 +723,7 @@ void computeMonostaticRCS(Octtree & octtree,
   if (my_id==master) {
     writeFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "RCS_HH_ASCII.txt", RCS_HH);
     writeFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "RCS_HV_ASCII.txt", RCS_HV);
+    writeFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "RCS_VH_ASCII.txt", RCS_VH);
     writeFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "RCS_VV_ASCII.txt", RCS_VV);
     // thetas, phis
     writeFloatBlitzArray1DToASCIIFile(RESULT_DATA_PATH + "phis_far_field_ASCII.txt", octtreeXphis_coarsest);
@@ -801,14 +807,16 @@ void computeMonostaticSAR(Octtree & octtree,
   Delta_y = (SAR_N_y_points>1) ? SAR_y_span / (SAR_N_y_points-1) : SAR_y_span/2.0;
 
   blitz::Array<float, 2> r_SAR(SAR_N_x_points * SAR_N_y_points, 3);
-  blitz::Array<float, 1> RCS_VV(SAR_N_x_points * SAR_N_y_points), RCS_HH(SAR_N_x_points * SAR_N_y_points), RCS_HV(SAR_N_x_points * SAR_N_y_points);
+  blitz::Array<float, 1> RCS_VV(SAR_N_x_points * SAR_N_y_points), RCS_HH(SAR_N_x_points * SAR_N_y_points), RCS_HV(SAR_N_x_points * SAR_N_y_points), RCS_VH(SAR_N_x_points * SAR_N_y_points);
   r_SAR = 0.0;
   RCS_VV = 1.0;
   RCS_HH = 1.0;
   RCS_HV = 1.0;
-  int COMPUTE_RCS_HH, COMPUTE_RCS_HV, COMPUTE_RCS_VV;
+  RCS_VH = 1.0;
+  int COMPUTE_RCS_HH, COMPUTE_RCS_HV, COMPUTE_RCS_VH, COMPUTE_RCS_VV;
   readIntFromASCIIFile(TMP + "/COMPUTE_RCS_HH.txt", COMPUTE_RCS_HH);
   readIntFromASCIIFile(TMP + "/COMPUTE_RCS_HV.txt", COMPUTE_RCS_HV);
+  readIntFromASCIIFile(TMP + "/COMPUTE_RCS_VH.txt", COMPUTE_RCS_VH);
   readIntFromASCIIFile(TMP + "/COMPUTE_RCS_VV.txt", COMPUTE_RCS_VV);
   // r_ref
   blitz::Array<double, 1> r_ref(3);
@@ -817,6 +825,7 @@ void computeMonostaticSAR(Octtree & octtree,
   for (int excitation=0 ; excitation<2 ; ++excitation) { // 0 for H, 1 for V
     const bool HH = ((excitation==0) && (COMPUTE_RCS_HH==1));
     const bool HV = ((excitation==0) && (COMPUTE_RCS_HV==1));
+    const bool VH = ((excitation==1) && (COMPUTE_RCS_VH==1));
     const bool VV = ((excitation==1) && (COMPUTE_RCS_VV==1));
     const bool cond = (HH || HV || VV);
     if (cond) {
@@ -832,7 +841,7 @@ void computeMonostaticSAR(Octtree & octtree,
           octtree.resizeSdownLevelsToZero();
           if (my_id==master) {
             if (HH || HV) blitz::cout << "\nHH and HV, r_ant = "<< r_src << blitz::endl;
-            else blitz::cout << "\nVV, r_ant = "<< r_src << blitz::endl;
+            else blitz::cout << "\nVV and VH, r_ant = "<< r_src << blitz::endl;
             blitz::flush(blitz::cout);
           }
           // excitation field
@@ -878,13 +887,16 @@ void computeMonostaticSAR(Octtree & octtree,
             RCS_HV(index) = real(sum(E_V * conj(E_V)))/real(sum(E_0 * conj(E_0)) * 4.0*M_PI);
           }
           else {
-            blitz::Array<std::complex<double>, 1> E_V(3);
+            blitz::Array<std::complex<double>, 1> E_H(3), E_V(3);
+            E_H = sum(SAR_local_x_hat * E_obs(0, all));
             E_V = sum(SAR_local_y_hat * E_obs(0, all));
             RCS_VV(index) = real(sum(E_V * conj(E_V)))/real(sum((E_0 * conj(E_0))) * 4.0*M_PI);
+            RCS_VH(index) = real(sum(E_H * conj(E_H)))/real(sum(E_0 * conj(E_0)) * 4.0*M_PI);
           }
           if (my_id==master) {
             writeFloatBlitzArray1DToASCIIFile(RESULT_DATA_PATH + "SAR_RCS_HH_ASCII.txt", RCS_HH);
             writeFloatBlitzArray1DToASCIIFile(RESULT_DATA_PATH + "SAR_RCS_HV_ASCII.txt", RCS_HV);
+            writeFloatBlitzArray1DToASCIIFile(RESULT_DATA_PATH + "SAR_RCS_VH_ASCII.txt", RCS_VH);
             writeFloatBlitzArray1DToASCIIFile(RESULT_DATA_PATH + "SAR_RCS_VV_ASCII.txt", RCS_VV);
             writeFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "r_SAR.txt", r_SAR);
           }
@@ -896,6 +908,7 @@ void computeMonostaticSAR(Octtree & octtree,
   if (my_id==master) {
     writeFloatBlitzArray1DToASCIIFile(RESULT_DATA_PATH + "SAR_RCS_HH_ASCII.txt", RCS_HH);
     writeFloatBlitzArray1DToASCIIFile(RESULT_DATA_PATH + "SAR_RCS_HV_ASCII.txt", RCS_HV);
+    writeFloatBlitzArray1DToASCIIFile(RESULT_DATA_PATH + "SAR_RCS_VH_ASCII.txt", RCS_VH);
     writeFloatBlitzArray1DToASCIIFile(RESULT_DATA_PATH + "SAR_RCS_VV_ASCII.txt", RCS_VV);
     writeFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "r_SAR.txt", r_SAR);
     writeIntToASCIIFile(ITERATIVE_DATA_PATH + "numberOfMatvecs.txt", octtree.getNumberOfUpdates());

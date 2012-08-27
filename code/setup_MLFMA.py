@@ -232,6 +232,7 @@ def setup_MLFMA(params_simu, simuDirName):
     writeScalarToDisk(params_simu.COMPUTE_RCS_HH*1, os.path.join(tmpDirName, 'COMPUTE_RCS_HH.txt') )
     writeScalarToDisk(params_simu.COMPUTE_RCS_VV*1, os.path.join(tmpDirName, 'COMPUTE_RCS_VV.txt') )
     writeScalarToDisk(params_simu.COMPUTE_RCS_HV*1, os.path.join(tmpDirName, 'COMPUTE_RCS_HV.txt') )
+    writeScalarToDisk(params_simu.COMPUTE_RCS_VH*1, os.path.join(tmpDirName, 'COMPUTE_RCS_VH.txt') )
     writeScalarToDisk(params_simu.USE_PREVIOUS_SOLUTION*1, os.path.join(tmpDirName, 'USE_PREVIOUS_SOLUTION.txt') )
     writeScalarToDisk(params_simu.MONOSTATIC_BY_BISTATIC_APPROX*1, os.path.join(tmpDirName, 'MONOSTATIC_BY_BISTATIC_APPROX.txt') )
     writeScalarToDisk(params_simu.MAXIMUM_DELTA_PHASE, os.path.join(tmpDirName, 'MAXIMUM_DELTA_PHASE.txt') )
