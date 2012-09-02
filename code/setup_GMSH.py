@@ -35,6 +35,7 @@ if __name__=='__main__':
     else:
         f = open(filename, 'w')
         f.write("exit 0" + "\n")
+        os.system("cp " + os.path.join(params_simu.pathToTarget, params_simu.targetName + params_simu.meshFileTermination) + ' ' + geoDirName)
     f.close()
     os.system("chmod u+x " + filename)
         

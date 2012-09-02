@@ -63,11 +63,12 @@ class MeshClass:
             self.N_RWG = self.RWGNumber_edgeVertexes.shape[0]
             self.S = len(self.IS_CLOSED_SURFACE)
             print "  test of the closed surfaces :", self.IS_CLOSED_SURFACE
-            if self.DELTA_GAP:
-                # here we must create a C++ function that calculates the mid point of each RWG and sees 
-                # if the RWG is part of the delta gap. That function would use vertexes_coord and 
-                # self.RWGNumber_edgeVertexes as inputs.
-                pass
+            if self.meshFormat == 'GMSH':
+                if self.DELTA_GAP:
+                    # here we must create a C++ function that calculates the mid point of each RWG and sees 
+                    # if the RWG is part of the delta gap. That function would use vertexes_coord and 
+                    # self.RWGNumber_edgeVertexes as inputs.
+                    pass
             self.time_edges_classification = time.clock()-t0
             print "  edges classification cumulated time =", self.time_edges_classification, "seconds"
             self.time_effective_RWG_functions_computation = self.time_edges_classification
