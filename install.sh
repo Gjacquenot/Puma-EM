@@ -21,37 +21,37 @@ echo " "
 
 if [ $DISTRIB_TYPE = "1" ]; then
     echo "What is the version of your Fedora distribution?"
-    echo "  (1) Fedora Core 13, 64 bits"
-    echo "  (2) Fedora Core 14, 64 bits"
-    echo "  (3) Fedora Core 15, 64 bits"
-    echo "  (4) Fedora Core 16, 64 bits"
+    echo "  (1) Fedora Core 14, 64 bits"
+    echo "  (2) Fedora Core 15, 64 bits"
+    echo "  (3) Fedora Core 16, 64 bits"
+    echo "  (4) Fedora Core 17, 64 bits"
     echo " "
     echo "Enter the correct number here: "
     read DISTRIB
 
     if [ $DISTRIB = "1" ]; then
-        echo " OK, running install script for Fedora Core 13, 64 bits: $DIR_INSTALL_SCRIPTS/FC13_64BITS_INSTALL.sh"
-        echo " read the file if you want more info about what will be installed..."
-        cd $DIR_INSTALL_SCRIPTS
-        ./FC13_64BITS_INSTALL.sh
-        cd ..
-    elif [ $DISTRIB = "2" ]; then
         echo " OK, running install script for Fedora Core 14, 64 bits: $DIR_INSTALL_SCRIPTS/FC14_64BITS_INSTALL.sh"
         echo " read the file if you want more info about what will be installed..."
         cd $DIR_INSTALL_SCRIPTS
         ./FC14_64BITS_INSTALL.sh
         cd ..
-    elif [ $DISTRIB = "3" ]; then
+    elif [ $DISTRIB = "2" ]; then
         echo " OK, running install script for Fedora Core 15, 64 bits: $DIR_INSTALL_SCRIPTS/FC15_64BITS_INSTALL.sh"
         echo " read the file if you want more info about what will be installed..."
         cd $DIR_INSTALL_SCRIPTS
         ./FC15_64BITS_INSTALL.sh
         cd ..
-    elif [ $DISTRIB = "4" ]; then
+    elif [ $DISTRIB = "3" ]; then
         echo " OK, running install script for Fedora Core 16, 64 bits: $DIR_INSTALL_SCRIPTS/FC16_64BITS_INSTALL.sh"
         echo " read the file if you want more info about what will be installed..."
         cd $DIR_INSTALL_SCRIPTS
         ./FC16_64BITS_INSTALL.sh
+        cd ..
+    elif [ $DISTRIB = "4" ]; then
+        echo " OK, running install script for Fedora Core 17, 64 bits: $DIR_INSTALL_SCRIPTS/FC17_64BITS_INSTALL.sh"
+        echo " read the file if you want more info about what will be installed..."
+        cd $DIR_INSTALL_SCRIPTS
+        ./FC17_64BITS_INSTALL.sh
         cd ..
     fi
 
@@ -60,6 +60,7 @@ elif [ $DISTRIB_TYPE = "2" ]; then
     echo "  (1) Ubuntu 10.04"
     echo "  (2) Ubuntu 10.10"
     echo "  (3) Ubuntu 11.04"
+    echo "  (4) Ubuntu 12.04"
     echo " "
     echo "Enter the correct number here: "
     read DISTRIB
@@ -81,6 +82,12 @@ elif [ $DISTRIB_TYPE = "2" ]; then
         echo " read the file if you want more info about what will be installed..."
         cd $DIR_INSTALL_SCRIPTS
         ./UBUNTU_11.04_INSTALL.sh
+        cd ..
+    elif [ $DISTRIB = "4" ]; then
+        echo " OK, running install script for Ubuntu 12.04: $DIR_INSTALL_SCRIPTS/UBUNTU_12.04_INSTALL.sh"
+        echo " read the file if you want more info about what will be installed..."
+        cd $DIR_INSTALL_SCRIPTS
+        ./UBUNTU_12.04_INSTALL.sh
         cd ..
     fi
 

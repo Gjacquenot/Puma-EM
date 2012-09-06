@@ -15,20 +15,19 @@ echo " Otherwise, mpi4py risks crashing."
 echo " "
 echo " press enter to continue, ctrl-C to stop "
 read
-rm -rf ~/.python25_compiled
+rm -rf ~/.python*_compiled
 echo " You will be asked for your root password so that the machine can install some programs as root"
 # installing the main dependencies...
 echo " Root password for installing general dependencies... "
-su -c 'yum -y install python-devel gcc-c++ libgfortran gcc-gfortran libstdc++-devel compat-libstdc++-33 openmpi openmpi-libs openmpi-devel scipy numpy python-matplotlib-tk python-matplotlib cvs autoconf automake sysconftool libtool.x86_64 gettext gettext.i686 zlib.i686 mesa-libGLU.i686 compat-libstdc++-33.i686 wget'
+su -c 'yum -y install python-devel gcc-c++ libgfortran gcc-gfortran libstdc++-devel compat-libstdc++-33 openmpi openmpi-devel scipy numpy python-matplotlib-tk python-matplotlib cvs autoconf automake sysconftool libtool.x86_64 gettext zlib.i686 mesa-libGLU mesa-libGLU-devel compat-libstdc++-33.i686 wget cmake fltk-devel lapack lapack-devel blas blas-devel libjpeg-devel libpng-devel'
 # repairing shite introduced in FC13 in the Open-MPI packages...
-su -c 'ln -s /usr/lib64/openmpi/bin/mpicc /usr/bin/mpicc; ln -s /usr/lib64/openmpi/bin/mpiCC /usr/bin/mpiCC; ln -s /usr/lib64/openmpi/bin/mpirun /usr/bin/mpirun; ln -s /usr/lib64/openmpi/lib/libmpi.so.0 /usr/lib64/libmpi.so.0; ln -s /usr/lib64/openmpi/lib/libopen-rte.so.0 /usr/lib64/libopen-rte.so.0; ln -s /usr/lib64/openmpi/lib/libopen-pal.so.0 /usr/lib64/libopen-pal.so.0; ln -s /usr/lib64/openmpi/lib/libmpi_cxx.so.0 /usr/lib64/libmpi_cxx.so.0'
-# installing binary GMSH -- usually more up-to-date than packaged GMSH
-echo " Root password for installing GMSH... "
-su -c 'python installGMSH.py'
+su -c 'ln -s /usr/lib64/openmpi/bin/mpicc /usr/bin/mpicc; ln -s /usr/lib64/openmpi/bin/mpiCC /usr/bin/mpiCC; ln -s /usr/lib64/openmpi/bin/mpirun /usr/bin/mpirun; ln -s /usr/lib64/openmpi/lib/libmpi.so.1 /usr/lib64/libmpi.so.1; ln -s /usr/lib64/openmpi/lib/libopen-rte.so.1 /usr/lib64/libopen-rte.so.1; ln -s /usr/lib64/openmpi/lib/libopen-pal.so.1 /usr/lib64/libopen-pal.so.1; ln -s /usr/lib64/openmpi/lib/libmpi_cxx.so.1 /usr/lib64/libmpi_cxx.so.1;'
+# installing GMSH from source
+./installGMSH_fromSource.sh
 # create makefile.inc
 cd ..
 PUMA_EM_DIR=$PWD
-cp $PUMA_EM_DIR/installScripts/gfortran_makefile.inc $PUMA_EM_DIR/makefile.inc
+#cp $PUMA_EM_DIR/installScripts/gfortran_makefile.inc $PUMA_EM_DIR/makefile.inc
 # installing development version of blitz++: released version is too old for gcc >= 4.3.0
 # packages to be installed prior to compiling blitz: cvs autoconf automake sysconftool gettext
 cd $PUMA_EM_DIR/installScripts
@@ -42,9 +41,11 @@ autoreconf -vif
 make lib
 echo " Root password for installing blitz++ library... "
 su -c 'make install'
+# scipy-weave uses the old blitz++, so we need to replace them
+echo " Root password for replacing scipy buggy blitz++ library by the newest version of blitz++... "
+su -c 'cp -r ./blitz /usr/lib64/python2.7/site-packages/scipy/weave/blitz'
 # installing mpi4py. No rpm yet for this one...
 cd $PUMA_EM_DIR/installScripts
-#wget http://pypi.python.org/packages/source/m/mpi4py/mpi4py-0.6.0.tar.gz
 wget http://mpi4py.googlecode.com/files/mpi4py-1.2.2.tar.gz
 tar xzf mpi4py-1.2.2.tar.gz
 cd mpi4py-1.2.2
