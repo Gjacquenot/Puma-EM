@@ -77,7 +77,7 @@ def computeMyPinvCC(A, LIB_G2C):
                 type_converters = converters.blitz,
                 include_dirs = ['./code/MoM/lapack/', '.'],
                 library_dirs = ['./code/MoM/lapack/', '.'],
-                libraries = [LIB_G2C, 'm', 'ZGELS'],
+                libraries = ['m', 'ZGELS', LIB_G2C],
                 headers = ['<iostream>','<complex>','<blitz/array.h>', '"zgels_interface.h"'],
                 compiler = 'gcc',
                 extra_compile_args = ['-O3', '-pthread', '-w'])
@@ -119,7 +119,7 @@ def computeTriangleUpSolve(A, LIB_G2C):
                 type_converters = converters.blitz,
                 include_dirs = ['./code/MoM/lapack/', '.'],
                 library_dirs = ['./code/MoM/lapack/', '.'],
-                libraries = [LIB_G2C, 'm', 'ZGELS'],
+                libraries = ['m', 'ZGELS', LIB_G2C],
                 headers = ['<iostream>','<complex>','<blitz/array.h>', '"ztrsm_interface.h"'],
                 compiler = 'gcc',
                 extra_compile_args = ['-O3', '-pthread', '-w'])
