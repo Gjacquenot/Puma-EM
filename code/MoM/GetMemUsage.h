@@ -24,7 +24,7 @@ long MemoryUsageGetPeak()
     
     while (fgets(line, 128, file) != NULL)
     {
-        if (strncmp(line, "VmPeak:", 6) == 0) 
+        if (strncmp(line, "VmHWM:", 5) == 0) 
         {
            result = parseLine(line);
            break;

@@ -156,7 +156,7 @@ class MeshClass:
         self.cubes_RWGsNumbers, self.cubes_lists_RWGsNumbers, self.cube_N_RWGs, self.cubes_centroids = cubeIndex_RWGNumbers_computation(RWGNumber_cubeNumber, RWGNumber_cubeCentroidCoord)
         self.C = self.cubes_centroids.shape[0]
         self.cubes_lists_NeighborsIndexes, self.cubes_neighborsIndexes, self.cube_N_neighbors = findCubeNeighbors(self.max_N_cubes_1D, self.big_cube_lower_coord, self.cubes_centroids, self.a, self.N_levels)
-        #print "Average number of RWGs per cube:", mean(self.cube_N_RWGs)
+        print "Average number of RWGs per cube:", mean(self.cube_N_RWGs)
         #print "Exiting cubes_data_computation.............."
 
     def saveToDisk(self, path):

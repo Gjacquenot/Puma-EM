@@ -118,7 +118,7 @@ void compute_cube_arrays_from_mesh(blitz::Array<int, 1>& cubeIntArrays,
   int index = oldNodeNumber_to_index[0].getVal();
   localTestSrcRWGNumber_nodes(index) = newNodeNumber;
   local_vertexes_coord(newNodeNumber, all) = vertexes_coord(oldNodeNumber_to_index[0].getKey(), all);
-  for (int i=0; i<N_RWG_src * 4; i++) {
+  for (int i=1; i<N_RWG_src * 4; i++) {
     if (oldNodeNumber_to_index[i].getKey() != oldNodeNumber_to_index[i-1].getKey()) {
       newNodeNumber++;
       local_vertexes_coord(newNodeNumber, all) = vertexes_coord(oldNodeNumber_to_index[i].getKey(), all);
