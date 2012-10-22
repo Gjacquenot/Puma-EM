@@ -1,11 +1,10 @@
 #include <iostream>
 #include <complex>
 #include <blitz/array.h>
-#include <blitz/tinyvec-et.h>
 #include <vector>
 #include <algorithm>
 
-using namespace blitz;
+using namespace std;
 
 #include "EMConstants.h"
 #include "GK_triangle.h"
@@ -26,8 +25,8 @@ void V_EJ_HJ_plane (blitz::Array<std::complex<double>, 1> V_tE_J,
                     const blitz::Array<double, 2>& RWGNumber_vertexesCoord,
                     const blitz::Array<double, 2>& RWGNumber_oppVertexesCoord,
                     const double w,
-                    const complex<double>& eps_r,
-                    const complex<double>& mu_r,
+                    const std::complex<double>& eps_r,
+                    const std::complex<double>& mu_r,
                     const int FULL_PRECISION)
 {
   // def of k, mu_i, eps_i
@@ -44,9 +43,9 @@ void V_EJ_HJ_plane (blitz::Array<std::complex<double>, 1> V_tE_J,
   else N_points = 3;
   IT_points (xi, eta, weigths, sum_weigths, N_points);
 
-  blitz::TinyVector<double, 3> kHat, rRef;
-  for (int i=0 ; i<3 ; ++i) kHat(i) = k_hat(i);
-  for (int i=0 ; i<3 ; ++i) rRef(i) = r_ref(i);
+  double kHat[3], rRef[3];
+  for (int i=0 ; i<3 ; ++i) kHat[i] = k_hat(i);
+  for (int i=0 ; i<3 ; ++i) rRef[i] = r_ref(i);
 
   V_tE_J = 0.0; V_tH_J = 0.0;
   V_nE_J = 0.0; V_nH_J = 0.0;
@@ -54,84 +53,88 @@ void V_EJ_HJ_plane (blitz::Array<std::complex<double>, 1> V_tE_J,
   test_RWGs.reserve(N_RWG_test);
   for (int i=0 ; i<N_RWG_test ; ++i) {
     const int RWGnumber = numbers_RWG_test(i);
-    blitz::TinyVector<int, 2> triangle_numbers, triangle_signs;
-    triangle_numbers(0) = abs(RWGNumber_signedTriangles(RWGnumber, 0));
-    triangle_numbers(1) = abs(RWGNumber_signedTriangles(RWGnumber, 1));
-    triangle_signs(0) = 1;
-    triangle_signs(1) = -1;
+    int triangle_numbers[2], triangle_signs[2];
+    triangle_numbers[0] = abs(RWGNumber_signedTriangles(RWGnumber, 0));
+    triangle_numbers[1] = abs(RWGNumber_signedTriangles(RWGnumber, 1));
+    triangle_signs[0] = 1;
+    triangle_signs[1] = -1;
     // the nodes of the RWG
-    blitz::Array<double, 1> r0(3), r1(3), r2(3), r3(3);
-    r0 = RWGNumber_oppVertexesCoord(RWGnumber, blitz::Range(0,2));
-    r3 = RWGNumber_oppVertexesCoord(RWGnumber, blitz::Range(3,5));
-    r1 = RWGNumber_vertexesCoord(RWGnumber, blitz::Range(0,2));
-    r2 = RWGNumber_vertexesCoord(RWGnumber, blitz::Range(3,5));
+    const double r0[3] = { RWGNumber_oppVertexesCoord(RWGnumber, 0), RWGNumber_oppVertexesCoord(RWGnumber, 1), RWGNumber_oppVertexesCoord(RWGnumber, 2)};
+    const double r3[3] = { RWGNumber_oppVertexesCoord(RWGnumber, 3), RWGNumber_oppVertexesCoord(RWGnumber, 4), RWGNumber_oppVertexesCoord(RWGnumber, 5)};
+    const double r1[3] = { RWGNumber_vertexesCoord(RWGnumber, 0), RWGNumber_vertexesCoord(RWGnumber, 1), RWGNumber_vertexesCoord(RWGnumber, 2)};
+    const double r2[3] = { RWGNumber_vertexesCoord(RWGnumber, 3), RWGNumber_vertexesCoord(RWGnumber, 4), RWGNumber_vertexesCoord(RWGnumber, 5)};
     test_RWGs.push_back(RWG(RWGnumber, triangle_numbers, triangle_signs, r0, r1, r2, r3));
   }
   // triangles
   std::vector< Dictionary<int, int> > testTriangleToRWG;
   testTriangleToRWG.reserve(N_RWG_test*2);
   for (int i=0 ; i<test_RWGs.size() ; ++i) {
-    testTriangleToRWG.push_back(Dictionary<int, int>(test_RWGs[i].triangleNumbers(0), test_RWGs[i].number));
-    testTriangleToRWG.push_back(Dictionary<int, int>(test_RWGs[i].triangleNumbers(1), test_RWGs[i].number));
+    testTriangleToRWG.push_back(Dictionary<int, int>(test_RWGs[i].triangleNumbers[0], test_RWGs[i].number));
+    testTriangleToRWG.push_back(Dictionary<int, int>(test_RWGs[i].triangleNumbers[1], test_RWGs[i].number));
   }
   sort(testTriangleToRWG.begin(), testTriangleToRWG.end());
   std::vector<Triangle> triangles_test;
   constructVectorTriangles(triangles_test, test_RWGs, testTriangleToRWG);
 
   // geometrical entities
-  blitz::TinyVector<double, 3> r0, r1, r2, r_obs;
+  const double *r0, *r1, *r2, *rGrav;
   std::complex<double> ITo_r_dot_H_inc, ITo_r_dot_E_inc, ITo_n_hat_X_r_dot_H_inc, ITo_n_hat_X_r_dot_E_inc;
-  blitz::TinyVector<std::complex<double>, 3> ITo_H_inc, ITo_E_inc;
+  std::complex<double> ITo_H_inc[3], ITo_E_inc[3], E_inc_i[3], H_inc_i[3];
   // computation of H_0
-  blitz::TinyVector<std::complex<double>, 3> E0, H0;
-  for (int i=0 ; i<3 ; ++i) E0(i) = E_0(i);
-  H0 = k_hat(1)*E_0(2)-k_hat(2)*E_0(1),
-       k_hat(2)*E_0(0)-k_hat(0)*E_0(2),
-       k_hat(0)*E_0(1)-k_hat(1)*E_0(0);
-  H0 *= sqrt(eps/mu);
+  std::complex<double> E0[3], H0[3];
+  for (int i=0 ; i<3 ; ++i) E0[i] = E_0(i);
+  H0[0] = (k_hat(1)*E_0(2)-k_hat(2)*E_0(1)) * sqrt(eps/mu);
+  H0[1] = (k_hat(2)*E_0(0)-k_hat(0)*E_0(2)) * sqrt(eps/mu);
+  H0[2] = (k_hat(0)*E_0(1)-k_hat(1)*E_0(0)) * sqrt(eps/mu);
 
   for (int r=0 ; r<triangles_test.size() ; ++r) { // loop on the observation triangles
       // the RWGs concerned by the test triangle
       std::vector<int> RWGsIndexes_test(triangles_test[r].RWGIndexes);
       std::vector<int> triangleTest_indexesInRWGs(triangles_test[r].indexesInRWGs);
       std::vector<double> triangleTest_signsInRWGs(triangles_test[r].signInRWG);
-      ITo_E_inc = 0.0; // TinyVector<complex<double>, 3>
-      ITo_H_inc = 0.0; // TinyVector<complex<double>, 3>
+      for (int i=0 ; i<3 ; ++i) ITo_E_inc[i] = 0.0; // Vector<complex<double>, 3>
+      for (int i=0 ; i<3 ; ++i) ITo_H_inc[i] = 0.0; // Vector<complex<double>, 3>
       ITo_r_dot_E_inc = 0.0; // complex<double>
       ITo_r_dot_H_inc = 0.0; // complex<double>
       ITo_n_hat_X_r_dot_E_inc = 0.0; // complex<double>
       ITo_n_hat_X_r_dot_H_inc = 0.0; // complex<double>
 
-      r0 = triangles_test[r].r_nodes(0);
-      r1 = triangles_test[r].r_nodes(1);
-      r2 = triangles_test[r].r_nodes(2);
+      r0 = triangles_test[r].r_nodes_0;
+      r1 = triangles_test[r].r_nodes_1;
+      r2 = triangles_test[r].r_nodes_2;
+      rGrav = triangles_test[r].r_grav;
 
       // triangle integration
-      for (int i=0 ; i<N_points ; ++i) {
-        r_obs = r0 * xi[i] + r1 * eta[i] + r2 * (1-xi[i]-eta[i]);
-        blitz::TinyVector<double, 3> n_hat_X_r, n_hat = triangles_test[r].n_hat;
-        n_hat_X_r = n_hat(1)*r_obs(2)-n_hat(2)*r_obs(1),
-                    n_hat(2)*r_obs(0)-n_hat(0)*r_obs(2),
-                    n_hat(0)*r_obs(1)-n_hat(1)*r_obs(0);
+      for (int j=0 ; j<N_points ; ++j) {
+        double r_obs[3];
+        r_obs[0] = r0[0] * xi[j] + r1[0] * eta[j] + r2[0] * (1-xi[j]-eta[j]);
+        r_obs[1] = r0[1] * xi[j] + r1[1] * eta[j] + r2[1] * (1-xi[j]-eta[j]);
+        r_obs[2] = r0[2] * xi[j] + r1[2] * eta[j] + r2[2] * (1-xi[j]-eta[j]);
+        double n_hat_X_r[3];
+        cross3D(n_hat_X_r, triangles_test[r].n_hat, r_obs);
 
-        blitz::TinyVector<std::complex<double>, 3> H_inc_i, E_inc_i;
         // computation of ITo_E_inc due to a dipole located at r_dip
-        E_inc_i = E0 * exp(-I*k * dot(kHat, r_obs - rRef) ) * weigths[i];
-        ITo_E_inc += E_inc_i;
-        ITo_r_dot_E_inc += dot(r_obs, E_inc_i);
-        ITo_n_hat_X_r_dot_E_inc += dot(n_hat_X_r, E_inc_i);
+        const double r_obs_rRef[3] = {r_obs[0] - rRef[0], r_obs[1] - rRef[1], r_obs[2] - rRef[2]};
+        const std::complex<double> temp(exp(-I*k * (kHat[0] * r_obs_rRef[0] + kHat[1] * r_obs_rRef[1] + kHat[2] * r_obs_rRef[2]) ));
+        for (int m=0 ; m<3 ; m++) E_inc_i[m] = E0[m] * temp * weigths[j];
+        ITo_E_inc[0] += E_inc_i[0];
+        ITo_E_inc[1] += E_inc_i[1];
+        ITo_E_inc[2] += E_inc_i[2];
+        ITo_r_dot_E_inc += r_obs[0] * E_inc_i[0] + r_obs[1] * E_inc_i[1] + r_obs[2] * E_inc_i[2];
+        ITo_n_hat_X_r_dot_E_inc += n_hat_X_r[0] * E_inc_i[0] + n_hat_X_r[1] * E_inc_i[1] + n_hat_X_r[2] * E_inc_i[2];
 
         // computation of ITo_H_inc due to a dipole located at r_dip
-        H_inc_i = H0 * exp(-I*k * dot(kHat, r_obs - rRef) ) * weigths[i];
-        ITo_H_inc += H_inc_i;
-        ITo_r_dot_H_inc += dot(r_obs, H_inc_i);
-        ITo_n_hat_X_r_dot_H_inc += dot(n_hat_X_r, H_inc_i);
- 
+        for (int m=0 ; m<3 ; m++) H_inc_i[m] = H0[m] * temp * weigths[j];
+        ITo_H_inc[0] += H_inc_i[0];
+        ITo_H_inc[1] += H_inc_i[1];
+        ITo_H_inc[2] += H_inc_i[2];
+        ITo_r_dot_H_inc += r_obs[0] * H_inc_i[0] + r_obs[1] * H_inc_i[1] + r_obs[2] * H_inc_i[2];
+        ITo_n_hat_X_r_dot_H_inc += n_hat_X_r[0] * H_inc_i[0] + n_hat_X_r[1] * H_inc_i[1] + n_hat_X_r[2] * H_inc_i[2];
       }
       const double norm_factor = triangles_test[r].A/sum_weigths;
 
-      ITo_E_inc *= norm_factor;
-      ITo_H_inc *= norm_factor;
+      for (int i=0 ; i<3 ; ++i) ITo_E_inc[i] *= norm_factor;
+      for (int i=0 ; i<3 ; ++i) ITo_H_inc[i] *= norm_factor;
       ITo_r_dot_E_inc *= norm_factor;
       ITo_r_dot_H_inc *= norm_factor;
       ITo_n_hat_X_r_dot_E_inc *= norm_factor;
@@ -143,15 +146,19 @@ void V_EJ_HJ_plane (blitz::Array<std::complex<double>, 1> V_tE_J,
         const double l_p = test_RWGs[index_p].length;
         const double sign_edge_p = triangleTest_signsInRWGs[p];
         const double C_rp = sign_edge_p * l_p * 0.5/triangles_test[r].A;
-        blitz::TinyVector<double, 3> r_p;
-        if (triangleTest_indexesInRWGs[p]==0) r_p = test_RWGs[index_p].vertexesCoord(0);
-        else if (triangleTest_indexesInRWGs[p]==1) r_p = test_RWGs[index_p].vertexesCoord(3);
-        const TinyVector<double, 3> n_hat_X_r_p(cross(triangles_test[r].n_hat, r_p));
+        double r_p[3], n_hat_X_r_p[3];
+        if (triangleTest_indexesInRWGs[p]==0) {
+          for (int i=0 ; i<3 ; ++i) r_p[i] = test_RWGs[index_p].vertexesCoord_0[i];
+        }
+        else if (triangleTest_indexesInRWGs[p]==1) {
+          for (int i=0 ; i<3 ; ++i) r_p[i] = test_RWGs[index_p].vertexesCoord_3[i];
+        }
+        cross3D(n_hat_X_r_p, triangles_test[r].n_hat, r_p);
 
-        V_tE_J (local_number_edge_p) += -C_rp * (ITo_r_dot_E_inc - sum(r_p * ITo_E_inc)); // -<f_m ; E_inc> 
-        V_tH_J (local_number_edge_p) += -C_rp * (ITo_r_dot_H_inc - sum(r_p * ITo_H_inc)); // -<f_m ; H_inc>
-        V_nE_J (local_number_edge_p) += -C_rp * (ITo_n_hat_X_r_dot_E_inc - sum(n_hat_X_r_p * ITo_E_inc)); // -<n_hat x f_m ; E_inc> 
-        V_nH_J (local_number_edge_p) += -C_rp * (ITo_n_hat_X_r_dot_H_inc - sum(n_hat_X_r_p * ITo_H_inc)); // -<n_hat x f_m ; H_inc> 
+        V_tE_J (local_number_edge_p) += -C_rp * (ITo_r_dot_E_inc - (r_p[0]*ITo_E_inc[0] + r_p[1]*ITo_E_inc[1] + r_p[2]*ITo_E_inc[2])); // -<f_m ; E_inc> 
+        V_tH_J (local_number_edge_p) += -C_rp * (ITo_r_dot_H_inc - (r_p[0]*ITo_H_inc[0] + r_p[1]*ITo_H_inc[1] + r_p[2]*ITo_H_inc[2])); // -<f_m ; H_inc>
+        V_nE_J (local_number_edge_p) += -C_rp * (ITo_n_hat_X_r_dot_E_inc - (n_hat_X_r_p[0]*ITo_E_inc[0] + n_hat_X_r_p[1]*ITo_E_inc[1] + n_hat_X_r_p[2]*ITo_E_inc[2])); // -<n_hat x f_m ; E_inc> 
+        V_nH_J (local_number_edge_p) += -C_rp * (ITo_n_hat_X_r_dot_H_inc - (n_hat_X_r_p[0]*ITo_H_inc[0] + n_hat_X_r_p[1]*ITo_H_inc[1] + n_hat_X_r_p[2]*ITo_H_inc[2])); // -<n_hat x f_m ; H_inc> 
       }
   }
 }
@@ -166,15 +173,15 @@ void V_CFIE_plane (blitz::Array<std::complex<float>, 1> V_CFIE,
                    const blitz::Array<int, 1>& RWGNumber_CFIE_OK,
                    const blitz::Array<float, 2>& RWGNumber_trianglesCoord,
                    const double w,
-                   const complex<double>& eps_r,
-                   const complex<double>& mu_r,
+                   const std::complex<double>& eps_r,
+                   const std::complex<double>& mu_r,
                    const int FULL_PRECISION)
 {
   // def of k, mu_i, eps_i
-  Range all = Range::all();
+  blitz::Range all = blitz::Range::all();
   int N_RWG_test = numbers_RWG_test.size();
-  complex<double> mu = mu_0 * mu_r, eps = eps_0 * eps_r, k = w * sqrt(eps*mu);
-  const complex<double> tE = CFIE(0), nE = CFIE(1), tH = CFIE(2), nH = CFIE(3);
+  std::complex<double> mu = mu_0 * mu_r, eps = eps_0 * eps_r, k = w * sqrt(eps*mu);
+  const std::complex<double> tE = CFIE(0), nE = CFIE(1), tH = CFIE(2), nH = CFIE(3);
 
   double sum_weigths;
   const double *xi, *eta, *weigths;
@@ -184,91 +191,83 @@ void V_CFIE_plane (blitz::Array<std::complex<float>, 1> V_CFIE,
   IT_points (xi, eta, weigths, sum_weigths, N_points);
 
   // r_ref is the reference for the phase of the incoming plane wave
-  blitz::TinyVector<double, 3> kHat, rRef;
-  for (int i=0 ; i<3 ; ++i) kHat(i) = k_hat(i);
-  for (int i=0 ; i<3 ; ++i) rRef(i) = r_ref(i);
-
-  complex<double> ITo_r_dot_H_inc, ITo_r_dot_E_inc, ITo_n_hat_X_r_dot_H_inc, ITo_n_hat_X_r_dot_E_inc;
+  double kHat[3], rRef[3];
+  for (int i=0 ; i<3 ; ++i) kHat[i] = k_hat(i);
+  for (int i=0 ; i<3 ; ++i) rRef[i] = r_ref(i);
 
   // computation of H_0
-  blitz::TinyVector<std::complex<double>, 3> E0, H0;
-  for (int i=0 ; i<3 ; ++i) E0(i) = E_0(i);
-  H0 = k_hat(1)*E_0(2)-k_hat(2)*E_0(1),
-       k_hat(2)*E_0(0)-k_hat(0)*E_0(2),
-       k_hat(0)*E_0(1)-k_hat(1)*E_0(0);
-  H0 *= sqrt(eps/mu);
+  double r0[3], r1[3], r2[3], *r_opp;
+  std::complex<double> ITo_r_dot_H_inc, ITo_r_dot_E_inc, ITo_n_hat_X_r_dot_H_inc, ITo_n_hat_X_r_dot_E_inc;
+  std::complex<double> H_inc_i[3], ITo_H_inc[3], E_inc_i[3], ITo_E_inc[3];
+  // computation of H_0
+  std::complex<double> E0[3], H0[3];
+  for (int i=0 ; i<3 ; ++i) E0[i] = E_0(i);
+  H0[0] = (k_hat(1)*E_0(2)-k_hat(2)*E_0(1)) * sqrt(eps/mu);
+  H0[1] = (k_hat(2)*E_0(0)-k_hat(0)*E_0(2)) * sqrt(eps/mu);
+  H0[2] = (k_hat(0)*E_0(1)-k_hat(1)*E_0(0)) * sqrt(eps/mu);
 
   V_CFIE = 0.0;
-  blitz::TinyVector<double, 3> r0, r1, r2, r_obs;
   for (int rwg=0 ; rwg<N_RWG_test ; ++rwg) { // loop on the RWGs
     for (int tr = 0 ; tr<2 ; ++tr) {
       double l_p;
-      blitz::Array<double, 1> rt0(3), rt1(3), rt2(3), r_opp(3);
       if (tr==0) {
         for (int i=0; i<3; i++) { 
-          rt0(i) = RWGNumber_trianglesCoord(rwg, i);
-          rt1(i) = RWGNumber_trianglesCoord(rwg, i+3);
-          rt2(i) = RWGNumber_trianglesCoord(rwg, i+6);
+          r0[i] = RWGNumber_trianglesCoord(rwg, i);
+          r1[i] = RWGNumber_trianglesCoord(rwg, i+3);
+          r2[i] = RWGNumber_trianglesCoord(rwg, i+6);
         }
-        for (int i=0 ; i<3 ; i++) {
-          r0(i) = rt0(i);
-          r1(i) = rt1(i);
-          r2(i) = rt2(i);
-        }
-        r_opp = rt0;
-        l_p = sqrt(sum((rt1-rt2) * (rt1-rt2)));
+        r_opp = r0;
+        double r1_r2[3] = {r1[0]-r2[0], r1[1]-r2[1], r1[2]-r2[2]};
+        l_p = sqrt(dot3D(r1_r2, r1_r2));
       }
       else{
-        for (int i=0; i<3; i++) { 
-          rt0(i) = RWGNumber_trianglesCoord(rwg, i+6);
-          rt1(i) = RWGNumber_trianglesCoord(rwg, i+3);
-          rt2(i) = RWGNumber_trianglesCoord(rwg, i+9);
-        }
         for (int i=0 ; i<3 ; i++) {
-          r0(i) = rt0(i);
-          r1(i) = rt1(i);
-          r2(i) = rt2(i);
+          r0[i] = RWGNumber_trianglesCoord(rwg, i+6);
+          r1[i] = RWGNumber_trianglesCoord(rwg, i+3);
+          r2[i] = RWGNumber_trianglesCoord(rwg, i+9);
         }
-        r_opp = rt2;
-        l_p = sqrt(sum((rt0-rt1) * (rt0-rt1)));
+        r_opp = r2;
+        double r0_r1[3] = {r0[0]-r1[0], r0[1]-r1[1], r0[2]-r1[2]};
+        l_p = sqrt(dot3D(r0_r1, r0_r1));
       }
       Triangle triangle(r0, r1, r2, 0);
-      blitz::TinyVector<std::complex<double>, 3> ITo_E_inc, ITo_H_inc;
-      ITo_E_inc = 0.0; // Array<complex<double>, 1>
-      ITo_H_inc = 0.0; // Array<complex<double>, 1>
+      for (int i=0 ; i<3 ; ++i) ITo_E_inc[i] = 0.0; // Vector<complex<double>, 3>
+      for (int i=0 ; i<3 ; ++i) ITo_H_inc[i] = 0.0; // Vector<complex<double>, 3>
       ITo_r_dot_E_inc = 0.0; // complex<double>
       ITo_r_dot_H_inc = 0.0; // complex<double>
       ITo_n_hat_X_r_dot_E_inc = 0.0; // complex<double>
       ITo_n_hat_X_r_dot_H_inc = 0.0; // complex<double>
 
-      r0 = triangle.r_nodes(0);
-      r1 = triangle.r_nodes(1);
-      r2 = triangle.r_nodes(2);
+      for (int j=0 ; j<N_points ; ++j) {
+        double r_obs[3];
+        r_obs[0] = r0[0] * xi[j] + r1[0] * eta[j] + r2[0] * (1-xi[j]-eta[j]);
+        r_obs[1] = r0[1] * xi[j] + r1[1] * eta[j] + r2[1] * (1-xi[j]-eta[j]);
+        r_obs[2] = r0[2] * xi[j] + r1[2] * eta[j] + r2[2] * (1-xi[j]-eta[j]);
+        double n_hat_X_r[3];
+        cross3D(n_hat_X_r, triangle.n_hat, r_obs);
 
-      for (int i=0 ; i<N_points ; ++i) {
-        blitz::TinyVector<double, 3>  r_obs = r0 * xi[i] + r1 * eta[i] + r2 * (1-xi[i]-eta[i]);
-        blitz::TinyVector<double, 3> n_hat_X_r;
-        n_hat_X_r = triangle.n_hat(1)*r_obs(2)-triangle.n_hat(2)*r_obs(1),
-                    triangle.n_hat(2)*r_obs(0)-triangle.n_hat(0)*r_obs(2),
-                    triangle.n_hat(0)*r_obs(1)-triangle.n_hat(1)*r_obs(0);
-
-        blitz::TinyVector<std::complex<double>, 3> H_inc_i, E_inc_i;
         // computation of ITo_E_inc due to a dipole located at r_dip
-        E_inc_i = E0 * exp(-I*k * dot(kHat, r_obs - rRef) ) * weigths[i];
-        ITo_E_inc += E_inc_i;
-        ITo_r_dot_E_inc += dot(r_obs, E_inc_i);
-        ITo_n_hat_X_r_dot_E_inc += dot(n_hat_X_r, E_inc_i);
+        const double r_obs_rRef[3] = {r_obs[0] - rRef[0], r_obs[1] - rRef[1], r_obs[2] - rRef[2]};
+        const std::complex<double> temp(exp(-I*k * (kHat[0] * r_obs_rRef[0] + kHat[1] * r_obs_rRef[1] + kHat[2] * r_obs_rRef[2]) ));
+        for (int m=0 ; m<3 ; m++) E_inc_i[m] = E0[m] * temp * weigths[j];
+        ITo_E_inc[0] += E_inc_i[0];
+        ITo_E_inc[1] += E_inc_i[1];
+        ITo_E_inc[2] += E_inc_i[2];
+        ITo_r_dot_E_inc += r_obs[0] * E_inc_i[0] + r_obs[1] * E_inc_i[1] + r_obs[2] * E_inc_i[2];
+        ITo_n_hat_X_r_dot_E_inc += n_hat_X_r[0] * E_inc_i[0] + n_hat_X_r[1] * E_inc_i[1] + n_hat_X_r[2] * E_inc_i[2];
 
         // computation of ITo_H_inc due to a dipole located at r_dip
-        H_inc_i = H0 * exp(-I*k * dot(kHat, r_obs - rRef) ) * weigths[i];
-        ITo_H_inc += H_inc_i;
-        ITo_r_dot_H_inc += dot(r_obs, H_inc_i);
-        ITo_n_hat_X_r_dot_H_inc += dot(n_hat_X_r, H_inc_i);
+        for (int m=0 ; m<3 ; m++) H_inc_i[m] = H0[m] * temp * weigths[j];
+        ITo_H_inc[0] += H_inc_i[0];
+        ITo_H_inc[1] += H_inc_i[1];
+        ITo_H_inc[2] += H_inc_i[2];
+        ITo_r_dot_H_inc += r_obs[0] * H_inc_i[0] + r_obs[1] * H_inc_i[1] + r_obs[2] * H_inc_i[2];
+        ITo_n_hat_X_r_dot_H_inc += n_hat_X_r[0] * H_inc_i[0] + n_hat_X_r[1] * H_inc_i[1] + n_hat_X_r[2] * H_inc_i[2];
       }
       double norm_factor = triangle.A/sum_weigths;
 
-      ITo_E_inc *= norm_factor;
-      ITo_H_inc *= norm_factor;
+      for (int i=0 ; i<3 ; ++i) ITo_E_inc[i] *= norm_factor;
+      for (int i=0 ; i<3 ; ++i) ITo_H_inc[i] *= norm_factor;
       ITo_r_dot_E_inc *= norm_factor;
       ITo_r_dot_H_inc *= norm_factor;
       ITo_n_hat_X_r_dot_E_inc *= norm_factor;
@@ -277,16 +276,17 @@ void V_CFIE_plane (blitz::Array<std::complex<float>, 1> V_CFIE,
       const int local_number_edge_p = numbers_RWG_test(rwg);
       const int sign_edge_p = (tr==0) ? 1 : -1;
       const double C_rp = sign_edge_p * l_p * 0.5/triangle.A;
-      blitz::TinyVector<double, 3> r_p;
-      for (int i=0; i<3 ; ++i) r_p(i) = r_opp(i);
-      const TinyVector<double, 3> n_hat_X_r_p(cross(triangle.n_hat, r_p));
+      double *r_p;
+      r_p = r_opp;
+      double n_hat_X_r_p[3];
+      cross3D(n_hat_X_r_p, triangle.n_hat, r_p);
 
       complex<double> tmpResult(0.0, 0.0);
-      tmpResult -= tE * C_rp * (ITo_r_dot_E_inc - sum(r_p * ITo_E_inc)); // -<f_m ; E_inc>
+      tmpResult -= tE * C_rp * (ITo_r_dot_E_inc - (r_p[0]*ITo_E_inc[0] + r_p[1]*ITo_E_inc[1] + r_p[2]*ITo_E_inc[2])); // -<f_m ; E_inc>
       if (RWGNumber_CFIE_OK(local_number_edge_p) == 1) {
-        tmpResult -= nE * C_rp * (ITo_n_hat_X_r_dot_E_inc - sum(n_hat_X_r_p * ITo_E_inc)); // -<n_hat x f_m ; E_inc> 
-        tmpResult -= tH * C_rp * (ITo_r_dot_H_inc - sum(r_p * ITo_H_inc)); // -<f_m ; H_inc>
-        tmpResult -= nH * C_rp * (ITo_n_hat_X_r_dot_H_inc - sum(n_hat_X_r_p * ITo_H_inc)); // -<n_hat x f_m ; H_inc> 
+        tmpResult -= nE * C_rp * (ITo_n_hat_X_r_dot_E_inc - (n_hat_X_r_p[0]*ITo_E_inc[0] + n_hat_X_r_p[1]*ITo_E_inc[1] + n_hat_X_r_p[2]*ITo_E_inc[2])); // -<n_hat x f_m ; E_inc> 
+        tmpResult -= tH * C_rp * (ITo_r_dot_H_inc - (r_p[0]*ITo_H_inc[0] + r_p[1]*ITo_H_inc[1] + r_p[2]*ITo_H_inc[2])); // -<f_m ; H_inc>
+        tmpResult -= nH * C_rp * (ITo_n_hat_X_r_dot_H_inc - (n_hat_X_r_p[0]*ITo_H_inc[0] + n_hat_X_r_p[1]*ITo_H_inc[1] + n_hat_X_r_p[2]*ITo_H_inc[2])); // -<n_hat x f_m ; H_inc> 
       }
       V_CFIE(local_number_edge_p) += tmpResult;
     }
@@ -310,7 +310,7 @@ void local_V_CFIE_plane (blitz::Array<std::complex<float>, 1>& V_CFIE,
 }
 
 
-// void V_E_V_H_horn_BBHA (Array<complex<double>,2>& V_EJ, Array<complex<double>,2>& V_HJ, Array<complex<double>,2>& V_EM, Array<complex<double>,2>& V_HM, const mesh & MESH_TARGET, const mesh & MESH_ANTENNA, const TinyVector<double,3>& r_ant, const TinyVector<double,3>& x_hat_ant, const TinyVector<double,3>& y_hat_ant, const G_EJ_grid & G_EJ_tab_ant_object, const G_HJ_grid & G_HJ_tab_ant_object, const layers_constants & LC, const G_EJ_grid & G_EJ_tab_ant_object_dual, const G_HJ_grid & G_HJ_tab_ant_object_dual, const layers_constants & LC_dual) {
+// void V_E_V_H_horn_BBHA (Array<complex<double>,2>& V_EJ, Array<complex<double>,2>& V_HJ, Array<complex<double>,2>& V_EM, Array<complex<double>,2>& V_HM, const mesh & MESH_TARGET, const mesh & MESH_ANTENNA, const Vector<double,3>& r_ant, const Vector<double,3>& x_hat_ant, const Vector<double,3>& y_hat_ant, const G_EJ_grid & G_EJ_tab_ant_object, const G_HJ_grid & G_HJ_tab_ant_object, const layers_constants & LC, const G_EJ_grid & G_EJ_tab_ant_object_dual, const G_HJ_grid & G_HJ_tab_ant_object_dual, const layers_constants & LC_dual) {
 
 //   int i, j, N_TR_ANT = MESH_ANTENNA.triangles.rows(), E = MESH_TARGET.edges.rows()/2; 
 //   double sum_weigths;
@@ -334,8 +334,8 @@ void local_V_CFIE_plane (blitz::Array<std::complex<float>, 1>& V_CFIE,
 //     V_HJ_triangle = 0.0;
 //     V_HM_triangle = 0.0;
 //     complex<double> term_1;
-//     TinyVector<double, 3> r_j, r_J_on_antenna;
-//     TinyVector<complex<double>, 3> J_ant, M_ant;
+//     Vector<double, 3> r_j, r_J_on_antenna;
+//     Vector<complex<double>, 3> J_ant, M_ant;
 //     triangle T_antenna_i;
 //     construct_triangle (T_antenna_i, MESH_ANTENNA, i);
 //     for (j=0 ; j<N_points ; j++) { // loop on points of antenna triangle

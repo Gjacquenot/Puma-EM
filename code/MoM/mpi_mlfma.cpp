@@ -6,7 +6,6 @@
 #include <complex>
 #include <cmath>
 #include <blitz/array.h>
-#include <blitz/tinyvec-et.h>
 #include <vector>
 #include <algorithm>
 #include <mpi.h>
@@ -854,10 +853,10 @@ void computeMonostaticSAR(Octtree & octtree,
           local_target_mesh.resizeToZero();
           // target incoming field: reference field for RCS computation
           blitz::Array<std::complex<double>, 2> G_EJ(3, 3), G_HJ(3, 3);
-          blitz::TinyVector<double, 3> r_dip, r_obs2;
+          double r_dip[3], r_obs2[3];
           for (int m=0 ; m<3 ; m++) {
-            r_dip(m) = r_src(m);
-            r_obs2(m) = r_ref(m);
+            r_dip[m] = r_src(m);
+            r_obs2[m] = r_ref(m);
           }
           G_EJ_G_HJ (G_EJ, G_HJ, r_dip, r_obs2, eps, mu, k);
           for (int m=0 ; m<3 ; m++) E_0(m) = G_EJ(m, 0) * J_ant(0) + G_EJ(m, 1) * J_ant(1) + G_EJ(m, 2) * J_ant(2);

@@ -1,11 +1,10 @@
 #include <iostream>
 #include <complex>
 #include <blitz/array.h>
-#include <blitz/tinyvec-et.h>
 
-using namespace blitz;
+using namespace std;
 
-const complex<double> I (0.0, 1.0);
+const std::complex<double> I (0.0, 1.0);
 
 #include "GK_triangle.h"
 #include "GL.h"
@@ -16,52 +15,58 @@ const complex<double> I (0.0, 1.0);
 /********************************* Triangle *********************************/
 /****************************************************************************/
 
-Triangle::Triangle(void)
-{
-  r_nodes.resize (3);
-  m_i_hat.resize (3);
-  s_i_hat.resize (3);
-}
-
-Triangle::Triangle(const blitz::TinyVector<double, 3>& r0,
-                   const blitz::TinyVector<double, 3>& r1,
-                   const blitz::TinyVector<double, 3>& r2,
+Triangle::Triangle(const double r0[],
+                   const double r1[],
+                   const double r2[],
                    const int tr_number)
 {
   number = tr_number;
-  r_nodes.resize (3);
-  m_i_hat.resize (3);
-  s_i_hat.resize (3);
-  r_nodes(0) = r0;
-  r_nodes(1) = r1;
-  r_nodes(2) = r2;
+  for (int i=0 ; i<3 ; ++i) {
+    r_nodes_0[i] = r0[i];
+    r_nodes_1[i] = r1[i];
+    r_nodes_2[i] = r2[i];
+  }
   // gravity center
-  TinyVector<double, 3> r2_r1, r3_r1, r3_r2, r_grav_r1, r_grav_r2, r_grav_r3;
-  r_grav = (r_nodes(0) + r_nodes(1) + r_nodes(2))/3.0;
-  r2_r1 = r_nodes(1) - r_nodes(0);
-  r3_r2 = r_nodes(2) - r_nodes(1);
-  r3_r1 = r_nodes(2) - r_nodes(0);
+  double r2_r1[3], r3_r1[3], r3_r2[3], r_grav_r1[3], r_grav_r2[3], r_grav_r3[3];
+  for (int i=0 ; i<3 ; ++i) {
+    r_grav[i] = (r_nodes_0[i] + r_nodes_1[i] + r_nodes_2[i])/3.0;
+    r2_r1[i] = r_nodes_1[i] - r_nodes_0[i];
+    r3_r2[i] = r_nodes_2[i] - r_nodes_1[i];
+    r3_r1[i] = r_nodes_2[i] - r_nodes_0[i];
+  }
 
   // T.n_hat and T.A construction
-  n_hat = cross(r2_r1, r3_r1);
-  A = sqrt(dot(n_hat, n_hat))/2.0;
-  n_hat = n_hat/(2.0*A);
+  // n_hat is the result of a cross-product
+  cross3D(n_hat, r2_r1, r3_r1);
+  // n_hat[0] = r2_r1[1] * r3_r1[2] - r2_r1[2] * r3_r1[1];
+  // n_hat[1] = r2_r1[2] * r3_r1[0] - r2_r1[0] * r3_r1[2];
+  // n_hat[2] = r2_r1[0] * r3_r1[1] - r2_r1[1] * r3_r1[0];
+ 
+  A = sqrt(n_hat[0]*n_hat[0] + n_hat[1]*n_hat[1] + n_hat[2]*n_hat[2])/2.0;
+  for (int i=0 ; i<3 ; ++i) n_hat[i] *= 1.0/(2.0*A);
 
   // T.s_i_hat construction
-  s_i_hat (0) = r2_r1/sqrt (dot (r2_r1, r2_r1));
-  s_i_hat (1) = r3_r2/sqrt (dot (r3_r2, r3_r2));
-  s_i_hat (2) = -1.0*r3_r1/sqrt (dot (r3_r1, r3_r1));
-
+  double r2_r1_norm = sqrt(r2_r1[0]*r2_r1[0] + r2_r1[1]*r2_r1[1] + r2_r1[2]*r2_r1[2]);
+  double r3_r2_norm = sqrt(r3_r2[0]*r3_r2[0] + r3_r2[1]*r3_r2[1] + r3_r2[2]*r3_r2[2]);
+  double r3_r1_norm = sqrt(r3_r1[0]*r3_r1[0] + r3_r1[1]*r3_r1[1] + r3_r1[2]*r3_r1[2]);
+  for (int i=0 ; i<3 ; ++i) {
+    s_i_hat_0[i] = r2_r1[i]/r2_r1_norm;
+    s_i_hat_1[i] = r3_r2[i]/r3_r2_norm;
+    s_i_hat_2[i] = -1.0*r3_r1[i]/r3_r1_norm;
+  }
   // T.m_i_hat construction
-  for (int i=0 ; i<3 ; i++) m_i_hat(i) = cross(s_i_hat(i), n_hat);
-
+  cross3D(m_i_hat_0, s_i_hat_0, n_hat);
+  cross3D(m_i_hat_1, s_i_hat_1, n_hat);
+  cross3D(m_i_hat_2, s_i_hat_2, n_hat);
   // R_max computation. R_max is the greatest |r_grav - ri|, i=0..2  
-  r_grav_r1 = r_grav - r_nodes(0);
-  r_grav_r2 = r_grav - r_nodes(1);
-  r_grav_r3 = r_grav - r_nodes(2);
-  double R1 = sqrt( r_grav_r1(0) * r_grav_r1(0) + r_grav_r1(1) * r_grav_r1(1) + r_grav_r1(2) * r_grav_r1(2) );
-  double R2 = sqrt( r_grav_r2(0) * r_grav_r2(0) + r_grav_r2(1) * r_grav_r2(1) + r_grav_r2(2) * r_grav_r2(2) );
-  double R3 = sqrt( r_grav_r3(0) * r_grav_r3(0) + r_grav_r3(1) * r_grav_r3(1) + r_grav_r3(2) * r_grav_r3(2) );
+  for (int i=0 ; i<3 ; ++i) {
+    r_grav_r1[i] = r_grav[i] - r_nodes_0[i];
+    r_grav_r2[i] = r_grav[i] - r_nodes_1[i];
+    r_grav_r3[i] = r_grav[i] - r_nodes_2[i];
+  }
+  double R1 = sqrt( r_grav_r1[0] * r_grav_r1[0] + r_grav_r1[1] * r_grav_r1[1] + r_grav_r1[2] * r_grav_r1[2] );
+  double R2 = sqrt( r_grav_r2[0] * r_grav_r2[0] + r_grav_r2[1] * r_grav_r2[1] + r_grav_r2[2] * r_grav_r2[2] );
+  double R3 = sqrt( r_grav_r3[0] * r_grav_r3[0] + r_grav_r3[1] * r_grav_r3[1] + r_grav_r3[2] * r_grav_r3[2] );
   R_max = ( R1 > R2 ) ? R1 : R2;
   R_max = ( R_max > R3) ? R_max : R3;
 }
@@ -69,16 +74,22 @@ Triangle::Triangle(const blitz::TinyVector<double, 3>& r0,
 void Triangle::copyTriangle (const Triangle& triangleToCopy) // copy member function
 {
   number = triangleToCopy.number;
-  r_nodes.resize (3);
-  m_i_hat.resize (3);
-  s_i_hat.resize (3);
   for (int i=0 ; i<3 ; ++i) {
-    r_nodes(i) = triangleToCopy.r_nodes(i);
-    m_i_hat(i) = triangleToCopy.m_i_hat(i);
-    s_i_hat(i) = triangleToCopy.s_i_hat(i);
+    r_nodes_0[i] = triangleToCopy.r_nodes_0[i];
+    r_nodes_1[i] = triangleToCopy.r_nodes_1[i];
+    r_nodes_2[i] = triangleToCopy.r_nodes_2[i];
+
+    m_i_hat_0[i] = triangleToCopy.m_i_hat_0[i];
+    m_i_hat_1[i] = triangleToCopy.m_i_hat_1[i];
+    m_i_hat_2[i] = triangleToCopy.m_i_hat_2[i];
+
+    s_i_hat_0[i] = triangleToCopy.s_i_hat_0[i];
+    s_i_hat_1[i] = triangleToCopy.s_i_hat_1[i];
+    s_i_hat_2[i] = triangleToCopy.s_i_hat_2[i];
+
+    n_hat[i] = triangleToCopy.n_hat[i];
+    r_grav[i] = triangleToCopy.r_grav[i];
   }
-  n_hat = triangleToCopy.n_hat;
-  r_grav = triangleToCopy.r_grav;
   A = triangleToCopy.A;
   R_max = triangleToCopy.R_max;
   RWGIndexes.resize(triangleToCopy.RWGIndexes.size());
@@ -103,9 +114,6 @@ Triangle::~Triangle() {
   RWGIndexes.clear();
   indexesInRWGs.clear();
   signInRWG.clear();
-  r_nodes.free();
-  m_i_hat.free();
-  s_i_hat.free();
 }
 
 //! this function is useful in the MoM
@@ -118,27 +126,27 @@ void constructVectorTriangles(std::vector<Triangle>& triangles,
   for (int i=0 ; i<TriangleToRWG.size() ; i++) {
     const int tr_number = TriangleToRWG[i].getKey();
     const int RWG_index = TriangleToRWG[i].getVal();
-    int indexInRWG = (tr_number == vectorRWGs[RWG_index].triangleNumbers(0)) ? 0 : 1;
-    double sign = static_cast<double>(vectorRWGs[RWG_index].triangleSigns(indexInRWG));
+    int indexInRWG = (tr_number == vectorRWGs[RWG_index].triangleNumbers[0]) ? 0 : 1;
+    double sign = static_cast<double>(vectorRWGs[RWG_index].triangleSigns[indexInRWG]);
     if (triangles.size()==0) { // initialisation of the vector of triangles
-      if (indexInRWG==0) triangles.push_back(Triangle(vectorRWGs[RWG_index].vertexesCoord(0),
-                                                      vectorRWGs[RWG_index].vertexesCoord(1),
-                                                      vectorRWGs[RWG_index].vertexesCoord(2),
+      if (indexInRWG==0) triangles.push_back(Triangle(vectorRWGs[RWG_index].vertexesCoord_0,
+                                                      vectorRWGs[RWG_index].vertexesCoord_1,
+                                                      vectorRWGs[RWG_index].vertexesCoord_2,
                                                       tr_number));
-      else triangles.push_back(Triangle(vectorRWGs[RWG_index].vertexesCoord(2),
-                                        vectorRWGs[RWG_index].vertexesCoord(1),
-                                        vectorRWGs[RWG_index].vertexesCoord(3),
+      else triangles.push_back(Triangle(vectorRWGs[RWG_index].vertexesCoord_2,
+                                        vectorRWGs[RWG_index].vertexesCoord_1,
+                                        vectorRWGs[RWG_index].vertexesCoord_3,
                                         tr_number));
     }
     else if (tr_number!=triangles[index].number) { // we create a new triangle
       index++;
-      if (indexInRWG==0) triangles.push_back(Triangle(vectorRWGs[RWG_index].vertexesCoord(0),
-                                                      vectorRWGs[RWG_index].vertexesCoord(1),
-                                                      vectorRWGs[RWG_index].vertexesCoord(2),
+      if (indexInRWG==0) triangles.push_back(Triangle(vectorRWGs[RWG_index].vertexesCoord_0,
+                                                      vectorRWGs[RWG_index].vertexesCoord_1,
+                                                      vectorRWGs[RWG_index].vertexesCoord_2,
                                                       tr_number));
-      else triangles.push_back(Triangle(vectorRWGs[RWG_index].vertexesCoord(2),
-                                        vectorRWGs[RWG_index].vertexesCoord(1),
-                                        vectorRWGs[RWG_index].vertexesCoord(3),
+      else triangles.push_back(Triangle(vectorRWGs[RWG_index].vertexesCoord_2,
+                                        vectorRWGs[RWG_index].vertexesCoord_1,
+                                        vectorRWGs[RWG_index].vertexesCoord_3,
                                         tr_number));
     }
     // we have to actualise RWGIndexes, signInRWG and indexesInRWGs
@@ -155,35 +163,43 @@ void constructVectorTriangles(std::vector<Triangle>& triangles,
 
 //! Half_RWG_function class
 RWG::RWG(const int RWG_number,
-         const blitz::TinyVector<int, 2>& triangle_numbers,
-         const blitz::TinyVector<int, 2>& triangle_signs,
-         const blitz::Array<double, 1>& r0,
-         const blitz::Array<double, 1>& r1,
-         const blitz::Array<double, 1>& r2,
-         const blitz::Array<double, 1>& r3)
+         const int triangle_numbers[], // dim 2
+         const int triangle_signs[],
+         const double r0[], // dim 3
+         const double r1[],
+         const double r2[],
+         const double r3[])
 {
   number = RWG_number;
-  triangleNumbers = triangle_numbers;
-  triangleSigns = triangle_signs;
-  vertexesCoord.resize(4);
-  for (int j=0 ; j<3 ; j++) {
-    vertexesCoord(0)(j) = r0(j);
-    vertexesCoord(1)(j) = r1(j);
-    vertexesCoord(2)(j) = r2(j);
-    vertexesCoord(3)(j) = r3(j);
+  for (int i=0 ; i<2 ; ++i) {
+    triangleNumbers[i] = triangle_numbers[i];
+    triangleSigns[i] = triangle_signs[i];
   }
-  blitz::TinyVector<double, 3> r1_r2(vertexesCoord(1)-vertexesCoord(2));
-  length = std::sqrt(blitz::dot(r1_r2, r1_r2));
+  for (int j=0 ; j<3 ; ++j) {
+    vertexesCoord_0[j] = r0[j];
+    vertexesCoord_1[j] = r1[j];
+    vertexesCoord_2[j] = r2[j];
+    vertexesCoord_3[j] = r3[j];
+  }
+  double r1_r2[3];
+  for (int j=0 ; j<3 ; ++j) r1_r2[j] = vertexesCoord_1[j] - vertexesCoord_2[j];
+  length = std::sqrt(r1_r2[0]*r1_r2[0] + r1_r2[1]*r1_r2[1] + r1_r2[2]*r1_r2[2]);
 }
 
 void RWG::copyRWG(const RWG& RWGToCopy)
 {
   number = RWGToCopy.number;
-  triangleNumbers = RWGToCopy.triangleNumbers;
-  triangleSigns = RWGToCopy.triangleSigns;
+  for (int i=0 ; i<2 ; ++i) {
+    triangleNumbers[i] = RWGToCopy.triangleNumbers[i];
+    triangleSigns[i] = RWGToCopy.triangleSigns[i];
+  }
+  for (int j=0 ; j<3 ; ++j) {
+    vertexesCoord_0[j] = RWGToCopy.vertexesCoord_0[j];
+    vertexesCoord_1[j] = RWGToCopy.vertexesCoord_1[j];
+    vertexesCoord_2[j] = RWGToCopy.vertexesCoord_2[j];
+    vertexesCoord_3[j] = RWGToCopy.vertexesCoord_3[j];
+  }
   length = RWGToCopy.length;
-  vertexesCoord.resize(4);
-  for (int i=0 ; i<4 ; i++) vertexesCoord(i) = RWGToCopy.vertexesCoord(i);
 }
 
 RWG::RWG(const RWG& RWGToCopy) // copy constructor
@@ -201,58 +217,82 @@ RWG& RWG::operator=(const RWG& RWGToCopy) { // copy assignment
 /****************************************************************************/
 
 void IT_fm_fn (double & IT_r_square,
-               blitz::TinyVector<double, 3>& IT_r,
+               double IT_r[], // dim 3
                const Triangle & T)
 {
-  IT_r = T.A * (T.r_nodes (0) + T.r_nodes (1) + T.r_nodes (2))/3.0;
-  IT_r_square = T.A * (dot(T.r_nodes (0), T.r_nodes (0)) + dot(T.r_nodes (1), T.r_nodes (1)) + dot(T.r_nodes (2), T.r_nodes (2)) + dot(T.r_nodes (0), T.r_nodes (1)) + dot(T.r_nodes (0), T.r_nodes (2)) + dot(T.r_nodes (1), T.r_nodes (2)))/6.0;
+  IT_r_square = 0.0;
+  for (int i=0 ; i<3 ; ++i) {
+    IT_r[i] = T.A * (T.r_nodes_0[i] + T.r_nodes_1[i] + T.r_nodes_2[i])/3.0;
+    IT_r_square += T.r_nodes_0[i] * T.r_nodes_0[i] + T.r_nodes_1[i] * T.r_nodes_1[i] + T.r_nodes_2[i] * T.r_nodes_2[i] + T.r_nodes_0[i] * T.r_nodes_1[i] + T.r_nodes_0[i] * T.r_nodes_2[i] + T.r_nodes_1[i] * T.r_nodes_2[i];
+  }
+  IT_r_square *= T.A/6.0;
 }
 
 void IT_singularities (double & IT_1_R,
                        double & IT_R,
-                       blitz::TinyVector<double, 3>& IT_1_R_rprime_r,
-                       blitz::TinyVector<double, 3>& IT_R_rprime_r,
-                       blitz::TinyVector<double, 3>& IT_grad_1_R,
-                       blitz::TinyVector<double, 3>& IT_grad_R,
-                       const blitz::TinyVector<double,3>& r,
+                       double IT_1_R_rprime_r[], // dim 3
+                       double IT_R_rprime_r[], // dim 3
+                       double IT_grad_1_R[], // dim 3
+                       double IT_grad_R[], // dim 3
+                       const double r[],
                        const Triangle & T)
 /**
  * notations are taken from I.Hanninen, M. Taskinen and J. Sarvas, "Singularity subtraction integral Formulae
  * for surface integral equations with RWG, rooftop and hybrid basis functions", PIER 63, 243--278, 2006
  */
 {
-  const double h = dot(r-T.r_nodes (0), T.n_hat), abs_h = abs(h), sign_h = (abs_h<1.0e-10) ? 0.0 : h/abs_h;
+  const double h = ((r[0]-T.r_nodes_0[0]) * T.n_hat[0] + (r[1]-T.r_nodes_0[1]) * T.n_hat[1] + (r[2]-T.r_nodes_0[2]) * T.n_hat[2]); 
+  const double abs_h = abs(h), sign_h = (abs_h<1.0e-10) ? 0.0 : h/abs_h;
   double t_i_0, s_plus__i, s_minus__i, R_plus__i, R_minus__i, R_i_0_square;
   double I_L_minus_1__i, I_L_plus_1__i, I_L_plus_3__i, beta_i, K_1_minus_1__i, K_1_plus_1__i;
-  const blitz::TinyVector<double, 3> rho(r - T.n_hat * dot(r, T.n_hat));
-  blitz::TinyVector<double, 3> r_plus__i, r_minus__i;
-  blitz::TinyVector<double, 3> K_2_minus_1__i, K_2_plus_1__i, K_3_minus_1__i, K_3_plus_1__i;
+  double rho[3];
+  const double r_dot_n_hat = r[0] * T.n_hat[0] + r[1] * T.n_hat[1] + r[2] * T.n_hat[2];
+  for (int i=0 ; i<3 ; ++i) rho[i] = r[i] - T.n_hat[i] * r_dot_n_hat;
+  const double * r_plus__i, * r_minus__i, * m_i_hat;
+  double K_2_minus_1__i[3], K_2_plus_1__i[3], K_3_minus_1__i[3], K_3_plus_1__i[3];
 
   IT_1_R = 0.0;
   IT_R = 0.0;
-  IT_1_R_rprime_r = 0.0;
-  IT_R_rprime_r = 0.0;
-  IT_grad_1_R = 0.0;
-  IT_grad_R = 0.0;
+  for (int i=0 ; i<3 ; ++i) {
+    IT_1_R_rprime_r[i] = 0.0;
+    IT_R_rprime_r[i] = 0.0;
+    IT_grad_1_R[i] = 0.0;
+    IT_grad_R[i] = 0.0;
+  }
 
   for (int i=0 ; i<3 ; ++i) {
     switch (i)
     {
-      case 0: r_plus__i = T.r_nodes (1); r_minus__i = T.r_nodes (0); break;
-      case 1: r_plus__i = T.r_nodes (2); r_minus__i = T.r_nodes (1); break;
-      case 2: r_plus__i = T.r_nodes (0); r_minus__i = T.r_nodes (2); break;
+      case 0: r_plus__i = T.r_nodes_1; r_minus__i = T.r_nodes_0; m_i_hat = T.m_i_hat_0; break;
+      case 1: r_plus__i = T.r_nodes_2; r_minus__i = T.r_nodes_1; m_i_hat = T.m_i_hat_1; break;
+      case 2: r_plus__i = T.r_nodes_0; r_minus__i = T.r_nodes_2; m_i_hat = T.m_i_hat_2; break;
     }
     // s_plus__i, s_minus__i computation
-    const blitz::TinyVector<double, 3> r_plus__i_r(r_plus__i-r), r_minus__i_r(r_minus__i-r);
-    s_plus__i = dot(r_plus__i_r, T.s_i_hat (i));
-    s_minus__i = dot(r_minus__i_r, T.s_i_hat (i));
-
+    double r_plus__i_r[3], r_minus__i_r[3];
+    r_plus__i_r[0] = r_plus__i[0]-r[0];
+    r_plus__i_r[1] = r_plus__i[1]-r[1];
+    r_plus__i_r[2] = r_plus__i[2]-r[2];
+    r_minus__i_r[0] = r_minus__i[0]-r[0];
+    r_minus__i_r[1] = r_minus__i[1]-r[1];
+    r_minus__i_r[2] = r_minus__i[2]-r[2];
+    switch (i)
+    {
+      case 0: s_plus__i = dot3D(r_plus__i_r, T.s_i_hat_0); s_minus__i = dot3D(r_minus__i_r, T.s_i_hat_0); break;
+      case 1: s_plus__i = dot3D(r_plus__i_r, T.s_i_hat_1); s_minus__i = dot3D(r_minus__i_r, T.s_i_hat_1); break;
+      case 2: s_plus__i = dot3D(r_plus__i_r, T.s_i_hat_2); s_minus__i = dot3D(r_minus__i_r, T.s_i_hat_2); break;
+    }
+    
     // t_i_0 : distance from r (projected on plane of triangle) to edge
-    t_i_0 = dot(r_plus__i_r, T.m_i_hat (i));
+    switch (i)
+    {
+      case 0: t_i_0 = dot3D(r_plus__i_r, T.m_i_hat_0); break;
+      case 1: t_i_0 = dot3D(r_plus__i_r, T.m_i_hat_1); break;
+      case 2: t_i_0 = dot3D(r_plus__i_r, T.m_i_hat_2); break;
+    }
 
     // R_plus__i, R_minus__i, R_i_0 computation
-    R_plus__i = sqrt(dot(r_plus__i_r, r_plus__i_r));
-    R_minus__i = sqrt(dot(r_minus__i_r, r_minus__i_r));
+    R_plus__i = sqrt(dot3D(r_plus__i_r, r_plus__i_r));
+    R_minus__i = sqrt(dot3D(r_minus__i_r, r_minus__i_r));
     R_i_0_square = t_i_0*t_i_0 + h*h;
 
     // different cases according to the position vector    
@@ -278,24 +318,38 @@ void IT_singularities (double & IT_1_R,
 
     K_1_minus_1__i = t_i_0*I_L_minus_1__i - abs_h * beta_i;
     K_1_plus_1__i = 1.0/3.0 * (h*h * K_1_minus_1__i + t_i_0*I_L_plus_1__i);
-    K_2_minus_1__i = T.m_i_hat (i) * I_L_plus_1__i - T.n_hat * (h * K_1_minus_1__i); 
-    K_2_plus_1__i = 1.0/3.0 * T.m_i_hat (i) * I_L_plus_3__i - T.n_hat * (h * K_1_plus_1__i);
-    K_3_minus_1__i = (-sign_h * beta_i) * T.n_hat - I_L_minus_1__i * T.m_i_hat (i);
-    K_3_plus_1__i = (h * K_1_minus_1__i) * T.n_hat - I_L_plus_1__i * T.m_i_hat (i);
+
+//    K_2_minus_1__i = m_i_hat * I_L_plus_1__i - T.n_hat * (h * K_1_minus_1__i); 
+//    K_2_plus_1__i = 1.0/3.0 * m_i_hat * I_L_plus_3__i - T.n_hat * (h * K_1_plus_1__i);
+//    K_3_minus_1__i = (-sign_h * beta_i) * T.n_hat - I_L_minus_1__i * m_i_hat;
+//    K_3_plus_1__i = -K_2_minus_1__i; //(h * K_1_minus_1__i) * T.n_hat - I_L_plus_1__i * m_i_hat;
 
     IT_1_R += K_1_minus_1__i;
     IT_R += K_1_plus_1__i;
-    IT_1_R_rprime_r += K_2_minus_1__i;
-    IT_R_rprime_r += K_2_plus_1__i;
-    IT_grad_1_R += K_3_minus_1__i;
-    IT_grad_R += K_3_plus_1__i;
+    double h_K_minus(h * K_1_minus_1__i), h_K_plus(h * K_1_plus_1__i), sign_beta(-sign_h * beta_i);
+    K_2_minus_1__i[0] = m_i_hat[0] * I_L_plus_1__i - T.n_hat[0] * h_K_minus;
+    K_2_minus_1__i[1] = m_i_hat[1] * I_L_plus_1__i - T.n_hat[1] * h_K_minus;
+    K_2_minus_1__i[2] = m_i_hat[2] * I_L_plus_1__i - T.n_hat[2] * h_K_minus;
+    IT_1_R_rprime_r[0] += K_2_minus_1__i[0];
+    IT_1_R_rprime_r[1] += K_2_minus_1__i[1];
+    IT_1_R_rprime_r[2] += K_2_minus_1__i[2];
+    const double third(1.0/3.0);
+    IT_R_rprime_r[0] += third * m_i_hat[0] * I_L_plus_3__i - T.n_hat[0] * h_K_plus; //K_2_plus_1__i[0];
+    IT_R_rprime_r[1] += third * m_i_hat[1] * I_L_plus_3__i - T.n_hat[1] * h_K_plus; //K_2_plus_1__i[1];
+    IT_R_rprime_r[2] += third * m_i_hat[2] * I_L_plus_3__i - T.n_hat[2] * h_K_plus; //K_2_plus_1__i[2];
+    IT_grad_1_R[0] += sign_beta * T.n_hat[0] - I_L_minus_1__i * m_i_hat[0]; //K_3_minus_1__i[0];
+    IT_grad_1_R[1] += sign_beta * T.n_hat[1] - I_L_minus_1__i * m_i_hat[1]; //K_3_minus_1__i[1];
+    IT_grad_1_R[2] += sign_beta * T.n_hat[2] - I_L_minus_1__i * m_i_hat[2]; //K_3_minus_1__i[2];
+    IT_grad_R[0] -= K_2_minus_1__i[0]; //K_3_plus_1__i[0];
+    IT_grad_R[1] -= K_2_minus_1__i[1]; //K_3_plus_1__i[1];
+    IT_grad_R[2] -= K_2_minus_1__i[2]; //K_3_plus_1__i[2];
   }
 }
 
 void ITs_free (std::complex<double>& ITs_G,
-               blitz::TinyVector<std::complex<double>, 3>& ITs_G_rprime_r,
-               blitz::TinyVector<std::complex<double>, 3>& ITs_grad_G,
-               const blitz::TinyVector<double,3>& r,
+               std::complex<double> ITs_G_rprime_r[], // dim 3
+               std::complex<double> ITs_grad_G[], // dim 3
+               const double r[], // dim 3
                const Triangle & Ts,
                const std::complex<double> k,
                const int N_points,
@@ -305,82 +359,130 @@ void ITs_free (std::complex<double>& ITs_G,
   int j;
   double sum_weigths, norm_factor, R, R_square, IT_1_R, IT_R;
   std::complex<double> G_j, I_k_R, exp_minus_I_k_R;
-  blitz::TinyVector<double, 3> rprime, rprime_r, IT_1_R_rprime_r, IT_R_rprime_r, IT_grad_1_R, IT_grad_R;
+  double rprime[3], rprime_r[3], IT_1_R_rprime_r[3], IT_R_rprime_r[3], IT_grad_1_R[3], IT_grad_R[3];
 
   const double *xi, *eta, *weigths;
   IT_points (xi, eta, weigths, sum_weigths, N_points);
   norm_factor = Ts.A/sum_weigths;
 
   ITs_G = 0.0; // complex<double>
-  ITs_G_rprime_r = 0.0; // TinyVector<complex<double>, 3>
-  ITs_grad_G = 0.0; // TinyVector<complex<double>, 3>
+  ITs_G_rprime_r[0] = 0.0; // Vector<complex<double>, 3>
+  ITs_G_rprime_r[1] = 0.0; // Vector<complex<double>, 3>
+  ITs_G_rprime_r[2] = 0.0; // Vector<complex<double>, 3>
+  ITs_grad_G[0] = 0.0; // Vector<complex<double>, 3>
+  ITs_grad_G[1] = 0.0; // Vector<complex<double>, 3>
+  ITs_grad_G[2] = 0.0; // Vector<complex<double>, 3>
   if ((EXTRACT_1_R==0) && (EXTRACT_R==0)) { // no singularity extraction
-    for (j=0 ; j<N_points ; j++) {
-      rprime = Ts.r_nodes (0)*xi[j] + Ts.r_nodes (1)*eta[j] + Ts.r_nodes (2)*(1.0-xi[j]-eta[j]);
-      rprime_r = rprime-r;
-      R_square = dot(rprime_r, rprime_r);
+    for (j=0 ; j<N_points ; ++j) {
+      rprime[0] = Ts.r_nodes_0[0] * xi[j] + Ts.r_nodes_1[0] * eta[j] + Ts.r_nodes_2[0] * (1.0-xi[j]-eta[j]);
+      rprime[1] = Ts.r_nodes_0[1] * xi[j] + Ts.r_nodes_1[1] * eta[j] + Ts.r_nodes_2[1] * (1.0-xi[j]-eta[j]);
+      rprime[2] = Ts.r_nodes_0[2] * xi[j] + Ts.r_nodes_1[2] * eta[j] + Ts.r_nodes_2[2] * (1.0-xi[j]-eta[j]);
+      rprime_r[0] = rprime[0]-r[0];
+      rprime_r[1] = rprime[1]-r[1];
+      rprime_r[2] = rprime[2]-r[2];
+      R_square = dot3D(rprime_r, rprime_r);
       R = sqrt(R_square);
       I_k_R = I*k*R;
       G_j = exp(-I_k_R) * (weigths[j]/R);
       ITs_G += G_j;
-      ITs_G_rprime_r += G_j * rprime_r;
-      ITs_grad_G += (G_j * (1.0+I_k_R)/(R_square)) * rprime_r;
+      ITs_G_rprime_r[0] += G_j * rprime_r[0];
+      ITs_G_rprime_r[1] += G_j * rprime_r[1];
+      ITs_G_rprime_r[2] += G_j * rprime_r[2];
+      const std::complex<double> temp(G_j * (1.0+I_k_R)/(R_square));
+      ITs_grad_G[0] += temp * rprime_r[0];
+      ITs_grad_G[1] += temp * rprime_r[1];
+      ITs_grad_G[2] += temp * rprime_r[2];
     }
     ITs_G *= norm_factor;
-    ITs_G_rprime_r *= norm_factor;
-    ITs_grad_G *= norm_factor;
+    ITs_G_rprime_r[0] *= norm_factor;
+    ITs_G_rprime_r[1] *= norm_factor;
+    ITs_G_rprime_r[2] *= norm_factor;
+    ITs_grad_G[0] *= norm_factor;
+    ITs_grad_G[1] *= norm_factor;
+    ITs_grad_G[2] *= norm_factor;
   }
  
   else if ((EXTRACT_1_R==1) && (EXTRACT_R==0)) { // 1/R singularity extraction
     for (j=0 ; j<N_points ; j++) {
-      rprime = Ts.r_nodes (0)*xi[j] + Ts.r_nodes (1)*eta[j] + Ts.r_nodes (2)*(1-xi[j]-eta[j]);
-      rprime_r = rprime-r;
-      R_square = dot(rprime_r, rprime_r);
+      rprime[0] = Ts.r_nodes_0[0] * xi[j] + Ts.r_nodes_1[0] * eta[j] + Ts.r_nodes_2[0] * (1.0-xi[j]-eta[j]);
+      rprime[1] = Ts.r_nodes_0[1] * xi[j] + Ts.r_nodes_1[1] * eta[j] + Ts.r_nodes_2[1] * (1.0-xi[j]-eta[j]);
+      rprime[2] = Ts.r_nodes_0[2] * xi[j] + Ts.r_nodes_1[2] * eta[j] + Ts.r_nodes_2[2] * (1.0-xi[j]-eta[j]);
+      rprime_r[0] = rprime[0]-r[0];
+      rprime_r[1] = rprime[1]-r[1];
+      rprime_r[2] = rprime[2]-r[2];
+      R_square = dot3D(rprime_r, rprime_r);
       R = sqrt(R_square);
       I_k_R = I*k*R;
       exp_minus_I_k_R = exp(-I_k_R);
       G_j = (R>1.0e-10) ? (exp_minus_I_k_R - 1.0) * (weigths[j]/R) : -I * k * weigths[j];
       ITs_G += G_j;
-      ITs_G_rprime_r += G_j * rprime_r;
-      if (R>1.0e-10) ITs_grad_G -= ( (-exp_minus_I_k_R*(1.0+I_k_R) + 1.0)/(R*R_square) * weigths[j] ) * rprime_r;
+      ITs_G_rprime_r[0] += G_j * rprime_r[0];
+      ITs_G_rprime_r[1] += G_j * rprime_r[1];
+      ITs_G_rprime_r[2] += G_j * rprime_r[2];
+      if (R>1.0e-10) {
+        const std::complex<double> temp(-(-exp_minus_I_k_R*(1.0+I_k_R) + 1.0)/(R*R_square) * weigths[j]);
+        ITs_grad_G[0] += temp * rprime_r[0];
+        ITs_grad_G[1] += temp * rprime_r[1];
+        ITs_grad_G[2] += temp * rprime_r[2];
+      }
     }
     IT_singularities (IT_1_R, IT_R, IT_1_R_rprime_r, IT_R_rprime_r, IT_grad_1_R, IT_grad_R, r, Ts);
     ITs_G = ITs_G * norm_factor + IT_1_R;
-    ITs_G_rprime_r = ITs_G_rprime_r * norm_factor + IT_1_R_rprime_r;
-    ITs_grad_G = ITs_grad_G * norm_factor + IT_grad_1_R;
+    ITs_G_rprime_r[0] = ITs_G_rprime_r[0] * norm_factor + IT_1_R_rprime_r[0];
+    ITs_G_rprime_r[1] = ITs_G_rprime_r[1] * norm_factor + IT_1_R_rprime_r[1];
+    ITs_G_rprime_r[2] = ITs_G_rprime_r[2] * norm_factor + IT_1_R_rprime_r[2];
+    ITs_grad_G[0] = ITs_grad_G[0] * norm_factor + IT_grad_1_R[0];
+    ITs_grad_G[1] = ITs_grad_G[1] * norm_factor + IT_grad_1_R[1];
+    ITs_grad_G[2] = ITs_grad_G[2] * norm_factor + IT_grad_1_R[2];
   }
 
   else if ((EXTRACT_1_R==1) && (EXTRACT_R==1)) { // 1/R and R singularity extraction
     const std::complex<double> k_square = k*k;
     for (j=0 ; j<N_points ; j++) {
-      rprime = Ts.r_nodes (0)*xi[j] + Ts.r_nodes (1)*eta[j] + Ts.r_nodes (2)*(1-xi[j]-eta[j]);
-      rprime_r = rprime-r;
-      R_square = dot(rprime_r, rprime_r);
+      rprime[0] = Ts.r_nodes_0[0] * xi[j] + Ts.r_nodes_1[0] * eta[j] + Ts.r_nodes_2[0] * (1.0-xi[j]-eta[j]);
+      rprime[1] = Ts.r_nodes_0[1] * xi[j] + Ts.r_nodes_1[1] * eta[j] + Ts.r_nodes_2[1] * (1.0-xi[j]-eta[j]);
+      rprime[2] = Ts.r_nodes_0[2] * xi[j] + Ts.r_nodes_1[2] * eta[j] + Ts.r_nodes_2[2] * (1.0-xi[j]-eta[j]);
+      rprime_r[0] = rprime[0]-r[0];
+      rprime_r[1] = rprime[1]-r[1];
+      rprime_r[2] = rprime[2]-r[2];
+      R_square = dot3D(rprime_r, rprime_r);
       R = sqrt(R_square);
       I_k_R = I*k*R;
       exp_minus_I_k_R = exp(-I_k_R);
       G_j = (R>1.0e-10) ? ( (exp_minus_I_k_R - 1.0)/R + k_square/2.0 * R ) * weigths[j] : -I * k * weigths[j];
       ITs_G += G_j;
-      ITs_G_rprime_r += G_j * rprime_r;
-      if (R>1.0e-10) ITs_grad_G -= ( (-exp_minus_I_k_R*(1.0+I_k_R) + 1.0 + k_square/2.0 * R_square)/(R*R_square) * weigths[j] ) * rprime_r;
+      ITs_G_rprime_r[0] += G_j * rprime_r[0];
+      ITs_G_rprime_r[1] += G_j * rprime_r[1];
+      ITs_G_rprime_r[2] += G_j * rprime_r[2];
+      if (R>1.0e-10) {
+        const std::complex<double> temp( -(-exp_minus_I_k_R*(1.0+I_k_R) + 1.0 + k_square/2.0 * R_square)/(R*R_square) * weigths[j] );
+        ITs_grad_G[0] += temp * rprime_r[0];
+        ITs_grad_G[1] += temp * rprime_r[1];
+        ITs_grad_G[2] += temp * rprime_r[2];
+      }
     }
     IT_singularities (IT_1_R, IT_R, IT_1_R_rprime_r, IT_R_rprime_r, IT_grad_1_R, IT_grad_R, r, Ts);
-    ITs_G = ITs_G * norm_factor + IT_1_R - k_square/2.0 * IT_R;
-    ITs_G_rprime_r = ITs_G_rprime_r * norm_factor + IT_1_R_rprime_r - k_square/2.0 * IT_R_rprime_r;
-    ITs_grad_G = ITs_grad_G * norm_factor + IT_grad_1_R - k_square/2.0 * IT_grad_R;
+    const std::complex<double> k_square_2(k_square/2.0);
+    ITs_G = ITs_G * norm_factor + IT_1_R - k_square_2 * IT_R;
+    ITs_G_rprime_r[0] = ITs_G_rprime_r[0] * norm_factor + IT_1_R_rprime_r[0] - k_square_2 * IT_R_rprime_r[0];
+    ITs_G_rprime_r[1] = ITs_G_rprime_r[1] * norm_factor + IT_1_R_rprime_r[1] - k_square_2 * IT_R_rprime_r[1];
+    ITs_G_rprime_r[2] = ITs_G_rprime_r[2] * norm_factor + IT_1_R_rprime_r[2] - k_square_2 * IT_R_rprime_r[2];
+    ITs_grad_G[0] = ITs_grad_G[0] * norm_factor + IT_grad_1_R[0] - k_square_2 * IT_grad_R[0];
+    ITs_grad_G[1] = ITs_grad_G[1] * norm_factor + IT_grad_1_R[1] - k_square_2 * IT_grad_R[1];
+    ITs_grad_G[2] = ITs_grad_G[2] * norm_factor + IT_grad_1_R[2] - k_square_2 * IT_grad_R[2];
   }
 }
 
 void ITo_ITs_free (std::complex<double>& ITo_ITs_G,
-                   blitz::TinyVector<std::complex<double>, 3>& ITo_r_ITs_G,
-                   blitz::TinyVector<std::complex<double>, 3>& ITo_ITs_G_rprime,
+                   std::complex<double> ITo_r_ITs_G[], // 3D
+                   std::complex<double> ITo_ITs_G_rprime[], // 3D
                    std::complex<double>& ITo_r_dot_ITs_G_rprime,
-                   blitz::TinyVector<std::complex<double>, 3>& ITo_n_hat_X_r_ITs_G,
+                   std::complex<double> ITo_n_hat_X_r_ITs_G[], // 3D
                    std::complex<double>& ITo_n_hat_X_r_dot_ITs_G_rprime,
-                   blitz::TinyVector<std::complex<double>, 3>& ITo_ITs_grad_G,
-                   blitz::TinyVector<std::complex<double>, 3>& ITo_r_X_ITs_grad_G,
+                   std::complex<double> ITo_ITs_grad_G[], // 3D
+                   std::complex<double> ITo_r_X_ITs_grad_G[], // 3D
                    std::complex<double> & ITo_n_hat_X_r_dot_r_X_ITs_grad_G,
-                   blitz::TinyVector<std::complex<double>, 3>& ITo_n_hat_X_r_X_ITs_grad_G,
+                   std::complex<double> ITo_n_hat_X_r_X_ITs_grad_G[], // 3D
                    const Triangle & To,
                    const Triangle & Ts,
                    const std::complex<double> k,
@@ -392,64 +494,88 @@ void ITo_ITs_free (std::complex<double>& ITo_ITs_G,
   int j;
   double sum_weigths, norm_factor;
   std::complex<double> ITs_G_j;
-  blitz::TinyVector<double, 3> r, n_hat_X_r;
-  blitz::TinyVector<std::complex<double>, 3> r_ITs_G_j, ITs_G_rprime_r_j, ITs_G_rprime_j, ITs_grad_G_j, r_X_ITs_grad_G_j, n_hat_X_r_X_ITs_grad_G_j;
+  double r[3], n_hat_X_r[3];
+  std::complex<double> r_ITs_G_j[3], ITs_G_rprime_r_j[3], ITs_G_rprime_j[3], ITs_grad_G_j[3], r_X_ITs_grad_G_j[3], n_hat_X_r_X_ITs_grad_G_j[3];
 
   const double *xi, *eta, *weigths;
   IT_points (xi, eta, weigths, sum_weigths, N_points_o);
 
   ITo_ITs_G = 0.0; // complex<double>
-  ITo_r_ITs_G = 0.0; // TinyVector<complex<double>, 3>
-  ITo_ITs_G_rprime = 0.0; // TinyVector<complex<double>, 3>
   ITo_r_dot_ITs_G_rprime = 0.0; // complex<double>
-  ITo_n_hat_X_r_ITs_G = 0.0; // TinyVector<complex<double>, 3>
   ITo_n_hat_X_r_dot_ITs_G_rprime = 0.0; // complex<double>
-  ITo_ITs_grad_G = 0.0; // TinyVector<complex<double>, 3>
-  ITo_r_X_ITs_grad_G = 0.0; // TinyVector<complex<double>, 3>
   ITo_n_hat_X_r_dot_r_X_ITs_grad_G = 0.0; // complex<double>
-  ITo_n_hat_X_r_X_ITs_grad_G = 0.0; // TinyVector<complex<double>, 3>
+  for (int i=0 ; i<3 ; ++i) {
+    ITo_r_ITs_G[i] = 0.0; // Vector<complex<double>, 3>
+    ITo_ITs_G_rprime[i] = 0.0; // Vector<complex<double>, 3>
+    ITo_n_hat_X_r_ITs_G[i] = 0.0; // Vector<complex<double>, 3>
+    ITo_ITs_grad_G[i] = 0.0; // Vector<complex<double>, 3>
+    ITo_r_X_ITs_grad_G[i] = 0.0; // Vector<complex<double>, 3>
+    ITo_n_hat_X_r_X_ITs_grad_G[i] = 0.0; // Vector<complex<double>, 3>
+  }
   for (j=0 ; j<N_points_o ; j++) {
-    r = To.r_nodes (0)*xi[j] + To.r_nodes (1)*eta[j] + To.r_nodes (2)*(1-xi[j]-eta[j]);
-    n_hat_X_r = cross(To.n_hat, r);
+    r[0] = To.r_nodes_0[0]*xi[j] + To.r_nodes_1[0]*eta[j] + To.r_nodes_2[0]*(1-xi[j]-eta[j]);
+    r[1] = To.r_nodes_0[1]*xi[j] + To.r_nodes_1[1]*eta[j] + To.r_nodes_2[1]*(1-xi[j]-eta[j]);
+    r[2] = To.r_nodes_0[2]*xi[j] + To.r_nodes_1[2]*eta[j] + To.r_nodes_2[2]*(1-xi[j]-eta[j]);
+    cross3D(n_hat_X_r, To.n_hat, r);
     ITs_free (ITs_G_j, ITs_G_rprime_r_j, ITs_grad_G_j, r, Ts, k, N_points_s, EXTRACT_1_R, EXTRACT_R);
 
     ITs_G_j *= weigths[j];
-    r_ITs_G_j = ITs_G_j * r;
-    ITs_G_rprime_j = ITs_G_rprime_r_j * weigths[j] + r_ITs_G_j;
-    ITs_grad_G_j *= weigths[j];
-    r_X_ITs_grad_G_j = r(1) * ITs_grad_G_j(2) - r(2) * ITs_grad_G_j(1),
-                       r(2) * ITs_grad_G_j(0) - r(0) * ITs_grad_G_j(2),
-                       r(0) * ITs_grad_G_j(1) - r(1) * ITs_grad_G_j(0);
-    n_hat_X_r_X_ITs_grad_G_j = n_hat_X_r(1) * ITs_grad_G_j(2) - n_hat_X_r(2) * ITs_grad_G_j(1),
-                               n_hat_X_r(2) * ITs_grad_G_j(0) - n_hat_X_r(0) * ITs_grad_G_j(2),
-                               n_hat_X_r(0) * ITs_grad_G_j(1) - n_hat_X_r(1) * ITs_grad_G_j(0);
+    r_ITs_G_j[0] = ITs_G_j * r[0];
+    r_ITs_G_j[1] = ITs_G_j * r[1];
+    r_ITs_G_j[2] = ITs_G_j * r[2];
+    ITs_G_rprime_j[0] = ITs_G_rprime_r_j[0] * weigths[j] + r_ITs_G_j[0];
+    ITs_G_rprime_j[1] = ITs_G_rprime_r_j[1] * weigths[j] + r_ITs_G_j[1];
+    ITs_G_rprime_j[2] = ITs_G_rprime_r_j[2] * weigths[j] + r_ITs_G_j[2];
+    ITs_grad_G_j[0] *= weigths[j];
+    ITs_grad_G_j[1] *= weigths[j];
+    ITs_grad_G_j[2] *= weigths[j];
+    r_X_ITs_grad_G_j[0] = r[1] * ITs_grad_G_j[2] - r[2] * ITs_grad_G_j[1];
+    r_X_ITs_grad_G_j[1] = r[2] * ITs_grad_G_j[0] - r[0] * ITs_grad_G_j[2];
+    r_X_ITs_grad_G_j[2] = r[0] * ITs_grad_G_j[1] - r[1] * ITs_grad_G_j[0];
+    n_hat_X_r_X_ITs_grad_G_j[0] = n_hat_X_r[1] * ITs_grad_G_j[2] - n_hat_X_r[2] * ITs_grad_G_j[1];
+    n_hat_X_r_X_ITs_grad_G_j[1] = n_hat_X_r[2] * ITs_grad_G_j[0] - n_hat_X_r[0] * ITs_grad_G_j[2];
+    n_hat_X_r_X_ITs_grad_G_j[2] = n_hat_X_r[0] * ITs_grad_G_j[1] - n_hat_X_r[1] * ITs_grad_G_j[0];
 
     ITo_ITs_G += ITs_G_j;
-    ITo_r_ITs_G += r_ITs_G_j;
-    ITo_ITs_G_rprime += ITs_G_rprime_j;
-    ITo_r_dot_ITs_G_rprime += dot(r, ITs_G_rprime_j);
-    ITo_n_hat_X_r_ITs_G += ITs_G_j * n_hat_X_r;
-    ITo_n_hat_X_r_dot_ITs_G_rprime += dot(n_hat_X_r, ITs_G_rprime_j);
-    ITo_ITs_grad_G += ITs_grad_G_j;
-    ITo_r_X_ITs_grad_G +=  r_X_ITs_grad_G_j;
-    ITo_n_hat_X_r_dot_r_X_ITs_grad_G += dot (n_hat_X_r, r_X_ITs_grad_G_j);
-    ITo_n_hat_X_r_X_ITs_grad_G += n_hat_X_r_X_ITs_grad_G_j;
+    ITo_r_ITs_G[0] += r_ITs_G_j[0];
+    ITo_r_ITs_G[1] += r_ITs_G_j[1];
+    ITo_r_ITs_G[2] += r_ITs_G_j[2];
+    ITo_ITs_G_rprime[0] += ITs_G_rprime_j[0];
+    ITo_ITs_G_rprime[1] += ITs_G_rprime_j[1];
+    ITo_ITs_G_rprime[2] += ITs_G_rprime_j[2];
+    ITo_r_dot_ITs_G_rprime += (r[0] * ITs_G_rprime_j[0] + r[1] * ITs_G_rprime_j[1] + r[2] * ITs_G_rprime_j[2]);
+    ITo_n_hat_X_r_ITs_G[0] += ITs_G_j * n_hat_X_r[0];
+    ITo_n_hat_X_r_ITs_G[1] += ITs_G_j * n_hat_X_r[1];
+    ITo_n_hat_X_r_ITs_G[2] += ITs_G_j * n_hat_X_r[2];
+    ITo_n_hat_X_r_dot_ITs_G_rprime += (n_hat_X_r[0] * ITs_G_rprime_j[0] + n_hat_X_r[1] * ITs_G_rprime_j[1] + n_hat_X_r[2] * ITs_G_rprime_j[2]);
+    ITo_ITs_grad_G[0] += ITs_grad_G_j[0];
+    ITo_ITs_grad_G[1] += ITs_grad_G_j[1];
+    ITo_ITs_grad_G[2] += ITs_grad_G_j[2];
+    ITo_r_X_ITs_grad_G[0] +=  r_X_ITs_grad_G_j[0];
+    ITo_r_X_ITs_grad_G[1] +=  r_X_ITs_grad_G_j[1];
+    ITo_r_X_ITs_grad_G[2] +=  r_X_ITs_grad_G_j[2];
+    ITo_n_hat_X_r_dot_r_X_ITs_grad_G += (n_hat_X_r[0] * r_X_ITs_grad_G_j[0] + n_hat_X_r[1] * r_X_ITs_grad_G_j[1] + n_hat_X_r[2] * r_X_ITs_grad_G_j[2]);
+    ITo_n_hat_X_r_X_ITs_grad_G[0] += n_hat_X_r_X_ITs_grad_G_j[0];
+    ITo_n_hat_X_r_X_ITs_grad_G[1] += n_hat_X_r_X_ITs_grad_G_j[1];
+    ITo_n_hat_X_r_X_ITs_grad_G[2] += n_hat_X_r_X_ITs_grad_G_j[2];
   }
   norm_factor = To.A/(4.0*M_PI*sum_weigths);
   ITo_ITs_G *= norm_factor;
-  ITo_r_ITs_G *= norm_factor;
-  ITo_ITs_G_rprime *= norm_factor;
   ITo_r_dot_ITs_G_rprime *= norm_factor;
-  ITo_n_hat_X_r_ITs_G *= norm_factor;
   ITo_n_hat_X_r_dot_ITs_G_rprime *= norm_factor;
-  ITo_ITs_grad_G *= norm_factor;
-  ITo_r_X_ITs_grad_G *= norm_factor;
   ITo_n_hat_X_r_dot_r_X_ITs_grad_G *= norm_factor;
-  ITo_n_hat_X_r_X_ITs_grad_G *= norm_factor;
+  for (int i=0 ; i<3 ; ++i) {
+    ITo_r_ITs_G[i] *= norm_factor;
+    ITo_ITs_G_rprime[i] *= norm_factor;
+    ITo_n_hat_X_r_ITs_G[i] *= norm_factor;
+    ITo_ITs_grad_G[i] *= norm_factor;
+    ITo_r_X_ITs_grad_G[i] *= norm_factor;
+    ITo_n_hat_X_r_X_ITs_grad_G[i] *= norm_factor;
+  }
 }
 
 void IDTo_ITs_free (std::complex<double> & IDTo_l_hat_dot_r_ITs_G,
-                    blitz::TinyVector<complex<double>, 3>& IDTo_l_hat_ITs_G,
+                    complex<double> IDTo_l_hat_ITs_G[], // 3D
                     const Triangle & To,
                     const Triangle & Ts,
                     const std::complex<double> k,
@@ -462,144 +588,193 @@ void IDTo_ITs_free (std::complex<double> & IDTo_l_hat_dot_r_ITs_G,
   Gauss_Legendre (XGL, WGL, N_points_o);
 
   double norm_factor, norm_r_hlgth;
-  blitz::TinyVector<double, 3> r, r_center, n_hat_X_r, m_hat, l_hat, r_plus__i, r_minus__i, r_hlgth;
+  double r[3], r_center[3], n_hat_X_r[3], m_hat[3], r_hlgth[3];
+  const double * l_hat, * r_plus__i, * r_minus__i;
 
   std::complex<double> ITs_G_j, I_k;
-  blitz::TinyVector<std::complex<double>, 3> ITs_G_rprime_r_j, ITs_grad_G_j, I_r_k;
+  std::complex<double> ITs_G_rprime_r_j[3], ITs_grad_G_j[3], I_r_k[3];
 
   IDTo_l_hat_dot_r_ITs_G = 0.0; // complex<double>
-  IDTo_l_hat_ITs_G = 0.0; // TinyVector<complex<double>, 3>
+  for (int i=0 ; i<3 ; i++) IDTo_l_hat_ITs_G[i] = 0.0; // Vector<complex<double>, 3>
   for (int i=0 ; i<3 ; i++) { // we turn on the contour of T_obs
     switch (i)
     {
-      case 0: r_plus__i = To.r_nodes (1); r_minus__i = To.r_nodes (0); break;
-      case 1: r_plus__i = To.r_nodes (2); r_minus__i = To.r_nodes (1); break;
-      case 2: r_plus__i = To.r_nodes (0); r_minus__i = To.r_nodes (2); break;
+      case 0: r_plus__i = To.r_nodes_1; r_minus__i = To.r_nodes_0; l_hat = To.s_i_hat_0; break;
+      case 1: r_plus__i = To.r_nodes_2; r_minus__i = To.r_nodes_1; l_hat = To.s_i_hat_1; break;
+      case 2: r_plus__i = To.r_nodes_0; r_minus__i = To.r_nodes_2; l_hat = To.s_i_hat_2; break;
     }
-    l_hat = To.s_i_hat (i);
 
     // This is a Gauss-Kronrod rule, applied to each edge
-    r_hlgth = 0.5*(r_plus__i-r_minus__i);
-    norm_r_hlgth = sqrt(dot(r_hlgth, r_hlgth));
-    r_center = 0.5*(r_plus__i+r_minus__i);
+    r_hlgth[0] = 0.5*(r_plus__i[0]-r_minus__i[0]);
+    r_hlgth[1] = 0.5*(r_plus__i[1]-r_minus__i[1]);
+    r_hlgth[2] = 0.5*(r_plus__i[2]-r_minus__i[2]);
+    norm_r_hlgth = sqrt(dot3D(r_hlgth, r_hlgth));
+    r_center[0] = 0.5*(r_plus__i[0]+r_minus__i[0]);
+    r_center[1] = 0.5*(r_plus__i[1]+r_minus__i[1]);
+    r_center[2] = 0.5*(r_plus__i[2]+r_minus__i[2]);
     I_k = 0.0;
-    I_r_k = 0.0;
+    I_r_k[0] = 0.0;
+    I_r_k[1] = 0.0;
+    I_r_k[2] = 0.0;
     for (int j=0 ; j<N_points_o ; j++) {
-      r = r_center + r_hlgth * XGL(j);
+      r[0] = r_center[0] + r_hlgth[0] * XGL(j);
+      r[1] = r_center[1] + r_hlgth[1] * XGL(j);
+      r[2] = r_center[2] + r_hlgth[2] * XGL(j);
       ITs_free (ITs_G_j, ITs_G_rprime_r_j, ITs_grad_G_j, r, Ts, k, N_points_s, EXTRACT_1_R, EXTRACT_R);
-      I_k += ITs_G_j * WGL(j);
-      I_r_k += (ITs_G_j * WGL(j)) * r;
+      const std::complex<double> temp(ITs_G_j * WGL(j));
+      I_k += temp;
+      I_r_k[0] += temp * r[0];
+      I_r_k[1] += temp * r[1];
+      I_r_k[2] += temp * r[2];
     } // end of the Gauss-Kronrod rule applied to edge (i)
-    IDTo_l_hat_ITs_G += I_k * norm_r_hlgth * l_hat;
-    IDTo_l_hat_dot_r_ITs_G += dot (l_hat, I_r_k) * norm_r_hlgth;
+    const std::complex<double> temp(I_k * norm_r_hlgth);
+    IDTo_l_hat_ITs_G[0] += temp * l_hat[0];
+    IDTo_l_hat_ITs_G[1] += temp * l_hat[1];
+    IDTo_l_hat_ITs_G[2] += temp * l_hat[2];
+    IDTo_l_hat_dot_r_ITs_G += (l_hat[0] * I_r_k[0] + l_hat[1] * I_r_k[1] + l_hat[2] * I_r_k[2]) * norm_r_hlgth;
   } // contour integration finished
   norm_factor = 1.0/(4.0*M_PI);
   IDTo_l_hat_dot_r_ITs_G *= norm_factor;
-  IDTo_l_hat_ITs_G *= norm_factor;
+  for (int i=0 ; i<3 ; i++) IDTo_l_hat_ITs_G[i] *= norm_factor;
 }
 
 /* special functions for the excitation vectors calculations */
 void V_EH_ITo_free (std::complex<double>& ITo_G,
-                    blitz::TinyVector<std::complex<double>, 3>& ITo_G_rprime_r,
-                    blitz::TinyVector<std::complex<double>, 3>& ITo_grad_G,
-                    blitz::TinyVector<std::complex<double>, 3>& ITo_n_hat_X_r_X_grad_G,
-                    const blitz::TinyVector<double,3>& r,
+                    std::complex<double> ITo_G_rprime_r[],
+                    std::complex<double> ITo_grad_G[],
+                    std::complex<double> ITo_n_hat_X_r_X_grad_G[],
+                    double r[],
                     const Triangle & To,
                     const std::complex<double> k,
                     const int N_points,
                     const int EXTRACT_1_R,
                     const int EXTRACT_R)
 {
-  int j;
   double sum_weigths, norm_factor, R, IT_1_R, IT_R;
   std::complex<double> G_j, I_k_R, exp_minus_I_k_R, k_square;
-  blitz::TinyVector<double, 3> rprime, rprime_r, IT_1_R_rprime_r, IT_R_rprime_r, IT_grad_1_R, IT_grad_R, n_hat_X_rprime;
-  blitz::TinyVector<std::complex<double>, 3> ITo_grad_G_j;
+  double rprime[3], rprime_r[3], IT_1_R_rprime_r[3], IT_R_rprime_r[3], IT_grad_1_R[3], IT_grad_R[3], n_hat_X_rprime[3];
+  std::complex<double> ITo_grad_G_j[3];
 
   const double *xi, *eta, *weigths;
   IT_points (xi, eta, weigths, sum_weigths, N_points);
   norm_factor = To.A/sum_weigths;
 
   ITo_G = 0.0; // complex<double>
-  ITo_G_rprime_r = 0.0; // TinyVector<complex<double>, 3>
-  ITo_grad_G = 0.0; // TinyVector<complex<double>, 3>
-  ITo_n_hat_X_r_X_grad_G = 0.0; // TinyVector<complex<double>, 3>
+  for (int i=0 ; i<3 ; ++i) {
+    ITo_G_rprime_r[i] = 0.0; // Vector<complex<double>, 3>
+    ITo_grad_G[i] = 0.0; // Vector<complex<double>, 3>
+    ITo_n_hat_X_r_X_grad_G[i] = 0.0; // Vector<complex<double>, 3>
+  }
   if ((EXTRACT_1_R==0) && (EXTRACT_R==0)) { // no singularity extraction
-    for (j=0 ; j<N_points ; j++) {
-      rprime = To.r_nodes (0)*xi[j] + To.r_nodes (1)*eta[j] + To.r_nodes (2)*(1.0-xi[j]-eta[j]);
-      rprime_r = rprime-r;
-      R = sqrt(dot(rprime_r, rprime_r));
+    for (int j=0 ; j<N_points ; ++j) {
+      rprime[0] = To.r_nodes_0[0] * xi[j] + To.r_nodes_1[0] * eta[j] + To.r_nodes_2[0] * (1.0-xi[j]-eta[j]);
+      rprime[1] = To.r_nodes_0[1] * xi[j] + To.r_nodes_1[1] * eta[j] + To.r_nodes_2[1] * (1.0-xi[j]-eta[j]);
+      rprime[2] = To.r_nodes_0[2] * xi[j] + To.r_nodes_1[2] * eta[j] + To.r_nodes_2[2] * (1.0-xi[j]-eta[j]);
+      rprime_r[0] = rprime[0]-r[0];
+      rprime_r[1] = rprime[1]-r[1];
+      rprime_r[2] = rprime[2]-r[2];
+      R = sqrt(dot3D(rprime_r, rprime_r));
       I_k_R = I*k*R;
       exp_minus_I_k_R = exp(-I_k_R);
       G_j = exp_minus_I_k_R/R * weigths[j];
       ITo_G += G_j;
-      ITo_G_rprime_r += G_j * rprime_r;
-      ITo_grad_G_j = (G_j * (1.0+I_k_R)/(R*R)) * rprime_r;
-      ITo_grad_G += ITo_grad_G_j;
-      n_hat_X_rprime = To.n_hat(1)*rprime(2)-To.n_hat(2)*rprime(1),
-                       To.n_hat(2)*rprime(0)-To.n_hat(0)*rprime(2),
-                       To.n_hat(0)*rprime(1)-To.n_hat(1)*rprime(0);
-      ITo_n_hat_X_r_X_grad_G += n_hat_X_rprime(1) * ITo_grad_G_j(2) - n_hat_X_rprime(2) * ITo_grad_G_j(1),
-                                n_hat_X_rprime(2) * ITo_grad_G_j(0) - n_hat_X_rprime(0) * ITo_grad_G_j(2),
-                                n_hat_X_rprime(0) * ITo_grad_G_j(1) - n_hat_X_rprime(1) * ITo_grad_G_j(0);
+      ITo_G_rprime_r[0] += G_j * rprime_r[0];
+      ITo_G_rprime_r[1] += G_j * rprime_r[1];
+      ITo_G_rprime_r[2] += G_j * rprime_r[2];
+      const std::complex<double> temp(G_j * (1.0+I_k_R)/(R*R));
+      ITo_grad_G[0] += temp * rprime_r[0];
+      ITo_grad_G[1] += temp * rprime_r[1];
+      ITo_grad_G[2] += temp * rprime_r[2];
+      n_hat_X_rprime[0] = To.n_hat[1]*rprime[2]-To.n_hat[2]*rprime[1];
+      n_hat_X_rprime[1] = To.n_hat[2]*rprime[0]-To.n_hat[0]*rprime[2];
+      n_hat_X_rprime[2] = To.n_hat[0]*rprime[1]-To.n_hat[1]*rprime[0];
+      ITo_n_hat_X_r_X_grad_G[0] += n_hat_X_rprime[1] * ITo_grad_G_j[2] - n_hat_X_rprime[2] * ITo_grad_G_j[1];
+      ITo_n_hat_X_r_X_grad_G[1] += n_hat_X_rprime[2] * ITo_grad_G_j[0] - n_hat_X_rprime[0] * ITo_grad_G_j[2];
+      ITo_n_hat_X_r_X_grad_G[2] += n_hat_X_rprime[0] * ITo_grad_G_j[1] - n_hat_X_rprime[1] * ITo_grad_G_j[0];
     }
     ITo_G *= norm_factor;
-    ITo_G_rprime_r *= norm_factor;
-    ITo_grad_G *= norm_factor;
-    ITo_n_hat_X_r_X_grad_G *= norm_factor;
+    for (int i=0 ; i<3 ; ++i) {
+      ITo_G_rprime_r[i] *= norm_factor; // Vector<complex<double>, 3>
+      ITo_grad_G[i] *= norm_factor; // Vector<complex<double>, 3>
+      ITo_n_hat_X_r_X_grad_G[i] *= norm_factor; // Vector<complex<double>, 3>
+    }
   }
  
   else if ((EXTRACT_1_R==1) && (EXTRACT_R==0)) { // 1/R singularity extraction
-    for (j=0 ; j<N_points ; j++) {
-      rprime = To.r_nodes (0)*xi[j] + To.r_nodes (1)*eta[j] + To.r_nodes (2)*(1-xi[j]-eta[j]);
-      rprime_r = rprime-r;
-      R = sqrt(dot(rprime_r, rprime_r));
+    for (int j=0 ; j<N_points ; ++j) {
+      rprime[0] = To.r_nodes_0[0] * xi[j] + To.r_nodes_1[0] * eta[j] + To.r_nodes_2[0] * (1.0-xi[j]-eta[j]);
+      rprime[1] = To.r_nodes_0[1] * xi[j] + To.r_nodes_1[1] * eta[j] + To.r_nodes_2[1] * (1.0-xi[j]-eta[j]);
+      rprime[2] = To.r_nodes_0[2] * xi[j] + To.r_nodes_1[2] * eta[j] + To.r_nodes_2[2] * (1.0-xi[j]-eta[j]);
+      rprime_r[0] = rprime[0]-r[0];
+      rprime_r[1] = rprime[1]-r[1];
+      rprime_r[2] = rprime[2]-r[2];
+      R = sqrt(dot3D(rprime_r, rprime_r));
       I_k_R = I*k*R;
       exp_minus_I_k_R = exp(-I_k_R);
       G_j = (R>1.0e-10) ? (exp_minus_I_k_R - 1.0)/R * weigths[j] : -I * k * weigths[j];
       ITo_G += G_j;
-      ITo_G_rprime_r += G_j * rprime_r;
-      if (R>1.0e-10) ITo_grad_G_j = ( (-exp_minus_I_k_R*(1.0+I_k_R) + 1.0)/(R*R*R) * weigths[j] ) * rprime_r;
-      ITo_grad_G -= ITo_grad_G_j;
-      n_hat_X_rprime = To.n_hat(1)*rprime(2)-To.n_hat(2)*rprime(1),
-                       To.n_hat(2)*rprime(0)-To.n_hat(0)*rprime(2),
-                       To.n_hat(0)*rprime(1)-To.n_hat(1)*rprime(0);
-      ITo_n_hat_X_r_X_grad_G += n_hat_X_rprime(1) * ITo_grad_G_j(2) - n_hat_X_rprime(2) * ITo_grad_G_j(1),
-                                n_hat_X_rprime(2) * ITo_grad_G_j(0) - n_hat_X_rprime(0) * ITo_grad_G_j(2),
-                                n_hat_X_rprime(0) * ITo_grad_G_j(1) - n_hat_X_rprime(1) * ITo_grad_G_j(0);
+      ITo_G_rprime_r[0] += G_j * rprime_r[0];
+      ITo_G_rprime_r[1] += G_j * rprime_r[1];
+      ITo_G_rprime_r[2] += G_j * rprime_r[2];
+      if (R>1.0e-10) {
+        const std::complex<double> temp( -(-exp_minus_I_k_R*(1.0+I_k_R) + 1.0)/(R*R*R) * weigths[j] );
+        ITo_grad_G[0] += temp * rprime_r[0];
+        ITo_grad_G[1] += temp * rprime_r[1];
+        ITo_grad_G[2] += temp * rprime_r[2];
+      }
+      n_hat_X_rprime[0] = To.n_hat[1]*rprime[2]-To.n_hat[2]*rprime[1];
+      n_hat_X_rprime[1] = To.n_hat[2]*rprime[0]-To.n_hat[0]*rprime[2];
+      n_hat_X_rprime[2] = To.n_hat[0]*rprime[1]-To.n_hat[1]*rprime[0];
+      ITo_n_hat_X_r_X_grad_G[0] += n_hat_X_rprime[1] * ITo_grad_G_j[2] - n_hat_X_rprime[2] * ITo_grad_G_j[1];
+      ITo_n_hat_X_r_X_grad_G[1] += n_hat_X_rprime[2] * ITo_grad_G_j[0] - n_hat_X_rprime[0] * ITo_grad_G_j[2];
+      ITo_n_hat_X_r_X_grad_G[2] += n_hat_X_rprime[0] * ITo_grad_G_j[1] - n_hat_X_rprime[1] * ITo_grad_G_j[0];
     }
     IT_singularities (IT_1_R, IT_R, IT_1_R_rprime_r, IT_R_rprime_r, IT_grad_1_R, IT_grad_R, r, To);
     ITo_G = ITo_G * norm_factor + IT_1_R;
-    ITo_G_rprime_r = ITo_G_rprime_r * norm_factor + IT_1_R_rprime_r;
-    ITo_grad_G = ITo_grad_G * norm_factor + IT_grad_1_R;
-    ITo_n_hat_X_r_X_grad_G = ITo_n_hat_X_r_X_grad_G * norm_factor;
+    for (int i=0 ; i<3 ; ++i) {
+      ITo_G_rprime_r[i] = ITo_G_rprime_r[i] * norm_factor + IT_1_R_rprime_r[i];
+      ITo_grad_G[i] = ITo_grad_G[i] * norm_factor + IT_grad_1_R[i];
+      ITo_n_hat_X_r_X_grad_G[i] = ITo_n_hat_X_r_X_grad_G[i] * norm_factor;
+    }
   }
 
   else if ((EXTRACT_1_R==1) && (EXTRACT_R==1)) { // 1/R and R singularity extraction
     k_square = k*k;
-    for (j=0 ; j<N_points ; j++) {
-      rprime = To.r_nodes (0)*xi[j] + To.r_nodes (1)*eta[j] + To.r_nodes (2)*(1-xi[j]-eta[j]);
-      rprime_r = rprime-r;
-      R = sqrt(dot(rprime_r, rprime_r));
+    for (int j=0 ; j<N_points ; ++j) {
+      rprime[0] = To.r_nodes_0[0] * xi[j] + To.r_nodes_1[0] * eta[j] + To.r_nodes_2[0] * (1.0-xi[j]-eta[j]);
+      rprime[1] = To.r_nodes_0[1] * xi[j] + To.r_nodes_1[1] * eta[j] + To.r_nodes_2[1] * (1.0-xi[j]-eta[j]);
+      rprime[2] = To.r_nodes_0[2] * xi[j] + To.r_nodes_1[2] * eta[j] + To.r_nodes_2[2] * (1.0-xi[j]-eta[j]);
+      rprime_r[0] = rprime[0]-r[0];
+      rprime_r[1] = rprime[1]-r[1];
+      rprime_r[2] = rprime[2]-r[2];
+      R = sqrt(dot3D(rprime_r, rprime_r));
       I_k_R = I*k*R;
       exp_minus_I_k_R = exp(-I_k_R);
       G_j = (R>1.0e-10) ? ( (exp_minus_I_k_R - 1.0)/R + k_square/2.0 * R ) * weigths[j] : -I * k * weigths[j];
       ITo_G += G_j;
-      ITo_G_rprime_r += G_j * rprime_r;
-      if (R>1.0e-10) ITo_grad_G_j = ( (-exp_minus_I_k_R*(1.0+I_k_R) + 1.0 + k_square/2.0 * R*R)/(R*R*R) * weigths[j] ) * rprime_r;
-      ITo_grad_G -= ITo_grad_G_j;
-      n_hat_X_rprime = To.n_hat(1)*rprime(2)-To.n_hat(2)*rprime(1),
-                       To.n_hat(2)*rprime(0)-To.n_hat(0)*rprime(2),
-                       To.n_hat(0)*rprime(1)-To.n_hat(1)*rprime(0);
-      ITo_n_hat_X_r_X_grad_G += n_hat_X_rprime(1) * ITo_grad_G_j(2) - n_hat_X_rprime(2) * ITo_grad_G_j(1),
-                                n_hat_X_rprime(2) * ITo_grad_G_j(0) - n_hat_X_rprime(0) * ITo_grad_G_j(2),
-                                n_hat_X_rprime(0) * ITo_grad_G_j(1) - n_hat_X_rprime(1) * ITo_grad_G_j(0);
+      ITo_G_rprime_r[0] += G_j * rprime_r[0];
+      ITo_G_rprime_r[1] += G_j * rprime_r[1];
+      ITo_G_rprime_r[2] += G_j * rprime_r[2];
+      if (R>1.0e-10) {
+        const std::complex<double> temp( -(-exp_minus_I_k_R*(1.0+I_k_R) + 1.0 + k_square/2.0 * R*R)/(R*R*R) * weigths[j] );
+        ITo_grad_G[0] += temp * rprime_r[0];
+        ITo_grad_G[1] += temp * rprime_r[1];
+        ITo_grad_G[2] += temp * rprime_r[2];
+      }
+      n_hat_X_rprime[0] = To.n_hat[1]*rprime[2]-To.n_hat[2]*rprime[1];
+      n_hat_X_rprime[1] = To.n_hat[2]*rprime[0]-To.n_hat[0]*rprime[2];
+      n_hat_X_rprime[2] = To.n_hat[0]*rprime[1]-To.n_hat[1]*rprime[0];
+      ITo_n_hat_X_r_X_grad_G[0] += n_hat_X_rprime[1] * ITo_grad_G_j[2] - n_hat_X_rprime[2] * ITo_grad_G_j[1];
+      ITo_n_hat_X_r_X_grad_G[1] += n_hat_X_rprime[2] * ITo_grad_G_j[0] - n_hat_X_rprime[0] * ITo_grad_G_j[2];
+      ITo_n_hat_X_r_X_grad_G[2] += n_hat_X_rprime[0] * ITo_grad_G_j[1] - n_hat_X_rprime[1] * ITo_grad_G_j[0];
     }
     IT_singularities (IT_1_R, IT_R, IT_1_R_rprime_r, IT_R_rprime_r, IT_grad_1_R, IT_grad_R, r, To);
     ITo_G = ITo_G * norm_factor + IT_1_R - k_square/2.0 * IT_R;
-    ITo_G_rprime_r = ITo_G_rprime_r * norm_factor + IT_1_R_rprime_r - k_square/2.0 * IT_R_rprime_r;
-    ITo_grad_G = ITo_grad_G * norm_factor + IT_grad_1_R - k_square/2.0 * IT_grad_R;
-    //ITo_n_hat_X_r_X_grad_G = ITo_n_hat_X_r_X_grad_G * norm_factor;
+    for (int i=0 ; i<3 ; ++i) {
+      ITo_G_rprime_r[i] = ITo_G_rprime_r[i] * norm_factor + IT_1_R_rprime_r[i] - k_square/2.0 * IT_R_rprime_r[i];
+      ITo_grad_G[i] = ITo_grad_G[i] * norm_factor + IT_grad_1_R[i] - k_square/2.0 * IT_grad_R[i];
+      //ITo_n_hat_X_r_X_grad_G[i] = ITo_n_hat_X_r_X_grad_G[i] * norm_factor;
+    }
   }
 }
 

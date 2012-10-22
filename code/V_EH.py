@@ -12,9 +12,9 @@ def G_EJ_G_HJ(r_dip, r_obs, eps_r, mu_r, k):
     G_EJ = zeros((3,3), 'D')
     G_HJ = zeros((3,3), 'D')
     wrapping_code = """
-    blitz::TinyVector<double, 3> rDip, rObs;
-    for (int i=0 ; i<3 ; ++i) rDip(i) = r_dip(i);
-    for (int i=0 ; i<3 ; ++i) rObs(i) = r_obs(i);
+    double rDip[3], rObs[3];
+    for (int i=0 ; i<3 ; ++i) rDip[i] = r_dip(i);
+    for (int i=0 ; i<3 ; ++i) rObs[i] = r_obs(i);
     G_EJ_G_HJ (G_EJ, G_HJ, rDip, rObs, eps_r, mu_r, k);
     """
     weave.inline(wrapping_code,
