@@ -248,7 +248,7 @@ void IT_singularities (double & IT_1_R,
   double rho[3];
   const double r_dot_n_hat = r[0] * T.n_hat[0] + r[1] * T.n_hat[1] + r[2] * T.n_hat[2];
   for (int i=0 ; i<3 ; ++i) rho[i] = r[i] - T.n_hat[i] * r_dot_n_hat;
-  const double * r_plus__i, * r_minus__i, * m_i_hat;
+  const double * r_plus__i, * r_minus__i, * m_i_hat, * s_i_hat;
   double K_2_minus_1__i[3], K_2_plus_1__i[3], K_3_minus_1__i[3], K_3_plus_1__i[3];
 
   IT_1_R = 0.0;
@@ -263,32 +263,18 @@ void IT_singularities (double & IT_1_R,
   for (int i=0 ; i<3 ; ++i) {
     switch (i)
     {
-      case 0: r_plus__i = T.r_nodes_1; r_minus__i = T.r_nodes_0; m_i_hat = T.m_i_hat_0; break;
-      case 1: r_plus__i = T.r_nodes_2; r_minus__i = T.r_nodes_1; m_i_hat = T.m_i_hat_1; break;
-      case 2: r_plus__i = T.r_nodes_0; r_minus__i = T.r_nodes_2; m_i_hat = T.m_i_hat_2; break;
+      case 0: r_plus__i = T.r_nodes_1; r_minus__i = T.r_nodes_0; m_i_hat = T.m_i_hat_0; s_i_hat = T.s_i_hat_0; break;
+      case 1: r_plus__i = T.r_nodes_2; r_minus__i = T.r_nodes_1; m_i_hat = T.m_i_hat_1; s_i_hat = T.s_i_hat_1; break;
+      case 2: r_plus__i = T.r_nodes_0; r_minus__i = T.r_nodes_2; m_i_hat = T.m_i_hat_2; s_i_hat = T.s_i_hat_2; break;
     }
     // s_plus__i, s_minus__i computation
-    double r_plus__i_r[3], r_minus__i_r[3];
-    r_plus__i_r[0] = r_plus__i[0]-r[0];
-    r_plus__i_r[1] = r_plus__i[1]-r[1];
-    r_plus__i_r[2] = r_plus__i[2]-r[2];
-    r_minus__i_r[0] = r_minus__i[0]-r[0];
-    r_minus__i_r[1] = r_minus__i[1]-r[1];
-    r_minus__i_r[2] = r_minus__i[2]-r[2];
-    switch (i)
-    {
-      case 0: s_plus__i = dot3D(r_plus__i_r, T.s_i_hat_0); s_minus__i = dot3D(r_minus__i_r, T.s_i_hat_0); break;
-      case 1: s_plus__i = dot3D(r_plus__i_r, T.s_i_hat_1); s_minus__i = dot3D(r_minus__i_r, T.s_i_hat_1); break;
-      case 2: s_plus__i = dot3D(r_plus__i_r, T.s_i_hat_2); s_minus__i = dot3D(r_minus__i_r, T.s_i_hat_2); break;
-    }
+    const double r_plus__i_r[3] = {r_plus__i[0]-r[0], r_plus__i[1]-r[1], r_plus__i[2]-r[2]}; 
+    const double r_minus__i_r[3] = {r_minus__i[0]-r[0], r_minus__i[1]-r[1], r_minus__i[2]-r[2]};
+    s_plus__i = dot3D(r_plus__i_r, s_i_hat); 
+    s_minus__i = dot3D(r_minus__i_r, s_i_hat);
     
     // t_i_0 : distance from r (projected on plane of triangle) to edge
-    switch (i)
-    {
-      case 0: t_i_0 = dot3D(r_plus__i_r, T.m_i_hat_0); break;
-      case 1: t_i_0 = dot3D(r_plus__i_r, T.m_i_hat_1); break;
-      case 2: t_i_0 = dot3D(r_plus__i_r, T.m_i_hat_2); break;
-    }
+    t_i_0 = dot3D(r_plus__i_r, m_i_hat);
 
     // R_plus__i, R_minus__i, R_i_0 computation
     R_plus__i = sqrt(dot3D(r_plus__i_r, r_plus__i_r));
@@ -316,8 +302,9 @@ void IT_singularities (double & IT_1_R,
     }
     I_L_plus_3__i = 0.25 * (s_plus__i*R_plus__i*R_plus__i*R_plus__i - s_minus__i*R_minus__i*R_minus__i*R_minus__i + 3.0 * R_i_0_square * I_L_plus_1__i);
 
+    const double third(1.0/3.0);
     K_1_minus_1__i = t_i_0*I_L_minus_1__i - abs_h * beta_i;
-    K_1_plus_1__i = 1.0/3.0 * (h*h * K_1_minus_1__i + t_i_0*I_L_plus_1__i);
+    K_1_plus_1__i = third * (h*h * K_1_minus_1__i + t_i_0*I_L_plus_1__i);
 
 //    K_2_minus_1__i = m_i_hat * I_L_plus_1__i - T.n_hat * (h * K_1_minus_1__i); 
 //    K_2_plus_1__i = 1.0/3.0 * m_i_hat * I_L_plus_3__i - T.n_hat * (h * K_1_plus_1__i);
@@ -326,14 +313,13 @@ void IT_singularities (double & IT_1_R,
 
     IT_1_R += K_1_minus_1__i;
     IT_R += K_1_plus_1__i;
-    double h_K_minus(h * K_1_minus_1__i), h_K_plus(h * K_1_plus_1__i), sign_beta(-sign_h * beta_i);
+    const double h_K_minus(h * K_1_minus_1__i), h_K_plus(h * K_1_plus_1__i), sign_beta(-sign_h * beta_i);
     K_2_minus_1__i[0] = m_i_hat[0] * I_L_plus_1__i - T.n_hat[0] * h_K_minus;
     K_2_minus_1__i[1] = m_i_hat[1] * I_L_plus_1__i - T.n_hat[1] * h_K_minus;
     K_2_minus_1__i[2] = m_i_hat[2] * I_L_plus_1__i - T.n_hat[2] * h_K_minus;
     IT_1_R_rprime_r[0] += K_2_minus_1__i[0];
     IT_1_R_rprime_r[1] += K_2_minus_1__i[1];
     IT_1_R_rprime_r[2] += K_2_minus_1__i[2];
-    const double third(1.0/3.0);
     IT_R_rprime_r[0] += third * m_i_hat[0] * I_L_plus_3__i - T.n_hat[0] * h_K_plus; //K_2_plus_1__i[0];
     IT_R_rprime_r[1] += third * m_i_hat[1] * I_L_plus_3__i - T.n_hat[1] * h_K_plus; //K_2_plus_1__i[1];
     IT_R_rprime_r[2] += third * m_i_hat[2] * I_L_plus_3__i - T.n_hat[2] * h_K_plus; //K_2_plus_1__i[2];
