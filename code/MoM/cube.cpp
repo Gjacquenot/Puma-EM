@@ -9,7 +9,7 @@
 #include <algorithm>
 #include <mpi.h>
 
-using namespace blitz;
+using namespace std;
 
 #include "cube.h"
 #include "readWriteBlitzArrayFromFile.h"
@@ -26,12 +26,12 @@ Cube::Cube(const bool is_leaf,                           // 1 if cube is leaf
   // we compute the absolute cartesian coordinates and the cube number
   absoluteCartesianCoord = floor( (rCenter-bigCubeLowerCoord)/sideLength );
   double maxNumberCubes1D = pow(2.0, level);
-  number = static_cast<int>( absoluteCartesianCoord(0) * pow2(maxNumberCubes1D) + absoluteCartesianCoord(1) * maxNumberCubes1D + absoluteCartesianCoord(2) );
+  number = static_cast<int>( absoluteCartesianCoord(0) * maxNumberCubes1D*maxNumberCubes1D + absoluteCartesianCoord(1) * maxNumberCubes1D + absoluteCartesianCoord(2) );
 
   // we compute the number of the father
   blitz::TinyVector<double, 3> cartesianCoordInFathers = floor( (rCenter-bigCubeLowerCoord)/(2.0*sideLength) );
   double maxNumberCubes1D_next_level = maxNumberCubes1D/2.0;
-  fatherNumber =  static_cast<int>( cartesianCoordInFathers(0) * pow2(maxNumberCubes1D_next_level) + cartesianCoordInFathers(1) * maxNumberCubes1D_next_level + cartesianCoordInFathers(2) );
+  fatherNumber =  static_cast<int>( cartesianCoordInFathers(0) * maxNumberCubes1D_next_level*maxNumberCubes1D_next_level + cartesianCoordInFathers(1) * maxNumberCubes1D_next_level + cartesianCoordInFathers(2) );
 }
 
 Cube::Cube(const Cube& sonCube,
@@ -52,7 +52,7 @@ Cube::Cube(const Cube& sonCube,
   // (i.e. grandfather of sonCube)
   blitz::TinyVector<double, 3> cartesianCoordInFathers = floor( (rCenter-bigCubeLowerCoord)/(2.0*sideLength) );
   double maxNumberCubes1D_next_level = pow(2.0, level-1);
-  fatherNumber = static_cast<int>(cartesianCoordInFathers(0) * pow2(maxNumberCubes1D_next_level) + cartesianCoordInFathers(1) * maxNumberCubes1D_next_level + cartesianCoordInFathers(2));
+  fatherNumber = static_cast<int>(cartesianCoordInFathers(0) * maxNumberCubes1D_next_level*maxNumberCubes1D_next_level + cartesianCoordInFathers(1) * maxNumberCubes1D_next_level + cartesianCoordInFathers(2));
 }
 
 void Cube::computeGaussLocatedArguments(const blitz::Array<int, 1>& local_RWG_numbers,

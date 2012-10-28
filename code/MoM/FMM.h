@@ -8,23 +8,23 @@
 #include <blitz/array.h>
 #include <blitz/tinyvec-et.h>
 
-using namespace blitz;
+using namespace std;
 
 #include "EMConstants.h"
 #include "integr_1D_X_W.h"
 #include "GK_triangle.h"
 #include "./amos/zbesh/zbesh_interface.h"
 
-inline void rNode(TinyVector<double,3>& r, const Array<double,2>& vertexes_coord, const int node_index) {
+inline void rNode(blitz::TinyVector<double,3>& r, const blitz::Array<double,2>& vertexes_coord, const int node_index) {
   for (int i=0 ; i<3 ; i++) r(i) = vertexes_coord(node_index, i);
 }
 
-inline void rNode(TinyVector<float,3>& r, const Array<double,2>& vertexes_coord, const int node_index) {
+inline void rNode(blitz::TinyVector<float,3>& r, const blitz::Array<double,2>& vertexes_coord, const int node_index) {
   for (int i=0 ; i<3 ; i++) r(i) = static_cast<float>(vertexes_coord(node_index, i));
 }
 
 template <typename T>
-void P_Legendre (Array<T, 1>& P,
+void P_Legendre (blitz::Array<T, 1>& P,
                  const T z)
 /**
  * This function computes the Legendre polynomials, given by the following recursive formula:
@@ -198,26 +198,26 @@ void P_Legendre (Array<T, 1>& P,
 // }
 
 template <typename T>
-void IT_theta_IT_phi_B_EJ_B_HJ (Array<complex<T>, 4>& B, 
-                                const Array<complex<double>, 1>& CFIE, 
-                                const Array<int, 1>& indexes_triangles, 
-                                const Array<int, 1>& edges_numbers_local_edges_numbers, 
-                                const Array<double, 2>& vertexes_coord, 
-                                const Array<int, 2>& triangles_vertexes, 
-                                const Array<int, 2>& triangles_edges_kinds, 
-                                const Array<int, 2>& triangles_edges_numbers, 
-                                const Array<int, 2>& triangles_edges_signs, 
-                                const Array<double, 2>& triangles_edges_lengths, 
-                                const Array<int, 2>& triangles_edges_opp_vertexes, 
-                                const Array<double, 2>& triangles_normals, 
-                                const Array<double, 2>& triangles_areas, 
-                                const Array<double, 2>& edges_numbers_cubes_centroids, 
+void IT_theta_IT_phi_B_EJ_B_HJ (blitz::Array<std::complex<T>, 4>& B, 
+                                const blitz::Array<std::complex<double>, 1>& CFIE, 
+                                const blitz::Array<int, 1>& indexes_triangles, 
+                                const blitz::Array<int, 1>& edges_numbers_local_edges_numbers, 
+                                const blitz::Array<double, 2>& vertexes_coord, 
+                                const blitz::Array<int, 2>& triangles_vertexes, 
+                                const blitz::Array<int, 2>& triangles_edges_kinds, 
+                                const blitz::Array<int, 2>& triangles_edges_numbers, 
+                                const blitz::Array<int, 2>& triangles_edges_signs, 
+                                const blitz::Array<double, 2>& triangles_edges_lengths, 
+                                const blitz::Array<int, 2>& triangles_edges_opp_vertexes, 
+                                const blitz::Array<double, 2>& triangles_normals, 
+                                const blitz::Array<double, 2>& triangles_areas, 
+                                const blitz::Array<double, 2>& edges_numbers_cubes_centroids, 
                                 const int IS_SRC, 
-                                const complex<double>& k,
+                                const std::complex<double>& k,
                                 const double w,
-                                const complex<double>& mu_r,
-                                const Array<T, 1>& Xtheta, //XcosTheta,
-                                const Array<T, 1>& Xphi,
+                                const std::complex<double>& mu_r,
+                                const blitz::Array<T, 1>& Xtheta, //XcosTheta,
+                                const blitz::Array<T, 1>& Xphi,
                                 const int N_points) /**< INPUT: the number of points used in Gaussian integration */
 {
   B = 0.0; // initialization
@@ -236,19 +236,19 @@ void IT_theta_IT_phi_B_EJ_B_HJ (Array<complex<T>, 4>& B,
 /*********************** S computation *********************/
 /***********************************************************/
 template <typename T>
-void S_EH_J_computation (Array<complex<T>, 4>& S_EH_J, 
-                         const Array<complex<T>, 4>& B_EH_src, 
-                         const Array<complex<T>, 1>& I_PQ, 
-                         const Array<int, 2>& cubes_edges_numbers, 
-                         const Array<int, 1>& cubes_Ei) 
+void S_EH_J_computation (blitz::Array<std::complex<T>, 4>& S_EH_J, 
+                         const blitz::Array<std::complex<T>, 4>& B_EH_src, 
+                         const blitz::Array<std::complex<T>, 1>& I_PQ, 
+                         const blitz::Array<int, 2>& cubes_edges_numbers, 
+                         const blitz::Array<int, 1>& cubes_Ei) 
 {
-  Range all = Range::all();
+  blitz::Range all = blitz::Range::all();
   int Ej, C = cubes_Ei.size();
   S_EH_J = 0.0;
   for (int j=0 ; j<C ; j++) {
     Ej = cubes_Ei(j);
-    Array<int, 1> edges_numbers_src(Ej);
-    edges_numbers_src = cubes_edges_numbers(j, Range(0, Ej-1));
+    blitz::Array<int, 1> edges_numbers_src(Ej);
+    edges_numbers_src = cubes_edges_numbers(j, blitz::Range(0, Ej-1));
     for (int i=0 ; i<Ej ; i++) S_EH_J(j, all, all, all) += B_EH_src(edges_numbers_src(i), all, all, all) * I_PQ(edges_numbers_src(i));
   }
 }
@@ -259,10 +259,10 @@ void S_EH_J_computation (Array<complex<T>, 4>& S_EH_J,
 /***********************************************************/
 
 template <typename T>
-void matvec_Z_PQ_near (Array<complex<T>, 1>& ZI_PQ,
-                       const Array<complex<T>, 1>& Z_PQ_near,
-                       const Array<complex<T>, 1>& I_PQ,
-                       const Array<int, 2>& pq_array)
+void matvec_Z_PQ_near (blitz::Array<std::complex<T>, 1>& ZI_PQ,
+                       const blitz::Array<std::complex<T>, 1>& Z_PQ_near,
+                       const blitz::Array<std::complex<T>, 1>& I_PQ,
+                       const blitz::Array<int, 2>& pq_array)
 /**
  * matrix-vector multiplication for a sparse matrix data structure such as the coordinate scheme
  * (i, j, a_ij)
@@ -278,12 +278,12 @@ void matvec_Z_PQ_near (Array<complex<T>, 1>& ZI_PQ,
 }
 
 template <typename T>
-void matvec_Z_PQ_near (Array<complex<T>, 1>& ZI_PQ,
-                       const Array<complex<T>, 1>& Z_PQ_near,
-                       const Array<complex<T>, 1>& I_PQ,
-                       const Array<int, 1>& q_array,
-                       const Array<int, 2>& rowIndexToColumnIndexes,
-                       const Array<int, 1>& RWG_numbers)
+void matvec_Z_PQ_near (blitz::Array<std::complex<T>, 1>& ZI_PQ,
+                       const blitz::Array<std::complex<T>, 1>& Z_PQ_near,
+                       const blitz::Array<std::complex<T>, 1>& I_PQ,
+                       const blitz::Array<int, 1>& q_array,
+                       const blitz::Array<int, 2>& rowIndexToColumnIndexes,
+                       const blitz::Array<int, 1>& RWG_numbers)
 /**
  * matrix-vector multiplication for a sparse matrix data structure
  * such as the compressed row storage scheme
@@ -300,47 +300,47 @@ void matvec_Z_PQ_near (Array<complex<T>, 1>& ZI_PQ,
 }
 
 template <typename T>
-void matvec_Z_PQ_far_Ci_Cj (Array<complex<T>, 1>& ZI_PQ, 
-                            const Array<complex<T>, 4>& B_CFIE_test, 
-                            const Array<complex<T>, 3>& S_EH_J_cube_j,
-                            const Array<int, 1>& edges_numbers_test)
+void matvec_Z_PQ_far_Ci_Cj (blitz::Array<std::complex<T>, 1>& ZI_PQ, 
+                            const blitz::Array<std::complex<T>, 4>& B_CFIE_test, 
+                            const blitz::Array<std::complex<T>, 3>& S_EH_J_cube_j,
+                            const blitz::Array<int, 1>& edges_numbers_test)
 {
-  Range all = Range::all();
+  blitz::Range all = blitz::Range::all();
   int N_edges_test = edges_numbers_test.size();
   for (int j=0 ; j<N_edges_test ; j++) ZI_PQ(edges_numbers_test(j)) += sum(B_CFIE_test(edges_numbers_test(j), all, all, all) * S_EH_J_cube_j);
 }
 
 template <typename T>
-void matvec_Z_PQ_far(Array<complex<T>, 1>& ZI_PQ_far, 
-                     const Array<complex<T>, 1>& I_PQ, 
-                     const Array<complex<T>, 4>& B_CFIE_test, 
-                     const Array<complex<T>, 4>& B_tEJ_src, 
-                     const Array<T, 2>& Weights2D,
-                     const Array<complex<T>, 5>& alpha, 
-                     const Array<int, 2>& cubes_edges_numbers, 
-                     const Array<int, 1>& cubes_Ei, 
-                     const Array<double, 2>& cubes_centroids, 
-                     const Array<double, 2>& edges_numbers_cubes_centroids, 
+void matvec_Z_PQ_far(blitz::Array<std::complex<T>, 1>& ZI_PQ_far, 
+                     const blitz::Array<std::complex<T>, 1>& I_PQ, 
+                     const blitz::Array<std::complex<T>, 4>& B_CFIE_test, 
+                     const blitz::Array<std::complex<T>, 4>& B_tEJ_src, 
+                     const blitz::Array<T, 2>& Weights2D,
+                     const blitz::Array<std::complex<T>, 5>& alpha, 
+                     const blitz::Array<int, 2>& cubes_edges_numbers, 
+                     const blitz::Array<int, 1>& cubes_Ei, 
+                     const blitz::Array<double, 2>& cubes_centroids, 
+                     const blitz::Array<double, 2>& edges_numbers_cubes_centroids, 
                      const double a, 
                      const int L) 
 {
-  Range all = Range::all();
+  blitz::Range all = blitz::Range::all();
   int N_edges;
   const int C = cubes_Ei.size(), N_coord = B_tEJ_src.extent(1), N_theta = B_tEJ_src.extent(2), N_phi = B_tEJ_src.extent(3);
   const int N_Cx = (alpha.extent(0)+1)/2, N_Cy = (alpha.extent(1)+1)/2, N_Cz = (alpha.extent(2)+1)/2;
   double norm_r_ij;
-  Array<double, 1> r_ij(3);
-  Array<int, 1> mnp(3), offset_mnp(3); // cartesian 3D indexes
+  blitz::Array<double, 1> r_ij(3);
+  blitz::Array<int, 1> mnp(3), offset_mnp(3); // cartesian 3D indexes
   offset_mnp = N_Cx-1, N_Cy-1, N_Cz-1;
-  Array<complex<T>, 3> sum_S_EH_J(N_coord, N_theta, N_phi);
-  Array<complex<T>, 4> S_EH_J(C, N_coord, N_theta, N_phi);
+  blitz::Array<std::complex<T>, 3> sum_S_EH_J(N_coord, N_theta, N_phi);
+  blitz::Array<std::complex<T>, 4> S_EH_J(C, N_coord, N_theta, N_phi);
   S_EH_J_computation(S_EH_J, B_tEJ_src, I_PQ, cubes_edges_numbers, cubes_Ei);
 
   for (int i=0 ; i<C ; i++) 
   {
     sum_S_EH_J = 0.0;
     N_edges = cubes_Ei(i);
-    Array<int, 1> edges_numbers_test( cubes_edges_numbers(i, Range(0, N_edges-1)) );
+    blitz::Array<int, 1> edges_numbers_test( cubes_edges_numbers(i, blitz::Range(0, N_edges-1)) );
     for (int j=0 ; j<C ; j++) 
     {
       r_ij = cubes_centroids(i, all) - cubes_centroids(j, all);

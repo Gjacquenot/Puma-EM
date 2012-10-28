@@ -1,8 +1,8 @@
 #include <blitz/array.h>
 
-using namespace blitz;
+using namespace std;
 
-void Gauss_Legendre (Array<double, 1>& XGL, Array<double, 1>& WGL, const int N_points) {
+void Gauss_Legendre (blitz::Array<double, 1>& XGL, blitz::Array<double, 1>& WGL, const int N_points) {
   int N = N_points;
   if (N_points < 1) {
     cout << "Gauss_Legendre(): N_points < 1!" << endl;

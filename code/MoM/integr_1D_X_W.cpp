@@ -1,11 +1,11 @@
 #include <string>
 #include <blitz/array.h>
 
-using namespace blitz;
+using namespace std;
 
 #include "GL.h"
 
-void integr_1D_X_W(Array<double, 1>& X, Array<double, 1>& W, const double & a, const double & b, const int N_points, const string & METHOD)
+void integr_1D_X_W(blitz::Array<double, 1>& X, blitz::Array<double, 1>& W, const double & a, const double & b, const int N_points, const string & METHOD)
 {
   double h;
   X.resize(N_points);
@@ -28,7 +28,7 @@ void integr_1D_X_W(Array<double, 1>& X, Array<double, 1>& W, const double & a, c
   else if (METHOD == "GAUSSL")
     {
       double Dx, center;
-      Array<double, 1> XGL, WGL;
+      blitz::Array<double, 1> XGL, WGL;
       if (N_points<=20) {
         Gauss_Legendre(XGL, WGL, N_points); 
         Dx = 0.5 * (b - a);
@@ -44,3 +44,4 @@ void integr_1D_X_W(Array<double, 1>& X, Array<double, 1>& W, const double & a, c
       exit(1);
     }
 }
+
