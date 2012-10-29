@@ -108,7 +108,7 @@ void MatvecMLFMA::matvecZnear(blitz::Array<std::complex<float>, 1> & y, const bl
 {
   const int my_id = MPI::COMM_WORLD.Get_rank();
   const string pathToReadFrom = simuDir + "/tmp" + intToString(my_id) + "/Z_near/", Z_name = "Z_CFIE_near";
-  Array<int, 1> chunkNumbers;
+  blitz::Array<int, 1> chunkNumbers;
   readIntBlitzArray1DFromASCIIFile(pathToReadFrom + "chunkNumbers.txt", chunkNumbers);
   Z_sparse_MLFMA Z_near;
   for (int i=0 ; i<chunkNumbers.size() ; i++) {

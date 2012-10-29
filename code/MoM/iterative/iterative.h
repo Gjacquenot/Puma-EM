@@ -229,7 +229,7 @@ void rotmat(T & cs,
     a = b;
   }
   T SCALE = abs(a) + abs(b);
-  T NORM = SCALE*sqrt(pow2((abs(a/SCALE)))+pow2((abs(b/SCALE))));
+  T NORM = SCALE*sqrt( abs(a/SCALE)*abs(a/SCALE) + abs(b/SCALE)*abs(b/SCALE) );
   T ALPHA = a/abs(a);
   cs = abs(a)/NORM;
   sn = ALPHA*conj(b)/NORM;
