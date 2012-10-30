@@ -9,7 +9,7 @@ using namespace std;
 
 #include "EMConstants.h"
 #include "triangle_int.h"
-#include "mesh.h"
+#include "dictionary.h"
 
 void Z_CFIE_J_computation (blitz::Array<std::complex<double>, 2>& Z_CFIE_J,
                            blitz::Array<std::complex<double>, 2>& Z_CFIE_M,

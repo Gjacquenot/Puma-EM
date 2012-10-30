@@ -1,4 +1,5 @@
 #include "mesh.h"
+#include "dictionary.h"
 
 /*Mesh::Mesh(const string path) {setMeshFromFile(path);};
 

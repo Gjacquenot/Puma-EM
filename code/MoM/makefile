@@ -55,7 +55,7 @@ communicateZnearBlocks.o: communicateZnearBlocks.cpp readWriteBlitzArrayFromFile
 	$(MPICC) $(INCLUDE_PATH) $(CFLAGS) communicateZnearBlocks.cpp
 RWGs_renumbering.o: RWGs_renumbering.cpp readWriteBlitzArrayFromFile.h
 	$(MPICC) $(INCLUDE_PATH) $(CFLAGS) RWGs_renumbering.cpp
-scatter_mesh_per_cube.o: scatter_mesh_per_cube.cpp readWriteBlitzArrayFromFile.h mesh.h scatter_mesh_per_cube.h
+scatter_mesh_per_cube.o: scatter_mesh_per_cube.cpp readWriteBlitzArrayFromFile.h dictionary.h scatter_mesh_per_cube.h
 	$(MPICC) $(INCLUDE_PATH) $(CFLAGS) scatter_mesh_per_cube.cpp
 compute_Z_near.o: compute_Z_near.cpp readWriteBlitzArrayFromFile.h Z_EJ_Z_HJ.h scatter_mesh_per_cube.h scatter_mesh_per_cube.cpp
 	$(MPICC) $(INCLUDE_PATH) $(CFLAGS) compute_Z_near.cpp
@@ -67,27 +67,27 @@ mesh_functions_seb.o: mesh_functions_seb.cpp mesh.cpp mesh.h readWriteBlitzArray
 	$(MPICC) $(INCLUDE_PATH) $(CFLAGS) mesh_functions_seb.cpp
 octtree.o: octtree.cpp interpolation.h level.h level.cpp FMM.h mesh.h octtree.h alpha_computation.h readWriteBlitzArrayFromFile.h
 	$(MPICC) $(INCLUDE_PATH) $(CFLAGS) octtree.cpp
-level.o: level.cpp interpolation.h level.h FMM.h mesh.h cube.h cube.cpp readWriteBlitzArrayFromFile.h alpha_computation.h
+level.o: level.cpp interpolation.h level.h FMM.h dictionary.h cube.h cube.cpp readWriteBlitzArrayFromFile.h alpha_computation.h
 	$(MPICC) $(INCLUDE_PATH) $(CFLAGS) level.cpp
-cube.o: cube.cpp FMM.h mesh.h cube.h readWriteBlitzArrayFromFile.h
+cube.o: cube.cpp FMM.h dictionary.h cube.h readWriteBlitzArrayFromFile.h
 	$(MPICC) $(INCLUDE_PATH) $(CFLAGS) cube.cpp
 FMM.o: FMM.cpp EMConstants.h FMM.h integr_1D_X_W.h GK_triangle.h $(LIBAMOS_ZBESH_PATH)zbesh_interface.h
 	$(CC) $(INCLUDE_PATH) $(CFLAGS) FMM.cpp
-integr_1D_X_W.o: integr_1D_X_W.cpp GL.h 
+integr_1D_X_W.o: integr_1D_X_W.cpp GL.h GL.cpp
 	$(CC) $(INCLUDE_PATH) $(CFLAGS) integr_1D_X_W.cpp
 interpolation.o: interpolation.cpp interpolation.h
 	$(CC) $(INCLUDE_PATH) $(CFLAGS) interpolation.cpp
-mesh.o: mesh.cpp mesh.h
+mesh.o: mesh.cpp mesh.h dictionary.h
 	$(CC) $(INCLUDE_PATH) $(CFLAGS) mesh.cpp
 readWriteBlitzArrayFromFile.o: readWriteBlitzArrayFromFile.cpp readWriteBlitzArrayFromFile.h
 	$(CC) $(INCLUDE_PATH) $(CFLAGS) readWriteBlitzArrayFromFile.cpp
-Z_EJ_Z_HJ_FS_triangles_arrays.o: Z_EJ_Z_HJ_FS_triangles_arrays.cpp EMConstants.h triangle_int.h mesh.h
+Z_EJ_Z_HJ_FS_triangles_arrays.o: Z_EJ_Z_HJ_FS_triangles_arrays.cpp EMConstants.h triangle_int.h dictionary.h
 	$(CC) $(INCLUDE_PATH) $(CFLAGS) Z_EJ_Z_HJ_FS_triangles_arrays.cpp
-V_E_V_H_dipole.o: V_E_V_H_dipole.cpp GK_triangle.h triangle_int.h EMConstants.h V_E_V_H.h mesh.h
+V_E_V_H_dipole.o: V_E_V_H_dipole.cpp GK_triangle.h triangle_int.h EMConstants.h V_E_V_H.h dictionary.h mesh.h
 	$(CC) $(INCLUDE_PATH) $(CFLAGS) V_E_V_H_dipole.cpp
-V_E_V_H_plane.o: V_E_V_H_plane.cpp GK_triangle.h triangle_int.h EMConstants.h V_E_V_H.h mesh.h
+V_E_V_H_plane.o: V_E_V_H_plane.cpp GK_triangle.h triangle_int.h EMConstants.h V_E_V_H.h dictionary.h mesh.h
 	$(CC) $(INCLUDE_PATH) $(CFLAGS) V_E_V_H_plane.cpp
-triangle_int_FS.o: triangle_int_FS.cpp GK_triangle.h GL.h
+triangle_int_FS.o: triangle_int_FS.cpp GK_triangle.h GL.h GL.cpp dictionary.h
 	$(CC) $(INCLUDE_PATH) $(CFLAGS) triangle_int_FS.cpp
 GK_triangle.o: GK_triangle.cpp GK_triangle.h
 	$(CC) $(INCLUDE_PATH) $(CFLAGS) GK_triangle.cpp

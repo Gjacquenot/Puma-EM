@@ -10,7 +10,6 @@
 using namespace std;
 
 #include "FMM.h"
-#include "mesh.h"
 
 class Cube {
     //! tells if the current cube is leaf (finest) or not

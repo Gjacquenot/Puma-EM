@@ -28,13 +28,13 @@ void integr_1D_X_W(blitz::Array<double, 1>& X, blitz::Array<double, 1>& W, const
   else if (METHOD == "GAUSSL")
     {
       double Dx, center;
-      blitz::Array<double, 1> XGL, WGL;
+      const double *XGL, *WGL;
       if (N_points<=20) {
         Gauss_Legendre(XGL, WGL, N_points); 
         Dx = 0.5 * (b - a);
         center = 0.5 * (b + a);
-        for (int j=0 ; j<N_points ; j++) X(j) = center + Dx * XGL(j); 
-        W = abs(Dx) * WGL;
+        for (int j=0 ; j<N_points ; j++) X(j) = center + Dx * XGL[j]; 
+        for (int j=0 ; j<N_points ; j++) W(j) = abs(Dx) * WGL[j];
       }
     }
 

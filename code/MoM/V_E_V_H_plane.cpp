@@ -9,7 +9,7 @@ using namespace std;
 #include "EMConstants.h"
 #include "GK_triangle.h"
 #include "triangle_int.h"
-#include "mesh.h"
+#include "dictionary.h"
 #include "V_E_V_H.h"
 
 void V_EJ_HJ_plane (blitz::Array<std::complex<double>, 1> V_tE_J,

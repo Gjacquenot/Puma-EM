@@ -9,7 +9,7 @@
 
 using namespace std;
 
-#include "mesh.h"
+#include "dictionary.h"
 #include "cube.h"
 #include "interpolation.h"
 

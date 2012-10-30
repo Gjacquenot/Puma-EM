@@ -12,7 +12,8 @@
 using namespace std;
 
 #include "readWriteBlitzArrayFromFile.h"
-#include "mesh.h"
+#include "dictionary.h"
+
 
 void scatter_mesh_per_cube(blitz::Array<blitz::Array<int, 1>, 1>& allCubeIntArrays,
                            blitz::Array<blitz::Array<double, 1>, 1>& allCubeDoubleArrays,

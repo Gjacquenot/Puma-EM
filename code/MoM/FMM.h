@@ -11,7 +11,6 @@
 using namespace std;
 
 #include "EMConstants.h"
-#include "integr_1D_X_W.h"
 #include "GK_triangle.h"
 #include "./amos/zbesh/zbesh_interface.h"
 

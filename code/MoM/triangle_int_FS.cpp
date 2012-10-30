@@ -1,6 +1,5 @@
 #include <iostream>
 #include <complex>
-#include <blitz/array.h>
 
 using namespace std;
 
@@ -9,7 +8,7 @@ const std::complex<double> I (0.0, 1.0);
 #include "GK_triangle.h"
 #include "GL.h"
 #include "triangle_int.h"
-#include "mesh.h"
+#include "dictionary.h"
 
 /****************************************************************************/
 /********************************* Triangle *********************************/
@@ -121,7 +120,6 @@ void constructVectorTriangles(std::vector<Triangle>& triangles,
                               const std::vector<RWG>& vectorRWGs,
                               const std::vector<Dictionary<int, int> >& TriangleToRWG)
 {
-  blitz::Range all = blitz::Range::all();
   int index = 0;
   for (int i=0 ; i<TriangleToRWG.size() ; i++) {
     const int tr_number = TriangleToRWG[i].getKey();
@@ -570,7 +568,7 @@ void IDTo_ITs_free (std::complex<double> & IDTo_l_hat_dot_r_ITs_G,
                     const int EXTRACT_1_R,
                     const int EXTRACT_R)
 {
-  blitz::Array<double, 1> XGL, WGL;
+  const double *XGL, *WGL;
   Gauss_Legendre (XGL, WGL, N_points_o);
 
   double norm_factor, norm_r_hlgth;
@@ -603,11 +601,11 @@ void IDTo_ITs_free (std::complex<double> & IDTo_l_hat_dot_r_ITs_G,
     I_r_k[1] = 0.0;
     I_r_k[2] = 0.0;
     for (int j=0 ; j<N_points_o ; j++) {
-      r[0] = r_center[0] + r_hlgth[0] * XGL(j);
-      r[1] = r_center[1] + r_hlgth[1] * XGL(j);
-      r[2] = r_center[2] + r_hlgth[2] * XGL(j);
+      r[0] = r_center[0] + r_hlgth[0] * XGL[j];
+      r[1] = r_center[1] + r_hlgth[1] * XGL[j];
+      r[2] = r_center[2] + r_hlgth[2] * XGL[j];
       ITs_free (ITs_G_j, ITs_G_rprime_r_j, ITs_grad_G_j, r, Ts, k, N_points_s, EXTRACT_1_R, EXTRACT_R);
-      const std::complex<double> temp(ITs_G_j * WGL(j));
+      const std::complex<double> temp(ITs_G_j * WGL[j]);
       I_k += temp;
       I_r_k[0] += temp * r[0];
       I_r_k[1] += temp * r[1];

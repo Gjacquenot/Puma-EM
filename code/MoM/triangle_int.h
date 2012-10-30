@@ -4,7 +4,7 @@
 
 using namespace std;
 
-#include "mesh.h"
+#include "dictionary.h"
 
 template <class T>
 inline void cross3D(T result[], const T a[], const T b[])
@@ -97,10 +97,6 @@ class RWG {
 void constructVectorTriangles(std::vector<Triangle>& triangles,
                               const std::vector<RWG>& vectorRWGs,
                               const std::vector<Dictionary<int, int> >& TriangleToRWG);
-
-inline void r_node(double r[], const blitz::Array<double,2>& vertexes_coord, const int node_index) {
-  for (int i=0 ; i<3 ; i++) r[i] = vertexes_coord(node_index, i);
-}
 
 void IT_fm_fn (double & IT_r_square, 
                double IT_r[], // dim 3
