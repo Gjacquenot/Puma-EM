@@ -46,9 +46,9 @@ echo " Root password for replacing scipy buggy blitz++ library by the newest ver
 su -c 'cp -r ./blitz /usr/lib64/python2.7/site-packages/scipy/weave/blitz'
 # installing mpi4py. No rpm yet for this one...
 cd $PUMA_EM_DIR/installScripts
-wget http://mpi4py.googlecode.com/files/mpi4py-1.2.2.tar.gz
-tar xzf mpi4py-1.2.2.tar.gz
-cd mpi4py-1.2.2
+wget http://mpi4py.googlecode.com/files/mpi4py-1.3.tar.gz
+tar xzf mpi4py-1.3.tar.gz
+cd mpi4py-1.3
 echo " Root password for installing mpi4py... "
 su -c 'python setup.py install'
 # cleaning up...

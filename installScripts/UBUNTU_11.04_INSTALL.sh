@@ -40,10 +40,9 @@ sudo make install
 sudo cp -r ./blitz /usr/lib/python2.7/dist-packages/scipy/weave/blitz/
 # installing mpi4py. No package yet for this one...
 cd $PUMA_EM_DIR/installScripts
-#wget http://pypi.python.org/packages/source/m/mpi4py/mpi4py-0.6.0.tar.gz
-wget http://mpi4py.googlecode.com/files/mpi4py-1.2.2.tar.gz
-tar xzf mpi4py-1.2.2.tar.gz
-cd mpi4py-1.2.2
+wget http://mpi4py.googlecode.com/files/mpi4py-1.3.tar.gz
+tar xzf mpi4py-1.3.tar.gz
+cd mpi4py-1.3
 sudo python setup.py install
 # cleaning up...
 cd $PUMA_EM_DIR/installScripts
@@ -53,32 +52,6 @@ cd $PUMA_EM_DIR
 # now correcting a little problem on Ubuntu 9.04:
 echo " "
 echo " "
-#echo "!!WARNING!!"
-#echo "Ubuntu 9.04 has a new default behavior for ssh: the local user cannot ssh into the localhost (this machine) without passord anymore, whic causes Open-MPI (and hence Puma-EM) to crash. I know: lame. However, here is the fix in 2 steps, copied from http://www.cs.umd.edu/~arun/misc/ssh.html"
-#echo " "
-#echo "  1. Firstly, generate your public/private keys using ssh-keygen
-
-#    % ssh-keygen -t rsa
-
-#You must use the -t option to specify that you are producing keys for SSHv2 using RSA. This will generate your id_rsa and id_rsa.pub in the .ssh directory in your home directory. I strongly suggest using a passphrase.
-
-#  2. copy the id_rsa.pub to the .ssh directory of the localhost you want to logon to as authorized_keys2.
-
-#    % cp ~/.ssh/id_rsa.pub ~/.ssh/authorized_keys2
-
-#This script can automatically do the above maneuvers for you. Do you want that? [y/N]"
-#read ANSWER
-
-#: ${ANSWER:="N"}
-#if [ "$ANSWER" = "y" ]; then
-#    echo " "
-#    echo " leave the following passphrase empty (just press enter to questions)"
-#    ssh-keygen -t rsa
-#    cp ~/.ssh/id_rsa.pub ~/.ssh/authorized_keys2
-#else
-#    echo " OK, we assume now that you can ssh on your localhost (this machine) without a password..."
-#fi
-
 # choose the appropriate make according to your MPI library
 make install_open-mpi
 #make install_lam-mpi
