@@ -239,13 +239,12 @@ void IT_singularities (double & IT_1_R,
  * for surface integral equations with RWG, rooftop and hybrid basis functions", PIER 63, 243--278, 2006
  */
 {
-  const double h = ((r[0]-T.r_nodes_0[0]) * T.n_hat[0] + (r[1]-T.r_nodes_0[1]) * T.n_hat[1] + (r[2]-T.r_nodes_0[2]) * T.n_hat[2]); 
-  const double abs_h = abs(h), sign_h = (abs_h<1.0e-10) ? 0.0 : h/abs_h;
+  const double w0 = ((r[0]-T.r_nodes_0[0]) * T.n_hat[0] + (r[1]-T.r_nodes_0[1]) * T.n_hat[1] + (r[2]-T.r_nodes_0[2]) * T.n_hat[2]); 
+  const double abs_w0 = abs(w0), sign_w0 = (abs_w0<1.0e-10) ? 0.0 : w0/abs_w0;
   double t_i_0, s_plus__i, s_minus__i, R_plus__i, R_minus__i, R_i_0_square;
   double I_L_minus_1__i, I_L_plus_1__i, I_L_plus_3__i, beta_i, K_1_minus_1__i, K_1_plus_1__i;
-  double rho[3];
-  const double r_dot_n_hat = r[0] * T.n_hat[0] + r[1] * T.n_hat[1] + r[2] * T.n_hat[2];
-  for (int i=0 ; i<3 ; ++i) rho[i] = r[i] - T.n_hat[i] * r_dot_n_hat;
+  
+  double rho[3] = {r[0] - T.n_hat[0]*w0, r[1] - T.n_hat[1]*w0, r[2] - T.n_hat[2]*w0};
   const double * r_plus__i, * r_minus__i, * m_i_hat, * s_i_hat;
   double K_2_minus_1__i[3], K_2_plus_1__i[3], K_3_minus_1__i[3], K_3_plus_1__i[3];
 
@@ -277,23 +276,23 @@ void IT_singularities (double & IT_1_R,
     // R_plus__i, R_minus__i, R_i_0 computation
     R_plus__i = sqrt(dot3D(r_plus__i_r, r_plus__i_r));
     R_minus__i = sqrt(dot3D(r_minus__i_r, r_minus__i_r));
-    R_i_0_square = t_i_0*t_i_0 + h*h;
+    R_i_0_square = t_i_0*t_i_0 + w0*w0;
 
     // different cases according to the position vector    
     if (abs(t_i_0) > 1.0e-8) {
-      beta_i = atan(t_i_0*s_plus__i/(R_i_0_square + abs_h*R_plus__i)) - atan(t_i_0*s_minus__i/(R_i_0_square + abs_h*R_minus__i));
+      beta_i = atan(t_i_0*s_plus__i/(R_i_0_square + abs_w0*R_plus__i)) - atan(t_i_0*s_minus__i/(R_i_0_square + abs_w0*R_minus__i));
       I_L_minus_1__i = log((R_plus__i+s_plus__i)/(R_minus__i+s_minus__i));
       I_L_plus_1__i = 0.5 * (s_plus__i*R_plus__i - s_minus__i*R_minus__i + R_i_0_square*I_L_minus_1__i);
     }
     else { // if (abs(t_i_0)<1.0e-8)
       t_i_0 = 0.0;
       beta_i = 0.0;
-      if (abs_h<1.0e-8) {
+      if (abs_w0<1.0e-8) {
         // the following line is derived with the help of HOSPITAL rule
         I_L_minus_1__i = (s_minus__i*s_plus__i <= 0.0) ? 1.0e+90 : s_plus__i/abs(s_plus__i) * log(s_plus__i/s_minus__i);
         I_L_plus_1__i = 0.5 * (s_plus__i*R_plus__i - s_minus__i*R_minus__i);
       }
-      else { // if (abs_h>1.0e-8)
+      else { // if (abs_w0>1.0e-8)
         I_L_minus_1__i = log((R_plus__i+s_plus__i)/(R_minus__i+s_minus__i));
         I_L_plus_1__i = 0.5 * (s_plus__i*R_plus__i - s_minus__i*R_minus__i + R_i_0_square*I_L_minus_1__i);
       }
@@ -301,17 +300,17 @@ void IT_singularities (double & IT_1_R,
     I_L_plus_3__i = 0.25 * (s_plus__i*R_plus__i*R_plus__i*R_plus__i - s_minus__i*R_minus__i*R_minus__i*R_minus__i + 3.0 * R_i_0_square * I_L_plus_1__i);
 
     const double third(1.0/3.0);
-    K_1_minus_1__i = t_i_0*I_L_minus_1__i - abs_h * beta_i;
-    K_1_plus_1__i = third * (h*h * K_1_minus_1__i + t_i_0*I_L_plus_1__i);
+    K_1_minus_1__i = t_i_0*I_L_minus_1__i - abs_w0 * beta_i;
+    K_1_plus_1__i = third * (w0*w0 * K_1_minus_1__i + t_i_0*I_L_plus_1__i);
 
-//    K_2_minus_1__i = m_i_hat * I_L_plus_1__i - T.n_hat * (h * K_1_minus_1__i); 
-//    K_2_plus_1__i = 1.0/3.0 * m_i_hat * I_L_plus_3__i - T.n_hat * (h * K_1_plus_1__i);
-//    K_3_minus_1__i = (-sign_h * beta_i) * T.n_hat - I_L_minus_1__i * m_i_hat;
+//    K_2_minus_1__i = m_i_hat * I_L_plus_1__i - T.n_hat * (w0 * K_1_minus_1__i); 
+//    K_2_plus_1__i = 1.0/3.0 * m_i_hat * I_L_plus_3__i - T.n_hat * (w0 * K_1_plus_1__i);
+//    K_3_minus_1__i = (-sign_w0 * beta_i) * T.n_hat - I_L_minus_1__i * m_i_hat;
 //    K_3_plus_1__i = -K_2_minus_1__i; //(h * K_1_minus_1__i) * T.n_hat - I_L_plus_1__i * m_i_hat;
 
     IT_1_R += K_1_minus_1__i;
     IT_R += K_1_plus_1__i;
-    const double h_K_minus(h * K_1_minus_1__i), h_K_plus(h * K_1_plus_1__i), sign_beta(-sign_h * beta_i);
+    const double h_K_minus(w0 * K_1_minus_1__i), h_K_plus(w0 * K_1_plus_1__i), sign_beta(-sign_w0 * beta_i);
     K_2_minus_1__i[0] = m_i_hat[0] * I_L_plus_1__i - T.n_hat[0] * h_K_minus;
     K_2_minus_1__i[1] = m_i_hat[1] * I_L_plus_1__i - T.n_hat[1] * h_K_minus;
     K_2_minus_1__i[2] = m_i_hat[2] * I_L_plus_1__i - T.n_hat[2] * h_K_minus;
