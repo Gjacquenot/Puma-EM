@@ -342,7 +342,6 @@ void Level::alphaTranslationsComputation(const int VERBOSE,
     Ny = 2*Ny-1;
     Nz = 2*Nz-1;
   }
-  blitz::TinyVector<double, 3> r_mn;
 
   blitz::Array<float, 2> thetasPhis_all_directions(NThetas * NPhis, 2), thetasPhis;
   blitz::Array<float, 1> weightsThetasPhis_all_directions(NThetas * NPhis), weightsThetasPhis;
@@ -384,6 +383,8 @@ void Level::alphaTranslationsComputation(const int VERBOSE,
     cout << "    alpha.shape() = " << Nx << ", " << Ny << ", " << Nz << ", " << N_directions << endl;
     flush(cout);
   }
+
+  blitz::TinyVector<double, 3> r_mn;
   for (int x = 0 ; x<Nx ; ++x) {
     if ( (my_id==0) && (VERBOSE==1) ) cout << "\r    " << (x+1)*100/Nx << " \% computed";
     flush(cout);
@@ -585,7 +586,7 @@ void Level::shiftingArraysComputation(void)
   const int N_theta = thetas.size(), N_phi = phis.size();
   shiftingArrays.resize(8, N_theta * N_phi);
   double sinTheta, cosTheta, shiftingDistance = this->cubeSideLength/4.0;
-  blitz::TinyVector<double, 3> k_hat, shiftingVector;
+  double k_hat[3], shiftingVector[3];
   blitz::Array<blitz::TinyVector<double, 3>, 1> shiftingVectors(8);
   shiftingVectors(0) = -1.0, -1.0, -1.0;
   shiftingVectors(1) = -1.0, -1.0,  1.0;
@@ -596,13 +597,16 @@ void Level::shiftingArraysComputation(void)
   shiftingVectors(6) =  1.0,  1.0, -1.0;
   shiftingVectors(7) =  1.0,  1.0,  1.0;
   for (int p=0 ; p<8 ; ++p) {
-    shiftingVector = shiftingVectors(p) * shiftingDistance;
+    for (int i=0; i<3; i++) shiftingVector[i] = shiftingVectors(p)(i) * shiftingDistance;
     for (int m=0 ; m<N_theta ; ++m) {
       sinTheta = sin(thetas(m));
       cosTheta = cos(thetas(m));
       for (int n=0 ; n<N_phi ; ++n) {
-        k_hat = sinTheta*cos(phis(n)), sinTheta*sin(phis(n)), cosTheta;
-        shiftingArrays(p, m + n*N_theta) = static_cast<std::complex<float> > (exp(-I*k * dot(k_hat, shiftingVector)));
+        k_hat[0] = sinTheta*cos(phis(n));
+        k_hat[1] = sinTheta*sin(phis(n));
+        k_hat[2] = cosTheta;
+        const double temp(k_hat[0]*shiftingVector[0] + k_hat[1]*shiftingVector[1] + k_hat[2]*shiftingVector[2]);
+        shiftingArrays(p, m + n*N_theta) = static_cast<std::complex<float> > (exp(-I*k*temp));
       }
     }
   }

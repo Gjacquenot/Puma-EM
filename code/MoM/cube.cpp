@@ -29,9 +29,10 @@ Cube::Cube(const bool is_leaf,                           // 1 if cube is leaf
   number = static_cast<int>( absoluteCartesianCoord(0) * maxNumberCubes1D*maxNumberCubes1D + absoluteCartesianCoord(1) * maxNumberCubes1D + absoluteCartesianCoord(2) );
 
   // we compute the number of the father
-  blitz::TinyVector<double, 3> cartesianCoordInFathers = floor( (rCenter-bigCubeLowerCoord)/(2.0*sideLength) );
+  double cartesianCoordInFathers[3];
+  for (int i=0; i<3; i++) cartesianCoordInFathers[i] = floor( (rCenter(i)-bigCubeLowerCoord(i))/(2.0*sideLength) );
   double maxNumberCubes1D_next_level = maxNumberCubes1D/2.0;
-  fatherNumber =  static_cast<int>( cartesianCoordInFathers(0) * maxNumberCubes1D_next_level*maxNumberCubes1D_next_level + cartesianCoordInFathers(1) * maxNumberCubes1D_next_level + cartesianCoordInFathers(2) );
+  fatherNumber =  static_cast<int>( cartesianCoordInFathers[0] * maxNumberCubes1D_next_level*maxNumberCubes1D_next_level + cartesianCoordInFathers[1] * maxNumberCubes1D_next_level + cartesianCoordInFathers[2] );
 }
 
 Cube::Cube(const Cube& sonCube,
@@ -50,9 +51,10 @@ Cube::Cube(const Cube& sonCube,
 
   // we compute the number of the father of _this_ cube
   // (i.e. grandfather of sonCube)
-  blitz::TinyVector<double, 3> cartesianCoordInFathers = floor( (rCenter-bigCubeLowerCoord)/(2.0*sideLength) );
+  double cartesianCoordInFathers[3];
+  for (int i=0; i<3; i++) cartesianCoordInFathers[i] = floor( (rCenter(i)-bigCubeLowerCoord(i))/(2.0*sideLength) );
   double maxNumberCubes1D_next_level = pow(2.0, level-1);
-  fatherNumber = static_cast<int>(cartesianCoordInFathers(0) * maxNumberCubes1D_next_level*maxNumberCubes1D_next_level + cartesianCoordInFathers(1) * maxNumberCubes1D_next_level + cartesianCoordInFathers(2));
+  fatherNumber = static_cast<int>(cartesianCoordInFathers[0] * maxNumberCubes1D_next_level*maxNumberCubes1D_next_level + cartesianCoordInFathers[1] * maxNumberCubes1D_next_level + cartesianCoordInFathers[2]);
 }
 
 void Cube::computeGaussLocatedArguments(const blitz::Array<int, 1>& local_RWG_numbers,
@@ -75,35 +77,57 @@ void Cube::computeGaussLocatedArguments(const blitz::Array<int, 1>& local_RWG_nu
   IT_points (xi, eta, weigths, sum_weigths, N_Gauss);
 
   for (int j=0 ; j<NRWG ; ++j) {
-    blitz::TinyVector<double, 3> r, r_p, r0, r1, r2, n_hat;
+    double r[3], r0[3], r1[3], r2[3], n_hat[3], r1_r0[3], r2_r0[3], r2_r1[3];
+    const double *r_p;
     for (int halfBasisCounter = 0 ; halfBasisCounter < 2 ; ++halfBasisCounter) {
       if (halfBasisCounter==0) {
         for (int i=0; i<3; i++) {
-          r0(i) = local_RWGNumbers_trianglesCoord(startIndex_in_localArrays + j, i);
-          r1(i) = local_RWGNumbers_trianglesCoord(startIndex_in_localArrays + j, i+3);
-          r2(i) = local_RWGNumbers_trianglesCoord(startIndex_in_localArrays + j, i+6);
+          r0[i] = local_RWGNumbers_trianglesCoord(startIndex_in_localArrays + j, i);
+          r1[i] = local_RWGNumbers_trianglesCoord(startIndex_in_localArrays + j, i+3);
+          r2[i] = local_RWGNumbers_trianglesCoord(startIndex_in_localArrays + j, i+6);
+          r1_r0[i] = r1[i] - r0[i];
+          r2_r0[i] = r2[i] - r0[i];
+          r2_r1[i] = r2[i] - r1[i];
         }
       }
       else {
         for (int i=0; i<3; i++) {
-          r0(i) = local_RWGNumbers_trianglesCoord(startIndex_in_localArrays + j, i+9);
-          r1(i) = local_RWGNumbers_trianglesCoord(startIndex_in_localArrays + j, i+6);
-          r2(i) = local_RWGNumbers_trianglesCoord(startIndex_in_localArrays + j, i+3);
+          r0[i] = local_RWGNumbers_trianglesCoord(startIndex_in_localArrays + j, i+9);
+          r1[i] = local_RWGNumbers_trianglesCoord(startIndex_in_localArrays + j, i+6);
+          r2[i] = local_RWGNumbers_trianglesCoord(startIndex_in_localArrays + j, i+3);
+          r1_r0[i] = r1[i] - r0[i];
+          r2_r0[i] = r2[i] - r0[i];
+          r2_r1[i] = r2[i] - r1[i];
         }
       }
       r_p = r0;
-      const blitz::TinyVector<double, 3> r1_r0(r1 - r0), r2_r0(r2-r0);
-      n_hat = cross(r1_r0, r2_r0);
-      const double Area = sqrt(dot(n_hat, n_hat))/2.0;
-      n_hat = n_hat/(2.0*Area);
-      double l_p = sqrt(dot((r2-r1), (r2-r1)));
-      double sign_edge_p = (halfBasisCounter==0) ? 1.0 : -1.0;
+      n_hat[0] = r1_r0[1]*r2_r0[2] - r1_r0[2]*r2_r0[1];
+      n_hat[1] = r1_r0[2]*r2_r0[0] - r1_r0[0]*r2_r0[2];
+      n_hat[2] = r1_r0[0]*r2_r0[1] - r1_r0[1]*r2_r0[0];
+      const double Area = sqrt(n_hat[0]*n_hat[0] + n_hat[1]*n_hat[1] + n_hat[2]*n_hat[2])/2.0;
+      for (int i=0; i<3; i++) n_hat[i] *= 1.0/(2.0*Area);
+      double l_p = sqrt(r2_r1[0]*r2_r1[0] + r2_r1[1]*r2_r1[1] + r2_r1[2]*r2_r1[2]);
+      const double sign_edge_p_tmp[2] = {1.0, -1.0};
+      const double sign_edge_p = sign_edge_p_tmp[halfBasisCounter];
       for (int i=0 ; i<N_Gauss ; ++i) {
-        r = r0 * xi[i] + r1 * eta[i] + r2 * (1-xi[i]-eta[i]);
-        const blitz::TinyVector<double, 3> r_rp(r - r_p);
-        GaussLocatedWeightedRWG(j, i + halfBasisCounter*N_Gauss) = (sign_edge_p * l_p/2.0/sum_weigths * weigths[i]) * (r_rp);
-        GaussLocatedWeighted_nHat_X_RWG(j, i + halfBasisCounter*N_Gauss) = (sign_edge_p * l_p/2.0/sum_weigths * weigths[i]) * cross(n_hat, r_rp);
-        GaussLocatedExpArg(j, i + halfBasisCounter*N_Gauss) = (r-rCenter);
+        r[0] = r0[0] * xi[i] + r1[0] * eta[i] + r2[0] * (1-xi[i]-eta[i]);
+        r[1] = r0[1] * xi[i] + r1[1] * eta[i] + r2[1] * (1-xi[i]-eta[i]);
+        r[2] = r0[2] * xi[i] + r1[2] * eta[i] + r2[2] * (1-xi[i]-eta[i]);
+        const double r_rp[3] = {r[0]-r_p[0], r[1]-r_p[1], r[2]-r_p[2]};
+        double n_hat_X_r_rp[3];
+        n_hat_X_r_rp[0] = n_hat[1]*r_rp[2] - n_hat[2]*r_rp[1];
+        n_hat_X_r_rp[1] = n_hat[2]*r_rp[0] - n_hat[0]*r_rp[2];
+        n_hat_X_r_rp[2] = n_hat[0]*r_rp[1] - n_hat[1]*r_rp[0];
+        const double temp(sign_edge_p * l_p/2.0/sum_weigths * weigths[i]);
+        GaussLocatedWeightedRWG(j, i + halfBasisCounter*N_Gauss)(0) = temp * r_rp[0];
+        GaussLocatedWeightedRWG(j, i + halfBasisCounter*N_Gauss)(1) = temp * r_rp[1];
+        GaussLocatedWeightedRWG(j, i + halfBasisCounter*N_Gauss)(2) = temp * r_rp[2];
+        GaussLocatedWeighted_nHat_X_RWG(j, i + halfBasisCounter*N_Gauss)(0) = temp * n_hat_X_r_rp[0];
+        GaussLocatedWeighted_nHat_X_RWG(j, i + halfBasisCounter*N_Gauss)(1) = temp * n_hat_X_r_rp[1];
+        GaussLocatedWeighted_nHat_X_RWG(j, i + halfBasisCounter*N_Gauss)(2) = temp * n_hat_X_r_rp[2];
+        GaussLocatedExpArg(j, i + halfBasisCounter*N_Gauss)(0) = r[0]-rCenter(0);
+        GaussLocatedExpArg(j, i + halfBasisCounter*N_Gauss)(1) = r[1]-rCenter(1);
+        GaussLocatedExpArg(j, i + halfBasisCounter*N_Gauss)(2) = r[2]-rCenter(2);
       }
     }
   }

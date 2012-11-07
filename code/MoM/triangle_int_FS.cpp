@@ -367,7 +367,7 @@ void ITs_free (std::complex<double>& ITs_G,
       R_square = dot3D(rprime_r, rprime_r);
       R = sqrt(R_square);
       I_k_R = I*k*R;
-      G_j = exp(-I_k_R) * (weigths[j]/R);
+      G_j = exp(-I_k_R) * (weigths[j]/R); // exp(-(a + ib)) = exp(-a) * (cos(b) - i*sin(b))
       ITs_G += G_j;
       ITs_G_rprime_r[0] += G_j * rprime_r[0];
       ITs_G_rprime_r[1] += G_j * rprime_r[1];
@@ -397,7 +397,7 @@ void ITs_free (std::complex<double>& ITs_G,
       R_square = dot3D(rprime_r, rprime_r);
       R = sqrt(R_square);
       I_k_R = I*k*R;
-      exp_minus_I_k_R = exp(-I_k_R);
+      exp_minus_I_k_R = exp(-I_k_R);  // exp(-(a + ib)) = exp(-a) * (cos(b) - i*sin(b))
       G_j = (R>1.0e-10) ? (exp_minus_I_k_R - 1.0) * (weigths[j]/R) : -I * k * weigths[j];
       ITs_G += G_j;
       ITs_G_rprime_r[0] += G_j * rprime_r[0];
@@ -432,7 +432,7 @@ void ITs_free (std::complex<double>& ITs_G,
       R_square = dot3D(rprime_r, rprime_r);
       R = sqrt(R_square);
       I_k_R = I*k*R;
-      exp_minus_I_k_R = exp(-I_k_R);
+      exp_minus_I_k_R = exp(-I_k_R);  // exp(-(a + ib)) = exp(-a) * (cos(b) - i*sin(b))
       G_j = (R>1.0e-10) ? ( (exp_minus_I_k_R - 1.0)/R + k_square/2.0 * R ) * weigths[j] : -I * k * weigths[j];
       ITs_G += G_j;
       ITs_G_rprime_r[0] += G_j * rprime_r[0];
