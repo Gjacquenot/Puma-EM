@@ -107,7 +107,7 @@ void ITs_free (std::complex<double>& ITs_G,
                std::complex<double> ITs_grad_G[], // dim 3
                const double r[], // dim 3
                const Triangle & Ts,
-               const std::complex<double> k,
+               const std::complex<double> & k,
                const int N_points,
                const int EXTRACT_1_R,
                const int EXTRACT_R);

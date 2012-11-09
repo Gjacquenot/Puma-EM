@@ -334,14 +334,14 @@ void ITs_free (std::complex<double>& ITs_G,
                std::complex<double> ITs_grad_G[], // dim 3
                const double r[], // dim 3
                const Triangle & Ts,
-               const std::complex<double> k,
+               const std::complex<double> & k,
                const int N_points,
                const int EXTRACT_1_R,
                const int EXTRACT_R)
 {
   int j;
   double sum_weigths, norm_factor, R, R_square, IT_1_R, IT_R;
-  std::complex<double> G_j, I_k_R, exp_minus_I_k_R;
+  std::complex<double> G_j, minus_I_k(-I*k), minus_I_k_R, exp_minus_I_k_R;
   double rprime[3], rprime_r[3], IT_1_R_rprime_r[3], IT_R_rprime_r[3], IT_grad_1_R[3], IT_grad_R[3];
 
   const double *xi, *eta, *weigths;
@@ -365,13 +365,13 @@ void ITs_free (std::complex<double>& ITs_G,
       rprime_r[2] = rprime[2]-r[2];
       R_square = dot3D(rprime_r, rprime_r);
       R = sqrt(R_square);
-      I_k_R = I*k*R;
-      G_j = exp(-I_k_R) * (weigths[j]/R); // exp(-(a + ib)) = exp(-a) * (cos(b) - i*sin(b))
+      minus_I_k_R = minus_I_k*R;
+      G_j = exp(minus_I_k_R) * (weigths[j]/R); // exp(-(a + ib)) = exp(-a) * (cos(b) - i*sin(b))
       ITs_G += G_j;
       ITs_G_rprime_r[0] += G_j * rprime_r[0];
       ITs_G_rprime_r[1] += G_j * rprime_r[1];
       ITs_G_rprime_r[2] += G_j * rprime_r[2];
-      const std::complex<double> temp(G_j * (1.0+I_k_R)/(R_square));
+      const std::complex<double> temp(G_j * (1.0-minus_I_k_R)/(R_square));
       ITs_grad_G[0] += temp * rprime_r[0];
       ITs_grad_G[1] += temp * rprime_r[1];
       ITs_grad_G[2] += temp * rprime_r[2];
@@ -395,15 +395,15 @@ void ITs_free (std::complex<double>& ITs_G,
       rprime_r[2] = rprime[2]-r[2];
       R_square = dot3D(rprime_r, rprime_r);
       R = sqrt(R_square);
-      I_k_R = I*k*R;
-      exp_minus_I_k_R = exp(-I_k_R);  // exp(-(a + ib)) = exp(-a) * (cos(b) - i*sin(b))
-      G_j = (R>1.0e-10) ? (exp_minus_I_k_R - 1.0) * (weigths[j]/R) : -I * k * weigths[j];
+      minus_I_k_R = minus_I_k*R;
+      exp_minus_I_k_R = exp(minus_I_k_R);  // exp(-(a + ib)) = exp(-a) * (cos(b) - i*sin(b))
+      G_j = (R>1.0e-10) ? (exp_minus_I_k_R - 1.0) * (weigths[j]/R) : minus_I_k * weigths[j];
       ITs_G += G_j;
       ITs_G_rprime_r[0] += G_j * rprime_r[0];
       ITs_G_rprime_r[1] += G_j * rprime_r[1];
       ITs_G_rprime_r[2] += G_j * rprime_r[2];
       if (R>1.0e-10) {
-        const std::complex<double> temp(-(-exp_minus_I_k_R*(1.0+I_k_R) + 1.0)/(R*R_square) * weigths[j]);
+        const std::complex<double> temp((exp_minus_I_k_R*(1.0-minus_I_k_R) - 1.0)/(R*R_square) * weigths[j]);
         ITs_grad_G[0] += temp * rprime_r[0];
         ITs_grad_G[1] += temp * rprime_r[1];
         ITs_grad_G[2] += temp * rprime_r[2];
@@ -430,15 +430,15 @@ void ITs_free (std::complex<double>& ITs_G,
       rprime_r[2] = rprime[2]-r[2];
       R_square = dot3D(rprime_r, rprime_r);
       R = sqrt(R_square);
-      I_k_R = I*k*R;
-      exp_minus_I_k_R = exp(-I_k_R);  // exp(-(a + ib)) = exp(-a) * (cos(b) - i*sin(b))
-      G_j = (R>1.0e-10) ? ( (exp_minus_I_k_R - 1.0)/R + k_square/2.0 * R ) * weigths[j] : -I * k * weigths[j];
+      minus_I_k_R = minus_I_k*R;
+      exp_minus_I_k_R = exp(minus_I_k_R);  // exp(-(a + ib)) = exp(-a) * (cos(b) - i*sin(b))
+      G_j = (R>1.0e-10) ? ( (exp_minus_I_k_R - 1.0)/R + k_square/2.0 * R ) * weigths[j] : minus_I_k * weigths[j];
       ITs_G += G_j;
       ITs_G_rprime_r[0] += G_j * rprime_r[0];
       ITs_G_rprime_r[1] += G_j * rprime_r[1];
       ITs_G_rprime_r[2] += G_j * rprime_r[2];
       if (R>1.0e-10) {
-        const std::complex<double> temp( -(-exp_minus_I_k_R*(1.0+I_k_R) + 1.0 + k_square/2.0 * R_square)/(R*R_square) * weigths[j] );
+        const std::complex<double> temp( (exp_minus_I_k_R*(1.0-minus_I_k_R) - 1.0 - 0.5*k_square * R_square)/(R*R_square) * weigths[j] );
         ITs_grad_G[0] += temp * rprime_r[0];
         ITs_grad_G[1] += temp * rprime_r[1];
         ITs_grad_G[2] += temp * rprime_r[2];
