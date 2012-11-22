@@ -235,8 +235,9 @@ void IT_singularities (double & IT_1_R,
                        const double r[],
                        const Triangle & T)
 /**
- * notations are taken from I.Hanninen, M. Taskinen and J. Sarvas, "Singularity subtraction integral Formulae
- * for surface integral equations with RWG, rooftop and hybrid basis functions", PIER 63, 243--278, 2006
+ * notations are taken from: Pasi Yla-Oijala and Matti Taskinen, "Calculation of CFIE Impedance Matrix
+ * Elements With RWG and n x RWG Functions", IEEE Transactions on Antennas and Propagation, Vol. 51, 
+ * No. 8, August 2003, pp. 1837--1846. 
  */
 {
   const double w0 = ((r[0]-T.r_nodes_0[0]) * T.n_hat[0] + (r[1]-T.r_nodes_0[1]) * T.n_hat[1] + (r[2]-T.r_nodes_0[2]) * T.n_hat[2]); 
@@ -278,25 +279,27 @@ void IT_singularities (double & IT_1_R,
     R_minus__i = sqrt(dot3D(r_minus__i_r, r_minus__i_r));
     R_i_0_square = t_i_0*t_i_0 + w0*w0;
 
-    // different cases according to the position vector    
-    if (abs(t_i_0) > 1.0e-8) {
-      beta_i = atan(t_i_0*s_plus__i/(R_i_0_square + abs_w0*R_plus__i)) - atan(t_i_0*s_minus__i/(R_i_0_square + abs_w0*R_minus__i));
+    // different cases according to the position vector
+    if (abs_w0>1.0e-10) {
+      if (abs(t_i_0) > 1.0e-8) beta_i = atan(t_i_0*s_plus__i/(R_i_0_square + abs_w0*R_plus__i)) - atan(t_i_0*s_minus__i/(R_i_0_square + abs_w0*R_minus__i));
+      else t_i_0 = beta_i = 0.0;
       I_L_minus_1__i = log((R_plus__i+s_plus__i)/(R_minus__i+s_minus__i));
       I_L_plus_1__i = 0.5 * (s_plus__i*R_plus__i - s_minus__i*R_minus__i + R_i_0_square*I_L_minus_1__i);
     }
-    else { // if (abs(t_i_0)<1.0e-8)
-      t_i_0 = 0.0;
+    else {
       beta_i = 0.0;
-      if (abs_w0<1.0e-8) {
-        // the following line is derived with the help of HOSPITAL rule
-        I_L_minus_1__i = (s_minus__i*s_plus__i <= 0.0) ? 1.0e+90 : s_plus__i/abs(s_plus__i) * log(s_plus__i/s_minus__i);
-        I_L_plus_1__i = 0.5 * (s_plus__i*R_plus__i - s_minus__i*R_minus__i);
-      }
-      else { // if (abs_w0>1.0e-8)
+      if (abs(t_i_0) > 1.0e-8) {
         I_L_minus_1__i = log((R_plus__i+s_plus__i)/(R_minus__i+s_minus__i));
         I_L_plus_1__i = 0.5 * (s_plus__i*R_plus__i - s_minus__i*R_minus__i + R_i_0_square*I_L_minus_1__i);
       }
+      else {
+        t_i_0 = 0.0;
+        // the following line is derived with the help of HOSPITAL rule for the non-singular part
+        I_L_minus_1__i = (s_minus__i*s_plus__i <= 0.0) ? 1.0e+90 : s_plus__i/abs(s_plus__i) * log(s_plus__i/s_minus__i);
+        I_L_plus_1__i = 0.5 * (s_plus__i*R_plus__i - s_minus__i*R_minus__i);        
+      }
     }
+
     I_L_plus_3__i = 0.25 * (s_plus__i*R_plus__i*R_plus__i*R_plus__i - s_minus__i*R_minus__i*R_minus__i*R_minus__i + 3.0 * R_i_0_square * I_L_plus_1__i);
 
     const double third(1.0/3.0);
