@@ -21,16 +21,16 @@ Cube::Cube(const bool is_leaf,                           // 1 if cube is leaf
            const blitz::Array<double, 1>& r_c)                  // coordinates of center
 {
   leaf = is_leaf;
-  for (int i=0 ; i<3 ; ++i) rCenter(i) = r_c(i); // we must loop, since rCenter is a TinyVector
+  for (int i=0 ; i<3 ; ++i) rCenter[i] = r_c(i); // we must loop, since rCenter is a TinyVector
 
   // we compute the absolute cartesian coordinates and the cube number
-  for (int i=0 ; i<3 ; ++i) absoluteCartesianCoord(i) = floor( (rCenter(i)-bigCubeLowerCoord[i])/sideLength );
+  for (int i=0 ; i<3 ; ++i) absoluteCartesianCoord(i) = floor( (rCenter[i]-bigCubeLowerCoord[i])/sideLength );
   double maxNumberCubes1D = pow(2.0, level);
   number = static_cast<int>( absoluteCartesianCoord(0) * maxNumberCubes1D*maxNumberCubes1D + absoluteCartesianCoord(1) * maxNumberCubes1D + absoluteCartesianCoord(2) );
 
   // we compute the number of the father
   double cartesianCoordInFathers[3];
-  for (int i=0; i<3; i++) cartesianCoordInFathers[i] = floor( (rCenter(i)-bigCubeLowerCoord[i])/(2.0*sideLength) );
+  for (int i=0; i<3; i++) cartesianCoordInFathers[i] = floor( (rCenter[i]-bigCubeLowerCoord[i])/(2.0*sideLength) );
   double maxNumberCubes1D_next_level = maxNumberCubes1D/2.0;
   fatherNumber =  static_cast<int>( cartesianCoordInFathers[0] * maxNumberCubes1D_next_level*maxNumberCubes1D_next_level + cartesianCoordInFathers[1] * maxNumberCubes1D_next_level + cartesianCoordInFathers[2] );
 }
@@ -44,16 +44,16 @@ Cube::Cube(const Cube& sonCube,
   number = sonCube.getFatherNumber();
   procNumber = sonCube.getProcNumber();
   sonsIndexes.push_back(sonCube.getIndex());
-  blitz::TinyVector<double, 3> sonCartesianCoordInFathers;
-  for (int i=0; i<3; i++) sonCartesianCoordInFathers(i) = floor( (sonCube.rCenter(i) - bigCubeLowerCoord[i]) / sideLength );
-  for (int i=0; i<3; i++) rCenter(i) = bigCubeLowerCoord[i] + sonCartesianCoordInFathers(i) * sideLength + sideLength/2.0;
+  double sonCartesianCoordInFathers[3];
+  for (int i=0; i<3; i++) sonCartesianCoordInFathers[i] = floor( (sonCube.rCenter[i] - bigCubeLowerCoord[i]) / sideLength );
+  for (int i=0; i<3; i++) rCenter[i] = bigCubeLowerCoord[i] + sonCartesianCoordInFathers[i] * sideLength + sideLength/2.0;
   // we compute the absolute cartesian coordinates
-  for (int i=0 ; i<3 ; ++i) absoluteCartesianCoord(i) = floor( (rCenter(i)-bigCubeLowerCoord[i])/sideLength );
+  for (int i=0 ; i<3 ; ++i) absoluteCartesianCoord(i) = floor( (rCenter[i]-bigCubeLowerCoord[i])/sideLength );
 
   // we compute the number of the father of _this_ cube
   // (i.e. grandfather of sonCube)
   double cartesianCoordInFathers[3];
-  for (int i=0; i<3; i++) cartesianCoordInFathers[i] = floor( (rCenter(i)-bigCubeLowerCoord[i])/(2.0*sideLength) );
+  for (int i=0; i<3; i++) cartesianCoordInFathers[i] = floor( (rCenter[i]-bigCubeLowerCoord[i])/(2.0*sideLength) );
   double maxNumberCubes1D_next_level = pow(2.0, level-1);
   fatherNumber = static_cast<int>(cartesianCoordInFathers[0] * maxNumberCubes1D_next_level*maxNumberCubes1D_next_level + cartesianCoordInFathers[1] * maxNumberCubes1D_next_level + cartesianCoordInFathers[2]);
 }
@@ -126,9 +126,9 @@ void Cube::computeGaussLocatedArguments(const blitz::Array<int, 1>& local_RWG_nu
         GaussLocatedWeighted_nHat_X_RWG(j, i + halfBasisCounter*N_Gauss)(0) = temp * n_hat_X_r_rp[0];
         GaussLocatedWeighted_nHat_X_RWG(j, i + halfBasisCounter*N_Gauss)(1) = temp * n_hat_X_r_rp[1];
         GaussLocatedWeighted_nHat_X_RWG(j, i + halfBasisCounter*N_Gauss)(2) = temp * n_hat_X_r_rp[2];
-        GaussLocatedExpArg(j, i + halfBasisCounter*N_Gauss)(0) = r[0]-rCenter(0);
-        GaussLocatedExpArg(j, i + halfBasisCounter*N_Gauss)(1) = r[1]-rCenter(1);
-        GaussLocatedExpArg(j, i + halfBasisCounter*N_Gauss)(2) = r[2]-rCenter(2);
+        GaussLocatedExpArg(j, i + halfBasisCounter*N_Gauss)(0) = r[0]-rCenter[0];
+        GaussLocatedExpArg(j, i + halfBasisCounter*N_Gauss)(1) = r[1]-rCenter[1];
+        GaussLocatedExpArg(j, i + halfBasisCounter*N_Gauss)(2) = r[2]-rCenter[2];
       }
     }
   }
@@ -153,7 +153,7 @@ void Cube::copyCube(const Cube& cubeToCopy) // copy member function
   localAlphaTransParticipantsIndexes = cubeToCopy.localAlphaTransParticipantsIndexes;
   nonLocalAlphaTransParticipantsIndexes.resize(cubeToCopy.nonLocalAlphaTransParticipantsIndexes.size());
   nonLocalAlphaTransParticipantsIndexes = cubeToCopy.nonLocalAlphaTransParticipantsIndexes;
-  rCenter = cubeToCopy.getRCenter();
+  for (int i=0; i<3; i++) rCenter[i] = cubeToCopy.rCenter[i];
   absoluteCartesianCoord = cubeToCopy.getAbsoluteCartesianCoord();
   RWG_numbers.resize(cubeToCopy.RWG_numbers.size());
   RWG_numbers = cubeToCopy.RWG_numbers;

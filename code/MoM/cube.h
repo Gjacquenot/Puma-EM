@@ -42,7 +42,7 @@ class Cube {
     //! and that are located on another process as that of the current cube
     std::vector<int> nonLocalAlphaTransParticipantsIndexes;
     //! the absolute coordinates of the center of the current cube 
-    blitz::TinyVector<float, 3> rCenter;
+    float rCenter[3];
     //! \brief the absolute cartesian coordinates of the center of the current cube
     //! calculated with respect to the location of the Father of all Cubes and the side length of the current cube  
     blitz::TinyVector<float, 3> absoluteCartesianCoord;
@@ -104,7 +104,7 @@ class Cube {
     const vector<int> getNeighborsIndexes(void) const {return neighborsIndexes;};
     const vector<int> getLocalAlphaTransParticipantsIndexes(void) const {return localAlphaTransParticipantsIndexes;};
     const vector<int> getNonLocalAlphaTransParticipantsIndexes(void) const {return nonLocalAlphaTransParticipantsIndexes;};
-    const blitz::TinyVector<float, 3> getRCenter(void) const {return rCenter;};
+//    const blitz::TinyVector<float, 3> getRCenter(void) const {return rCenter;};
     const blitz::TinyVector<float, 3> getAbsoluteCartesianCoord(void) const {return absoluteCartesianCoord;};
     const vector<int> getRWG_numbers(void) const {return RWG_numbers;};
     const vector<int> getRWG_numbers_CFIE_OK(void) const {return RWG_numbers_CFIE_OK;};

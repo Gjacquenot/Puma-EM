@@ -648,7 +648,7 @@ void Level::printCubesSonsIndexes(void)
 void Level::printCubesRCenters(void) 
 {
   int j, N = getLevelSize(), l = getLevel();
-  for (j=0 ; j<N ; ++j) cout << "Level " << l << " : center of cube " << j << " = " << cubes[j].getRCenter() << ". Sidelength = " << getCubeSideLength() << endl;
+  for (j=0 ; j<N ; ++j) cout << "Level " << l << " : center of cube " << j << " = " << cubes[j].rCenter[0] << ", " << cubes[j].rCenter[1] << ", " << cubes[j].rCenter[2] << ". Sidelength = " << getCubeSideLength() << endl;
 }
 
 void Level::printCubesRWG_numbers(void) 
