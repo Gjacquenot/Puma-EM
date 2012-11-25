@@ -6,7 +6,6 @@
 #include <complex>
 #include <cmath>
 #include <blitz/array.h>
-#include <blitz/tinyvec-et.h>
 
 using namespace blitz;
 
@@ -18,7 +17,7 @@ using namespace blitz;
 std::complex<double> alpha_computation (const double & theta, /**< INPUT: angle \f$ \theta \f$ */
                                         const double & phi, /**< INPUT: angle \f$ \phi \f$ */
                                         const blitz::Array<std::complex<double>, 1>& h2_sph, /**< INPUT: spherical Hankel function */
-                                        const blitz::TinyVector<double, 3>& r_mn, /**< INPUT: \f$ \mathbf{r}_{mn} = \mathbf{r}_m - \mathbf{r}_n \f$ */
+                                        const double r_mn[], /**< INPUT: \f$ \mathbf{r}_{mn} = \mathbf{r}_m - \mathbf{r}_n \f$ */
                                         const int L, /**< the expansion number */
                                         const int L_prime, /**< the second expansion number */
                                         const std::complex<double>& k) /**< INPUT: the wavenumber */
@@ -34,13 +33,13 @@ std::complex<double> alpha_computation (const double & theta, /**< INPUT: angle 
  *
  */
 {
-  const double norm_r_mn = sqrt(dot(r_mn, r_mn)), sin_theta = sin(theta), cos_theta = cos(theta);
-  blitz::TinyVector<double, 3> r_mn_hat, s_hat; 
+  const double norm_r_mn = sqrt(r_mn[0]*r_mn[0] + r_mn[1]*r_mn[1] + r_mn[2]*r_mn[2]); 
+  const double sin_theta = sin(theta), cos_theta = cos(theta);
+  const double r_mn_hat[3] = {r_mn[0]/norm_r_mn, r_mn[1]/norm_r_mn, r_mn[2]/norm_r_mn};
+  const double s_hat[3] = {sin_theta*cos(phi), sin_theta*sin(phi), cos_theta};
   blitz::Array<double, 1> P_Leg(L_prime+1);
   blitz::Array<std::complex<double>, 1> coeff(L_prime+1);
-  r_mn_hat = r_mn/norm_r_mn;
-  s_hat = sin_theta*cos(phi), sin_theta*sin(phi), cos_theta;
-  P_Legendre (P_Leg, dot(s_hat, r_mn_hat));
+  P_Legendre (P_Leg, (s_hat[0]*r_mn_hat[0] + s_hat[1]*r_mn_hat[1] + s_hat[2]*r_mn_hat[2]));
   for (int j=0 ; j<L+1 ; ++j) coeff(j) = pow(-I, j) * (2*j + 1.0) * h2_sph(j);
   const std::complex<double> const_coeff_lissage = pow(-I, L) * (2*L + 1.0) * h2_sph(L);
   for (int j=L+1 ; j<L_prime+1 ; ++j) coeff(j) = const_coeff_lissage * pow2(cos((j-L) * M_PI/2.0 / (L_prime-L)));
@@ -49,7 +48,7 @@ std::complex<double> alpha_computation (const double & theta, /**< INPUT: angle 
 
 template <typename T>
 void IT_theta_IT_phi_alpha_C (blitz::Array<std::complex<T>, 2>& alpha, /**< OUTPUT: 2D array \f$ \alpha \f$ */
-                              const blitz::TinyVector<double, 3>& r_mn, /**< INPUT: \f$ r_{mn} = r_m - r_n \f$ */
+                              const double r_mn[], /**< INPUT: \f$ r_{mn} = r_m - r_n \f$ */
                               const std::complex<double>& k, /**< INPUT: the wavenumber */
                               const int L, /**< the expansion number */
                               const int L_prime, /**< the second expansion number */
@@ -57,7 +56,7 @@ void IT_theta_IT_phi_alpha_C (blitz::Array<std::complex<T>, 2>& alpha, /**< OUTP
                               const blitz::Array<T, 1>& Xphi) /**< 1D array of \f$ \phi \f$ angles */
 {
   int kode = 1, M = 2, N = 1, nz, ierr;
-  const double norm_r_mn = sqrt(dot(r_mn, r_mn));
+  const double norm_r_mn = sqrt(r_mn[0]*r_mn[0] + r_mn[1]*r_mn[1] + r_mn[2]*r_mn[2]); 
   blitz::Array<std::complex<double>, 1> h2_sph(L+1);
   std::complex<double> z(k * norm_r_mn);
   for (int i=0 ; i<L+1 ; i++) {
@@ -75,14 +74,14 @@ void IT_theta_IT_phi_alpha_C (blitz::Array<std::complex<T>, 2>& alpha, /**< OUTP
 
 template <typename T>
 void IT_theta_IT_phi_alpha_C2 (blitz::Array<std::complex<T>, 1>& alpha, /**< OUTPUT: 2D array \f$ \alpha \f$ */
-                              const blitz::TinyVector<double, 3>& r_mn, /**< INPUT: \f$ r_{mn} = r_m - r_n \f$ */
+                              const double r_mn[], /**< INPUT: \f$ r_{mn} = r_m - r_n \f$ */
                               const std::complex<double>& k, /**< INPUT: the wavenumber */
                               const int L, /**< the expansion number */
                               const int L_prime, /**< the second expansion number */
                               const blitz::Array<T, 2>& thetasPhis)
 {
   int kode = 1, M = 2, N = 1, nz, ierr;
-  const double norm_r_mn = sqrt(dot(r_mn, r_mn));
+  const double norm_r_mn = sqrt(r_mn[0]*r_mn[0] + r_mn[1]*r_mn[1] + r_mn[2]*r_mn[2]); 
   blitz::Array<std::complex<double>, 1> h2_sph(L+1);
   std::complex<double> z(k * norm_r_mn);
   for (int i=0 ; i<L+1 ; i++) {
@@ -100,12 +99,12 @@ void IT_theta_IT_phi_alpha_C2 (blitz::Array<std::complex<T>, 1>& alpha, /**< OUT
 template <typename T>
 void IT_theta_IT_phi_alpha (blitz::Array<std::complex<T>, 2>& alpha, 
                             const blitz::Array<std::complex<double>, 1>& h2_sph, 
-                            const blitz::TinyVector<double, 3>& r_mn, 
+                            const double r_mn[],
                             const std::complex<double>& k, 
                             const blitz::Array<double, 1>& Xtheta,
                             const blitz::Array<double, 1>& Xphi)
 {
-  const double norm_r_mn = sqrt(dot(r_mn, r_mn));
+  const double norm_r_mn = sqrt(r_mn[0]*r_mn[0] + r_mn[1]*r_mn[1] + r_mn[2]*r_mn[2]); 
   const int L = h2_sph.size()-1, L_prime = h2_sph.size()-1;
   for (int index_theta=0 ; index_theta<Xtheta.size() ; index_theta++) {
     for (int index_phi=0 ; index_phi<Xphi.size() ; index_phi++) {

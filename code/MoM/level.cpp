@@ -384,17 +384,19 @@ void Level::alphaTranslationsComputation(const int VERBOSE,
     flush(cout);
   }
 
-  blitz::TinyVector<double, 3> r_mn;
+  double r_mn[3];
   for (int x = 0 ; x<Nx ; ++x) {
     if ( (my_id==0) && (VERBOSE==1) ) cout << "\r    " << (x+1)*100/Nx << " \% computed";
     flush(cout);
     for (int y = 0 ; y<Ny ; ++y) {
       for (int z = 0 ; z<Nz ; ++z) {
-        r_mn = static_cast<double> (x-this->offsetAlphaIndexX),
-               static_cast<double> (y-this->offsetAlphaIndexY),
-               static_cast<double> (z-this->offsetAlphaIndexZ);
-        if ( (abs(r_mn(0)) > 1.0) || (abs(r_mn(1)) > 1.0) || (abs(r_mn(2)) > 1.0) ) { /// if cartesian distance is sufficient
-          r_mn *= this->cubeSideLength;
+        r_mn[0] = static_cast<double> (x-this->offsetAlphaIndexX);
+        r_mn[1] = static_cast<double> (y-this->offsetAlphaIndexY);
+        r_mn[2] = static_cast<double> (z-this->offsetAlphaIndexZ);
+        if ( (abs(r_mn[0]) > 1.0) || (abs(r_mn[1]) > 1.0) || (abs(r_mn[2]) > 1.0) ) { /// if cartesian distance is sufficient
+          r_mn[0] *= this->cubeSideLength;
+          r_mn[1] *= this->cubeSideLength;
+          r_mn[2] *= this->cubeSideLength;
           IT_theta_IT_phi_alpha_C2 (alpha, r_mn, getK(), translationOrder, translationOrder_prime, thetasPhis);
           alpha *= weightsThetasPhis;
           // we then seek the max of alpha_all_directions
@@ -416,7 +418,7 @@ void Level::alphaTranslationsComputation(const int VERBOSE,
           countNonZero = countNonZeroLocal;
           if ( this->DIRECTIONS_PARALLELIZATION==1 ) int ierror = MPI_Allreduce(&countNonZeroLocal, &countNonZero, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
           if (countNonZero * 1.0/N_total_directions < alphaTranslation_RelativeCountAboveThreshold) {
-            if ((my_id==0) && (this->cubeSideLength>= 16.0*lambda) && (VERBOSE==1) ) cout << "level " << this->getLevel() << ", cube side length = " << this->cubeSideLength/lambda << " lambdas, rel. count for r_mn = [" << r_mn(0)/this->cubeSideLength << ", " << r_mn(1)/this->cubeSideLength << ", " << r_mn(2)/this->cubeSideLength << "] is = " << countNonZero * 100.0/N_total_directions << endl;
+            if ((my_id==0) && (this->cubeSideLength>= 16.0*lambda) && (VERBOSE==1) ) cout << "level " << this->getLevel() << ", cube side length = " << this->cubeSideLength/lambda << " lambdas, rel. count for r_mn = [" << r_mn[0]/this->cubeSideLength << ", " << r_mn[1]/this->cubeSideLength << ", " << r_mn[2]/this->cubeSideLength << "] is = " << countNonZero * 100.0/N_total_directions << endl;
             flush(cout);
             this->alphaTranslations(x, y, z).resize(countNonZeroLocal);
             this->alphaTranslationsIndexesNonZeros(x, y, z).resize(countNonZeroLocal);
