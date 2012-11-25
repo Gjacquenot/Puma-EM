@@ -17,42 +17,43 @@ using namespace std;
 Cube::Cube(const bool is_leaf,                           // 1 if cube is leaf
            const int level,                              // the level
            const double sideLength,                      // length of cube side
-           const blitz::TinyVector<double, 3>& bigCubeLowerCoord, // coordinates of level 0 cube
+           const double bigCubeLowerCoord[3], // coordinates of level 0 cube
            const blitz::Array<double, 1>& r_c)                  // coordinates of center
 {
   leaf = is_leaf;
   for (int i=0 ; i<3 ; ++i) rCenter(i) = r_c(i); // we must loop, since rCenter is a TinyVector
 
   // we compute the absolute cartesian coordinates and the cube number
-  absoluteCartesianCoord = floor( (rCenter-bigCubeLowerCoord)/sideLength );
+  for (int i=0 ; i<3 ; ++i) absoluteCartesianCoord(i) = floor( (rCenter(i)-bigCubeLowerCoord[i])/sideLength );
   double maxNumberCubes1D = pow(2.0, level);
   number = static_cast<int>( absoluteCartesianCoord(0) * maxNumberCubes1D*maxNumberCubes1D + absoluteCartesianCoord(1) * maxNumberCubes1D + absoluteCartesianCoord(2) );
 
   // we compute the number of the father
   double cartesianCoordInFathers[3];
-  for (int i=0; i<3; i++) cartesianCoordInFathers[i] = floor( (rCenter(i)-bigCubeLowerCoord(i))/(2.0*sideLength) );
+  for (int i=0; i<3; i++) cartesianCoordInFathers[i] = floor( (rCenter(i)-bigCubeLowerCoord[i])/(2.0*sideLength) );
   double maxNumberCubes1D_next_level = maxNumberCubes1D/2.0;
   fatherNumber =  static_cast<int>( cartesianCoordInFathers[0] * maxNumberCubes1D_next_level*maxNumberCubes1D_next_level + cartesianCoordInFathers[1] * maxNumberCubes1D_next_level + cartesianCoordInFathers[2] );
 }
 
 Cube::Cube(const Cube& sonCube,
            const int level,
-           const blitz::TinyVector<double, 3>& bigCubeLowerCoord,
+           const double bigCubeLowerCoord[3],
            const double sideLength)
 {
   leaf = 0; // since we construct from a son cube...
   number = sonCube.getFatherNumber();
   procNumber = sonCube.getProcNumber();
   sonsIndexes.push_back(sonCube.getIndex());
-  blitz::TinyVector<double, 3> sonCartesianCoordInFathers = floor( (sonCube.getRCenter() - bigCubeLowerCoord) / sideLength );
-  rCenter = bigCubeLowerCoord + sonCartesianCoordInFathers * sideLength + sideLength/2.0;
+  blitz::TinyVector<double, 3> sonCartesianCoordInFathers;
+  for (int i=0; i<3; i++) sonCartesianCoordInFathers(i) = floor( (sonCube.rCenter(i) - bigCubeLowerCoord[i]) / sideLength );
+  for (int i=0; i<3; i++) rCenter(i) = bigCubeLowerCoord[i] + sonCartesianCoordInFathers(i) * sideLength + sideLength/2.0;
   // we compute the absolute cartesian coordinates
-  absoluteCartesianCoord = floor( (rCenter-bigCubeLowerCoord)/sideLength );
+  for (int i=0 ; i<3 ; ++i) absoluteCartesianCoord(i) = floor( (rCenter(i)-bigCubeLowerCoord[i])/sideLength );
 
   // we compute the number of the father of _this_ cube
   // (i.e. grandfather of sonCube)
   double cartesianCoordInFathers[3];
-  for (int i=0; i<3; i++) cartesianCoordInFathers[i] = floor( (rCenter(i)-bigCubeLowerCoord(i))/(2.0*sideLength) );
+  for (int i=0; i<3; i++) cartesianCoordInFathers[i] = floor( (rCenter(i)-bigCubeLowerCoord[i])/(2.0*sideLength) );
   double maxNumberCubes1D_next_level = pow(2.0, level-1);
   fatherNumber = static_cast<int>(cartesianCoordInFathers[0] * maxNumberCubes1D_next_level*maxNumberCubes1D_next_level + cartesianCoordInFathers[1] * maxNumberCubes1D_next_level + cartesianCoordInFathers[2]);
 }

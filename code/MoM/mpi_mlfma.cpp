@@ -619,10 +619,10 @@ void computeMonostaticRCS(Octtree & octtree,
   readIntFromASCIIFile(TMP + "/COMPUTE_RCS_VV.txt", COMPUTE_RCS_VV);
   // r_ref
   blitz::Array<double, 1> r_ref(3);
-  for (int i=0 ; i<3 ; ++i) r_ref(i) = octtree.big_cube_center_coord(i);
+  for (int i=0 ; i<3 ; ++i) r_ref(i) = octtree.big_cube_center_coord[i];
   // we now make the calculations of the parameters for the MONOSTATIC_BY_BISTATIC_APPROX
   // see pages 94-96 of Chew 2001, "Fast and Efficient Methods in Computational EM"
-  const double big_cube_side_length = 2.0 * (octtree.big_cube_center_coord(0) - octtree.big_cube_lower_coord(0));
+  const double big_cube_side_length = 2.0 * (octtree.big_cube_center_coord[0] - octtree.big_cube_lower_coord[0]);
   const double LL = big_cube_side_length * sqrt(2.0);
   const double Delta_Phi = octtreeXphis_coarsest(1) - octtreeXphis_coarsest(0);
   double Beta = sqrt(4.0 * c * MAX_DELTA_PHASE / (LL * octtree.w));
@@ -819,7 +819,7 @@ void computeMonostaticSAR(Octtree & octtree,
   readIntFromASCIIFile(TMP + "/COMPUTE_RCS_VV.txt", COMPUTE_RCS_VV);
   // r_ref
   blitz::Array<double, 1> r_ref(3);
-  for (int i=0 ; i<3 ; ++i) r_ref(i) = octtree.big_cube_center_coord(i);
+  for (int i=0 ; i<3 ; ++i) r_ref(i) = octtree.big_cube_center_coord[i];
   // loop for monostatic sigma computation
   for (int excitation=0 ; excitation<2 ; ++excitation) { // 0 for H, 1 for V
     const bool HH = ((excitation==0) && (COMPUTE_RCS_HH==1));

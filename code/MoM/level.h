@@ -99,7 +99,7 @@ class Level {
     */
     Level(const int l,
           const double leaf_side_length,
-          const blitz::TinyVector<double, 3>& big_cube_lower_coord,
+          const double big_cube_lower_coord[3],
           const blitz::Array<double, 2>& cubes_centroids);
     //! the complete constructor for the leaf level
     /*!
@@ -137,7 +137,7 @@ class Level {
     Level(const int l,
           const int N_expansion,
           const double leaf_side_length,
-          const blitz::TinyVector<double, 3>& big_cube_lower_coord,
+          const double big_cube_lower_coord[3],
           const blitz::Array<double, 2>& cubes_centroids,
           const std::complex<double>& wavenumber,
           const int N_coord,
@@ -201,7 +201,7 @@ class Level {
     */
     Level(const Level & sonLevel,
           const int N_expansion,
-          const blitz::TinyVector<double, 3>& big_cube_lower_coord,
+          const double big_cube_lower_coord[3],
           const int N_coord,
           const float A_theta,
           const float B_theta,

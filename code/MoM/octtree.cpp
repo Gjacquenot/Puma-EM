@@ -87,8 +87,8 @@ Octtree::Octtree(const string octtree_data_path, const blitz::Array<double, 2>& 
   readDoubleBlitzArray1DFromASCIIFile(octtree_data_path + "big_cube_lower_coord.txt", bigCubeLowerCoord);
   readDoubleBlitzArray1DFromASCIIFile(octtree_data_path + "big_cube_center_coord.txt", bigCubeCenterCoord);
   for (int i=0 ; i<3 ; ++i) {
-    big_cube_lower_coord(i) = bigCubeLowerCoord(i);
-    big_cube_center_coord(i) = bigCubeCenterCoord(i);
+    big_cube_lower_coord[i] = bigCubeLowerCoord(i);
+    big_cube_center_coord[i] = bigCubeCenterCoord(i);
   }
 
 
@@ -379,8 +379,8 @@ void Octtree::copyOcttree(const Octtree& octtreeTocopy) /// copy constructor
   cout << "The number of Levels is " << NLevels << endl;
   levels.resize(NLevels);
   for (int j=0 ; j<NLevels ; j++) levels[j].copyLevel(octtreeTocopy.getLevel(j));
-  big_cube_lower_coord = octtreeTocopy.big_cube_lower_coord;
-  big_cube_center_coord = octtreeTocopy.big_cube_center_coord;
+  for (int i=0 ; i<3 ; i++) big_cube_lower_coord[i] = octtreeTocopy.big_cube_lower_coord[i];
+  for (int i=0 ; i<3 ; i++) big_cube_center_coord[i] = octtreeTocopy.big_cube_center_coord[i];
   CFIE.resize(octtreeTocopy.getCFIE().size());
   CFIE = octtreeTocopy.getCFIE();
   DIRECTIONS_PARALLELIZATION = octtreeTocopy.DIRECTIONS_PARALLELIZATION;
@@ -1070,7 +1070,8 @@ void Octtree::computeFarField(blitz::Array<std::complex<float>, 2>& e_theta_far,
     interpolate2Dlfi(SupLastLevelTmp(0, all), levels[stopLevel].Sdown(indexLocalCube)(0, all), FarFieldInterpolator);
     interpolate2Dlfi(SupLastLevelTmp(1, all), levels[stopLevel].Sdown(indexLocalCube)(1, all), FarFieldInterpolator);
     // shifting
-    blitz::TinyVector<double, 3> DRcenters(this->big_cube_center_coord - levels[stopLevel].cubes[indexLocalCube].rCenter);
+    blitz::TinyVector<double, 3> DRcenters;
+    for (int j=0 ; j<3 ; j++) DRcenters(j) = (this->big_cube_center_coord[j] - levels[stopLevel].cubes[indexLocalCube].rCenter(j));
     blitz::Array<std::complex<float>, 1> shiftingArray(octtreeXthetas_coarsest.size() * octtreeXphis_coarsest.size());
     for (int m=0 ; m<N_thetaCoarseLevel ; ++m) {
       const float sinTheta = sin(octtreeXthetas_coarsest(m));

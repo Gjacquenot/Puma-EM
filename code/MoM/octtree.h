@@ -35,8 +35,8 @@ class Octtree {
     int N_GaussOnTriangle;
     int DIRECTIONS_PARALLELIZATION, N_levels, ALLOW_CEILING_LEVEL;
     vector<Level> levels;
-    blitz::TinyVector<double, 3> big_cube_lower_coord;
-    blitz::TinyVector<double, 3> big_cube_center_coord;
+    double big_cube_lower_coord[3];
+    double big_cube_center_coord[3];
     blitz::Array<std::complex<float>, 1> CFIE;
     string octtreeDataPath;
 

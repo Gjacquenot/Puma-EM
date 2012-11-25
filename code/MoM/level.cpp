@@ -22,7 +22,7 @@ using namespace blitz;
 Level::Level(){};
 Level::Level(const int l,
              const double leaf_side_length,
-             const blitz::TinyVector<double, 3>& big_cube_lower_coord,
+             const double big_cube_lower_coord[3],
              const blitz::Array<double, 2>& cubes_centroids)
 {
   Range all = Range::all();
@@ -43,7 +43,7 @@ Level::Level(const int l,
 Level::Level(const int l,
              const int N_expansion,
              const double leaf_side_length, 
-             const blitz::TinyVector<double, 3>& big_cube_lower_coord,
+             const double big_cube_lower_coord[3],
              const blitz::Array<double, 2>& cubes_centroids,
              const std::complex<double>& waveNumber,
              const int N_coord,
@@ -200,7 +200,7 @@ Level& Level::operator=(const Level& levelToCopy) { // copy assignment
 
 Level::Level(const Level & sonLevel,
              const int N_expansion,
-             const blitz::TinyVector<double, 3>& big_cube_lower_coord,
+             const double big_cube_lower_coord[3],
              const int N_coord,
              const float A_theta,
              const float B_theta,

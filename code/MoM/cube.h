@@ -67,7 +67,7 @@ class Cube {
     Cube(const bool is_leaf, 
          const int level,
          const double sideLength,
-         const blitz::TinyVector<double, 3>& big_cube_lower_coord,
+         const double big_cube_lower_coord[3],
          const blitz::Array<double, 1>& r_c);
     //! allows a cube to be overwritten by the provided cube
     /*!
@@ -86,7 +86,7 @@ class Cube {
     */
     Cube(const Cube& sonCube,
          const int level,
-         const blitz::TinyVector<double, 3>& big_cube_lower_coord,
+         const double big_cube_lower_coord[3],
          const double sideLength);
     //! the destructor
     ~Cube();
