@@ -242,11 +242,9 @@ void IT_singularities (double & IT_1_R,
 {
   const double w0 = ((r[0]-T.r_nodes_0[0]) * T.n_hat[0] + (r[1]-T.r_nodes_0[1]) * T.n_hat[1] + (r[2]-T.r_nodes_0[2]) * T.n_hat[2]); 
   const double abs_w0 = abs(w0), sign_w0 = (abs_w0<1.0e-10) ? 0.0 : w0/abs_w0;
-  double t_i_0, s_plus__i, s_minus__i, R_plus__i, R_minus__i, R_i_0_square;
   double I_L_minus_1__i, I_L_plus_1__i, I_L_plus_3__i, beta_i, K_1_minus_1__i, K_1_plus_1__i;
   
   double rho[3] = {r[0] - T.n_hat[0]*w0, r[1] - T.n_hat[1]*w0, r[2] - T.n_hat[2]*w0};
-  const double * r_plus__i, * r_minus__i, * m_i_hat, * s_i_hat;
   double K_2_minus_1__i[3], K_2_plus_1__i[3], K_3_minus_1__i[3], K_3_plus_1__i[3];
 
   IT_1_R = 0.0;
@@ -259,6 +257,7 @@ void IT_singularities (double & IT_1_R,
   }
 
   for (int i=0 ; i<3 ; ++i) {
+    const double * r_plus__i, * r_minus__i, * m_i_hat, * s_i_hat;
     switch (i)
     {
       case 0: r_plus__i = T.r_nodes_1; r_minus__i = T.r_nodes_0; m_i_hat = T.m_i_hat_0; s_i_hat = T.s_i_hat_0; break;
@@ -268,16 +267,16 @@ void IT_singularities (double & IT_1_R,
     // s_plus__i, s_minus__i computation
     const double r_plus__i_r[3] = {r_plus__i[0]-r[0], r_plus__i[1]-r[1], r_plus__i[2]-r[2]}; 
     const double r_minus__i_r[3] = {r_minus__i[0]-r[0], r_minus__i[1]-r[1], r_minus__i[2]-r[2]};
-    s_plus__i = dot3D(r_plus__i_r, s_i_hat); 
-    s_minus__i = dot3D(r_minus__i_r, s_i_hat);
+    const double s_plus__i = dot3D(r_plus__i_r, s_i_hat); 
+    const double s_minus__i = dot3D(r_minus__i_r, s_i_hat);
     
     // t_i_0 : distance from r (projected on plane of triangle) to edge
-    t_i_0 = dot3D(r_plus__i_r, m_i_hat);
+    double t_i_0 = dot3D(r_plus__i_r, m_i_hat);
 
     // R_plus__i, R_minus__i, R_i_0 computation
-    R_plus__i = sqrt(dot3D(r_plus__i_r, r_plus__i_r));
-    R_minus__i = sqrt(dot3D(r_minus__i_r, r_minus__i_r));
-    R_i_0_square = t_i_0*t_i_0 + w0*w0;
+    const double R_plus__i = sqrt(dot3D(r_plus__i_r, r_plus__i_r));
+    const double R_minus__i = sqrt(dot3D(r_minus__i_r, r_minus__i_r));
+    const double R_i_0_square = t_i_0*t_i_0 + w0*w0;
 
     // different cases according to the position vector
     if (abs_w0>1.0e-10) {
