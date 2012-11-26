@@ -9,7 +9,8 @@
 
 using namespace std;
 
-#include "FMM.h"
+#include "EMConstants.h"
+#include "GK_triangle.h"
 
 class Cube {
     //! tells if the current cube is leaf (finest) or not

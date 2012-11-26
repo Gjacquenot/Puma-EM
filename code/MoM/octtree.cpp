@@ -4,14 +4,12 @@
 #include <complex>
 #include <cmath>
 #include <blitz/array.h>
-#include <blitz/tinyvec-et.h>
 #include <vector>
 #include <algorithm>
 #include <mpi.h>
 
 using namespace blitz;
 
-#include "FMM.h"
 #include "octtree.h"
 #include "readWriteBlitzArrayFromFile.h"
 #include "interpolation.h"
@@ -631,14 +629,13 @@ void Octtree::alphaTranslationsToCube(blitz::Array<std::complex<float>, 2>& S_tm
                                       const int DIRECTIONS_PARALLELIZATION)
 {
   Range all = Range::all();
-  float DRcenters[3];
+  const float * cartCoord_1(levels[l].cubes[cubeIndex].absoluteCartesianCoord);
   S_tmp = 0.0;
   const int N_part = indexesAlphaParticipants.size();
   for (int j=0; j<N_part ; ++j) {
     const int indexParticipant = levels[l].cubesIndexesAfterReduction[indexesAlphaParticipants[j]];
-    DRcenters[0] = levels[l].cubes[cubeIndex].absoluteCartesianCoord[0] - levels[l].cubes[indexParticipant].absoluteCartesianCoord[0];
-    DRcenters[1] = levels[l].cubes[cubeIndex].absoluteCartesianCoord[1] - levels[l].cubes[indexParticipant].absoluteCartesianCoord[1];
-    DRcenters[2] = levels[l].cubes[cubeIndex].absoluteCartesianCoord[2] - levels[l].cubes[indexParticipant].absoluteCartesianCoord[2];
+    const float * cartCoord_2(levels[l].cubes[indexParticipant].absoluteCartesianCoord);
+    const float DRcenters[3] = {cartCoord_1[0]-cartCoord_2[0], cartCoord_1[1]-cartCoord_2[1], cartCoord_1[2]-cartCoord_2[2]};
     const int alphaCartesianCoord[3] = { static_cast<int>( round(DRcenters[0]) ), static_cast<int>(  round(DRcenters[1]) ), static_cast<int>( round(DRcenters[2]) ) };
     if (DIRECTIONS_PARALLELIZATION!=1) {
       const int X = 1 * (alphaCartesianCoord[0]>=0), Y = 1 * (alphaCartesianCoord[1]>=0), Z = 1 * (alphaCartesianCoord[2]>=0);
@@ -671,7 +668,6 @@ void Octtree::updateSup(const blitz::Array<std::complex<float>, 1>& I_PQ) /// co
     const int N_cubes = levels[l].getLevelSize();
     const int N_theta = levels[l].thetas.size(), N_phi = levels[l].phis.size();
     const int N_directions = (levels[l].DIRECTIONS_PARALLELIZATION!=1) ? N_theta*N_phi :  levels[l].MPI_Scatterv_scounts(my_id);
-    double DRcenters[3];
     if (levels[l].Sdown.size()==0) levels[l].Sdown.resize(N_cubes);
     // we first compute the Sups of all the cubes at the given level
     if (l==0) { // we use computeSup only for the leaf cubes
@@ -694,9 +690,9 @@ void Octtree::updateSup(const blitz::Array<std::complex<float>, 1>& I_PQ) /// co
           interpolate2Dlfi(S_tmp(0, all), levels[l-1].Sdown(sonIndex)(0, all), levels[l-1].lfi2D);
           interpolate2Dlfi(S_tmp(1, all), levels[l-1].Sdown(sonIndex)(1, all), levels[l-1].lfi2D);
           // shifting
-          DRcenters[0] = levels[l].cubes[indexLocalCube].rCenter[0] - levels[l-1].cubes[sonIndex].rCenter[0];
-          DRcenters[1] = levels[l].cubes[indexLocalCube].rCenter[1] - levels[l-1].cubes[sonIndex].rCenter[1];
-          DRcenters[2] = levels[l].cubes[indexLocalCube].rCenter[2] - levels[l-1].cubes[sonIndex].rCenter[2];
+          const float * rc_1(levels[l].cubes[indexLocalCube].rCenter);
+          const float * rc_2(levels[l-1].cubes[sonIndex].rCenter);
+          const double DRcenters[3] = {rc_1[0]-rc_2[0], rc_1[1]-rc_2[1], rc_1[2]-rc_2[2]};
           shiftExp( S_tmp, levels[l].getShiftingArray(DRcenters[0], DRcenters[1], DRcenters[2]) );
           levels[l].Sdown(indexLocalCube) += S_tmp;
         }
@@ -733,9 +729,9 @@ void Octtree::updateSup(const blitz::Array<std::complex<float>, 1>& I_PQ) /// co
           interpolate2Dlfi(S_tmp(0, all), levels[sonLevel].Sdown(indexLocalCube)(0, all), levels[sonLevel].lfi2D);
           interpolate2Dlfi(S_tmp(1, all), levels[sonLevel].Sdown(indexLocalCube)(1, all), levels[sonLevel].lfi2D);
           // shifting
-          DRcenters[0] = levels[l].cubes[fatherIndex].rCenter[0] - levels[sonLevel].cubes[indexLocalCube].rCenter[0];
-          DRcenters[1] = levels[l].cubes[fatherIndex].rCenter[1] - levels[sonLevel].cubes[indexLocalCube].rCenter[1];
-          DRcenters[2] = levels[l].cubes[fatherIndex].rCenter[2] - levels[sonLevel].cubes[indexLocalCube].rCenter[2];
+          const float * rc_1(levels[l].cubes[fatherIndex].rCenter);
+          const float * rc_2(levels[sonLevel].cubes[indexLocalCube].rCenter);
+          const double DRcenters[3] = {rc_1[0]-rc_2[0], rc_1[1]-rc_2[1], rc_1[2]-rc_2[2]};
           shiftExp( S_tmp, levels[l].getShiftingArray(DRcenters[0], DRcenters[1], DRcenters[2]) );
         }
         else S_tmp = 0.0;
@@ -945,10 +941,9 @@ void Octtree::ZIFarComputation(blitz::Array<std::complex<float>, 1>& ZI, /// res
         if (my_id==sonsProcNumbers[j]) {
           const int sonIndex = levels[sonLevel].cubesIndexesAfterReduction[sonsIndexes[j]];
           // shifting
-          double DRcenters[3];
-          DRcenters[0] = levels[sonLevel].cubes[sonIndex].rCenter[0] - levels[thisLevel].cubes[indexLocalCube].rCenter[0];
-          DRcenters[1] = levels[sonLevel].cubes[sonIndex].rCenter[1] - levels[thisLevel].cubes[indexLocalCube].rCenter[1];
-          DRcenters[2] = levels[sonLevel].cubes[sonIndex].rCenter[2] - levels[thisLevel].cubes[indexLocalCube].rCenter[2];
+          const float * rc_1(levels[sonLevel].cubes[sonIndex].rCenter);
+          const float * rc_2(levels[thisLevel].cubes[indexLocalCube].rCenter);
+          const double DRcenters[3] = {rc_1[0]-rc_2[0], rc_1[1]-rc_2[1], rc_1[2]-rc_2[2]};
           Stmp2 = Stmp;
           shiftExp( Stmp2, levels[thisLevel].getShiftingArray(DRcenters[0], DRcenters[1], DRcenters[2]) );
           // anterpolate
@@ -972,10 +967,9 @@ void Octtree::ZIFarComputation(blitz::Array<std::complex<float>, 1>& ZI, /// res
       for (int j=0 ; j<sonsIndexes.size() ; ++j) {
         const int sonIndex = levels[sonLevel].cubesIndexesAfterReduction[sonsIndexes[j]];
         // shifting
-        double DRcenters[3];
-        DRcenters[0] = levels[sonLevel].cubes[sonIndex].rCenter[0] - levels[thisLevel].cubes[indexLocalCube].rCenter[0];
-        DRcenters[1] = levels[sonLevel].cubes[sonIndex].rCenter[1] - levels[thisLevel].cubes[indexLocalCube].rCenter[1];
-        DRcenters[2] = levels[sonLevel].cubes[sonIndex].rCenter[2] - levels[thisLevel].cubes[indexLocalCube].rCenter[2];
+        const float * rc_1(levels[sonLevel].cubes[sonIndex].rCenter);
+        const float * rc_2(levels[thisLevel].cubes[indexLocalCube].rCenter);
+        const double DRcenters[3] = {rc_1[0]-rc_2[0], rc_1[1]-rc_2[1], rc_1[2]-rc_2[2]};
         Stmp2 = levels[thisLevel].Sdown(indexLocalCube);
         shiftExp( Stmp2, levels[thisLevel].getShiftingArray(DRcenters[0], DRcenters[1], DRcenters[2]) );
         // anterpolate
@@ -1015,7 +1009,6 @@ void Octtree::computeFarField(blitz::Array<std::complex<float>, 2>& e_theta_far,
     const int N_cubes = levels[l].getLevelSize();
     const int N_theta = levels[l].thetas.size(), N_phi = levels[l].phis.size();
     const int N_directions = (levels[l].DIRECTIONS_PARALLELIZATION!=1) ? N_theta*N_phi :  levels[l].MPI_Scatterv_scounts(my_id);
-    double DRcenters[3];
     if (levels[l].Sdown.size()==0) levels[l].Sdown.resize(N_cubes);
     // we first compute the Sups of all the cubes at the given level
 
@@ -1039,9 +1032,9 @@ void Octtree::computeFarField(blitz::Array<std::complex<float>, 2>& e_theta_far,
           interpolate2Dlfi(S_tmp(0, all), levels[l-1].Sdown(sonIndex)(0, all), levels[l-1].lfi2D);
           interpolate2Dlfi(S_tmp(1, all), levels[l-1].Sdown(sonIndex)(1, all), levels[l-1].lfi2D);
           // shifting
-          DRcenters[0] = levels[l].cubes[indexLocalCube].rCenter[0] - levels[l-1].cubes[sonIndex].rCenter[0];
-          DRcenters[1] = levels[l].cubes[indexLocalCube].rCenter[1] - levels[l-1].cubes[sonIndex].rCenter[1];
-          DRcenters[2] = levels[l].cubes[indexLocalCube].rCenter[2] - levels[l-1].cubes[sonIndex].rCenter[2];
+          const float * rc_1(levels[l].cubes[indexLocalCube].rCenter);
+          const float * rc_2(levels[l-1].cubes[sonIndex].rCenter);
+          const double DRcenters[3] = {rc_1[0]-rc_2[0], rc_1[1]-rc_2[1], rc_1[2]-rc_2[2]};
           shiftExp( S_tmp, levels[l].getShiftingArray(DRcenters[0], DRcenters[1], DRcenters[2]) );
           S_tmp2 += S_tmp;
         }

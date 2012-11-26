@@ -14,6 +14,27 @@ using namespace blitz;
 #include "GK_triangle.h"
 #include "./amos/zbesh/zbesh_interface.h"
 
+template <typename T>
+void P_Legendre (blitz::Array<T, 1>& P,
+                 const T z)
+/**
+ * This function computes the Legendre polynomials, given by the following recursive formula:
+ *
+ *  \f[ P \left( i+1 \right) = \big( \left(2 i + 1\right) z P\left(i\right) - i P\left(i-1\right) \big)/\left(i+1\right) \f]
+ *
+ * with
+ *
+ * \f[ P(0) = 1, P(1) = z \f]
+ */
+{
+  int L = P.size() - 1;
+  P(0) = 1;
+  if (L >= 1) {
+    P(1) = z;
+    for (int i=1 ; i<L ; i++) P(i+1) = ( (2.0*i+1.0) * z * P(i) - i * P(i-1) )/(i+1.0);
+  }
+}
+
 std::complex<double> alpha_computation (const double & theta, /**< INPUT: angle \f$ \theta \f$ */
                                         const double & phi, /**< INPUT: angle \f$ \phi \f$ */
                                         const blitz::Array<std::complex<double>, 1>& h2_sph, /**< INPUT: spherical Hankel function */
