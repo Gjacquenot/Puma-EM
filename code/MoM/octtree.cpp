@@ -446,11 +446,12 @@ void Octtree::findAlphaTransParticipantsIndexes(const int l)
         int indexLocalCube = localCubesIndexes[i];
         std::vector<int> localAlphaTransParticipantsIndexes, nonLocalAlphaTransParticipantsIndexes, nonLocalAlphaTransParticipantsProcNumbers;
         for (int j=0; j<N_cubes; ++j) { // loop on all the cubes (because ceiling level)
-          blitz::TinyVector<double, 3> diffAbsCartCoord(levels[l].cubes[indexLocalCube].absoluteCartesianCoord);
-          diffAbsCartCoord -= levels[l].cubes[j].absoluteCartesianCoord;
+          const float * diffAbsCartCoord_1(levels[l].cubes[indexLocalCube].absoluteCartesianCoord); 
+          const float * diffAbsCartCoord_2(levels[l].cubes[j].absoluteCartesianCoord);
+          const float diffAbsCartCoord[3] = {diffAbsCartCoord_1[0]-diffAbsCartCoord_2[0], diffAbsCartCoord_1[1]-diffAbsCartCoord_2[1], diffAbsCartCoord_1[2]-diffAbsCartCoord_2[2]};
           bool condition = false;
           // condition = true if cubes are not touching
-          for (int mm=0; mm<3; ++mm) condition = (condition || (abs(diffAbsCartCoord(mm)) > 1.0) );
+          for (int mm=0; mm<3; ++mm) condition = (condition || (abs(diffAbsCartCoord[mm]) > 1.0) );
           if (condition) {
             if ( levels[l].cubes[j].getProcNumber()==levels[l].cubes[indexLocalCube].getProcNumber() )
               localAlphaTransParticipantsIndexes.push_back(j);
@@ -478,11 +479,12 @@ void Octtree::findAlphaTransParticipantsIndexes(const int l)
         const std::vector<int> possibleIndexes(getNeighborsSonsIndexes(levels[l].cubes[indexLocalCube].getFatherIndex(), l+1));
         for (int j=0; j<possibleIndexes.size(); j++) {// possible indexes of the alpha trans participants
           const int possibleIndex = possibleIndexes[j];
-          blitz::TinyVector<double, 3> diffAbsCartCoord(levels[l].cubes[indexLocalCube].absoluteCartesianCoord);
-          diffAbsCartCoord -= levels[l].cubes[possibleIndex].absoluteCartesianCoord;
+          const float * diffAbsCartCoord_1(levels[l].cubes[indexLocalCube].absoluteCartesianCoord);
+          const float * diffAbsCartCoord_2(levels[l].cubes[possibleIndex].absoluteCartesianCoord);
+          const float diffAbsCartCoord[3] = {diffAbsCartCoord_1[0]-diffAbsCartCoord_2[0], diffAbsCartCoord_1[1]-diffAbsCartCoord_2[1], diffAbsCartCoord_1[2]-diffAbsCartCoord_2[2]};
           bool condition = false;
           // condition = true if cubes are not touching
-          for (int mm=0; mm<3; ++mm) condition = (condition || (abs(diffAbsCartCoord(mm)) > 1.0) );
+          for (int mm=0; mm<3; ++mm) condition = (condition || (abs(diffAbsCartCoord[mm]) > 1.0) );
           if (condition) {
             if ( levels[l].cubes[possibleIndex].getProcNumber()==levels[l].cubes[indexLocalCube].getProcNumber() )
               localAlphaTransParticipantsIndexes.push_back(possibleIndex);
@@ -634,9 +636,9 @@ void Octtree::alphaTranslationsToCube(blitz::Array<std::complex<float>, 2>& S_tm
   const int N_part = indexesAlphaParticipants.size();
   for (int j=0; j<N_part ; ++j) {
     const int indexParticipant = levels[l].cubesIndexesAfterReduction[indexesAlphaParticipants[j]];
-    DRcenters[0] = levels[l].cubes[cubeIndex].absoluteCartesianCoord(0) - levels[l].cubes[indexParticipant].absoluteCartesianCoord(0);
-    DRcenters[1] = levels[l].cubes[cubeIndex].absoluteCartesianCoord(1) - levels[l].cubes[indexParticipant].absoluteCartesianCoord(1);
-    DRcenters[2] = levels[l].cubes[cubeIndex].absoluteCartesianCoord(2) - levels[l].cubes[indexParticipant].absoluteCartesianCoord(2);
+    DRcenters[0] = levels[l].cubes[cubeIndex].absoluteCartesianCoord[0] - levels[l].cubes[indexParticipant].absoluteCartesianCoord[0];
+    DRcenters[1] = levels[l].cubes[cubeIndex].absoluteCartesianCoord[1] - levels[l].cubes[indexParticipant].absoluteCartesianCoord[1];
+    DRcenters[2] = levels[l].cubes[cubeIndex].absoluteCartesianCoord[2] - levels[l].cubes[indexParticipant].absoluteCartesianCoord[2];
     const int alphaCartesianCoord[3] = { static_cast<int>( round(DRcenters[0]) ), static_cast<int>(  round(DRcenters[1]) ), static_cast<int>( round(DRcenters[2]) ) };
     if (DIRECTIONS_PARALLELIZATION!=1) {
       const int X = 1 * (alphaCartesianCoord[0]>=0), Y = 1 * (alphaCartesianCoord[1]>=0), Z = 1 * (alphaCartesianCoord[2]>=0);

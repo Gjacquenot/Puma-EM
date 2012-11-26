@@ -293,17 +293,16 @@ Level::~Level()
 void Level::NCubesXYZComputation(const int VERBOSE)
 {
   int j, NxMax, NyMax, NzMax, NxMin, NyMin, NzMin, my_id = MPI::COMM_WORLD.Get_rank();
-  blitz::TinyVector<double, 3> absoluteCartesianCoordTmp;
   NxMax = NyMax = NzMax = 0;
   NxMin = NyMin = NzMin = maxNumberCubes1D;
   for (j=0 ; j<cubes.size() ; ++j) {
-    absoluteCartesianCoordTmp = cubes[j].getAbsoluteCartesianCoord();
-    if ( static_cast<int>(absoluteCartesianCoordTmp(0)) > NxMax ) NxMax = static_cast<int>(absoluteCartesianCoordTmp(0));
-    if ( static_cast<int>(absoluteCartesianCoordTmp(1)) > NyMax ) NyMax = static_cast<int>(absoluteCartesianCoordTmp(1));
-    if ( static_cast<int>(absoluteCartesianCoordTmp(2)) > NzMax ) NzMax = static_cast<int>(absoluteCartesianCoordTmp(2));
-    if ( static_cast<int>(absoluteCartesianCoordTmp(0)) < NxMin ) NxMin = static_cast<int>(absoluteCartesianCoordTmp(0));
-    if ( static_cast<int>(absoluteCartesianCoordTmp(1)) < NyMin ) NyMin = static_cast<int>(absoluteCartesianCoordTmp(1));
-    if ( static_cast<int>(absoluteCartesianCoordTmp(2)) < NzMin ) NzMin = static_cast<int>(absoluteCartesianCoordTmp(2));
+    const float * absoluteCartesianCoordTmp(cubes[j].absoluteCartesianCoord);
+    if ( static_cast<int>(absoluteCartesianCoordTmp[0]) > NxMax ) NxMax = static_cast<int>(absoluteCartesianCoordTmp[0]);
+    if ( static_cast<int>(absoluteCartesianCoordTmp[1]) > NyMax ) NyMax = static_cast<int>(absoluteCartesianCoordTmp[1]);
+    if ( static_cast<int>(absoluteCartesianCoordTmp[2]) > NzMax ) NzMax = static_cast<int>(absoluteCartesianCoordTmp[2]);
+    if ( static_cast<int>(absoluteCartesianCoordTmp[0]) < NxMin ) NxMin = static_cast<int>(absoluteCartesianCoordTmp[0]);
+    if ( static_cast<int>(absoluteCartesianCoordTmp[1]) < NyMin ) NyMin = static_cast<int>(absoluteCartesianCoordTmp[1]);
+    if ( static_cast<int>(absoluteCartesianCoordTmp[2]) < NzMin ) NzMin = static_cast<int>(absoluteCartesianCoordTmp[2]);
   }
   NCubesX = NxMax - NxMin + 1;
   NCubesY = NyMax - NyMin + 1;
@@ -726,22 +725,22 @@ void Level::searchCubesNeighborsIndexes(void)
   sortNumbersToIndexes();
   const int N_cubes = getLevelSize();
   for (int i=0 ; i<N_cubes ; ++i) {
-    const blitz::TinyVector<double, 3> absCartCoord = cubes[i].getAbsoluteCartesianCoord();
+    const float * absCartCoord(cubes[i].absoluteCartesianCoord);
     vector<int> neighborsIndexes;
     // we find the neighbors
     for (int x=-1 ; x<2 ; ++x) {
       for (int y=-1 ; y<2 ; ++y) {
         for (int z=-1 ; z<2 ; ++z) {
           int index = -1;
-          const blitz::TinyVector<double, 3> CandidateAbsCartCoord(absCartCoord(0) + x, absCartCoord(1) + y, absCartCoord(2) + z);
+          const double CandidateAbsCartCoord[3] = {absCartCoord[0] + x, absCartCoord[1] + y, absCartCoord[2] + z};
           /// no component of (absoluteCartesianCoord(i) + p) -- where i=0,1,2 and p = x,y,z -- can be:
           /// (1) negative or (2) greater than MaxNumberCubes1D.
           int condition = 1;
-          for (int j=0 ; j<3 ; ++j) condition *= ( (CandidateAbsCartCoord(j) >= 0) && (CandidateAbsCartCoord(j) < getMaxNumberCubes1D()) );
+          for (int j=0 ; j<3 ; ++j) condition *= ( (CandidateAbsCartCoord[j] >= 0) && (CandidateAbsCartCoord[j] < getMaxNumberCubes1D()) );
           /* we also do not want to consider the cube itself */
           condition *= !((x==0) && (y==0) && (z==0));
           if (condition>0) {
-            int candidate_number = static_cast<int>( CandidateAbsCartCoord(0) * pow2(getMaxNumberCubes1D()) + CandidateAbsCartCoord(1) * getMaxNumberCubes1D() + CandidateAbsCartCoord(2) );
+            int candidate_number = static_cast<int>( CandidateAbsCartCoord[0] * pow2(getMaxNumberCubes1D()) + CandidateAbsCartCoord[1] * getMaxNumberCubes1D() + CandidateAbsCartCoord[2] );
             index = getIndexOfNumber(candidate_number);
           }
           if (index>-1) neighborsIndexes.push_back(index);

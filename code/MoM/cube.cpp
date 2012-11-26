@@ -24,9 +24,9 @@ Cube::Cube(const bool is_leaf,                           // 1 if cube is leaf
   for (int i=0 ; i<3 ; ++i) rCenter[i] = r_c(i); // we must loop, since rCenter is a TinyVector
 
   // we compute the absolute cartesian coordinates and the cube number
-  for (int i=0 ; i<3 ; ++i) absoluteCartesianCoord(i) = floor( (rCenter[i]-bigCubeLowerCoord[i])/sideLength );
+  for (int i=0 ; i<3 ; ++i) absoluteCartesianCoord[i] = floor( (rCenter[i]-bigCubeLowerCoord[i])/sideLength );
   double maxNumberCubes1D = pow(2.0, level);
-  number = static_cast<int>( absoluteCartesianCoord(0) * maxNumberCubes1D*maxNumberCubes1D + absoluteCartesianCoord(1) * maxNumberCubes1D + absoluteCartesianCoord(2) );
+  number = static_cast<int>( absoluteCartesianCoord[0] * maxNumberCubes1D*maxNumberCubes1D + absoluteCartesianCoord[1] * maxNumberCubes1D + absoluteCartesianCoord[2] );
 
   // we compute the number of the father
   double cartesianCoordInFathers[3];
@@ -48,7 +48,7 @@ Cube::Cube(const Cube& sonCube,
   for (int i=0; i<3; i++) sonCartesianCoordInFathers[i] = floor( (sonCube.rCenter[i] - bigCubeLowerCoord[i]) / sideLength );
   for (int i=0; i<3; i++) rCenter[i] = bigCubeLowerCoord[i] + sonCartesianCoordInFathers[i] * sideLength + sideLength/2.0;
   // we compute the absolute cartesian coordinates
-  for (int i=0 ; i<3 ; ++i) absoluteCartesianCoord(i) = floor( (rCenter[i]-bigCubeLowerCoord[i])/sideLength );
+  for (int i=0 ; i<3 ; ++i) absoluteCartesianCoord[i] = floor( (rCenter[i]-bigCubeLowerCoord[i])/sideLength );
 
   // we compute the number of the father of _this_ cube
   // (i.e. grandfather of sonCube)
@@ -154,7 +154,7 @@ void Cube::copyCube(const Cube& cubeToCopy) // copy member function
   nonLocalAlphaTransParticipantsIndexes.resize(cubeToCopy.nonLocalAlphaTransParticipantsIndexes.size());
   nonLocalAlphaTransParticipantsIndexes = cubeToCopy.nonLocalAlphaTransParticipantsIndexes;
   for (int i=0; i<3; i++) rCenter[i] = cubeToCopy.rCenter[i];
-  absoluteCartesianCoord = cubeToCopy.getAbsoluteCartesianCoord();
+  for (int i=0; i<3; i++) absoluteCartesianCoord[i] = cubeToCopy.absoluteCartesianCoord[i];
   RWG_numbers.resize(cubeToCopy.RWG_numbers.size());
   RWG_numbers = cubeToCopy.RWG_numbers;
   RWG_numbers_CFIE_OK.resize(cubeToCopy.RWG_numbers_CFIE_OK.size());
