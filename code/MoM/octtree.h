@@ -89,12 +89,12 @@ class Octtree {
                                 const blitz::Array<std::complex<float>, 1>& /*alphaTranslation*/,
                                 const blitz::Array<int, 1>& /*alphaTranslationIndexesNonZeros*/,
                                 const blitz::Array<int, 1>& /*alphaTranslationIndexes*/,
-                                const blitz::TinyVector<int, 3>& /*alphaCartesianCoord*/);
+                                const int alphaCartesianCoord[3]);
     void SupAlphaMultiplicationDirections(blitz::Array<std::complex<float>, 2>& /*SupAlpha*/,
                                                    const blitz::Array<std::complex<float>, 2>& /*Sup*/,
                                                    const blitz::Array<std::complex<float>, 1>& /*alphaTranslation*/,
                                                    const blitz::Array<int, 1>& /*alphaTranslationIndexesNonZeros*/,
-                                                   const blitz::TinyVector<int, 3>& /*alphaCartesianCoord*/);
+                                                   const int alphaCartesianCoord[3]);
     void alphaTranslationsToCube(blitz::Array<std::complex<float>, 2>& /*S_tmp*/,
                                  const blitz::Array< blitz::Array<std::complex<float>, 2>, 1>& /*LevelSup*/,
                                  const int /*l*/,

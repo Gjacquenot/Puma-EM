@@ -574,9 +574,9 @@ void Octtree::SupAlphaMultiplication(blitz::Array<std::complex<float>, 2>& SupAl
                                      const blitz::Array<std::complex<float>, 1>& alphaTranslation,
                                      const blitz::Array<int, 1>& alphaTranslationIndexesNonZeros,
                                      const blitz::Array<int, 1>& alphaTranslationIndexes,
-                                     const blitz::TinyVector<int, 3>& alphaCartesianCoord)
+                                     const int alphaCartesianCoord[3])
 {
-  if ((abs(alphaCartesianCoord(0)) > 1) || (abs(alphaCartesianCoord(1)) > 1) || (abs(alphaCartesianCoord(2)) > 1)) {
+  if ((abs(alphaCartesianCoord[0]) > 1) || (abs(alphaCartesianCoord[1]) > 1) || (abs(alphaCartesianCoord[2]) > 1)) {
     if (alphaTranslationIndexesNonZeros.size()==0) {
       const int N_alpha( alphaTranslationIndexes.size() );
       for (int i=0 ; i<N_alpha ; ++i) {
@@ -602,9 +602,9 @@ void Octtree::SupAlphaMultiplicationDirections(blitz::Array<std::complex<float>,
                                                const blitz::Array<std::complex<float>, 2>& Sup,
                                                const blitz::Array<std::complex<float>, 1>& alphaTranslation,
                                                const blitz::Array<int, 1>& alphaTranslationIndexesNonZeros,
-                                               const blitz::TinyVector<int, 3>& alphaCartesianCoord)
+                                               const int alphaCartesianCoord[3])
 {
-  if ((abs(alphaCartesianCoord(0)) > 1) || (abs(alphaCartesianCoord(1)) > 1) || (abs(alphaCartesianCoord(2)) > 1)) {
+  if ((abs(alphaCartesianCoord[0]) > 1) || (abs(alphaCartesianCoord[1]) > 1) || (abs(alphaCartesianCoord[2]) > 1)) {
     if ( (alphaTranslationIndexesNonZeros.size()==0) && (Sup.extent(1)==alphaTranslation.size()) ) {
       Range all = Range::all();
       SupAlpha(0, all) += Sup(0, all) * alphaTranslation;
@@ -637,16 +637,16 @@ void Octtree::alphaTranslationsToCube(blitz::Array<std::complex<float>, 2>& S_tm
     DRcenters[0] = levels[l].cubes[cubeIndex].absoluteCartesianCoord(0) - levels[l].cubes[indexParticipant].absoluteCartesianCoord(0);
     DRcenters[1] = levels[l].cubes[cubeIndex].absoluteCartesianCoord(1) - levels[l].cubes[indexParticipant].absoluteCartesianCoord(1);
     DRcenters[2] = levels[l].cubes[cubeIndex].absoluteCartesianCoord(2) - levels[l].cubes[indexParticipant].absoluteCartesianCoord(2);
-    blitz::TinyVector<int, 3> alphaCartesianCoord( static_cast<int>( round(DRcenters[0]) ), static_cast<int>(  round(DRcenters[1]) ), static_cast<int>( round(DRcenters[2]) ) );
+    const int alphaCartesianCoord[3] = { static_cast<int>( round(DRcenters[0]) ), static_cast<int>(  round(DRcenters[1]) ), static_cast<int>( round(DRcenters[2]) ) };
     if (DIRECTIONS_PARALLELIZATION!=1) {
-      const int X = 1 * (alphaCartesianCoord(0)>=0), Y = 1 * (alphaCartesianCoord(1)>=0), Z = 1 * (alphaCartesianCoord(2)>=0);
-      const int m = abs(alphaCartesianCoord(0)), n = abs(alphaCartesianCoord(1)), p = abs(alphaCartesianCoord(2));
+      const int X = 1 * (alphaCartesianCoord[0]>=0), Y = 1 * (alphaCartesianCoord[1]>=0), Z = 1 * (alphaCartesianCoord[2]>=0);
+      const int m = abs(alphaCartesianCoord[0]), n = abs(alphaCartesianCoord[1]), p = abs(alphaCartesianCoord[2]);
       SupAlphaMultiplication(S_tmp, LevelSup(indexParticipant), getAlphaLevel(m, n, p, l), levels[l].alphaTranslationsIndexesNonZeros(m, n, p), levels[l].alphaTranslationsIndexes(X, Y, Z, all), alphaCartesianCoord);
     }
     else {
-      const int m = alphaCartesianCoord(0) + levels[l].getOffsetAlphaIndexX();
-      const int n = alphaCartesianCoord(1) + levels[l].getOffsetAlphaIndexY();
-      const int p = alphaCartesianCoord(2) + levels[l].getOffsetAlphaIndexZ();
+      const int m = alphaCartesianCoord[0] + levels[l].getOffsetAlphaIndexX();
+      const int n = alphaCartesianCoord[1] + levels[l].getOffsetAlphaIndexY();
+      const int p = alphaCartesianCoord[2] + levels[l].getOffsetAlphaIndexZ();
       SupAlphaMultiplicationDirections(S_tmp, LevelSup(indexParticipant), getAlphaLevel(m, n, p, l), levels[l].alphaTranslationsIndexesNonZeros(m, n, p), alphaCartesianCoord);
     }
   }
