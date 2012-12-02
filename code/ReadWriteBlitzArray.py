@@ -1,7 +1,6 @@
 import os, sys
-from scipy import zeros, real, imag, resize
-from scipy import weave
-from scipy.weave import converters
+import numpy
+from scipy import zeros, real, imag, resize, rand, array
 
 def readIntFromDisk(filename):
     f = open(filename, 'r')
@@ -25,32 +24,54 @@ def writeScalarToDisk(x, filename):
     f.close()
 
 def writeASCIIBlitzArrayToDisk(A, filename):
-    wrapping_code = """
-    using namespace blitz;
-    blitz::ofstream ofs(filename.c_str());
-    if (!ofs.is_open())
-    {
-        cerr << "ReadWriteBlitzArray.py::writeASCIIBlitzArrayToDisk: Unable to write to file: " << filename << endl;
-        exit(1);
-    }
-    ofs.precision(18);
-    ofs << A << endl;
-    ofs.close();
-    """
-    weave.inline(wrapping_code,
-                 ['A', 'filename'],
-                 type_converters = converters.blitz,
-                 include_dirs = [],
-                 library_dirs = [],
-                 libraries = [],
-                 headers = ['<iostream>','<fstream>','<complex>','<string>','<blitz/array.h>'],
-                 compiler = 'gcc',
-                 extra_compile_args = ['-O3', '-pthread', '-w'])
+    f = open(filename, 'w')
+    dimensions = A.shape 
+    N_dim = len(dimensions)
+    string = '(0,' + str(dimensions[0]-1) + ')'
+    for i in dimensions[1:]:
+        string += ' x (0,' + str(i-1) + ')'
+    string += '\n'
+    f.write(string)
+    f.write('[ ')
+    if 'complex' not in A.dtype.name:
+        if N_dim==1:  # 1-D arrays
+            for i in range(dimensions[0]):
+                string = str(A[i])
+                f.write(string + ' ')
+            f.write(']\n')
 
-def readASCIIBlitzIntArray2DFromDisk(filename):
-    f = open(filename, 'r')
-    data = f.readline()
+        elif N_dim==2: # 2-D arrays
+            for i in range(dimensions[0]):
+                for j in range(dimensions[1]):
+                    string = str(A[i, j])
+                    f.write(string + ' ')
+                if i<dimensions[0]-1:
+                    f.write('\n')
+            f.write(']\n')
+
+    else: # array elements are complex
+        if N_dim==1: # 1-D arrays
+            for i in range(dimensions[0]):
+                string1 = str(real(A[i]))
+                string2 = str(imag(A[i]))
+                string = '(' + string1 + ',' + string2 + ') '
+                f.write(string)
+            f.write(']\n')
+
+        elif N_dim==2: # 2-D arrays
+            for i in range(dimensions[0]):
+                for j in range(dimensions[1]):
+                    string1 = str(real(A[i,j]))
+                    string2 = str(imag(A[i,j])) 
+                    string = '(' + string1 + ',' + string2 + ') '
+                    f.write(string)
+                if i<dimensions[0]-1:
+                    f.write('\n')
+            f.write(']\n')
     f.close()
+
+
+def get2DArrayDimensions(data):
     # we need to take into account the new Blitz++ ASCII format
     # for expressing an array's dimensions
     indLines_expr, indColumns_expr = data.split('x')[0], data.split('x')[1]
@@ -67,289 +88,123 @@ def readASCIIBlitzIntArray2DFromDisk(filename):
         startIndColumns, endIndColumns = int(indColumns_expr.split(',')[0]), int(indColumns_expr.split(',')[1])
         Nl = endIndLines - startIndLines + 1
         Nc = endIndColumns - startIndColumns + 1
+    return Nl, Nc
+
+def readASCIIBlitzIntArray2DFromDisk(filename):
+    f = open(filename, 'r')
+    data = f.readline()
+    Nl, Nc = get2DArrayDimensions(data)
     A = zeros((Nl, Nc), 'i')
-    wrapping_code = """
-    using namespace blitz;
-    blitz::ifstream ifs(filename.c_str());
-    if (!ifs.is_open())
-    {
-        cerr << "ReadWriteBlitzArray.py::readASCIIBlitzIntArray2DFromDisk: Unable to read from file: " << filename << endl;
-        exit(1);
-    }
-    ifs.precision(18);
-    blitz::Array<int, 2> B;
-    ifs >> B;
-    ifs.close();
-    A = B;
-    """
-    weave.inline(wrapping_code,
-                 ['A', 'filename'],
-                 type_converters = converters.blitz,
-                 include_dirs = [],
-                 library_dirs = [],
-                 libraries = [],
-                 headers = ['<iostream>','<fstream>','<complex>','<string>','<blitz/array.h>'],
-                 compiler = 'gcc',
-                 extra_compile_args = ['-O3', '-pthread', '-w'])
+    if Nl==1:
+        data = f.readline()
+        A[0] = map(int, data.split()[1:-1])
+    else:
+        for i in range(Nl):
+            data = f.readline()
+            if i==0:
+                # we need to jump over the '[' character
+                A[0] = map(int, data.split()[1:])
+            elif i<Nl-1:
+                A[i] = map(int, data.split())
+            else:
+                # we need to ignore the last ']' character
+                A[Nl-1] = map(int, data.split()[:-1])
+    f.close()
     return A
 
 def readASCIIBlitzComplexFloatArray2DFromDisk(filename):
     f = open(filename, 'r')
     data = f.readline()
-    f.close()
-    # we need to take into account the new Blitz++ ASCII format
-    # for expressing an array's dimensions
-    indLines_expr, indColumns_expr = data.split('x')[0], data.split('x')[1]
-    if '(' not in indLines_expr and ',' not in indLines_expr and ')' not in indLines_expr:
-        Nl, Nc = int(indLines_expr), int(indColumns_expr)
-    else:
-        indLines_expr = indLines_expr.replace('(','')
-        indLines_expr = indLines_expr.replace(')','')
-        indLines_expr = indLines_expr.replace('\n','')
-        indColumns_expr = indColumns_expr.replace('(','')
-        indColumns_expr = indColumns_expr.replace(')','')
-        indColumns_expr = indColumns_expr.replace('\n','')
-        startIndLines, endIndLines = int(indLines_expr.split(',')[0]), int(indLines_expr.split(',')[1])
-        startIndColumns, endIndColumns = int(indColumns_expr.split(',')[0]), int(indColumns_expr.split(',')[1])
-        Nl = endIndLines - startIndLines + 1
-        Nc = endIndColumns - startIndColumns + 1
+    Nl, Nc = get2DArrayDimensions(data)
     A = zeros((Nl, Nc), 'F')
-    wrapping_code = """
-    using namespace blitz;
-    blitz::ifstream ifs(filename.c_str());
-    if (!ifs.is_open())
-    {
-        cerr << "ReadWriteBlitzArray.py::readASCIIBlitzComplexFloatArray2DFromDisk: Unable to read from file: " << filename << endl;
-        exit(1);
-    }
-    ifs.precision(18);
-    blitz::Array<std::complex<float>, 2> B;
-    ifs >> B;
-    ifs.close();
-    A = B;
-    """
-    weave.inline(wrapping_code,
-                 ['A', 'filename'],
-                 type_converters = converters.blitz,
-                 include_dirs = [],
-                 library_dirs = [],
-                 libraries = [],
-                 headers = ['<iostream>','<fstream>','<complex>','<string>','<blitz/array.h>'],
-                 compiler = 'gcc',
-                 extra_compile_args = ['-O3', '-pthread', '-w'])
-
+    if Nl==1:
+        data = f.readline()
+        line = data[1:-1].split()
+        for j in range(Nc):
+            temp2 = line[j][1:-1].split(',')
+            A[0, j] = float(temp2[0]) + 1.j * float(temp2[1])
+    else:
+        for i in range(Nl):
+            data = f.readline()
+            if i==0:
+                # we need to jump over the '[' character
+                line = data[1:].split()
+                for j in range(Nc):
+                    temp2 = line[j][1:-1].split(',')
+                    A[0, j] = float(temp2[0]) + 1.j * float(temp2[1])
+            elif i<Nl-1:
+                line = data.split()
+                for j in range(Nc):
+                    temp2 = line[j][1:-1].split(',')
+                    A[i, j] = float(temp2[0]) + 1.j * float(temp2[1])
+            else:
+                # we need to ignore the last ']' character
+                line = data[:-1].split()
+                for j in range(Nc):
+                    temp2 = line[j][1:-1].split(',')
+                    A[i, j] = float(temp2[0]) + 1.j * float(temp2[1])
+    f.close()
     return A
 
 def readASCIIBlitzFloatArray2DFromDisk(filename):
     f = open(filename, 'r')
     data = f.readline()
-    f.close()
-    # we need to take into account the new Blitz++ ASCII format
-    # for expressing an array's dimensions
-    indLines_expr, indColumns_expr = data.split('x')[0], data.split('x')[1]
-    if '(' not in indLines_expr and ',' not in indLines_expr and ')' not in indLines_expr:
-        Nl, Nc = int(indLines_expr), int(indColumns_expr)
-    else:
-        indLines_expr = indLines_expr.replace('(','')
-        indLines_expr = indLines_expr.replace(')','')
-        indLines_expr = indLines_expr.replace('\n','')
-        indColumns_expr = indColumns_expr.replace('(','')
-        indColumns_expr = indColumns_expr.replace(')','')
-        indColumns_expr = indColumns_expr.replace('\n','')
-        startIndLines, endIndLines = int(indLines_expr.split(',')[0]), int(indLines_expr.split(',')[1])
-        startIndColumns, endIndColumns = int(indColumns_expr.split(',')[0]), int(indColumns_expr.split(',')[1])
-        Nl = endIndLines - startIndLines + 1
-        Nc = endIndColumns - startIndColumns + 1
+    Nl, Nc = get2DArrayDimensions(data)
     A = zeros((Nl, Nc), 'f')
-    wrapping_code = """
-    using namespace blitz;
-    blitz::ifstream ifs(filename.c_str());
-    if (!ifs.is_open())
-    {
-        cerr << "ReadWriteBlitzArray.py::readASCIIBlitzFloatArray2DFromDisk: Unable to read from file: " << filename << endl;
-        exit(1);
-    }
-    ifs.precision(18);
-    blitz::Array<float, 2> B;
-    ifs >> B;
-    ifs.close();
-    A = B;
-    """
-    weave.inline(wrapping_code,
-                 ['A', 'filename'],
-                 type_converters = converters.blitz,
-                 include_dirs = [],
-                 library_dirs = [],
-                 libraries = [],
-                 headers = ['<iostream>','<fstream>','<complex>','<string>','<blitz/array.h>'],
-                 compiler = 'gcc',
-                 extra_compile_args = ['-O3', '-pthread', '-w'])
+    if Nl==1:
+        data = f.readline()
+        A[0] = array(map(float, data.split()[1:-1]))
+    else:
+        for i in range(Nl):
+            data = f.readline()
+            if i==0:
+                # we need to jump over the '[' character
+                A[0] = map(float, data.split()[1:])
+            elif i<Nl-1:
+                A[i] = map(float, data.split())
+            else:
+                A[Nl-1] = map(float, data.split()[:-1])
+    f.close()
     return A
 
 def readASCIIBlitzFloatArray1DFromDisk(filename):
     f = open(filename, 'r')
+    data = f.readline() # we skip the dimensions
     data = f.readline()
+    A = array(map(float, data.split()[1:-1]))
     f.close()
-    # we need to take into account the new Blitz++ ASCII format
-    # for expressing an array's dimensions
-    indLines_expr = data.split()[0]
-    if '(' not in indLines_expr and ',' not in indLines_expr and ')' not in indLines_expr:
-        Nl = int(indLines_expr)
-    else:
-        indLines_expr = indLines_expr.replace('(','')
-        indLines_expr = indLines_expr.replace(')','')
-        indLines_expr = indLines_expr.replace('\n','')
-        startIndLines, endIndLines = int(indLines_expr.split(',')[0]), int(indLines_expr.split(',')[1])
-        Nl = endIndLines - startIndLines + 1
-    A = zeros(Nl, 'f')
-    wrapping_code = """
-    using namespace blitz;
-    blitz::ifstream ifs(filename.c_str());
-    if (!ifs.is_open())
-    {
-        cerr << "ReadWriteBlitzArray.py::readASCIIBlitzFloatArray1DFromDisk: Unable to read from file: " << filename << endl;
-        exit(1);
-    }
-    ifs.precision(18);
-    blitz::Array<float, 1> B;
-    ifs >> B;
-    ifs.close();
-    A = B;
-    """
-    weave.inline(wrapping_code,
-                 ['A', 'filename'],
-                 type_converters = converters.blitz,
-                 include_dirs = [],
-                 library_dirs = [],
-                 libraries = [],
-                 headers = ['<iostream>','<fstream>','<complex>','<string>','<blitz/array.h>'],
-                 compiler = 'gcc',
-                 extra_compile_args = ['-O3', '-pthread', '-w'])
     return A
 
 def readASCIIBlitzIntArray1DFromDisk(filename):
     f = open(filename, 'r')
+    data = f.readline() # we skip the dimensions
     data = f.readline()
+    A = array(map(int, data.split()[1:-1]))
     f.close()
-    # we need to take into account the new Blitz++ ASCII format
-    # for expressing an array's dimensions
-    indLines_expr = data.split()[0]
-    if '(' not in indLines_expr and ',' not in indLines_expr and ')' not in indLines_expr:
-        Nl = int(indLines_expr)
-    else:
-        indLines_expr = indLines_expr.replace('(','')
-        indLines_expr = indLines_expr.replace(')','')
-        indLines_expr = indLines_expr.replace('\n','')
-        startIndLines, endIndLines = int(indLines_expr.split(',')[0]), int(indLines_expr.split(',')[1])
-        Nl = endIndLines - startIndLines + 1
-    A = zeros(Nl, 'i')
-    wrapping_code = """
-    using namespace blitz;
-    blitz::ifstream ifs(filename.c_str());
-    if (!ifs.is_open())
-    {
-        cerr << "ReadWriteBlitzArray.py::readASCIIBlitzFloatArray1DFromDisk: Unable to read from file: " << filename << endl;
-        exit(1);
-    }
-    blitz::Array<int, 1> B;
-    ifs >> B;
-    ifs.close();
-    A = B;
-    """
-    weave.inline(wrapping_code,
-                 ['A', 'filename'],
-                 type_converters = converters.blitz,
-                 include_dirs = [],
-                 library_dirs = [],
-                 libraries = [],
-                 headers = ['<iostream>','<fstream>','<string>','<blitz/array.h>'],
-                 compiler = 'gcc',
-                 extra_compile_args = ['-O3', '-pthread', '-w', '-fPIC'])
     return A
 
 def writeBlitzArrayToDisk(A, filename):
-    sizeOfItem = A.itemsize
-    wrapping_code = """
-    using namespace blitz;
-    blitz::ofstream fout(filename.c_str(), blitz::ios::binary);
-    fout.write((char *)(A.data()), A.size()*sizeOfItem);
-    fout.close();
-    """
-    weave.inline(wrapping_code,
-                 ['A', 'sizeOfItem', 'filename'],
-                 type_converters = converters.blitz,
-                 include_dirs = [],
-                 library_dirs = [],
-                 libraries = [],
-                 headers = ['<iostream>','<fstream>','<complex>','<string>','<blitz/array.h>'],
-                 compiler = 'gcc',
-                 extra_compile_args = ['-O3', '-pthread', '-w'])
+    output_file = open(filename, 'wb')
+    A.tofile(output_file)
+    output_file.close()
 
 def readBlitzArrayFromDisk(filename, Nl, Nc, ELEM_TYPE):
-    A = zeros((Nl, Nc), ELEM_TYPE)
-    sizeOfItem = A.itemsize
-    wrapping_code = """
-    using namespace blitz;
-    blitz::ifstream ifs(filename.c_str(), blitz::ios::binary);
-    if (! ifs.is_open()) { 
-      cout << "ReadWriteBlitzArray.py::readBlitzArrayFromDisk: error opening " << filename << endl;
-      exit (1);
-    }
-    ifs.read((char *)(A.data()), A.size()*sizeOfItem);
-    ifs.close();
-    """
-    weave.inline(wrapping_code,
-                 ['A', 'sizeOfItem', 'filename'],
-                 type_converters = converters.blitz,
-                 include_dirs = [],
-                 library_dirs = [],
-                 libraries = [],
-                 headers = ['<iostream>','<fstream>','<sstream>','<complex>','<string>','<blitz/array.h>'],
-                 compiler = 'gcc',
-                 extra_compile_args = ['-O3', '-pthread', '-w'])
+    input_file = open(filename, 'rb')
+    A = numpy.fromfile(file=input_file, dtype=ELEM_TYPE).reshape((Nl, Nc))
+    input_file.close()
     return A
 
 def read1DBlitzArrayFromDisk(filename, ELEM_TYPE):
-    B = zeros(1, ELEM_TYPE)
-    sizeOfItem = B.itemsize
-    sizeOfA = zeros(1, 'i')
-    wrapping_code = """
-    using namespace blitz;
-    blitz::ifstream ifs(filename.c_str(), blitz::ios::binary);
-    if (! ifs.is_open()) { 
-      cout << "ReadWriteBlitzArray.py::read1DBlitzArrayFromDisk: error opening " << filename << endl;
-      exit (1);
-    }
-    ifs.seekg (0, blitz::ios::end);
-    int length = ifs.tellg();
-    ifs.close();
-    sizeOfA(0) = length/sizeOfItem;
-    """
-    weave.inline(wrapping_code,
-                 ['sizeOfA','sizeOfItem', 'filename'],
-                 type_converters = converters.blitz,
-                 headers = ['<iostream>','<fstream>','<sstream>','<complex>','<string>','<blitz/array.h>'],
-                 compiler = 'gcc',
-                 extra_compile_args = ['-O3', '-pthread', '-w'])
-    # resizing A
-    A = zeros(sizeOfA[0], ELEM_TYPE)
-    wrapping_code2 = """
-    using namespace blitz;
-    blitz::ifstream ifs(filename.c_str(), blitz::ios::binary);
-    ifs.read((char *)(A.data()), A.size()*sizeOfItem);
-    ifs.close();
-    """
-    weave.inline(wrapping_code2,
-                 ['A', 'sizeOfItem', 'filename'],
-                 type_converters = converters.blitz,
-                 headers = ['<iostream>','<fstream>','<sstream>','<complex>','<string>','<blitz/array.h>'],
-                 compiler = 'gcc',
-                 extra_compile_args = ['-O3', '-pthread', '-w'])
+    input_file = open(filename, 'rb')
+    A = numpy.fromfile(file=input_file, dtype=ELEM_TYPE)
+    input_file.close()
     return A
 
 
 if __name__=="__main__":
     x = 4.0 + 1.j * 3.3
-    filename = './tmp/x.txt'
-    writeScalarToDisk(x, filename)
+#    filename = './tmp/x.txt'
+#    writeScalarToDisk(x, filename)
+
+
 
