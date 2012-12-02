@@ -1,42 +1,23 @@
 from math import pi
-from scipy import zeros, sin, sqrt, sort, real, sum, cos
-from scipy import weave
-from scipy.weave import converters
-#from scipy.special import legendre
-#from scipy import linalg
-
-def abs_weights(N):
-    """yields back 2 vectors containing the abscissas and weights
-    for a Gauss-Legendre integration of order N"""
-    XGL, WGL = zeros(N, 'd'), zeros(N, 'd')
-    wrapping_code = """Gauss_Legendre (XGL, WGL, N);"""
-    weave.inline(wrapping_code,
-                 ['XGL', 'WGL', 'N'],
-                 type_converters = converters.blitz,
-                 include_dirs = ['./code/MoM/'],
-                 library_dirs = ['./code/MoM/'],
-                 libraries = ['MoM'],
-                 headers = ['<iostream>','<complex>','"GL.h"'],
-                 compiler = 'gcc',
-                 extra_compile_args = ['-O3', '-pthread', '-w', '-fPIC'])
-    return XGL, WGL
+from scipy import zeros, sqrt, sort, real, sum, cos
 
 def integr_1D_X_W(a, b, N_points, METHOD, INCLUDE_BOUDARIES):
     """This function yields the abscissas and weights for 3 integration methods:
     PONCELET (mid-point), TRAPEZOIDAL RULE, GAUSS. The boolean INCLUDE_BOUDARIES specifies if one
     must take the extremities of the interval into account."""
     X, W = zeros(N_points, 'd'), zeros(N_points, 'd')
-    if ( (N_points<21) | (METHOD!="GAUSSL") ):
-        wrapping_code = """integr_1D_X_W(X, W, a, b, N_points, METHOD);"""
-        weave.inline(wrapping_code,
-                     ['X', 'W', 'a', 'b', 'N_points', 'METHOD'],
-                     type_converters = converters.blitz,
-                     include_dirs = ['./code/MoM/'],
-                     library_dirs = ['./code/MoM/'],
-                     libraries = ['MoM'],
-                     headers = ['<iostream>','<complex>','"integr_1D_X_W.h"'],
-                     compiler = 'gcc',
-                     extra_compile_args = ['-O3', '-pthread', '-w', '-fPIC'])
+    if (METHOD == "TRAP"): # trapezoidal rule
+        h = (b-a)/(N_points-1)
+        for j in range(N_points):
+            X[j] = a + j*h
+            W[j] = h
+        W[0] /= 2.0
+        W[N_points-1] /= 2.0;
+    elif (METHOD == "PONCELET"): # mid-point method
+        h = (b-a)/N_points
+        for j in range(N_points):
+            X[j] = a + j*h + h/2.0
+            W[j] = h
     else:
         Dx = 0.5 * (b - a)
         center = 0.5 * (b + a)
@@ -110,3 +91,4 @@ if __name__=="__main__":
     X2, W2 = mlegzo(n)
     print max(abs(X1 - X2))
     print max(abs(W1 - W2))
+
