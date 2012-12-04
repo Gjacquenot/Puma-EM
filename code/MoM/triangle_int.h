@@ -109,6 +109,10 @@ void ITs_free (std::complex<double>& ITs_G,
                const Triangle & Ts,
                const std::complex<double> & k,
                const int N_points,
+               const double * xi,
+               const double * eta,
+               const double * weights,
+               const double sum_weights,
                const int EXTRACT_1_R,
                const int EXTRACT_R);
 

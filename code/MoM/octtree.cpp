@@ -548,10 +548,30 @@ void Octtree::findAlphaTransParticipantsIndexes(const int l)
 void Octtree::shiftExp(blitz::Array<std::complex<float>, 2> S,
                        const blitz::Array<std::complex<float>, 1>& shiftingArray)
 {
-  blitz::Range all = blitz::Range::all();
+  const int N = shiftingArray.size();
   //const int N_coord = 2;
-  S(0, all) *= shiftingArray;
-  S(1, all) *= shiftingArray;
+  if (N%2 == 0) {
+    for (int i=0; i<N; i+=2) {
+      S(0, i) *= shiftingArray(i);  
+      S(0, i+1) *= shiftingArray(i+1);  
+      S(1, i) *= shiftingArray(i);  
+      S(1, i+1) *= shiftingArray(i+1);
+    }
+  }
+  else if (N>1) {
+    for (int i=0; i<N-1; i+=2) {
+      S(0, i) *= shiftingArray(i);  
+      S(0, i+1) *= shiftingArray(i+1);  
+      S(1, i) *= shiftingArray(i);  
+      S(1, i+1) *= shiftingArray(i+1);
+    }
+    S(0, N-1) *= shiftingArray(N-1);  
+    S(1, N-1) *= shiftingArray(N-1);        
+  }
+  else {
+    S(0, 0) *= shiftingArray(0);  
+    S(1, 0) *= shiftingArray(0);  
+  }
 }
 
 void Octtree::S2DWeighting(blitz::Array<std::complex<float>, 2> S,

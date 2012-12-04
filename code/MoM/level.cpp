@@ -4,7 +4,6 @@
 #include <complex>
 #include <cmath>
 #include <blitz/array.h>
-#include <blitz/tinyvec-et.h>
 #include <vector>
 #include <algorithm>
 #include <mpi.h>
@@ -588,7 +587,8 @@ void Level::shiftingArraysComputation(void)
   shiftingArrays.resize(8, N_theta * N_phi);
   double sinTheta, cosTheta, shiftingDistance = this->cubeSideLength/4.0;
   double k_hat[3], shiftingVector[3];
-  blitz::Array<blitz::TinyVector<double, 3>, 1> shiftingVectors(8);
+  blitz::Array< blitz::Array<double, 1>, 1> shiftingVectors(8);
+  for (int p=0 ; p<8 ; ++p) shiftingVectors(p).resize(3);
   shiftingVectors(0) = -1.0, -1.0, -1.0;
   shiftingVectors(1) = -1.0, -1.0,  1.0;
   shiftingVectors(2) = -1.0,  1.0, -1.0;
@@ -874,50 +874,62 @@ void Level::computeSup(blitz::Array<std::complex<float>, 2> & Sup,
                        const blitz::Array<float, 1>& phis)
 {
   const int NThetas = thetas.size(), NPhis = phis.size(), NGauss = cube.GaussLocatedWeightedRWG.extent(1)/2;
-  blitz::Array<blitz::TinyVector<float, 3>, 1> kHats(NThetas * NPhis), thetaHats(NThetas * NPhis), phiHats(NThetas * NPhis);
-  blitz::Array<blitz::TinyVector<std::complex<float>, 3>, 1> FC3Components(NThetas * NPhis);
+  blitz::Array< float [3], 1> kHats(NThetas * NPhis), thetaHats(NThetas * NPhis), phiHats(NThetas * NPhis);
+  blitz::Array< std::complex<float> [3], 1> FC3Components(NThetas * NPhis);
   // initialisation of arrays
   for (int q=0 ; q<NPhis ; ++q) {
     const float cos_phi = cos(phis(q)), sin_phi = sin(phis(q));
     for (int p=0 ; p<NThetas ; ++p) {
       int index = p + q*NThetas;
-      kHats(index) = sin(thetas(p))*cos_phi, sin(thetas(p))*sin_phi, cos(thetas(p));
-      thetaHats(index) = cos(thetas(p))*cos_phi, cos(thetas(p))*sin_phi, -sin(thetas(p));
-      phiHats(index) = -sin_phi, cos_phi, 0.0;
-      FC3Components(index) = 0.0, 0.0, 0.0;
+      const float sin_theta = sin(thetas(p)), cos_theta = cos(thetas(p));
+      kHats(index)[0] = sin_theta*cos_phi;
+      kHats(index)[1] = sin_theta*sin_phi;
+      kHats(index)[2] = cos_theta;
+      thetaHats(index)[0] = cos_theta*cos_phi;
+      thetaHats(index)[1] = cos_theta*sin_phi;
+      thetaHats(index)[2] = -sin_theta;
+      phiHats(index)[0] = -sin_phi;
+      phiHats(index)[1] = cos_phi;
+      phiHats(index)[2] = 0.0;
+      for (int i=0 ; i<3 ; i++) FC3Components(index)[i] = 0.0;
     }
   }
   // computation of FC3Components array
   blitz::Array<std::complex<float>, 1> EXP(NThetas * NPhis/2);
-  // defining local tinyvectors used for faster computations
   const std::complex<float> I_k(static_cast<std::complex<float> >(I*k));
-  blitz::TinyVector<float, 3> localGaussLocatedWeightedRWG;
-  blitz::TinyVector<std::complex<float>, 3> localGaussLocatedExpArg, fj;
   const int N_rwg = cube.RWG_numbers.size();
   for (int i=0 ; i<N_rwg ; ++i) {
     const int RWGNumber = cube.RWG_numbers[i];
     for (int j=0 ; j<2*NGauss ; ++j) {
-      // computing the local tinyvectors
-      localGaussLocatedWeightedRWG = cube.GaussLocatedWeightedRWG(i, j);
-      localGaussLocatedExpArg = I_k * cube.GaussLocatedExpArg(i, j);
+      // computing the local arrays
+      const float * localGaussLocatedWeightedRWG = cube.GaussLocatedWeightedRWG(i, j);
+      const float * localGaussLocatedExpArg = cube.GaussLocatedExpArg(i, j);
       // construction of the evaluation of the RWG at one point
-      fj = I_PQ(RWGNumber) * localGaussLocatedWeightedRWG;
-      for (int index=0 ; index<EXP.size() ; ++index) {
-        EXP(index) = exp( dot(localGaussLocatedExpArg, kHats(index)) );
-        FC3Components(index) += fj * EXP(index);
+      std::complex<float> fj[3];
+      fj[0] = I_PQ(RWGNumber) * localGaussLocatedWeightedRWG[0];
+      fj[1] = I_PQ(RWGNumber) * localGaussLocatedWeightedRWG[1];
+      fj[2] = I_PQ(RWGNumber) * localGaussLocatedWeightedRWG[2];
+      for (int index=0 ; index<EXP.size() ; index++) {
+        EXP(index) = exp( I_k * (localGaussLocatedExpArg[0]*kHats(index)[0] + localGaussLocatedExpArg[1]*kHats(index)[1] + localGaussLocatedExpArg[2]*kHats(index)[2]) );
+        FC3Components(index)[0] += fj[0] * EXP(index);
+        FC3Components(index)[1] += fj[1] * EXP(index);
+        FC3Components(index)[2] += fj[2] * EXP(index);
       }
       for (int q=NPhis/2 ; q<NPhis ; ++q) {// for phi>pi, kHat = -kHat(pi-theta, phi-pi)
         for (int p=0 ; p<NThetas ; ++p) {
           int index = p + q*NThetas;
           const int newIndex = NThetas-1-p + (q-NPhis/2) * NThetas;
-          FC3Components(index) += fj * conj(EXP(newIndex));
+          const std::complex<float> conjExp(conj(EXP(newIndex)));
+          FC3Components(index)[0] += fj[0] * conjExp;
+          FC3Components(index)[1] += fj[1] * conjExp;
+          FC3Components(index)[2] += fj[2] * conjExp;
         }
       }
     }
   }
   // transformation from cartesian to spherical coordinates and assignation to Sup
-  for (int i=0 ; i<Sup.extent(1) ; ++i) Sup(0, i) = dot(thetaHats(i), FC3Components(i));
-  for (int i=0 ; i<Sup.extent(1) ; ++i) Sup(1, i) = dot(phiHats(i), FC3Components(i));
+  for (int i=0 ; i<Sup.extent(1) ; ++i) Sup(0, i) = thetaHats(i)[0]*FC3Components(i)[0] + thetaHats(i)[1]*FC3Components(i)[1] + thetaHats(i)[2]*FC3Components(i)[2];
+  for (int i=0 ; i<Sup.extent(1) ; ++i) Sup(1, i) = phiHats(i)[0]*FC3Components(i)[0] + phiHats(i)[1]*FC3Components(i)[1] + phiHats(i)[2]*FC3Components(i)[2];
 }
 
 void Level::sphericalIntegration(blitz::Array<std::complex<float>, 1>& ZI,
@@ -933,63 +945,74 @@ void Level::sphericalIntegration(blitz::Array<std::complex<float>, 1>& ZI,
   const std::complex<float> ZZERO(0.0, 0.0);
   const bool tE_tmp = (CFIE(0)!=ZZERO), nH_tmp = (CFIE(3)!=ZZERO);
   const int NThetas = thetas.size(), NPhis = phis.size(), NGauss = cube.GaussLocatedWeightedRWG.extent(1)/2;
-  blitz::TinyVector<float, 3> thetaHat, phiHat;
-  blitz::Array<blitz::TinyVector<float, 3>, 1> kHats(NThetas * NPhis);
-  blitz::Array<blitz::TinyVector<std::complex<float>, 3>, 1> GC3Components(NThetas * NPhis);
+  float thetaHat[3], phiHat[3];
+  blitz::Array< float [3], 1> kHats(NThetas * NPhis);
+  blitz::Array< std::complex<float> [3], 1> GC3Components(NThetas * NPhis);
   // initialisation of arrays
   for (int q=0 ; q<NPhis ; ++q) {
     const float cos_phi = cos(phis(q)), sin_phi = sin(phis(q));
+    const float phiHat[3] = {-sin_phi, cos_phi, 0.0};
     for (int p=0 ; p<NThetas ; ++p) {
       int index = p + q*NThetas;
-      kHats(index) = sin(thetas(p))*cos_phi, sin(thetas(p))*sin_phi, cos(thetas(p));
-      thetaHat = cos(thetas(p))*cos_phi, cos(thetas(p))*sin_phi, -sin(thetas(p));
-      phiHat = -sin_phi, cos_phi, 0.0;
-      GC3Components(index) = Sdown(0, index) * thetaHat + Sdown(1, index) * phiHat;
+      const float sin_theta = sin(thetas(p)), cos_theta = cos(thetas(p));
+      kHats(index)[0] = sin_theta*cos_phi;
+      kHats(index)[1] = sin_theta*sin_phi;
+      kHats(index)[2] = cos_theta;
+      const float thetaHat[3] = {cos_theta*cos_phi, cos_theta*sin_phi, -sin_theta};
+      GC3Components(index)[0] = Sdown(0, index) * thetaHat[0] + Sdown(1, index) * phiHat[0];
+      GC3Components(index)[1] = Sdown(0, index) * thetaHat[1] + Sdown(1, index) * phiHat[1];
+      GC3Components(index)[2] = Sdown(0, index) * thetaHat[2] + Sdown(1, index) * phiHat[2];
     }
   }
   // computation of integration
   blitz::Array<std::complex<float>, 1> EXP(NThetas * NPhis/2);
-  blitz::Array<blitz::TinyVector<std::complex<float>, 3>, 1> fj(NThetas * NPhis), kHat_X_nHat_X_fj(NThetas * NPhis);
-  // defining local tinyvectors used for faster computations
-  const std::complex<float> I_k(static_cast<std::complex<float> >(I*k));
-  blitz::TinyVector<float, 3> localGaussLocatedWeightedRWG, localGaussLocatedWeighted_nHat_X_RWG;
-  blitz::TinyVector<std::complex<float>, 3> localGaussLocatedExpArg;
+  blitz::Array< std::complex<float> [3], 1> fj(NThetas * NPhis), kHat_X_nHat_X_fj(NThetas * NPhis);
+  // defining local arrays used for faster computations
+  const std::complex<float> I_k(static_cast<std::complex<float> >(I*k)), minus_I_k(static_cast<std::complex<float> >(-I*k));
   const int N_rwg = cube.RWG_numbers.size();
   for (int i=0 ; i<N_rwg ; ++i) {
     const int RWGNumber = cube.RWG_numbers[i];
     std::complex<float> ZI_tE(0.0, 0.0), ZI_nH(0.0, 0.0);
     const bool tE = tE_tmp, nH = nH_tmp * cube.RWG_numbers_CFIE_OK[i];
     for (int j=0 ; j<2*NGauss ; ++j) {
-      // filling the local tinyvectors
-      localGaussLocatedWeightedRWG = cube.GaussLocatedWeightedRWG(i, j);
-      localGaussLocatedWeighted_nHat_X_RWG = cube.GaussLocatedWeighted_nHat_X_RWG(i, j);
-      localGaussLocatedExpArg = -I_k * cube.GaussLocatedExpArg(i, j);
+      // filling the local arrays
+      const float * localGaussLocatedWeightedRWG = cube.GaussLocatedWeightedRWG(i, j);
+      const float * localGaussLocatedWeighted_nHat_X_RWG = cube.GaussLocatedWeighted_nHat_X_RWG(i, j);
+      const float * localGaussLocatedExpArg = cube.GaussLocatedExpArg(i, j);
       // computing the integration
       for (int index=0 ; index<EXP.size() ; ++index) {
-        EXP(index) = exp( dot(localGaussLocatedExpArg, kHats(index)) );
-        fj(index) = localGaussLocatedWeightedRWG * EXP(index);
-        ZI_tE += dot(GC3Components(index), fj(index));
+        EXP(index) = exp( minus_I_k * (localGaussLocatedExpArg[0]*kHats(index)[0] + localGaussLocatedExpArg[1]*kHats(index)[1] + localGaussLocatedExpArg[2]*kHats(index)[2]) );
+        fj(index)[0] = localGaussLocatedWeightedRWG[0] * EXP(index);
+        fj(index)[1] = localGaussLocatedWeightedRWG[1] * EXP(index);
+        fj(index)[2] = localGaussLocatedWeightedRWG[2] * EXP(index);
+        ZI_tE += (GC3Components(index)[0] * fj(index)[0] + GC3Components(index)[1] * fj(index)[1] + GC3Components(index)[2] * fj(index)[2]);
       }
       for (int q=NPhis/2 ; q<NPhis ; ++q) {// for phi>pi, kHat = -kHat(pi-theta, phi-pi)
         for (int p=0 ; p<NThetas ; ++p) {
           int index = p + q*NThetas;
           const int newIndex = NThetas-1-p + (q-NPhis/2) * NThetas;
-          fj(index) = conj(fj(newIndex));
-          ZI_tE += dot(GC3Components(index), fj(index));
+          fj(index)[0] = conj(fj(newIndex)[0]);
+          fj(index)[1] = conj(fj(newIndex)[1]);
+          fj(index)[2] = conj(fj(newIndex)[2]);
+          ZI_tE += (GC3Components(index)[0] * fj(index)[0] + GC3Components(index)[1] * fj(index)[1] + GC3Components(index)[2] * fj(index)[2]);
         }
       }
       // nH     
       if (nH) {
         for (int index=0 ; index<EXP.size() ; ++index) {
-          kHat_X_nHat_X_fj(index) = cross(kHats(index), localGaussLocatedWeighted_nHat_X_RWG) * EXP(index);
-          ZI_nH += dot(GC3Components(index), kHat_X_nHat_X_fj(index));
+          kHat_X_nHat_X_fj(index)[0] = (kHats(index)[1]*localGaussLocatedWeighted_nHat_X_RWG[2] - kHats(index)[2]*localGaussLocatedWeighted_nHat_X_RWG[1]) * EXP(index);
+          kHat_X_nHat_X_fj(index)[1] = (kHats(index)[2]*localGaussLocatedWeighted_nHat_X_RWG[0] - kHats(index)[0]*localGaussLocatedWeighted_nHat_X_RWG[2]) * EXP(index);
+          kHat_X_nHat_X_fj(index)[2] = (kHats(index)[0]*localGaussLocatedWeighted_nHat_X_RWG[1] - kHats(index)[1]*localGaussLocatedWeighted_nHat_X_RWG[0]) * EXP(index);
+          ZI_nH += (GC3Components(index)[0] * kHat_X_nHat_X_fj(index)[0] + GC3Components(index)[1] * kHat_X_nHat_X_fj(index)[1] + GC3Components(index)[2] * kHat_X_nHat_X_fj(index)[2]);
         }
         for (int q=NPhis/2 ; q<NPhis ; ++q) {// for phi>pi, kHat = -kHat(pi-theta, phi-pi)
           for (int p=0 ; p<NThetas ; ++p) {
             int index = p + q*NThetas;
             const int newIndex = NThetas-1-p + (q-NPhis/2) * NThetas;
-            kHat_X_nHat_X_fj(index) = -conj(kHat_X_nHat_X_fj(newIndex));
-            ZI_nH += dot(GC3Components(index), kHat_X_nHat_X_fj(index));
+            kHat_X_nHat_X_fj(index)[0] = -conj(kHat_X_nHat_X_fj(newIndex)[0]);
+            kHat_X_nHat_X_fj(index)[1] = -conj(kHat_X_nHat_X_fj(newIndex)[1]);
+            kHat_X_nHat_X_fj(index)[2] = -conj(kHat_X_nHat_X_fj(newIndex)[2]);
+            ZI_nH += (GC3Components(index)[0] * kHat_X_nHat_X_fj(index)[0] + GC3Components(index)[1] * kHat_X_nHat_X_fj(index)[1] + GC3Components(index)[2] * kHat_X_nHat_X_fj(index)[2]);
           }
         }
       } // end nH

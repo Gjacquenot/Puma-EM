@@ -4,7 +4,6 @@
 #include <complex>
 #include <cmath>
 #include <blitz/array.h>
-#include <blitz/tinyvec-et.h>
 #include <vector>
 #include <algorithm>
 #include <mpi.h>
@@ -21,7 +20,7 @@ Cube::Cube(const bool is_leaf,                           // 1 if cube is leaf
            const blitz::Array<double, 1>& r_c)                  // coordinates of center
 {
   leaf = is_leaf;
-  for (int i=0 ; i<3 ; ++i) rCenter[i] = r_c(i); // we must loop, since rCenter is a TinyVector
+  for (int i=0 ; i<3 ; ++i) rCenter[i] = r_c(i); // we must loop, since rCenter is an array
 
   // we compute the absolute cartesian coordinates and the cube number
   for (int i=0 ; i<3 ; ++i) absoluteCartesianCoord[i] = floor( (rCenter[i]-bigCubeLowerCoord[i])/sideLength );
@@ -120,15 +119,15 @@ void Cube::computeGaussLocatedArguments(const blitz::Array<int, 1>& local_RWG_nu
         n_hat_X_r_rp[1] = n_hat[2]*r_rp[0] - n_hat[0]*r_rp[2];
         n_hat_X_r_rp[2] = n_hat[0]*r_rp[1] - n_hat[1]*r_rp[0];
         const double temp(sign_edge_p * l_p/2.0/sum_weigths * weigths[i]);
-        GaussLocatedWeightedRWG(j, i + halfBasisCounter*N_Gauss)(0) = temp * r_rp[0];
-        GaussLocatedWeightedRWG(j, i + halfBasisCounter*N_Gauss)(1) = temp * r_rp[1];
-        GaussLocatedWeightedRWG(j, i + halfBasisCounter*N_Gauss)(2) = temp * r_rp[2];
-        GaussLocatedWeighted_nHat_X_RWG(j, i + halfBasisCounter*N_Gauss)(0) = temp * n_hat_X_r_rp[0];
-        GaussLocatedWeighted_nHat_X_RWG(j, i + halfBasisCounter*N_Gauss)(1) = temp * n_hat_X_r_rp[1];
-        GaussLocatedWeighted_nHat_X_RWG(j, i + halfBasisCounter*N_Gauss)(2) = temp * n_hat_X_r_rp[2];
-        GaussLocatedExpArg(j, i + halfBasisCounter*N_Gauss)(0) = r[0]-rCenter[0];
-        GaussLocatedExpArg(j, i + halfBasisCounter*N_Gauss)(1) = r[1]-rCenter[1];
-        GaussLocatedExpArg(j, i + halfBasisCounter*N_Gauss)(2) = r[2]-rCenter[2];
+        GaussLocatedWeightedRWG(j, i + halfBasisCounter*N_Gauss)[0] = temp * r_rp[0];
+        GaussLocatedWeightedRWG(j, i + halfBasisCounter*N_Gauss)[1] = temp * r_rp[1];
+        GaussLocatedWeightedRWG(j, i + halfBasisCounter*N_Gauss)[2] = temp * r_rp[2];
+        GaussLocatedWeighted_nHat_X_RWG(j, i + halfBasisCounter*N_Gauss)[0] = temp * n_hat_X_r_rp[0];
+        GaussLocatedWeighted_nHat_X_RWG(j, i + halfBasisCounter*N_Gauss)[1] = temp * n_hat_X_r_rp[1];
+        GaussLocatedWeighted_nHat_X_RWG(j, i + halfBasisCounter*N_Gauss)[2] = temp * n_hat_X_r_rp[2];
+        GaussLocatedExpArg(j, i + halfBasisCounter*N_Gauss)[0] = r[0]-rCenter[0];
+        GaussLocatedExpArg(j, i + halfBasisCounter*N_Gauss)[1] = r[1]-rCenter[1];
+        GaussLocatedExpArg(j, i + halfBasisCounter*N_Gauss)[2] = r[2]-rCenter[2];
       }
     }
   }
@@ -159,12 +158,23 @@ void Cube::copyCube(const Cube& cubeToCopy) // copy member function
   RWG_numbers = cubeToCopy.RWG_numbers;
   RWG_numbers_CFIE_OK.resize(cubeToCopy.RWG_numbers_CFIE_OK.size());
   RWG_numbers_CFIE_OK = cubeToCopy.RWG_numbers_CFIE_OK;
-  GaussLocatedWeightedRWG.resize(cubeToCopy.GaussLocatedWeightedRWG.extent(0), cubeToCopy.GaussLocatedWeightedRWG.extent(1));
-  GaussLocatedWeighted_nHat_X_RWG.resize(cubeToCopy.GaussLocatedWeighted_nHat_X_RWG.extent(0), cubeToCopy.GaussLocatedWeighted_nHat_X_RWG.extent(1));
-  GaussLocatedExpArg.resize(cubeToCopy.GaussLocatedExpArg.extent(0), cubeToCopy.GaussLocatedExpArg.extent(1));
-  GaussLocatedWeightedRWG = cubeToCopy.getGaussLocatedWeightedRWG();
-  GaussLocatedWeighted_nHat_X_RWG = cubeToCopy.getGaussLocatedWeighted_nHat_X_RWG();
-  GaussLocatedExpArg = cubeToCopy.getGaussLocatedExpArg();
+  const int M = cubeToCopy.GaussLocatedWeightedRWG.extent(0), N = cubeToCopy.GaussLocatedWeightedRWG.extent(1);
+  GaussLocatedWeightedRWG.resize(M, N);
+  GaussLocatedWeighted_nHat_X_RWG.resize(M, N);
+  GaussLocatedExpArg.resize(M, N);
+  for (int i=0 ; i<M ; i++) {
+    for (int j=0 ; j<N ; j++) {
+      GaussLocatedWeightedRWG(i, j)[0] = cubeToCopy.GaussLocatedWeightedRWG(i, j)[0];
+      GaussLocatedWeightedRWG(i, j)[1] = cubeToCopy.GaussLocatedWeightedRWG(i, j)[1];
+      GaussLocatedWeightedRWG(i, j)[2] = cubeToCopy.GaussLocatedWeightedRWG(i, j)[2];
+      GaussLocatedWeighted_nHat_X_RWG(i, j)[0] = cubeToCopy.GaussLocatedWeighted_nHat_X_RWG(i, j)[0];
+      GaussLocatedWeighted_nHat_X_RWG(i, j)[1] = cubeToCopy.GaussLocatedWeighted_nHat_X_RWG(i, j)[1];
+      GaussLocatedWeighted_nHat_X_RWG(i, j)[2] = cubeToCopy.GaussLocatedWeighted_nHat_X_RWG(i, j)[2];
+      GaussLocatedExpArg(i, j)[0] = cubeToCopy.GaussLocatedExpArg(i, j)[0];
+      GaussLocatedExpArg(i, j)[1] = cubeToCopy.GaussLocatedExpArg(i, j)[1];
+      GaussLocatedExpArg(i, j)[2] = cubeToCopy.GaussLocatedExpArg(i, j)[2];
+    }
+  }
 }
 
 Cube::Cube(const Cube& cubeToCopy) // copy constructor

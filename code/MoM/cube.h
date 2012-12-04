@@ -50,9 +50,9 @@ class Cube {
     //! the numbers of the RWGs pertaining to the current cube
     std::vector<int> RWG_numbers;
     std::vector<int> RWG_numbers_CFIE_OK;
-    blitz::Array<blitz::TinyVector<float, 3>, 2> GaussLocatedWeightedRWG;
-    blitz::Array<blitz::TinyVector<float, 3>, 2> GaussLocatedWeighted_nHat_X_RWG;
-    blitz::Array<blitz::TinyVector<float, 3>, 2> GaussLocatedExpArg;
+    blitz::Array< float [3], 2> GaussLocatedWeightedRWG;
+    blitz::Array< float [3], 2> GaussLocatedWeighted_nHat_X_RWG;
+    blitz::Array< float [3], 2> GaussLocatedExpArg;
 
     // constructors
     Cube(void){};
@@ -105,8 +105,6 @@ class Cube {
     const vector<int> getNeighborsIndexes(void) const {return neighborsIndexes;};
     const vector<int> getLocalAlphaTransParticipantsIndexes(void) const {return localAlphaTransParticipantsIndexes;};
     const vector<int> getNonLocalAlphaTransParticipantsIndexes(void) const {return nonLocalAlphaTransParticipantsIndexes;};
-//    const blitz::TinyVector<float, 3> getRCenter(void) const {return rCenter;};
-//    const blitz::TinyVector<float, 3> getAbsoluteCartesianCoord(void) const {return absoluteCartesianCoord;};
     const vector<int> getRWG_numbers(void) const {return RWG_numbers;};
     const vector<int> getRWG_numbers_CFIE_OK(void) const {return RWG_numbers_CFIE_OK;};
     void setIndex(const int i) {index = i;};
@@ -135,10 +133,6 @@ class Cube {
                                       const int startIndex_in_localArrays,
                                       const int NRWG,
                                       const int N_Gauss);
-    const blitz::Array<blitz::TinyVector<float, 3>, 2> getGaussLocatedWeightedRWG(void) const {return GaussLocatedWeightedRWG;};
-    const blitz::Array<blitz::TinyVector<float, 3>, 2> getGaussLocatedWeighted_nHat_X_RWG(void) const {return GaussLocatedWeighted_nHat_X_RWG;};
-    const blitz::Array<blitz::TinyVector<float, 3>, 2> getGaussLocatedExpArg(void) const {return GaussLocatedExpArg;};
-
     // overloaded operators
     bool operator== (const Cube &) const;
     bool operator< (const Cube &) const;
