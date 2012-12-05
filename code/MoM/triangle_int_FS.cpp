@@ -231,7 +231,6 @@ void IT_singularities (double & IT_1_R,
                        double IT_1_R_rprime_r[], // dim 3
                        double IT_R_rprime_r[], // dim 3
                        double IT_grad_1_R[], // dim 3
-                       double IT_grad_R[], // dim 3
                        const double r[],
                        const Triangle & T)
 /**
@@ -254,7 +253,6 @@ void IT_singularities (double & IT_1_R,
     IT_1_R_rprime_r[i] = 0.0;
     IT_R_rprime_r[i] = 0.0;
     IT_grad_1_R[i] = 0.0;
-    IT_grad_R[i] = 0.0;
   }
 
   for (int i=0 ; i<3 ; ++i) {
@@ -325,9 +323,6 @@ void IT_singularities (double & IT_1_R,
     IT_grad_1_R[0] += sign_beta * T.n_hat[0] - I_L_minus_1__i * m_i_hat[0]; //K_3_minus_1__i[0];
     IT_grad_1_R[1] += sign_beta * T.n_hat[1] - I_L_minus_1__i * m_i_hat[1]; //K_3_minus_1__i[1];
     IT_grad_1_R[2] += sign_beta * T.n_hat[2] - I_L_minus_1__i * m_i_hat[2]; //K_3_minus_1__i[2];
-    IT_grad_R[0] -= K_2_minus_1__i[0]; //K_3_plus_1__i[0];
-    IT_grad_R[1] -= K_2_minus_1__i[1]; //K_3_plus_1__i[1];
-    IT_grad_R[2] -= K_2_minus_1__i[2]; //K_3_plus_1__i[2];
   }
 }
 
@@ -409,7 +404,7 @@ void ITs_free (std::complex<double>& ITs_G,
         ITs_grad_G[2] += temp * rprime_r[2];
       }
     }
-    IT_singularities (IT_1_R, IT_R, IT_1_R_rprime_r, IT_R_rprime_r, IT_grad_1_R, IT_grad_R, r, Ts);
+    IT_singularities (IT_1_R, IT_R, IT_1_R_rprime_r, IT_R_rprime_r, IT_grad_1_R, r, Ts);
     ITs_G = ITs_G * norm_factor + IT_1_R;
     ITs_G_rprime_r[0] = ITs_G_rprime_r[0] * norm_factor + IT_1_R_rprime_r[0];
     ITs_G_rprime_r[1] = ITs_G_rprime_r[1] * norm_factor + IT_1_R_rprime_r[1];
@@ -441,15 +436,16 @@ void ITs_free (std::complex<double>& ITs_G,
         ITs_grad_G[2] += temp * rprime_r[2];
       }
     }
-    IT_singularities (IT_1_R, IT_R, IT_1_R_rprime_r, IT_R_rprime_r, IT_grad_1_R, IT_grad_R, r, Ts);
+    IT_singularities (IT_1_R, IT_R, IT_1_R_rprime_r, IT_R_rprime_r, IT_grad_1_R, r, Ts);
     const std::complex<double> k_square_2(k_square*0.5);
     ITs_G = ITs_G * norm_factor + IT_1_R - k_square_2 * IT_R;
     ITs_G_rprime_r[0] = ITs_G_rprime_r[0] * norm_factor + IT_1_R_rprime_r[0] - k_square_2 * IT_R_rprime_r[0];
     ITs_G_rprime_r[1] = ITs_G_rprime_r[1] * norm_factor + IT_1_R_rprime_r[1] - k_square_2 * IT_R_rprime_r[1];
     ITs_G_rprime_r[2] = ITs_G_rprime_r[2] * norm_factor + IT_1_R_rprime_r[2] - k_square_2 * IT_R_rprime_r[2];
-    ITs_grad_G[0] = ITs_grad_G[0] * norm_factor + IT_grad_1_R[0] - k_square_2 * IT_grad_R[0];
-    ITs_grad_G[1] = ITs_grad_G[1] * norm_factor + IT_grad_1_R[1] - k_square_2 * IT_grad_R[1];
-    ITs_grad_G[2] = ITs_grad_G[2] * norm_factor + IT_grad_1_R[2] - k_square_2 * IT_grad_R[2];
+    // IT_grad_R = -IT_R_rprime_r
+    ITs_grad_G[0] = ITs_grad_G[0] * norm_factor + IT_grad_1_R[0] + k_square_2 * IT_R_rprime_r[0];
+    ITs_grad_G[1] = ITs_grad_G[1] * norm_factor + IT_grad_1_R[1] + k_square_2 * IT_R_rprime_r[1];
+    ITs_grad_G[2] = ITs_grad_G[2] * norm_factor + IT_grad_1_R[2] + k_square_2 * IT_R_rprime_r[2];
   }
 }
 
@@ -715,7 +711,7 @@ void V_EH_ITo_free (std::complex<double>& ITo_G,
       ITo_n_hat_X_r_X_grad_G[1] += n_hat_X_rprime[2] * ITo_grad_G_j[0] - n_hat_X_rprime[0] * ITo_grad_G_j[2];
       ITo_n_hat_X_r_X_grad_G[2] += n_hat_X_rprime[0] * ITo_grad_G_j[1] - n_hat_X_rprime[1] * ITo_grad_G_j[0];
     }
-    IT_singularities (IT_1_R, IT_R, IT_1_R_rprime_r, IT_R_rprime_r, IT_grad_1_R, IT_grad_R, r, To);
+    IT_singularities (IT_1_R, IT_R, IT_1_R_rprime_r, IT_R_rprime_r, IT_grad_1_R, r, To);
     ITo_G = ITo_G * norm_factor + IT_1_R;
     for (int i=0 ; i<3 ; ++i) {
       ITo_G_rprime_r[i] = ITo_G_rprime_r[i] * norm_factor + IT_1_R_rprime_r[i];
@@ -754,11 +750,12 @@ void V_EH_ITo_free (std::complex<double>& ITo_G,
       ITo_n_hat_X_r_X_grad_G[1] += n_hat_X_rprime[2] * ITo_grad_G_j[0] - n_hat_X_rprime[0] * ITo_grad_G_j[2];
       ITo_n_hat_X_r_X_grad_G[2] += n_hat_X_rprime[0] * ITo_grad_G_j[1] - n_hat_X_rprime[1] * ITo_grad_G_j[0];
     }
-    IT_singularities (IT_1_R, IT_R, IT_1_R_rprime_r, IT_R_rprime_r, IT_grad_1_R, IT_grad_R, r, To);
-    ITo_G = ITo_G * norm_factor + IT_1_R - k_square/2.0 * IT_R;
+    IT_singularities (IT_1_R, IT_R, IT_1_R_rprime_r, IT_R_rprime_r, IT_grad_1_R, r, To);
+    ITo_G = ITo_G * norm_factor + IT_1_R - k_square * (IT_R*0.5);
     for (int i=0 ; i<3 ; ++i) {
-      ITo_G_rprime_r[i] = ITo_G_rprime_r[i] * norm_factor + IT_1_R_rprime_r[i] - k_square/2.0 * IT_R_rprime_r[i];
-      ITo_grad_G[i] = ITo_grad_G[i] * norm_factor + IT_grad_1_R[i] - k_square/2.0 * IT_grad_R[i];
+      ITo_G_rprime_r[i] = ITo_G_rprime_r[i] * norm_factor + IT_1_R_rprime_r[i] - k_square * (0.5 * IT_R_rprime_r[i]);
+      // IT_grad_R = -IT_R_rprime_r
+      ITo_grad_G[i] = ITo_grad_G[i] * norm_factor + IT_grad_1_R[i] + k_square * (0.5 * IT_R_rprime_r[i]);
       //ITo_n_hat_X_r_X_grad_G[i] = ITo_n_hat_X_r_X_grad_G[i] * norm_factor;
     }
   }

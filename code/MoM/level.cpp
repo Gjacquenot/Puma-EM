@@ -1009,10 +1009,10 @@ void Level::sphericalIntegration(blitz::Array<std::complex<float>, 1>& ZI,
           for (int p=0 ; p<NThetas ; ++p) {
             int index = p + q*NThetas;
             const int newIndex = NThetas-1-p + (q-NPhis/2) * NThetas;
-            kHat_X_nHat_X_fj(index)[0] = -conj(kHat_X_nHat_X_fj(newIndex)[0]);
-            kHat_X_nHat_X_fj(index)[1] = -conj(kHat_X_nHat_X_fj(newIndex)[1]);
-            kHat_X_nHat_X_fj(index)[2] = -conj(kHat_X_nHat_X_fj(newIndex)[2]);
-            ZI_nH += (GC3Components(index)[0] * kHat_X_nHat_X_fj(index)[0] + GC3Components(index)[1] * kHat_X_nHat_X_fj(index)[1] + GC3Components(index)[2] * kHat_X_nHat_X_fj(index)[2]);
+            kHat_X_nHat_X_fj(index)[0] = conj(kHat_X_nHat_X_fj(newIndex)[0]);
+            kHat_X_nHat_X_fj(index)[1] = conj(kHat_X_nHat_X_fj(newIndex)[1]);
+            kHat_X_nHat_X_fj(index)[2] = conj(kHat_X_nHat_X_fj(newIndex)[2]);
+            ZI_nH -= (GC3Components(index)[0] * kHat_X_nHat_X_fj(index)[0] + GC3Components(index)[1] * kHat_X_nHat_X_fj(index)[1] + GC3Components(index)[2] * kHat_X_nHat_X_fj(index)[2]);
           }
         }
       } // end nH
@@ -1020,3 +1020,4 @@ void Level::sphericalIntegration(blitz::Array<std::complex<float>, 1>& ZI,
     ZI(RWGNumber) += static_cast<std::complex<float> >(-I*mu_0)  * w * mu_r * CFIE(0) * ZI_tE + CFIE(3) * I_k * ZI_nH;
   }
 }
+
