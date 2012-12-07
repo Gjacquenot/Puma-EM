@@ -311,12 +311,9 @@ void IT_singularities (double & IT_1_R,
     IT_1_R += K_1_minus_1__i;
     IT_R += K_1_plus_1__i;
     const double h_K_minus(w0 * K_1_minus_1__i), h_K_plus(w0 * K_1_plus_1__i), sign_beta(-sign_w0 * beta_i);
-    K_2_minus_1__i[0] = m_i_hat[0] * I_L_plus_1__i - T.n_hat[0] * h_K_minus;
-    K_2_minus_1__i[1] = m_i_hat[1] * I_L_plus_1__i - T.n_hat[1] * h_K_minus;
-    K_2_minus_1__i[2] = m_i_hat[2] * I_L_plus_1__i - T.n_hat[2] * h_K_minus;
-    IT_1_R_rprime_r[0] += K_2_minus_1__i[0];
-    IT_1_R_rprime_r[1] += K_2_minus_1__i[1];
-    IT_1_R_rprime_r[2] += K_2_minus_1__i[2];
+    IT_1_R_rprime_r[0] += m_i_hat[0] * I_L_plus_1__i - T.n_hat[0] * h_K_minus;
+    IT_1_R_rprime_r[1] += m_i_hat[1] * I_L_plus_1__i - T.n_hat[1] * h_K_minus;
+    IT_1_R_rprime_r[2] += m_i_hat[2] * I_L_plus_1__i - T.n_hat[2] * h_K_minus;
     IT_R_rprime_r[0] += (third * I_L_plus_3__i) * m_i_hat[0] - T.n_hat[0] * h_K_plus; //K_2_plus_1__i[0];
     IT_R_rprime_r[1] += (third * I_L_plus_3__i) * m_i_hat[1] - T.n_hat[1] * h_K_plus; //K_2_plus_1__i[1];
     IT_R_rprime_r[2] += (third * I_L_plus_3__i) * m_i_hat[2] - T.n_hat[2] * h_K_plus; //K_2_plus_1__i[2];
@@ -442,10 +439,10 @@ void ITs_free (std::complex<double>& ITs_G,
     ITs_G_rprime_r[0] = ITs_G_rprime_r[0] * norm_factor + IT_1_R_rprime_r[0] - k_square_2 * IT_R_rprime_r[0];
     ITs_G_rprime_r[1] = ITs_G_rprime_r[1] * norm_factor + IT_1_R_rprime_r[1] - k_square_2 * IT_R_rprime_r[1];
     ITs_G_rprime_r[2] = ITs_G_rprime_r[2] * norm_factor + IT_1_R_rprime_r[2] - k_square_2 * IT_R_rprime_r[2];
-    // IT_grad_R = -IT_R_rprime_r
-    ITs_grad_G[0] = ITs_grad_G[0] * norm_factor + IT_grad_1_R[0] + k_square_2 * IT_R_rprime_r[0];
-    ITs_grad_G[1] = ITs_grad_G[1] * norm_factor + IT_grad_1_R[1] + k_square_2 * IT_R_rprime_r[1];
-    ITs_grad_G[2] = ITs_grad_G[2] * norm_factor + IT_grad_1_R[2] + k_square_2 * IT_R_rprime_r[2];
+    // IT_grad_R = -IT_1_R_rprime_r
+    ITs_grad_G[0] = ITs_grad_G[0] * norm_factor + IT_grad_1_R[0] + k_square_2 * IT_1_R_rprime_r[0];
+    ITs_grad_G[1] = ITs_grad_G[1] * norm_factor + IT_grad_1_R[1] + k_square_2 * IT_1_R_rprime_r[1];
+    ITs_grad_G[2] = ITs_grad_G[2] * norm_factor + IT_grad_1_R[2] + k_square_2 * IT_1_R_rprime_r[2];
   }
 }
 
@@ -755,7 +752,7 @@ void V_EH_ITo_free (std::complex<double>& ITo_G,
     for (int i=0 ; i<3 ; ++i) {
       ITo_G_rprime_r[i] = ITo_G_rprime_r[i] * norm_factor + IT_1_R_rprime_r[i] - k_square * (0.5 * IT_R_rprime_r[i]);
       // IT_grad_R = -IT_R_rprime_r
-      ITo_grad_G[i] = ITo_grad_G[i] * norm_factor + IT_grad_1_R[i] + k_square * (0.5 * IT_R_rprime_r[i]);
+      ITo_grad_G[i] = ITo_grad_G[i] * norm_factor + IT_grad_1_R[i] + k_square * (0.5 * IT_1_R_rprime_r[i]);
       //ITo_n_hat_X_r_X_grad_G[i] = ITo_n_hat_X_r_X_grad_G[i] * norm_factor;
     }
   }
