@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <mpi.h>
 
-using namespace blitz;
+using namespace std;
 
 #include "octtree.h"
 #include "readWriteBlitzArrayFromFile.h"
@@ -105,14 +105,14 @@ Octtree::Octtree(const string octtree_data_path, const blitz::Array<double, 2>& 
     if (octtreeXthetas.extent(0) == 1) {
       XthetasNextLevel.resize(octtreeNthetas(0));
       XphisNextLevel.resize(octtreeNphis(0));
-      XthetasNextLevel = octtreeXthetas(0, Range(0, octtreeNthetas(0)-1));
-      XphisNextLevel = octtreeXphis(0, Range(0, octtreeNphis(0)-1));
+      XthetasNextLevel = octtreeXthetas(0, blitz::Range(0, octtreeNthetas(0)-1));
+      XphisNextLevel = octtreeXphis(0, blitz::Range(0, octtreeNphis(0)-1));
     }
     else {
       XthetasNextLevel.resize(octtreeNthetas(1));
       XphisNextLevel.resize(octtreeNphis(1));
-      XthetasNextLevel = octtreeXthetas(1, Range(0, octtreeNthetas(1)-1));
-      XphisNextLevel = octtreeXphis(1, Range(0, octtreeNphis(1)-1));
+      XthetasNextLevel = octtreeXthetas(1, blitz::Range(0, octtreeNthetas(1)-1));
+      XphisNextLevel = octtreeXphis(1, blitz::Range(0, octtreeNphis(1)-1));
     }
     levels.push_back( Level(N_levels+1,
                             LExpansion(0),
@@ -123,8 +123,8 @@ Octtree::Octtree(const string octtree_data_path, const blitz::Array<double, 2>& 
                             N_coord,
                             A_theta,
                             B_theta,
-                            octtreeXthetas(0, Range(0, octtreeNthetas(0)-1)),
-                            octtreeWthetas(0, Range(0, octtreeNthetas(0)-1)),
+                            octtreeXthetas(0, blitz::Range(0, octtreeNthetas(0)-1)),
+                            octtreeWthetas(0, blitz::Range(0, octtreeNthetas(0)-1)),
                             INCLUDED_THETA_BOUNDARIES,
                             octtreeNthetas(0),
                             PERIODIC_Theta,
@@ -132,8 +132,8 @@ Octtree::Octtree(const string octtree_data_path, const blitz::Array<double, 2>& 
                             NOrderInterpTheta,
                             A_phi,
                             B_phi,
-                            octtreeXphis(0, Range(0, octtreeNphis(0)-1)),
-                            octtreeWphis(0, Range(0, octtreeNphis(0)-1)),
+                            octtreeXphis(0, blitz::Range(0, octtreeNphis(0)-1)),
+                            octtreeWphis(0, blitz::Range(0, octtreeNphis(0)-1)),
                             INCLUDED_PHI_BOUNDARIES,
                             octtreeNphis(0),
                             PERIODIC_Phi,
@@ -151,15 +151,15 @@ Octtree::Octtree(const string octtree_data_path, const blitz::Array<double, 2>& 
     blitz::Array<float, 1> XthetasNextLevel, XphisNextLevel;
     if (j<N_levels-1) {
       XthetasNextLevel.resize(octtreeNthetas(j+1));
-      XthetasNextLevel = octtreeXthetas(j+1, Range(0, octtreeNthetas(j+1)-1));
+      XthetasNextLevel = octtreeXthetas(j+1, blitz::Range(0, octtreeNthetas(j+1)-1));
       XphisNextLevel.resize(octtreeNphis(j+1));
-      XphisNextLevel = octtreeXphis(j+1, Range(0, octtreeNphis(j+1)-1));
+      XphisNextLevel = octtreeXphis(j+1, blitz::Range(0, octtreeNphis(j+1)-1));
     }
     else {
       XthetasNextLevel.resize(octtreeNthetas(j));
-      XthetasNextLevel = octtreeXthetas(j, Range(0, octtreeNthetas(j)-1));
+      XthetasNextLevel = octtreeXthetas(j, blitz::Range(0, octtreeNthetas(j)-1));
       XphisNextLevel.resize(octtreeNphis(j));
-      XphisNextLevel = octtreeXphis(j, Range(0, octtreeNphis(j)-1));
+      XphisNextLevel = octtreeXphis(j, blitz::Range(0, octtreeNphis(j)-1));
     }
     levels.push_back( Level( levels[j-1],
                              LExpansion(j),
@@ -167,8 +167,8 @@ Octtree::Octtree(const string octtree_data_path, const blitz::Array<double, 2>& 
                              N_coord,
                              A_theta,
                              B_theta,
-                             octtreeXthetas(j, Range(0, octtreeNthetas(j)-1)),
-                             octtreeWthetas(j, Range(0, octtreeNthetas(j)-1)),
+                             octtreeXthetas(j, blitz::Range(0, octtreeNthetas(j)-1)),
+                             octtreeWthetas(j, blitz::Range(0, octtreeNthetas(j)-1)),
                              INCLUDED_THETA_BOUNDARIES,
                              octtreeNthetas(j),
                              PERIODIC_Theta,
@@ -176,8 +176,8 @@ Octtree::Octtree(const string octtree_data_path, const blitz::Array<double, 2>& 
                              NOrderInterpTheta,
                              A_phi,
                              B_phi,
-                             octtreeXphis(j, Range(0, octtreeNphis(j)-1)),
-                             octtreeWphis(j, Range(0, octtreeNphis(j)-1)),
+                             octtreeXphis(j, blitz::Range(0, octtreeNphis(j)-1)),
+                             octtreeWphis(j, blitz::Range(0, octtreeNphis(j)-1)),
                              INCLUDED_PHI_BOUNDARIES,
                              octtreeNphis(j),
                              PERIODIC_Phi,
@@ -626,7 +626,7 @@ void Octtree::SupAlphaMultiplicationDirections(blitz::Array<std::complex<float>,
 {
   if ((abs(alphaCartesianCoord[0]) > 1) || (abs(alphaCartesianCoord[1]) > 1) || (abs(alphaCartesianCoord[2]) > 1)) {
     if ( (alphaTranslationIndexesNonZeros.size()==0) && (Sup.extent(1)==alphaTranslation.size()) ) {
-      Range all = Range::all();
+      blitz::Range all = blitz::Range::all();
       SupAlpha(0, all) += Sup(0, all) * alphaTranslation;
       SupAlpha(1, all) += Sup(1, all) * alphaTranslation;
     }
@@ -648,7 +648,7 @@ void Octtree::alphaTranslationsToCube(blitz::Array<std::complex<float>, 2>& S_tm
                                       const std::vector<int>& indexesAlphaParticipants,
                                       const int DIRECTIONS_PARALLELIZATION)
 {
-  Range all = Range::all();
+  blitz::Range all = blitz::Range::all();
   const float * cartCoord_1(levels[l].cubes[cubeIndex].absoluteCartesianCoord);
   S_tmp = 0.0;
   const int N_part = indexesAlphaParticipants.size();
@@ -673,7 +673,7 @@ void Octtree::alphaTranslationsToCube(blitz::Array<std::complex<float>, 2>& S_tm
 
 void Octtree::updateSup(const blitz::Array<std::complex<float>, 1>& I_PQ) /// coefficients of RWG functions
 {
-  Range all = Range::all();
+  blitz::Range all = blitz::Range::all();
   int ierror;
   const int num_procs = getTotalNumProcs();
   numberOfUpdates += 1;
@@ -763,7 +763,7 @@ void Octtree::updateSup(const blitz::Array<std::complex<float>, 1>& I_PQ) /// co
         // we now perform aggregation at the parallelized-by-directions level...
         for (int j=0 ; j<FatherIndexes.size() ; ++j) {
           int fatherIndex = FatherIndexes(j);
-          levels[l].Sdown(fatherIndex) += S_tmp2( all, Range(j*N_directions, (j+1)*N_directions - 1) );
+          levels[l].Sdown(fatherIndex) += S_tmp2( all, blitz::Range(j*N_directions, (j+1)*N_directions - 1) );
         }
       }
     }
@@ -811,7 +811,7 @@ void Octtree::updateSup(const blitz::Array<std::complex<float>, 1>& I_PQ) /// co
 }
 
 void Octtree::exchangeSupsIndividually(blitz::Array< blitz::Array<std::complex<float>, 2>, 1>& SupThisLevel, const int l, const std::vector<int> & localCubesIndexes) {
-  Range all = Range::all();
+  blitz::Range all = blitz::Range::all();
   const int N_theta = levels[l].thetas.size(), N_phi = levels[l].phis.size(), N_coord = 2;
   std::vector< std::vector<MPI_Request> > isend_request, irecv_request;
   std::vector< std::vector<MPI_Status> > isend_status, irecv_status;
@@ -861,7 +861,7 @@ void Octtree::exchangeSupsIndividually(blitz::Array< blitz::Array<std::complex<f
 }
 
 void Octtree::exchangeSupsInBlocks(blitz::Array< blitz::Array<std::complex<float>, 2>, 1>& SupThisLevel, const int l, const std::vector<int> & localCubesIndexes) {
-  Range all = Range::all();
+  blitz::Range all = blitz::Range::all();
   const int N_theta = levels[l].thetas.size(), N_phi = levels[l].phis.size(), N_coord = 2;
   // we then communicate the necessary Fc radiation functions for alpha multiplication
   std::vector< MPI_Request > isend_request, irecv_request;
@@ -1015,7 +1015,7 @@ void Octtree::computeFarField(blitz::Array<std::complex<float>, 2>& e_theta_far,
                               const blitz::Array<std::complex<float>, 1>& I_PQ,
                               const string octtree_data_path) /// coefficients of RWG functions
 {
-  Range all = Range::all();
+  blitz::Range all = blitz::Range::all();
   int ierror;
   if (this->getProcNumber()==0) cout << "\nFar field computation" << ": level ";
 

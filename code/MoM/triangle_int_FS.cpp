@@ -427,7 +427,7 @@ void ITs_free (std::complex<double>& ITs_G,
       ITs_G_rprime_r[1] += G_j * rprime_r[1];
       ITs_G_rprime_r[2] += G_j * rprime_r[2];
       if (R>1.0e-10) {
-        const std::complex<double> temp( (exp_minus_I_k_R*(1.0-minus_I_k_R) - 1.0 - 0.5*k_square * R_square) * (weights[j]/(R*R_square)) );
+        const std::complex<double> temp( (exp_minus_I_k_R*(1.0-minus_I_k_R) - 1.0 - k_square * (0.5*R_square)) * (weights[j]/(R*R_square)) );
         ITs_grad_G[0] += temp * rprime_r[0];
         ITs_grad_G[1] += temp * rprime_r[1];
         ITs_grad_G[2] += temp * rprime_r[2];
@@ -751,7 +751,7 @@ void V_EH_ITo_free (std::complex<double>& ITo_G,
     ITo_G = ITo_G * norm_factor + IT_1_R - k_square * (IT_R*0.5);
     for (int i=0 ; i<3 ; ++i) {
       ITo_G_rprime_r[i] = ITo_G_rprime_r[i] * norm_factor + IT_1_R_rprime_r[i] - k_square * (0.5 * IT_R_rprime_r[i]);
-      // IT_grad_R = -IT_R_rprime_r
+      // IT_grad_R = -IT_1_R_rprime_r
       ITo_grad_G[i] = ITo_grad_G[i] * norm_factor + IT_grad_1_R[i] + k_square * (0.5 * IT_1_R_rprime_r[i]);
       //ITo_n_hat_X_r_X_grad_G[i] = ITo_n_hat_X_r_X_grad_G[i] * norm_factor;
     }

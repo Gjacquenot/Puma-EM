@@ -1,7 +1,7 @@
 #include <complex>
 #include <blitz/array.h>
 
-using namespace blitz;
+using namespace std;
 
 #include "interpolation.h"
 
@@ -33,7 +33,7 @@ int find_index(const T x, const blitz::Array<T, 1>& x_i) {
 /**************************************************************/
 
 void Lagrangian_regular_matrix(const int n, 
-                               Array<double, 2>& M) 
+                               blitz::Array<double, 2>& M) 
 {
   switch (n) {
     case 1: M.resize(n+1, n+1);
@@ -62,11 +62,11 @@ void Lagrangian_regular_matrix(const int n,
   }
 }
 
-void Lagrange_vector_fixedstep_interpolation(Array<complex<double>, 1>& y, 
-                                             const Array<double, 1>& x, 
-                                             const Array<double, 1>& xi, 
-                                             const Array<complex<double>, 1>& yi, 
-                                             const Array<double, 2>& M) 
+void Lagrange_vector_fixedstep_interpolation(blitz::Array<std::complex<double>, 1>& y, 
+                                             const blitz::Array<double, 1>& x, 
+                                             const blitz::Array<double, 1>& xi, 
+                                             const blitz::Array<std::complex<double>, 1>& yi, 
+                                             const blitz::Array<double, 2>& M) 
 {
   const int Ni = xi.size(), N = x.size(), n = M.rows()-1; // n is the number of DeltaXi
   int startInd, i, j, k;
@@ -76,7 +76,7 @@ void Lagrange_vector_fixedstep_interpolation(Array<complex<double>, 1>& y,
     exit(1);
   }
   else {
-    Array<double, 1> S(n+1), M_prod_S(n+1);
+    blitz::Array<double, 1> S(n+1), M_prod_S(n+1);
     for (k=0 ; k<N ; k++) {
       i = (int) floor((x(k)-xi(0))/h);
       startInd = i-n/2;
@@ -84,60 +84,60 @@ void Lagrange_vector_fixedstep_interpolation(Array<complex<double>, 1>& y,
       else if (startInd+n>Ni-1) startInd = (Ni-1) - n;
       s = ( x(k)-xi(startInd) ) / h;
       for (j=0 ; j<n+1 ; j++) S(j) = pow(s, j);
-      for (j=0 ; j<n+1 ; j++) M_prod_S(j) = sum(M(j, Range::all()) * S);
-      y(k) = sum(yi(Range(startInd, startInd+n)) * M_prod_S);
+      for (j=0 ; j<n+1 ; j++) M_prod_S(j) = sum(M(j, blitz::Range::all()) * S);
+      y(k) = blitz::sum(yi(blitz::Range(startInd, startInd+n)) * M_prod_S);
     }
   }
 }
 
 
-void decimateAbscissa (Array<double, 1>& x, 
-                       const Array<double, 1>& xi, 
+void decimateAbscissa (blitz::Array<double, 1>& x, 
+                       const blitz::Array<double, 1>& xi, 
                        const int decimFact)
 {
   const int Nxi = xi.size(), Nx = decimFact*(Nxi-1) + 1;
   x.resize(Nx);
   const double Dx = (xi(Nxi-1)-xi(0))/(Nx-1);
   for (int j=0 ; j<Nx ; j++) x(j) = xi(0) + j*Dx;
-  x(Range(0, toEnd, decimFact)) = xi; // we get rid off the roundoff errors at periodic points
+  x(blitz::Range(0, blitz::toEnd, decimFact)) = xi; // we get rid off the roundoff errors at periodic points
 }
 
-void decimate_2D (Array<complex<double>, 2> Y, 
-                  const Array<complex<double>, 2>& Y_i, 
-                  const Array<double, 1>& X1_i, // the abscissas following 1st dimension
-                  const Array<double, 1>& X2_i, // the abscissas following 2nd dimension
+void decimate_2D (blitz::Array<std::complex<double>, 2> Y, 
+                  const blitz::Array<std::complex<double>, 2>& Y_i, 
+                  const blitz::Array<double, 1>& X1_i, // the abscissas following 1st dimension
+                  const blitz::Array<double, 1>& X2_i, // the abscissas following 2nd dimension
                   const int n) 
 {
-  Range all = Range::all();
+  blitz::Range all = blitz::Range::all();
   int N_X1_i = Y_i.extent(0), N_X2_i = Y_i.extent(1);
   if ( (N_X1_i != X1_i.size()) || (N_X2_i != X2_i.size()) ) {
     cout << "decimate_2D() : (N_X1_i != X1_i.size()) || (N_X2_i != X2_i.size())" << endl;
     exit(1);
   }
   Y = 0.0;
-  Y(Range(0, toEnd, 2), Range(0, toEnd, 2)) = Y_i;
-  Array<complex<double>, 1> y_tmp; // a temporary array
+  Y(blitz::Range(0, blitz::toEnd, 2), blitz::Range(0, blitz::toEnd, 2)) = Y_i;
+  blitz::Array<complex<double>, 1> y_tmp; // a temporary array
 
   // we now define the theta and phi arrays (interpolation abscissas)
-  Array<double, 1> X1, X2; 
+  blitz::Array<double, 1> X1, X2; 
   decimateAbscissa (X1, X1_i, 2);
   decimateAbscissa (X2, X2_i, 2);
 
-  Array<double, 2> M;
+  blitz::Array<double, 2> M;
   Lagrangian_regular_matrix(n, M);
   // we first interpolate following phi
   y_tmp.resize(N_X2_i-1);
   for (int j=0 ; j<2*N_X1_i - 1 ; j=j+2) {
-    Lagrange_vector_fixedstep_interpolation(y_tmp, X2(Range(1, toEnd, 2)), X2(Range(0, toEnd, 2)), Y(j, Range(0, toEnd, 2)), M);
-    Y(j, Range(1, toEnd, 2)) = y_tmp;
+    Lagrange_vector_fixedstep_interpolation(y_tmp, X2(blitz::Range(1, blitz::toEnd, 2)), X2(blitz::Range(0, blitz::toEnd, 2)), Y(j, blitz::Range(0, blitz::toEnd, 2)), M);
+    Y(j, blitz::Range(1, blitz::toEnd, 2)) = y_tmp;
   }
   // we then interpolate following X1. Pay attention to the fact
   // that we now have (2*N_X2_i - 1) values following X1!!
   // Therefore we do not use Y_i for interpolation anymore.
   y_tmp.resize(N_X1_i-1);
   for (int j=0 ; j<2*N_X2_i-1 ; j++) {
-    Lagrange_vector_fixedstep_interpolation(y_tmp, X1(Range(1, toEnd, 2)), X1(Range(0, toEnd, 2)), Y(Range(0, toEnd, 2), j), M);
-    Y(Range(1, toEnd, 2), j) = y_tmp;
+    Lagrange_vector_fixedstep_interpolation(y_tmp, X1(blitz::Range(1, blitz::toEnd, 2)), X1(blitz::Range(0, blitz::toEnd, 2)), Y(blitz::Range(0, blitz::toEnd, 2), j), M);
+    Y(blitz::Range(1, blitz::toEnd, 2), j) = y_tmp;
   }
 }
 
@@ -145,7 +145,7 @@ void decimate_2D (Array<complex<double>, 2> Y,
 /****************** Lagrange Interpolation Matrices ************************/
 /***************************************************************************/
 
-int findStartInd(const float x, const Array<float, 1>& xi, const int NOrder, const int CYCLIC)
+int findStartInd(const float x, const blitz::Array<float, 1>& xi, const int NOrder, const int CYCLIC)
 {
   int Nxi = xi.size(), startInd, ind;
   if (CYCLIC<=0) {
@@ -165,8 +165,8 @@ int findStartInd(const float x, const Array<float, 1>& xi, const int NOrder, con
   return startInd;
 }
 
-void xiTmpConstruction(Array<float, 1>& xiTmp,
-                       const Array<float, 1>& xi,
+void xiTmpConstruction(blitz::Array<float, 1>& xiTmp,
+                       const blitz::Array<float, 1>& xi,
                        const float a, // lim inf of the interval
                        const float b, // lim sup of the interval
                        const int startInd,
@@ -198,7 +198,7 @@ void xiTmpConstruction(Array<float, 1>& xiTmp,
   }
 }
 
-void indexesConstruction(Array<int, 1> indexesTmp,
+void indexesConstruction(blitz::Array<int, 1> indexesTmp,
                          const int startInd,
                          const int NOrder)
 // pretty simple right now but could become more complicated
@@ -283,9 +283,9 @@ void index2DtoIndex1D(int & index1D,
 }
 
 
-void LagrangeInterpolationCoeffs(Array<float, 1> coeffs,
+void LagrangeInterpolationCoeffs(blitz::Array<float, 1> coeffs,
                                  const float x,
-                                 const Array<float, 1>& x_i,
+                                 const blitz::Array<float, 1>& x_i,
                                  const int PERIODIC)
 {
   int i, j, N_points = x_i.size();
@@ -341,7 +341,7 @@ LagrangeFastInterpolator2D::LagrangeFastInterpolator2D(const blitz::Array<float,
  *      V_2D(i,j) = V_1D(i + j*Nxi)
  */
 {
-  Range all = Range::all();
+  blitz::Range all = blitz::Range::all();
   const int Nx = x.size(), Nxi = xi.size(), Ny = y.size(), Nyi = yi.size();
   if ((NOrderXi > Nxi-1) || (NOrderXi < 1)) {
     cout << "LagrangeFastInterpolator2D::LagrangeFastInterpolator2D: NOrderXi of interpolation too high or too low given the number of abscissas xi. NOrderXi = " << NOrderXi << ". Exiting..." << endl;
@@ -361,9 +361,9 @@ LagrangeFastInterpolator2D::LagrangeFastInterpolator2D(const blitz::Array<float,
   indexesForColumnsInterp = -1;
 
   int startIndXi, startIndYi, index1D, i, j, p, q;
-  Array<float, 1> xiTmp(NOrderXi+1), yiTmp(NOrderYi+1);
-  Array<float, 2> coeffsXi(Nx, NOrderXi+1), coeffsYi(Ny, NOrderYi+1);
-  Array<int, 2> indexesXi(Nx, NOrderXi+1), indexesYi(Ny, NOrderYi+1);
+  blitz::Array<float, 1> xiTmp(NOrderXi+1), yiTmp(NOrderYi+1);
+  blitz::Array<float, 2> coeffsXi(Nx, NOrderXi+1), coeffsYi(Ny, NOrderYi+1);
+  blitz::Array<int, 2> indexesXi(Nx, NOrderXi+1), indexesYi(Ny, NOrderYi+1);
   // coefficients for all the elements of vector x
   for (i=0 ; i<Nx; i++) {
     startIndXi = findStartInd(x(i), xi, NOrderXi, CYCLIC_xi);
@@ -434,52 +434,51 @@ void LagrangeFastInterpolator2D::setLfi2D(const LagrangeFastInterpolator2D & lfi
   indexesForColumnsInterp = lfi.getIndexesForColumnsInterp();
 }
 
-void interpolate2Dlfi(Array<complex<float>, 1> YInterp,
-                      const Array<complex<float>, 1>& Y,
+void interpolate2Dlfi(blitz::Array<std::complex<float>, 1> YInterp,
+                      const blitz::Array<std::complex<float>, 1>& Y,
                       const LagrangeFastInterpolator2D& lfi2D)
 {
-  int i, j;
-  const Array<float, 2> coefficientsForLinesInterp(lfi2D.getCoefficientsForLinesInterp());
-  const Array<float, 2> coefficientsForColumnsInterp(lfi2D.getCoefficientsForColumnsInterp());
-  const Array<int, 2> indexesForLinesInterp(lfi2D.getIndexesForLinesInterp());
-  const Array<int, 2> indexesForColumnsInterp(lfi2D.getIndexesForColumnsInterp());
-  Array<complex<float>, 1> YInterpTmp(coefficientsForColumnsInterp.extent(0));
+  const blitz::Array<float, 2> coefficientsForLinesInterp(lfi2D.getCoefficientsForLinesInterp());
+  const blitz::Array<float, 2> coefficientsForColumnsInterp(lfi2D.getCoefficientsForColumnsInterp());
+  const blitz::Array<int, 2> indexesForLinesInterp(lfi2D.getIndexesForLinesInterp());
+  const blitz::Array<int, 2> indexesForColumnsInterp(lfi2D.getIndexesForColumnsInterp());
+  blitz::Array<std::complex<float>, 1> YInterpTmp(coefficientsForColumnsInterp.extent(0));
   YInterp = 0.0;
   YInterpTmp = 0.0;
   // interpolation following dimension 0
-  for (i=0 ; i<coefficientsForColumnsInterp.extent(0) ; i++) {
-    for (j=0 ; j<coefficientsForColumnsInterp.extent(1) ; j++) {
+  for (int i=0 ; i<coefficientsForColumnsInterp.extent(0) ; i++) {
+    for (int j=0 ; j<coefficientsForColumnsInterp.extent(1) ; j++) {
       YInterpTmp(i) += coefficientsForColumnsInterp(i, j) * Y(indexesForColumnsInterp(i, j));
     }
   }
   // interpolation following dimension 1
-  for (i=0 ; i<coefficientsForLinesInterp.extent(0) ; i++) {
-    for (j=0 ; j<coefficientsForLinesInterp.extent(1) ; j++) {
+  for (int i=0 ; i<coefficientsForLinesInterp.extent(0) ; i++) {
+    for (int j=0 ; j<coefficientsForLinesInterp.extent(1) ; j++) {
       YInterp(i) += coefficientsForLinesInterp(i, j) * YInterpTmp(indexesForLinesInterp(i, j));
     }
   }
 }
 
-void anterpolate2Dlfi(Array<complex<float>, 1> YAnterp,
-                      const Array<complex<float>, 1>& Y,
+void anterpolate2Dlfi(blitz::Array<std::complex<float>, 1> YAnterp,
+                      const blitz::Array<std::complex<float>, 1>& Y,
                       const LagrangeFastInterpolator2D& lfi2D)
 {
-  int i, j;
-  const Array<float, 2> coefficientsForLinesInterp(lfi2D.getCoefficientsForLinesInterp());
-  const Array<float, 2> coefficientsForColumnsInterp(lfi2D.getCoefficientsForColumnsInterp());
-  const Array<int, 2> indexesForLinesInterp(lfi2D.getIndexesForLinesInterp());
-  const Array<int, 2> indexesForColumnsInterp(lfi2D.getIndexesForColumnsInterp());
-  Array<complex<float>, 1> YAnterpTmp(coefficientsForColumnsInterp.extent(0));
+  const blitz::Array<float, 2> coefficientsForLinesInterp(lfi2D.getCoefficientsForLinesInterp());
+  const blitz::Array<float, 2> coefficientsForColumnsInterp(lfi2D.getCoefficientsForColumnsInterp());
+  const blitz::Array<int, 2> indexesForLinesInterp(lfi2D.getIndexesForLinesInterp());
+  const blitz::Array<int, 2> indexesForColumnsInterp(lfi2D.getIndexesForColumnsInterp());
+  blitz::Array<std::complex<float>, 1> YAnterpTmp(coefficientsForColumnsInterp.extent(0));
   YAnterp = 0.0;
   YAnterpTmp = 0.0;
-  for (i=0 ; i<coefficientsForLinesInterp.extent(0) ; i++) {
-    for (j=0 ; j<coefficientsForLinesInterp.extent(1) ; j++) {
+  for (int i=0 ; i<coefficientsForLinesInterp.extent(0) ; i++) {
+    for (int j=0 ; j<coefficientsForLinesInterp.extent(1) ; j++) {
       YAnterpTmp(indexesForLinesInterp(i, j)) += coefficientsForLinesInterp(i, j) * Y(i);
     }
   }
- for (i=0 ; i<coefficientsForColumnsInterp.extent(0) ; i++) {
-    for (j=0 ; j<coefficientsForColumnsInterp.extent(1) ; j++) {
+ for (int i=0 ; i<coefficientsForColumnsInterp.extent(0) ; i++) {
+    for (int j=0 ; j<coefficientsForColumnsInterp.extent(1) ; j++) {
       YAnterp(indexesForColumnsInterp(i, j)) += coefficientsForColumnsInterp(i, j) * YAnterpTmp(i);
     }
   }
 }
+
