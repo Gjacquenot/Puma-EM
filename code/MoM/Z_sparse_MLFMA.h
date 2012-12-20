@@ -152,10 +152,34 @@ void Z_sparse_MLFMA::matvec_Z_PQ_near(blitz::Array<std::complex<float>, 1>& ZI_P
     const int test_RWG_number = test_RWG_numbers(i);
     const int startIndexInSrcRWG_numbers = rowIndexToColumnIndexes(i, 0);
     const int stopIndexInSrc_RWG_numbers = rowIndexToColumnIndexes(i, 1);
-    for (int j=startIndexInSrcRWG_numbers ; j<stopIndexInSrc_RWG_numbers ; j++) {
-      ZI_PQ(test_RWG_number) += Z_CFIE_near(indexInZ_CFIE) * I_PQ(src_RWG_numbers(j));
+    const int N = stopIndexInSrc_RWG_numbers - startIndexInSrcRWG_numbers; 
+    std::complex<float> zi_1(0.0, 0.0), zi_2(0.0, 0.0);
+    if (N%2 == 0) {
+      for (int j=startIndexInSrcRWG_numbers; j<stopIndexInSrc_RWG_numbers; j+=2) {
+        zi_1 += Z_CFIE_near(indexInZ_CFIE) * I_PQ(src_RWG_numbers(j));
+        zi_2 += Z_CFIE_near(indexInZ_CFIE+1) * I_PQ(src_RWG_numbers(j+1));
+        indexInZ_CFIE += 2;
+      }
+      ZI_PQ(test_RWG_number) += (zi_1 + zi_2);
+    }
+    else if (N>1) {
+      for (int j=startIndexInSrcRWG_numbers; j<stopIndexInSrc_RWG_numbers-1; j+=2) {
+        zi_1 += Z_CFIE_near(indexInZ_CFIE) * I_PQ(src_RWG_numbers(j));
+        zi_2 += Z_CFIE_near(indexInZ_CFIE+1) * I_PQ(src_RWG_numbers(j+1));
+        indexInZ_CFIE += 2;
+      }
+      ZI_PQ(test_RWG_number) += (zi_1 + zi_2 + Z_CFIE_near(indexInZ_CFIE) * I_PQ(src_RWG_numbers(stopIndexInSrc_RWG_numbers-1)));
       indexInZ_CFIE++;
     }
+    else {
+      ZI_PQ(test_RWG_number) += (Z_CFIE_near(indexInZ_CFIE) * I_PQ(src_RWG_numbers(startIndexInSrcRWG_numbers)));
+      indexInZ_CFIE++;
+    }
+    /*for (int j=startIndexInSrcRWG_numbers ; j<stopIndexInSrc_RWG_numbers ; j++) {
+        ZI_PQ(test_RWG_number) += Z_CFIE_near(indexInZ_CFIE) * I_PQ(src_RWG_numbers(j));
+        indexInZ_CFIE++;
+    }*/
+
   }
 };
 

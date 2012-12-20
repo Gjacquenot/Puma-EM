@@ -550,27 +550,9 @@ void Octtree::shiftExp(blitz::Array<std::complex<float>, 2> S,
 {
   const int N = shiftingArray.size();
   //const int N_coord = 2;
-  if (N%2 == 0) {
-    for (int i=0; i<N; i+=2) {
-      S(0, i) *= shiftingArray(i);  
-      S(0, i+1) *= shiftingArray(i+1);  
-      S(1, i) *= shiftingArray(i);  
-      S(1, i+1) *= shiftingArray(i+1);
-    }
-  }
-  else if (N>1) {
-    for (int i=0; i<N-1; i+=2) {
-      S(0, i) *= shiftingArray(i);  
-      S(0, i+1) *= shiftingArray(i+1);  
-      S(1, i) *= shiftingArray(i);  
-      S(1, i+1) *= shiftingArray(i+1);
-    }
-    S(0, N-1) *= shiftingArray(N-1);  
-    S(1, N-1) *= shiftingArray(N-1);        
-  }
-  else {
-    S(0, 0) *= shiftingArray(0);  
-    S(1, 0) *= shiftingArray(0);  
+  for (int i=0; i<N; i++) {
+    S(0, i) *= shiftingArray(i);  
+    S(1, i) *= shiftingArray(i);  
   }
 }
 
@@ -626,9 +608,11 @@ void Octtree::SupAlphaMultiplicationDirections(blitz::Array<std::complex<float>,
 {
   if ((abs(alphaCartesianCoord[0]) > 1) || (abs(alphaCartesianCoord[1]) > 1) || (abs(alphaCartesianCoord[2]) > 1)) {
     if ( (alphaTranslationIndexesNonZeros.size()==0) && (Sup.extent(1)==alphaTranslation.size()) ) {
-      blitz::Range all = blitz::Range::all();
-      SupAlpha(0, all) += Sup(0, all) * alphaTranslation;
-      SupAlpha(1, all) += Sup(1, all) * alphaTranslation;
+      const int N_alpha = alphaTranslation.size();
+      for (int i=0 ; i<N_alpha ; ++i) {
+        SupAlpha(0, i) += Sup(0, i) * alphaTranslation(i);
+        SupAlpha(1, i) += Sup(1, i) * alphaTranslation(i);
+      }
     }
     else {
       const int N_alpha(alphaTranslationIndexesNonZeros.size());
@@ -1136,15 +1120,5 @@ void Octtree::computeFarField(blitz::Array<std::complex<float>, 2>& e_theta_far,
     flush(std::cout);
   }
 }
-
-
-
-
-
-
-
-
-
-
 
 

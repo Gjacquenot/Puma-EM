@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <mpi.h>
 
-using namespace blitz;
+using namespace std;
 
 #include "level.h"
 #include "readWriteBlitzArrayFromFile.h"
@@ -24,7 +24,7 @@ Level::Level(const int l,
              const double big_cube_lower_coord[3],
              const blitz::Array<double, 2>& cubes_centroids)
 {
-  Range all = Range::all();
+  blitz::Range all = blitz::Range::all();
   numberTimesCopied = 0;
   level = l;
   DIRECTIONS_PARALLELIZATION = 0;
@@ -928,8 +928,10 @@ void Level::computeSup(blitz::Array<std::complex<float>, 2> & Sup,
     }
   }
   // transformation from cartesian to spherical coordinates and assignation to Sup
-  for (int i=0 ; i<Sup.extent(1) ; ++i) Sup(0, i) = thetaHats(i)[0]*FC3Components(i)[0] + thetaHats(i)[1]*FC3Components(i)[1] + thetaHats(i)[2]*FC3Components(i)[2];
-  for (int i=0 ; i<Sup.extent(1) ; ++i) Sup(1, i) = phiHats(i)[0]*FC3Components(i)[0] + phiHats(i)[1]*FC3Components(i)[1] + phiHats(i)[2]*FC3Components(i)[2];
+  for (int i=0 ; i<Sup.extent(1) ; ++i) {
+    Sup(0, i) = thetaHats(i)[0]*FC3Components(i)[0] + thetaHats(i)[1]*FC3Components(i)[1] + thetaHats(i)[2]*FC3Components(i)[2];
+    Sup(1, i) = phiHats(i)[0]*FC3Components(i)[0] + phiHats(i)[1]*FC3Components(i)[1] + phiHats(i)[2]*FC3Components(i)[2];
+  }
 }
 
 void Level::sphericalIntegration(blitz::Array<std::complex<float>, 1>& ZI,
