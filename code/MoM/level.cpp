@@ -876,12 +876,16 @@ void Level::computeSup(blitz::Array<std::complex<float>, 2> & Sup,
   const int NThetas = thetas.size(), NPhis = phis.size(), NGauss = cube.GaussLocatedWeightedRWG.extent(1)/2;
   blitz::Array< float [3], 1> kHats(NThetas * NPhis), thetaHats(NThetas * NPhis), phiHats(NThetas * NPhis);
   blitz::Array< std::complex<float> [3], 1> FC3Components(NThetas * NPhis);
+  std::vector<float> sin_thetas, cos_thetas;
+  sin_thetas.resize(NThetas);
+  cos_thetas.resize(NThetas);
+  for (int p=0 ; p<NThetas ; ++p) sincosf(thetas(p), &sin_thetas[p], &cos_thetas[p]);
   // initialisation of arrays
   for (int q=0 ; q<NPhis ; ++q) {
     const float cos_phi = cos(phis(q)), sin_phi = sin(phis(q));
     for (int p=0 ; p<NThetas ; ++p) {
       int index = p + q*NThetas;
-      const float sin_theta = sin(thetas(p)), cos_theta = cos(thetas(p));
+      const float sin_theta = sin_thetas[p], cos_theta = cos_thetas[p];
       kHats(index)[0] = sin_theta*cos_phi;
       kHats(index)[1] = sin_theta*sin_phi;
       kHats(index)[2] = cos_theta;
@@ -895,34 +899,32 @@ void Level::computeSup(blitz::Array<std::complex<float>, 2> & Sup,
     }
   }
   // computation of FC3Components array
-  blitz::Array<std::complex<float>, 1> EXP(NThetas * NPhis/2);
   const std::complex<float> I_k(static_cast<std::complex<float> >(I*k));
   const int N_rwg = cube.RWG_numbers.size();
   for (int i=0 ; i<N_rwg ; ++i) {
     const int RWGNumber = cube.RWG_numbers[i];
+    const std::complex<float> i_pq = I_PQ(RWGNumber);
     for (int j=0 ; j<2*NGauss ; ++j) {
       // computing the local arrays
       const float * localGaussLocatedWeightedRWG = cube.GaussLocatedWeightedRWG(i, j);
       const float * localGaussLocatedExpArg = cube.GaussLocatedExpArg(i, j);
       // construction of the evaluation of the RWG at one point
       std::complex<float> fj[3];
-      fj[0] = I_PQ(RWGNumber) * localGaussLocatedWeightedRWG[0];
-      fj[1] = I_PQ(RWGNumber) * localGaussLocatedWeightedRWG[1];
-      fj[2] = I_PQ(RWGNumber) * localGaussLocatedWeightedRWG[2];
-      for (int index=0 ; index<EXP.size() ; index++) {
-        EXP(index) = exp( I_k * (localGaussLocatedExpArg[0]*kHats(index)[0] + localGaussLocatedExpArg[1]*kHats(index)[1] + localGaussLocatedExpArg[2]*kHats(index)[2]) );
-        FC3Components(index)[0] += fj[0] * EXP(index);
-        FC3Components(index)[1] += fj[1] * EXP(index);
-        FC3Components(index)[2] += fj[2] * EXP(index);
-      }
-      for (int q=NPhis/2 ; q<NPhis ; ++q) {// for phi>pi, kHat = -kHat(pi-theta, phi-pi)
-        for (int p=0 ; p<NThetas ; ++p) {
-          int index = p + q*NThetas;
-          const int newIndex = NThetas-1-p + (q-NPhis/2) * NThetas;
-          const std::complex<float> conjExp(conj(EXP(newIndex)));
-          FC3Components(index)[0] += fj[0] * conjExp;
-          FC3Components(index)[1] += fj[1] * conjExp;
-          FC3Components(index)[2] += fj[2] * conjExp;
+      fj[0] = i_pq * localGaussLocatedWeightedRWG[0];
+      fj[1] = i_pq * localGaussLocatedWeightedRWG[1];
+      fj[2] = i_pq * localGaussLocatedWeightedRWG[2];
+      for (int q=0 ; q<NPhis/2 ; q++) {// for phi>pi, kHat = -kHat(pi-theta, phi-pi)
+        const int index_1 = q*NThetas, opp_index_1 = NThetas-1 + (q+NPhis/2) * NThetas;
+        for (int p=0 ; p<NThetas ; p++) {
+          const int index = p + index_1, opp_index = opp_index_1-p;
+          const std::complex<float> Exp = exp( I_k * (localGaussLocatedExpArg[0]*kHats(index)[0] + localGaussLocatedExpArg[1]*kHats(index)[1] + localGaussLocatedExpArg[2]*kHats(index)[2]) );
+          FC3Components(index)[0] += fj[0] * Exp;
+          FC3Components(index)[1] += fj[1] * Exp;
+          FC3Components(index)[2] += fj[2] * Exp;
+          const std::complex<float> conjExp(conj(Exp));
+          FC3Components(opp_index)[0] += fj[0] * conjExp;
+          FC3Components(opp_index)[1] += fj[1] * conjExp;
+          FC3Components(opp_index)[2] += fj[2] * conjExp;
         }
       }
     }
@@ -950,13 +952,17 @@ void Level::sphericalIntegration(blitz::Array<std::complex<float>, 1>& ZI,
   float thetaHat[3], phiHat[3];
   blitz::Array< float [3], 1> kHats(NThetas * NPhis);
   blitz::Array< std::complex<float> [3], 1> GC3Components(NThetas * NPhis);
+  std::vector<float> sin_thetas, cos_thetas;
+  sin_thetas.resize(NThetas);
+  cos_thetas.resize(NThetas);
+  for (int p=0 ; p<NThetas ; ++p) sincosf(thetas(p), &sin_thetas[p], &cos_thetas[p]);
   // initialisation of arrays
   for (int q=0 ; q<NPhis ; ++q) {
     const float cos_phi = cos(phis(q)), sin_phi = sin(phis(q));
     const float phiHat[3] = {-sin_phi, cos_phi, 0.0};
     for (int p=0 ; p<NThetas ; ++p) {
       int index = p + q*NThetas;
-      const float sin_theta = sin(thetas(p)), cos_theta = cos(thetas(p));
+      const float sin_theta = sin_thetas[p], cos_theta = cos_thetas[p];
       kHats(index)[0] = sin_theta*cos_phi;
       kHats(index)[1] = sin_theta*sin_phi;
       kHats(index)[2] = cos_theta;
@@ -968,7 +974,6 @@ void Level::sphericalIntegration(blitz::Array<std::complex<float>, 1>& ZI,
   }
   // computation of integration
   blitz::Array<std::complex<float>, 1> EXP(NThetas * NPhis/2);
-  blitz::Array< std::complex<float> [3], 1> fj(NThetas * NPhis), kHat_X_nHat_X_fj(NThetas * NPhis);
   // defining local arrays used for faster computations
   const std::complex<float> I_k(static_cast<std::complex<float> >(I*k)), minus_I_k(static_cast<std::complex<float> >(-I*k));
   const int N_rwg = cube.RWG_numbers.size();
@@ -982,39 +987,29 @@ void Level::sphericalIntegration(blitz::Array<std::complex<float>, 1>& ZI,
       const float * localGaussLocatedWeighted_nHat_X_RWG = cube.GaussLocatedWeighted_nHat_X_RWG(i, j);
       const float * localGaussLocatedExpArg = cube.GaussLocatedExpArg(i, j);
       // computing the integration
-      for (int index=0 ; index<EXP.size() ; ++index) {
-        EXP(index) = exp( minus_I_k * (localGaussLocatedExpArg[0]*kHats(index)[0] + localGaussLocatedExpArg[1]*kHats(index)[1] + localGaussLocatedExpArg[2]*kHats(index)[2]) );
-        fj(index)[0] = localGaussLocatedWeightedRWG[0] * EXP(index);
-        fj(index)[1] = localGaussLocatedWeightedRWG[1] * EXP(index);
-        fj(index)[2] = localGaussLocatedWeightedRWG[2] * EXP(index);
-        ZI_tE += (GC3Components(index)[0] * fj(index)[0] + GC3Components(index)[1] * fj(index)[1] + GC3Components(index)[2] * fj(index)[2]);
-      }
-      for (int q=NPhis/2 ; q<NPhis ; ++q) {// for phi>pi, kHat = -kHat(pi-theta, phi-pi)
-        for (int p=0 ; p<NThetas ; ++p) {
-          int index = p + q*NThetas;
-          const int newIndex = NThetas-1-p + (q-NPhis/2) * NThetas;
-          fj(index)[0] = conj(fj(newIndex)[0]);
-          fj(index)[1] = conj(fj(newIndex)[1]);
-          fj(index)[2] = conj(fj(newIndex)[2]);
-          ZI_tE += (GC3Components(index)[0] * fj(index)[0] + GC3Components(index)[1] * fj(index)[1] + GC3Components(index)[2] * fj(index)[2]);
+      for (int q=0 ; q<NPhis/2 ; q++) {// for phi>pi, kHat = -kHat(pi-theta, phi-pi)
+        const int index_1 = q*NThetas, opp_index_1 = NThetas-1 + (q+NPhis/2) * NThetas;
+        for (int p=0 ; p<NThetas ; p++) {
+          const int index = p + index_1, opp_index = opp_index_1-p;
+          EXP(index) = exp( minus_I_k * (localGaussLocatedExpArg[0]*kHats(index)[0] + localGaussLocatedExpArg[1]*kHats(index)[1] + localGaussLocatedExpArg[2]*kHats(index)[2]) );
+          ZI_tE += (GC3Components(index)[0] * localGaussLocatedWeightedRWG[0] + GC3Components(index)[1] * localGaussLocatedWeightedRWG[1] + GC3Components(index)[2] * localGaussLocatedWeightedRWG[2]) * EXP(index);
+          const std::complex<float> zi_te_2((GC3Components(opp_index)[0] * localGaussLocatedWeightedRWG[0] + GC3Components(opp_index)[1] * localGaussLocatedWeightedRWG[1] + GC3Components(opp_index)[2] * localGaussLocatedWeightedRWG[2]) * conj(EXP(index)));
+          ZI_tE += zi_te_2;
         }
       }
       // nH     
       if (nH) {
-        for (int index=0 ; index<EXP.size() ; ++index) {
-          kHat_X_nHat_X_fj(index)[0] = (kHats(index)[1]*localGaussLocatedWeighted_nHat_X_RWG[2] - kHats(index)[2]*localGaussLocatedWeighted_nHat_X_RWG[1]) * EXP(index);
-          kHat_X_nHat_X_fj(index)[1] = (kHats(index)[2]*localGaussLocatedWeighted_nHat_X_RWG[0] - kHats(index)[0]*localGaussLocatedWeighted_nHat_X_RWG[2]) * EXP(index);
-          kHat_X_nHat_X_fj(index)[2] = (kHats(index)[0]*localGaussLocatedWeighted_nHat_X_RWG[1] - kHats(index)[1]*localGaussLocatedWeighted_nHat_X_RWG[0]) * EXP(index);
-          ZI_nH += (GC3Components(index)[0] * kHat_X_nHat_X_fj(index)[0] + GC3Components(index)[1] * kHat_X_nHat_X_fj(index)[1] + GC3Components(index)[2] * kHat_X_nHat_X_fj(index)[2]);
-        }
-        for (int q=NPhis/2 ; q<NPhis ; ++q) {// for phi>pi, kHat = -kHat(pi-theta, phi-pi)
-          for (int p=0 ; p<NThetas ; ++p) {
-            int index = p + q*NThetas;
-            const int newIndex = NThetas-1-p + (q-NPhis/2) * NThetas;
-            kHat_X_nHat_X_fj(index)[0] = conj(kHat_X_nHat_X_fj(newIndex)[0]);
-            kHat_X_nHat_X_fj(index)[1] = conj(kHat_X_nHat_X_fj(newIndex)[1]);
-            kHat_X_nHat_X_fj(index)[2] = conj(kHat_X_nHat_X_fj(newIndex)[2]);
-            ZI_nH -= (GC3Components(index)[0] * kHat_X_nHat_X_fj(index)[0] + GC3Components(index)[1] * kHat_X_nHat_X_fj(index)[1] + GC3Components(index)[2] * kHat_X_nHat_X_fj(index)[2]);
+        for (int q=0 ; q<NPhis/2 ; q++) {// for phi>pi, kHat = -kHat(pi-theta, phi-pi)
+          const int index_1 = q*NThetas, opp_index_1 = NThetas-1 + (q+NPhis/2) * NThetas;
+          for (int p=0 ; p<NThetas ; p++) {
+            const int index = p + index_1, opp_index = opp_index_1-p;
+            std::complex<float> kHat_X_nHat_X_fj[3];
+            kHat_X_nHat_X_fj[0] = (kHats(index)[1]*localGaussLocatedWeighted_nHat_X_RWG[2] - kHats(index)[2]*localGaussLocatedWeighted_nHat_X_RWG[1]);
+            kHat_X_nHat_X_fj[1] = (kHats(index)[2]*localGaussLocatedWeighted_nHat_X_RWG[0] - kHats(index)[0]*localGaussLocatedWeighted_nHat_X_RWG[2]);
+            kHat_X_nHat_X_fj[2] = (kHats(index)[0]*localGaussLocatedWeighted_nHat_X_RWG[1] - kHats(index)[1]*localGaussLocatedWeighted_nHat_X_RWG[0]);
+            ZI_nH += (GC3Components(index)[0] * kHat_X_nHat_X_fj[0] + GC3Components(index)[1] * kHat_X_nHat_X_fj[1] + GC3Components(index)[2] * kHat_X_nHat_X_fj[2]) * EXP(index);
+            const std::complex<float> zi_nh_2((GC3Components(opp_index)[0] * kHat_X_nHat_X_fj[0] + GC3Components(opp_index)[1] * kHat_X_nHat_X_fj[1] + GC3Components(opp_index)[2] * kHat_X_nHat_X_fj[2]) * conj(EXP(index)));
+            ZI_nH -= zi_nh_2;
           }
         }
       } // end nH

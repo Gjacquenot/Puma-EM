@@ -5,7 +5,8 @@
 \usepackage{amsmath,amssymb}
 \usepackage{epsfig}
 %\usepackage{fourier}
-\usepackage{utopia}
+%\usepackage{utopia}
+\usepackage{times}
 \usepackage[T1]{fontenc}
 \usepackage{a4wide}
 \usepackage{url}
@@ -23,6 +24,10 @@
 \newcommand{\file}[1] {\textcolor{blue}{\textsf{#1}}}
 \newcommand{\parameter}[1] {\textcolor{orange}{\textsf{#1}}}
 
+\newcommand{\field}[1]{\mathbf{#1}}
+\newcommand{\current}[1]{\mathbf{#1}}
+\newcommand{\vect}[1]{\mathbf{#1}}
+\newcommand{\operator}[1]{\mathbf{#1}}
 
 \title{Puma-EM User's guide}
 \author{Idesbald van den Bosch}
@@ -54,6 +59,7 @@ Puma-EM also makes use of the Multilevel fast multipole method (MLFMM or MLFMA) 
 \par
 In addition to the MLFMM, Puma-EM is parallelized and can run on laptop, desktop and homogeneous cluster architectures. The rule of thumb for the number of unknowns Puma-EM can reasonably handle per GByte of memory is between $500,000$ and $2,000,000$ (depending upon the problem specificities and the details of the machine architecture). For example, Puma-EM has solved the monostatic scattering of a cubic target involving $53.9$ million of unknowns, on a cluster of 2 machines having each ``only'' 16 GBytes of memory. It can routinely solve in a few hours problems involving more than 1 million of unkowns of a low-end (dated 2004) 2 GByte laptop.
 
+\part{Installation and use}
 
 \chapter{Installing}
 
@@ -735,4 +741,137 @@ This is self explanatory.
 This is in principle possible, although I haven't tried it. An antenna system comprises in general a waveguiding structure and a radiator. It is possible to excite the structure, with one dipole or a plurality of dipoles judiciously placed, and then to evaluate the bistatic scattering of the structure in the far field to obtain its radiation pattern.
 
 
+\part{Electromagnetic Theory}
+
+
+\chapter{The integral equations and their combinations}
+%
+\par
+We are going to derive the integral equations for a dielectric body immersed in a homogeneous medium. We have the following parameters:
+\begin{description}
+\item [$c = 2.99792458e8$] speed of light in vacuum
+\item [$\mu_0 = 4.0e-7 \pi$] permeability of vacuum
+\item [$\mu_{r, i}$] relative permeability of medium $i$
+\item [$\mu_i = \mu_0\mu_{r, i}$] permeability of medium $i$
+\item [$\varepsilon_0 = 1.0/(c^2 \mu_0)$] permittivity of vacuum
+\item [$\varepsilon_{r, i}$] relative permittivity of medium $i$
+\item [$\varepsilon_i = \varepsilon_0\varepsilon_{r, i}$] permittivity of medium $i$
+\item [$k_i = \omega \sqrt{\mu_i \varepsilon_i}$] wavenumber of medium $i$ 
+\item [$\omega = 2 \pi f$] where $f$ is the frequency.
+\end{description}
+
+\section{Electric field integral equation}
+
+\subsection{Outside of inhomogeneity}
+
+%
+\par
+According to \cite{Ides2006}, the Electric field outside of the inhomogeneity can be written as:
+\begin{equation}\label{eqn:elecFieldInt}
+\field{E}_1 = \field{E}^\text{inc} + \operator{D}_{\varepsilon, 1}\left(\current{J}_{S,1}\right) - \operator{K}_{1}\left(\current{M}_{S,1}\right)
+\end{equation}
+where
+\begin{align*}
+\operator{D}_{\varepsilon, 1}\left(\current{F}\right) &= \frac{\nabla \nabla \cdot + k_1^2}{j \omega \varepsilon_1} \int_S G_1(\vect{r}, \vect{r}') \current{F}\left(\vect{r}'\right) d\vect{r}' \\
+\operator{K}_{1}\left(\current{F}\right) &= \nabla \times \int_S G_1(\vect{r}, \vect{r}') \current{F}\left(\vect{r}'\right) d\vect{r}'
+\end{align*}
+with the free space Green's function:
+\begin{equation*}
+G_1(\vect{r}, \vect{r}') = \frac{e^{-jk_1 \left|\vect{r} - \vect{r}'  \right|}}{4 \pi \left|\vect{r} - \vect{r}'  \right|}.
+\end{equation*}
+and with the following definition, thanks to the Huygens surface equivalence principle \cite{Ides2006}:
+\begin{align}
+\current{J}_{S,1} &\triangleq \vect{\hat{n}} \times \field{H}_1 \\
+\current{M}_{S,1} &\triangleq \field{E}_1 \times \vect{\hat{n}} 
+\end{align}
+where $\vect{\hat{n}}$ is the outward normal to the surface $S$. 
+%
+\par
+Evaluating (\ref{eqn:elecFieldInt}) at a point $\vect{r}$ of the surface $S$ and taking the cross product with the normal $\vect{\hat{n}}$ yields:
+\begin{equation}
+-\current{M}_{S,1} = \vect{\hat{n}}\times \field{E}^\text{inc} + \vect{\hat{n}}\times \operator{D}_{\varepsilon, 1}\left(\current{J}_{S,1}\right) - \vect{\hat{n}}\times \left[\operator{K}_{1}\left(\current{M}_{S,1}\right) - \frac{1}{2}\vect{\hat{n}}\times \current{M}_{S,1} \right]
+\end{equation}
+where $-\frac{1}{2}\vect{\hat{n}}\times \current{M}_{S,1}$ is the Cauchy principal value of the $\operator{K}_1$ operator. The above equation can be rewritten:
+\begin{equation}
+-\current{M}_{S,1} = \vect{\hat{n}}\times \field{E}^\text{inc} + \vect{\hat{n}}\times \operator{D}_{\varepsilon, 1}\left(\current{J}_{S,1}\right) - \vect{\hat{n}}\times \operator{K}_{1}\left(\current{M}_{S,1}\right) + \vect{\hat{n}}\times \left[\frac{1}{2}\vect{\hat{n}}\times \current{M}_{S,1}\right]
+\end{equation}
+or
+\begin{equation}
+-\current{M}_{S,1} = \vect{\hat{n}}\times \field{E}^\text{inc} + \vect{\hat{n}}\times \operator{D}_{\varepsilon, 1}\left(\current{J}_{S,1}\right) - \vect{\hat{n}}\times \operator{K}_{1}\left(\current{M}_{S,1}\right) -  \frac{1}{2}\current{M}_{S,1}
+\end{equation}
+because $\vect{\hat{n}} \times \left(\vect{\hat{n}} \times \current{F} \right) = -\current{F}_\text{tan}$. Finally we have the outside electric field integral equation:
+\begin{equation}
+\boxed{
+\vect{\hat{n}}\times \field{E}^\text{inc} =  -  \frac{1}{2}\current{M}_{S,1} - \vect{\hat{n}}\times \operator{D}_{\varepsilon, 1}\left(\current{J}_{S,1}\right) + \vect{\hat{n}}\times \operator{K}_{1}\left(\current{M}_{S,1}\right) }.
+\end{equation}
+Again, taking the cross product with the normal $\vect{\hat{n}}$ yields
+\begin{equation}
+\boxed{
+\left[\field{E}^\text{inc} =  \frac{1}{2}\vect{\hat{n}}\times \current{M}_{S,1} - \operator{D}_{\varepsilon, 1}\left(\current{J}_{S,1}\right) + \operator{K}_{1}\left(\current{M}_{S,1}\right) \right]_\text{tan} }.
+\end{equation}
+
+\subsection{Inside of inhomogeneity}
+%
+\par
+As for the exterior integral representation (\ref{eqn:elecFieldInt}), the electric field inside the inhomogeneity can be written as
+\begin{equation}
+\field{E}_2 = \operator{D}_{\varepsilon, 2}\left(\current{J}_{S,2}\right) - \operator{K}_{2}\left(\current{M}_{S,2}\right)
+\end{equation}
+where the incoming field is zero, and where by definition (remember that $\vect{\hat{n}}$ points outwards)
+\begin{align}
+\current{J}_{S,2} &\triangleq (-\vect{\hat{n}}) \times \field{H}_2 \\
+\current{M}_{S,2} &\triangleq \field{E}_2 \times (-\vect{\hat{n}}) 
+\end{align}
+%
+\par
+Again, taking the cross product with $\vect{\hat{n}}$ and evaluating on the surface $S$ yields, calculating the Cauchy principal value for $\operator{K}_2$
+\begin{equation}
+\vect{\hat{n}} \times \field{E}_2 = \vect{\hat{n}} \times \operator{D}_{\varepsilon, 2}\left(\current{J}_{S,2}\right) - \vect{\hat{n}} \times \left[\operator{K}_{2}\left(\current{M}_{S,2}\right)+ \frac{1}{2}\vect{\hat{n}} \times \current{M}_{S,2} \right]
+\end{equation}
+which can be further written as
+\begin{equation}
+\current{M}_{S,2} = \vect{\hat{n}} \times \operator{D}_{\varepsilon, 2}\left(\current{J}_{S,2}\right) - \vect{\hat{n}} \times \operator{K}_{2}\left(\current{M}_{S,2}\right)+ \frac{1}{2} \current{M}_{S,2}.
+\end{equation}
+%
+\par
+Since the boundary conditions impose that $\field{E}_1 = \field{E}_2$ and $\field{H}_1 = \field{H}_2$, it follows from the equivalent current definitions that $\current{M}_{S,2} = -\current{M}_{S,1}$ and $\current{J}_{S,2} = -\current{J}_{S,1}$. Hence the last equation can be rewritten as follows:
+\begin{equation}
+-\current{M}_{S,1} = -\vect{\hat{n}} \times \operator{D}_{\varepsilon, 2}\left(\current{J}_{S,1}\right) + \vect{\hat{n}} \times \operator{K}_{2}\left(\current{M}_{S,1}\right)- \frac{1}{2} \current{M}_{S,1}.
+\end{equation}
+Or, to write it like for the external problem:
+\begin{equation}
+0 = \frac{1}{2} \current{M}_{S,1} -\vect{\hat{n}} \times \operator{D}_{\varepsilon, 2}\left(\current{J}_{S,1}\right) + \vect{\hat{n}} \times \operator{K}_{2}\left(\current{M}_{S,1}\right).
+\end{equation}
+Again, taking the cross product with the normal $\vect{\hat{n}}$ yields
+\begin{equation}
+\boxed{
+\left[ 0 =  \frac{1}{2}\vect{\hat{n}}\times \current{M}_{S,1} + \operator{D}_{\varepsilon, 2}\left(\current{J}_{S,1}\right) - \operator{K}_{2}\left(\current{M}_{S,1}\right) \right]_\text{tan} }.
+\end{equation}
+
+\section{Magnetic field integral equation}
+%
+\par 
+These integral equations can be obtained by calculation or by duality from the EFIEs, \textit{i.e.} by doing the following replacements: $\mu \rightarrow \varepsilon$, $\varepsilon \rightarrow \mu$, $\field{E} \rightarrow \field{H}$, $\current{J} \rightarrow \current{M}$, $\current{M} \rightarrow -\current{J}$.
+
+\subsection{Outside of inhomogeneity}
+%
+\par
+By duality:
+\begin{equation}
+\boxed{
+\left[\field{H}^\text{inc} =  -\frac{1}{2}\vect{\hat{n}}\times \current{J}_{S,1} - \operator{D}_{\mu, 1}\left(\current{M}_{S,1}\right) - \operator{K}_{1}\left(\current{J}_{S,1}\right) \right]_\text{tan} }.
+\end{equation}
+
+\subsection{Inside of inhomogeneity}
+%
+\par
+By duality:
+\begin{equation}
+\boxed{
+\left[ 0 =  -\frac{1}{2}\vect{\hat{n}}\times \current{J}_{S,1} + \operator{D}_{\mu, 2}\left(\current{M}_{S,1}\right) + \operator{K}_{2}\left(\current{J}_{S,1}\right) \right]_\text{tan} }.
+\end{equation}
+
+
+
 \end{document}
+
