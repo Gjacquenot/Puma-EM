@@ -56,7 +56,7 @@ ${MPI_CMD} python code/compute_SAI_precond_MLFMA.py --simudir ${SIMU_DIR} --simu
 { time -p ${MPI_CMD} ./code/MoM/mpi_mlfma --simudir ${SIMU_DIR}; } 2> ${SIMU_DIR}/result/CPU_time_MLFMA.txt
 
 # and now the visualisation of the results
-mpirun -np 1 python code/RCS_MLFMA.py --simudir ${SIMU_DIR} --simuparams ${SIMU_PARAMS}
+python code/RCS_MLFMA.py --simudir ${SIMU_DIR} --simuparams ${SIMU_PARAMS}
 
 # copying the result in the puma-em directory
 [ ! -e "${RESULT_DIR}" ] && mkdir -p ${RESULT_DIR}

@@ -805,7 +805,7 @@ because $\vect{\hat{n}} \times \left(\vect{\hat{n}} \times \current{F} \right) =
 \vect{\hat{n}}\times \field{E}^\text{inc} =  -  \frac{1}{2}\current{M}_{S,1} - \vect{\hat{n}}\times \operator{D}_{\varepsilon, 1}\left(\current{J}_{S,1}\right) + \vect{\hat{n}}\times \operator{K}_{1}\left(\current{M}_{S,1}\right) }.
 \end{equation}
 Again, taking the cross product with the normal $\vect{\hat{n}}$ yields
-\begin{equation}
+\begin{equation}\label{eqn:EFIE_1}
 \boxed{
 \left[\field{E}^\text{inc} =  \frac{1}{2}\vect{\hat{n}}\times \current{M}_{S,1} - \operator{D}_{\varepsilon, 1}\left(\current{J}_{S,1}\right) + \operator{K}_{1}\left(\current{M}_{S,1}\right) \right]_\text{tan} }.
 \end{equation}
@@ -843,7 +843,7 @@ Or, to write it like for the external problem:
 0 = \frac{1}{2} \current{M}_{S,1} -\vect{\hat{n}} \times \operator{D}_{\varepsilon, 2}\left(\current{J}_{S,1}\right) + \vect{\hat{n}} \times \operator{K}_{2}\left(\current{M}_{S,1}\right).
 \end{equation}
 Again, taking the cross product with the normal $\vect{\hat{n}}$ yields
-\begin{equation}
+\begin{equation}\label{eqn:EFIE_2}
 \boxed{
 \left[ 0 =  \frac{1}{2}\vect{\hat{n}}\times \current{M}_{S,1} + \operator{D}_{\varepsilon, 2}\left(\current{J}_{S,1}\right) - \operator{K}_{2}\left(\current{M}_{S,1}\right) \right]_\text{tan} }.
 \end{equation}
@@ -857,7 +857,7 @@ These integral equations can be obtained by calculation or by duality from the E
 %
 \par
 By duality:
-\begin{equation}
+\begin{equation}\label{eqn:HFIE_1}
 \boxed{
 \left[\field{H}^\text{inc} =  -\frac{1}{2}\vect{\hat{n}}\times \current{J}_{S,1} - \operator{D}_{\mu, 1}\left(\current{M}_{S,1}\right) - \operator{K}_{1}\left(\current{J}_{S,1}\right) \right]_\text{tan} }.
 \end{equation}
@@ -866,12 +866,80 @@ By duality:
 %
 \par
 By duality:
-\begin{equation}
+\begin{equation}\label{eqn:HFIE_2}
 \boxed{
 \left[ 0 =  -\frac{1}{2}\vect{\hat{n}}\times \current{J}_{S,1} + \operator{D}_{\mu, 2}\left(\current{M}_{S,1}\right) + \operator{K}_{2}\left(\current{J}_{S,1}\right) \right]_\text{tan} }.
 \end{equation}
 
+\section{Combining the integral equations}
+
+\subsection{PMCHWT}
+%
+\par
+For this formulation we combine the outside and inside on a per-field basis: EFIE-1 (\ref{eqn:EFIE_1}) with EFIE-2 (\ref{eqn:EFIE_2}), and HFIE-1 (\ref{eqn:HFIE_1}) with HFIE-2 (\ref{eqn:HFIE_2}).
+\begin{eqnarray}
+EFIE: & \boxed{
+\left[\field{E}^\text{inc} =  - \operator{D}_{\varepsilon, 1}\left(\current{J}_{S,1}\right) - \operator{D}_{\varepsilon, 2}\left(\current{J}_{S,1}\right) + \operator{K}_{1}\left(\current{M}_{S,1}\right) + \operator{K}_{2}\left(\current{M}_{S,1}\right) \right]_\text{tan} } \\
+HFIE: & \boxed{
+\left[\field{H}^\text{inc} = - \operator{K}_{1}\left(\current{J}_{S,1}\right) - \operator{K}_{2}\left(\current{J}_{S,1}\right) - \operator{D}_{\mu, 1}\left(\current{M}_{S,1}\right) - \operator{D}_{\mu, 2}\left(\current{M}_{S,1}\right)  \right]_\text{tan} }.
+\end{eqnarray}
+In matrix form, we have that
+\begin{equation}
+\left[
+\begin{matrix}
+  - \left(\operator{D}_{\varepsilon, 1} + \operator{D}_{\varepsilon, 2} \right) & \operator{K}_{1} + \operator{K}_{2} \\
+  -\left(\operator{K}_{1} + \operator{K}_{2} \right) & - \left(\operator{D}_{\mu, 1} + \operator{D}_{\mu, 2}\right)
+\end{matrix}
+\right]
+\cdot 
+\left[
+\begin{matrix}
+  \current{J}_{S,1} \\
+  \current{M}_{S,1}  
+\end{matrix}
+\right]
+=
+\left[
+\begin{matrix}
+  \field{E}^\text{inc} \\
+  \field{H}^\text{inc}
+\end{matrix}
+\right].
+\end{equation}
+
+\subsection{CFIE}
+%
+\par
+For this formulation we combine the fields on an outside and inside basis: EFIE-1 (\ref{eqn:EFIE_1}) with HFIE-1 (\ref{eqn:HFIE_1}), and EFIE-2 (\ref{eqn:EFIE_2}) with HFIE-2 (\ref{eqn:HFIE_2}).
+\begin{eqnarray}
+CFIE-1: & \boxed{
+\left[\alpha \field{E}^\text{inc} + \left(1-\alpha \right) \frac{1}{\eta}\field{H}^\text{inc} =  - \alpha \left(\operator{D}_{\varepsilon, 1}\left(\current{J}_{S,1}\right) - \operator{K}_{1}\left(\current{J}_{S,1}\right) \right) + \operator{K}_{1}\left(\current{M}_{S,1}\right) + \operator{D}_{\mu, 1}\left(\current{M}_{S,1}\right) \right]_\text{tan} } \\
+CFIE-2: & \boxed{
+\left[\field{H}^\text{inc} = - \operator{K}_{1}\left(\current{J}_{S,1}\right) - \operator{K}_{2}\left(\current{J}_{S,1}\right) - \operator{D}_{\mu, 1}\left(\current{M}_{S,1}\right) - \operator{D}_{\mu, 2}\left(\current{M}_{S,1}\right)  \right]_\text{tan} }.
+\end{eqnarray}
+In matrix form, we have that
+\begin{equation}
+\left[
+\begin{matrix}
+  - \left(\operator{D}_{\varepsilon, 1} + \operator{D}_{\varepsilon, 2} \right) & \operator{K}_{1} + \operator{K}_{2} \\
+  -\left(\operator{K}_{1} + \operator{K}_{2} \right) & - \left(\operator{D}_{\mu, 1} + \operator{D}_{\mu, 2}\right)
+\end{matrix}
+\right]
+\cdot 
+\left[
+\begin{matrix}
+  \current{J}_{S,1} \\
+  \current{M}_{S,1}  
+\end{matrix}
+\right]
+=
+\left[
+\begin{matrix}
+  \field{E}^\text{inc} \\
+  \field{H}^\text{inc}
+\end{matrix}
+\right].
+\end{equation}
 
 
 \end{document}
-
