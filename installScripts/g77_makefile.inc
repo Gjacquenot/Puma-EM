@@ -1,4 +1,4 @@
-CC:= mpiCC
+CC:= g++
 MPICC:= mpiCC
 CFLAGS:= -c -O3 -funroll-loops -ftemplate-depth-30 -fPIC
 #CFLAGS:= -c -g -DBZ_DEBUG -fPIC
