@@ -143,3 +143,4 @@ if __name__=='__main__':
         print "you should select monostatic RCS or monostatic SAR or bistatic computation, or a combination of these computations. Check the simulation settings."
         sys.exit(1)
     #MPI.Finalize()
+

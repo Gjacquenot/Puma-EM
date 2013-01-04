@@ -787,24 +787,3 @@ void RWGNumber_oppVertexes_computation(blitz::Array<int, 2>& RWGNumber_oppVertex
   }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

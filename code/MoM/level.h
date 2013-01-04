@@ -280,7 +280,6 @@ class Level {
     const double getShiftingArraysSizeMB(void) const {return shiftingArrays.size() *  2.0*4.0/(1024.0*1024.0);};
     const blitz::Array<int, 1> getAlphaTranslationsExtents(void) const;
     const blitz::Array< blitz::Array<std::complex<float>, 1>, 3> getAlphaTranslations(void) const {return alphaTranslations;};
-    const blitz::Array<std::complex<float>, 1> getAlpha(const int m, const int n, const int p) const {return alphaTranslations(m, n, p);};
     const double getAlphaTranslationsSizeMB(void) const;
     const double getAlphaTranslationsIndexesSizeMB(void) const {return alphaTranslationsIndexes.size() * 4.0/(1024.0*1024.0);};
     const blitz::Array<std::complex<float>, 2> getShiftingArrays(void) const {return shiftingArrays;};

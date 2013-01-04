@@ -644,13 +644,13 @@ void Octtree::alphaTranslationsToCube(blitz::Array<std::complex<float>, 2>& S_tm
     if (DIRECTIONS_PARALLELIZATION!=1) {
       const int X = 1 * (alphaCartesianCoord[0]>=0), Y = 1 * (alphaCartesianCoord[1]>=0), Z = 1 * (alphaCartesianCoord[2]>=0);
       const int m = abs(alphaCartesianCoord[0]), n = abs(alphaCartesianCoord[1]), p = abs(alphaCartesianCoord[2]);
-      SupAlphaMultiplication(S_tmp, LevelSup(indexParticipant), getAlphaLevel(m, n, p, l), levels[l].alphaTranslationsIndexesNonZeros(m, n, p), levels[l].alphaTranslationsIndexes(X, Y, Z, all), alphaCartesianCoord);
+      SupAlphaMultiplication(S_tmp, LevelSup(indexParticipant), levels[l].alphaTranslations(m,n,p), levels[l].alphaTranslationsIndexesNonZeros(m, n, p), levels[l].alphaTranslationsIndexes(X, Y, Z, all), alphaCartesianCoord);
     }
     else {
       const int m = alphaCartesianCoord[0] + levels[l].getOffsetAlphaIndexX();
       const int n = alphaCartesianCoord[1] + levels[l].getOffsetAlphaIndexY();
       const int p = alphaCartesianCoord[2] + levels[l].getOffsetAlphaIndexZ();
-      SupAlphaMultiplicationDirections(S_tmp, LevelSup(indexParticipant), getAlphaLevel(m, n, p, l), levels[l].alphaTranslationsIndexesNonZeros(m, n, p), alphaCartesianCoord);
+      SupAlphaMultiplicationDirections(S_tmp, LevelSup(indexParticipant), levels[l].alphaTranslations(m,n,p), levels[l].alphaTranslationsIndexesNonZeros(m, n, p), alphaCartesianCoord);
     }
   }
 }

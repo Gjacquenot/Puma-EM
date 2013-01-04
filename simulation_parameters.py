@@ -7,9 +7,9 @@ from EM_constants import *
 # the geometry or target we are going to use in the simulations.
 # The list of targets can be viewed by looking up the geo directory
 params_simu.pathToTarget = './geo'
-params_simu.targetName = 'cubi'
+params_simu.targetName = 'sphere'
 # frequency
-params_simu.f = 2.12e9
+params_simu.f = 4.12e9
 # the lc (characteristic length) factor -- it will multiply lambda (the wavelength)
 # to obtain the average edge length (lc) of the mesh. Usually: lc ~= lambda/10.
 params_simu.lc_factor = 1.0/10.0

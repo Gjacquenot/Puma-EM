@@ -81,7 +81,6 @@ class Octtree {
     void ZIFarComputation(blitz::Array<std::complex<float>, 1>& /*ZI*/, // result of matrix-vector multiplication
                           const blitz::Array<std::complex<float>, 1>& /*I_PQ*/); // coefficients of RWGs
     const blitz::Array<std::complex<float>, 1> getCFIE(void) const {return CFIE;};
-    const blitz::Array<complex<float>, 1> getAlphaLevel(const int m, const int n, const int p, const int l) { return levels[l].getAlpha( m, n, p);};
     const vector<int> getNeighborsSonsIndexes(const int, const int) const;
     void findAlphaTransParticipantsIndexes(const int l);
     void SupAlphaMultiplication(blitz::Array<std::complex<float>, 2>& /*SupAlpha*/,
