@@ -159,6 +159,8 @@ void LocalMesh::copyLocalMesh(const LocalMesh& localMeshToCopy) /// copy member 
   reallyLocalRWGNumbers = localMeshToCopy.reallyLocalRWGNumbers;
   localRWGNumber_CFIE_OK.resize(localMeshToCopy.localRWGNumber_CFIE_OK.size());
   localRWGNumber_CFIE_OK = localMeshToCopy.localRWGNumber_CFIE_OK;
+  localRWGNumber_signedTriangles.resize(localMeshToCopy.localRWGNumber_signedTriangles.extent(0), localMeshToCopy.localRWGNumber_signedTriangles.extent(1));
+  localRWGNumber_signedTriangles = localMeshToCopy.localRWGNumber_signedTriangles;
   localRWGNumber_trianglesCoord.resize(localMeshToCopy.localRWGNumber_trianglesCoord.extent(0), localMeshToCopy.localRWGNumber_trianglesCoord.extent(1));
   localRWGNumber_trianglesCoord = localMeshToCopy.localRWGNumber_trianglesCoord;
 }
@@ -178,6 +180,7 @@ LocalMesh::~LocalMesh() {
   localRWGNumbers.free();
   reallyLocalRWGNumbers.free();
   localRWGNumber_CFIE_OK.free();
+  localRWGNumber_signedTriangles.free();
   localRWGNumber_trianglesCoord.free();
 }
 
@@ -185,6 +188,7 @@ void LocalMesh::resizeToZero() {
   localRWGNumbers.resize(0);
   reallyLocalRWGNumbers.resize(0);
   localRWGNumber_CFIE_OK.resize(0);
+  localRWGNumber_signedTriangles.resize(0,0);
   localRWGNumber_trianglesCoord.resize(0,0);
 }
 
@@ -198,6 +202,7 @@ void LocalMesh::setLocalMeshFromFile(const string path)
   localRWGNumbers.resize(N_local_RWG);
   reallyLocalRWGNumbers.resize(N_local_RWG);
   localRWGNumber_CFIE_OK.resize(N_local_RWG);
+  localRWGNumber_signedTriangles.resize(N_local_RWG, 2);
   localRWGNumber_trianglesCoord.resize(N_local_RWG, 12);
   // reading RWG_numbers
   {
@@ -208,6 +213,10 @@ void LocalMesh::setLocalMeshFromFile(const string path)
   {
     string filename = path + "localRWGNumber_CFIE_OK.txt";
     readIntBlitzArray1DFromBinaryFile(filename, localRWGNumber_CFIE_OK);
+  }
+  {
+    string filename = path + "localRWGNumber_signedTriangles.txt";
+    readIntBlitzArray2DFromBinaryFile(filename, localRWGNumber_signedTriangles);
   }
   {
     string filename = path + "localRWGNumber_trianglesCoord.txt";
@@ -229,6 +238,10 @@ void LocalMesh::writeLocalMeshToFile(const string path)
   {
     string filename = path + "localRWGNumber_CFIE_OK.txt";
     writeIntBlitzArray1DToBinaryFile(filename, localRWGNumber_CFIE_OK);
+  }
+  {
+    string filename = path + "localRWGNumber_signedTriangles.txt";
+    writeIntBlitzArray2DToBinaryFile(filename, localRWGNumber_signedTriangles);
   }
   {
     string filename = path + "localRWGNumber_trianglesCoord.txt";

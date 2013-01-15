@@ -69,7 +69,7 @@ octtree.o: octtree.cpp interpolation.h level.h level.cpp mesh.h octtree.h alpha_
 	$(MPICC) $(INCLUDE_PATH) $(CFLAGS) octtree.cpp
 level.o: level.cpp interpolation.h level.h dictionary.h cube.h cube.cpp readWriteBlitzArrayFromFile.h alpha_computation.h
 	$(MPICC) $(INCLUDE_PATH) $(CFLAGS) level.cpp
-cube.o: cube.cpp EMConstants.h GK_triangle.h cube.h readWriteBlitzArrayFromFile.h
+cube.o: cube.cpp EMConstants.h GK_triangle.h cube.h readWriteBlitzArrayFromFile.h dictionary.h
 	$(MPICC) $(INCLUDE_PATH) $(CFLAGS) cube.cpp
 FMM.o: FMM.cpp EMConstants.h FMM.h integr_1D_X_W.h GK_triangle.h $(LIBAMOS_ZBESH_PATH)zbesh_interface.h
 	$(CC) $(INCLUDE_PATH) $(CFLAGS) FMM.cpp

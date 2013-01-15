@@ -273,6 +273,7 @@ class Level {
     void computeGaussLocatedArguments(const blitz::Array<int, 1>& /*local_cubes_NRWG*/, 
                                       const blitz::Array<int, 1>& /*local_RWG_numbers*/, 
                                       const blitz::Array<int, 1>& /*local_RWG_Numbers_CFIE_OK*/, 
+                                      const blitz::Array<int, 2>& /*local_RWGNumbers_signedTriangles*/,
                                       const blitz::Array<float, 2>& /*local_RWGNumbers_trianglesCoord*/,
                                       const int /*N_Gauss*/);
     void RWGs_renumbering(void);

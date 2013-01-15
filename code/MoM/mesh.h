@@ -57,6 +57,7 @@ class LocalMesh {
     blitz::Array<int, 1> localRWGNumbers;
     blitz::Array<int, 1> reallyLocalRWGNumbers;
     blitz::Array<int, 1> localRWGNumber_CFIE_OK;
+    blitz::Array<int, 2> localRWGNumber_signedTriangles;
     blitz::Array<float, 2> localRWGNumber_trianglesCoord;
 
     // constructors

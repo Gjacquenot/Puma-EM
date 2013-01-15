@@ -946,7 +946,7 @@ int main(int argc, char* argv[]) {
   // reading and broadcasting mesh data
   int C, N_RWG, V;
   blitz::Array<int, 1> RWGNumber_CFIE_OK, cubes_RWGsNumbers, cube_N_RWGs, cube_startIndex_RWGs;
-  blitz::Array<int, 2> RWGNumber_edgeVertexes, RWGNumber_oppVertexes;
+  blitz::Array<int, 2> RWGNumber_edgeVertexes, RWGNumber_oppVertexes, RWGNumber_signedTriangles;
   blitz::Array<double, 2> cubes_centroids, vertexes_coord;
   if (my_id==0)
   {
@@ -968,6 +968,7 @@ int main(int argc, char* argv[]) {
     cubes_centroids.resize(C, 3);
     RWGNumber_edgeVertexes.resize(N_RWG, 2);
     RWGNumber_oppVertexes.resize(N_RWG, 2);
+    RWGNumber_signedTriangles.resize(N_RWG, 2);
     RWGNumber_CFIE_OK.resize(N_RWG);
 
     // reading the arrays
@@ -996,6 +997,9 @@ int main(int argc, char* argv[]) {
     filename = MESH_DATA_PATH + "RWGNumber_oppVertexes.txt";
     readIntBlitzArray2DFromBinaryFile(filename, RWGNumber_oppVertexes);
 
+    filename = MESH_DATA_PATH + "RWGNumber_signedTriangles.txt";
+    readIntBlitzArray2DFromBinaryFile(filename, RWGNumber_signedTriangles);
+
     filename = MESH_DATA_PATH + "RWGNumber_CFIE_OK.txt";
     readIntBlitzArray1DFromBinaryFile(filename, RWGNumber_CFIE_OK);
   }
@@ -1016,33 +1020,31 @@ int main(int argc, char* argv[]) {
   if (my_id==0) NumberOfCubesPerProcess.resize(num_procs);
   ierror = MPI_Gather(&N_local_cubes, 1, MPI_INT, NumberOfCubesPerProcess.data(), 1, MPI_INT, 0, MPI_COMM_WORLD);
 
-  blitz::Array<int, 1> MPI_Gatherv_scounts, MPI_Gatherv_displs; // it only matters for process 0
+  blitz::Array<int, 1> MPI_Gatherv_displs; // it only matters for process 0
   if (my_id==0) {
-    MPI_Gatherv_scounts.resize(num_procs);
     MPI_Gatherv_displs.resize(num_procs);
     int displacement = 0;
     for (int i=0 ; i<num_procs ; ++i) {
-      MPI_Gatherv_scounts(i) = NumberOfCubesPerProcess(i);
       MPI_Gatherv_displs(i) = displacement;
-      displacement += MPI_Gatherv_scounts(i);
+      displacement += NumberOfCubesPerProcess(i);
     }
   }
   // process_OldIndexesOfCubes represents the cubes original numbers in mesh for each process
   // Only master process has complete overview of these cubes
   blitz::Array<int, 1> process_OldIndexesOfCubes;
   if (my_id==0) process_OldIndexesOfCubes.resize(C);
-  ierror = MPI_Gatherv( oldIndexesOfCubes.data(), oldIndexesOfCubes.size(), MPI_INT, process_OldIndexesOfCubes.data(), MPI_Gatherv_scounts.data(), MPI_Gatherv_displs.data(), MPI_INT, 0,  MPI_COMM_WORLD);
+  ierror = MPI_Gatherv( oldIndexesOfCubes.data(), oldIndexesOfCubes.size(), MPI_INT, process_OldIndexesOfCubes.data(), NumberOfCubesPerProcess.data(), MPI_Gatherv_displs.data(), MPI_INT, 0,  MPI_COMM_WORLD);
   oldIndexesOfCubes.free();
   // now we need to scatter the RWG numbers and arrays, according to their original cubes, to each process
   // we have to begin by the end, to retain the good values for process 0!
 
   LocalMesh local_target_mesh;
   blitz::Array<int, 1> local_cubes_NRWG;
-  if (my_id==master) {
+  if (my_id==master) {// only the master process works here
     for (int receive_id=num_procs-1; receive_id>-1; receive_id--) {
       // first we find the RWGs for each cube of process receive_id
       const int startIndexOfCube = MPI_Gatherv_displs(receive_id);
-      const int Ncubes = MPI_Gatherv_scounts(receive_id);
+      const int Ncubes = NumberOfCubesPerProcess(receive_id);
       std::vector<int> RWG_numbersTmp;
       blitz::Array<int, 1> local_cubes_NRWG_tmp(Ncubes);
       // we now find the RWG numbers for each cube of process receive_id
@@ -1054,7 +1056,8 @@ int main(int argc, char* argv[]) {
         local_cubes_NRWG_tmp(i) = N_RWG_in_cube;
       }
       // now creating a blitz::array from std::vector RWG_numbersTmp
-      blitz::Array<int, 1> localRWGNumbers, localRWGNumber_CFIE_OK;
+      blitz::Array<int, 1> localRWGNumbers, localRWGNumber_CFIE_OK; 
+      blitz::Array<int, 2> localRWGNumber_signedTriangles;
       blitz::Array<float, 2> localRWGNumber_trianglesCoord;
       localRWGNumbers.resize(RWG_numbersTmp.size());
       for (int i=0; i<localRWGNumbers.size(); i++) localRWGNumbers(i) = RWG_numbersTmp[i];
@@ -1063,6 +1066,7 @@ int main(int argc, char* argv[]) {
       // we've got to communicate these arrays, and also an array containing the coordinates of the RWGs.
       localRWGNumber_CFIE_OK.resize(localRWGNumbers.size());
       localRWGNumber_trianglesCoord.resize(localRWGNumbers.size(), 12);
+      localRWGNumber_signedTriangles.resize(localRWGNumbers.size(), 2);
       for (int i=0; i<localRWGNumbers.size(); i++) {
         const int RWG = localRWGNumbers(i);
         const int n0 = RWGNumber_oppVertexes(RWG, 0);
@@ -1074,16 +1078,15 @@ int main(int argc, char* argv[]) {
         for (int j=0; j<3; j++) localRWGNumber_trianglesCoord(i, j+6) = vertexes_coord(n2, j);
         for (int j=0; j<3; j++) localRWGNumber_trianglesCoord(i, j+9) = vertexes_coord(n3, j);
         localRWGNumber_CFIE_OK(i) = RWGNumber_CFIE_OK(RWG);
+        localRWGNumber_signedTriangles(i, 0) = RWGNumber_signedTriangles(RWG, 0);
+        localRWGNumber_signedTriangles(i, 1) = RWGNumber_signedTriangles(RWG, 1);
       }
       if (receive_id!=master) {
         MPI_Send(local_cubes_NRWG_tmp.data(), local_cubes_NRWG_tmp.size(), MPI_INT, receive_id, receive_id, MPI_COMM_WORLD);
         MPI_Send(localRWGNumbers.data(), localRWGNumbers.size(), MPI_INT, receive_id, receive_id+1, MPI_COMM_WORLD);
         MPI_Send(localRWGNumber_CFIE_OK.data(), localRWGNumber_CFIE_OK.size(), MPI_INT, receive_id, receive_id+2, MPI_COMM_WORLD);
-        cout << "send to P" << receive_id << " : " << "localRWGNumber_CFIE_OK.size() = " << localRWGNumber_CFIE_OK.size() << endl;
-        flush(cout);
-        MPI_Send(localRWGNumber_trianglesCoord.data(), localRWGNumber_trianglesCoord.size(), MPI_FLOAT, receive_id, receive_id+3, MPI_COMM_WORLD);
-        cout << "send to P" << receive_id << " : " << "localRWGNumber_trianglesCoord.size() = " << localRWGNumber_trianglesCoord.size() << endl;
-        flush(cout);
+        MPI_Send(localRWGNumber_signedTriangles.data(), localRWGNumber_signedTriangles.size(), MPI_INT, receive_id, receive_id+3, MPI_COMM_WORLD);
+        MPI_Send(localRWGNumber_trianglesCoord.data(), localRWGNumber_trianglesCoord.size(), MPI_FLOAT, receive_id, receive_id+4, MPI_COMM_WORLD);
       }
       else {
         local_cubes_NRWG.resize(N_local_cubes);
@@ -1092,9 +1095,11 @@ int main(int argc, char* argv[]) {
         local_target_mesh.N_local_RWG = NRWG;
         local_target_mesh.localRWGNumbers.resize(NRWG);
         local_target_mesh.localRWGNumber_CFIE_OK.resize(NRWG);
+        local_target_mesh.localRWGNumber_signedTriangles.resize(NRWG, 2);
         local_target_mesh.localRWGNumber_trianglesCoord.resize(NRWG, 12);
         local_target_mesh.localRWGNumbers = localRWGNumbers;
         local_target_mesh.localRWGNumber_CFIE_OK = localRWGNumber_CFIE_OK;
+        local_target_mesh.localRWGNumber_signedTriangles = localRWGNumber_signedTriangles;
         local_target_mesh.localRWGNumber_trianglesCoord = localRWGNumber_trianglesCoord;
       }
     }
@@ -1106,21 +1111,19 @@ int main(int argc, char* argv[]) {
     local_target_mesh.N_local_RWG = NRWG;
     local_target_mesh.localRWGNumbers.resize(NRWG);
     local_target_mesh.localRWGNumber_CFIE_OK.resize(NRWG);
+    local_target_mesh.localRWGNumber_signedTriangles.resize(NRWG, 2);
     local_target_mesh.localRWGNumber_trianglesCoord.resize(NRWG, 12);
       
     MPI_Recv(local_target_mesh.localRWGNumbers.data(), NRWG, MPI_INT, 0, my_id+1, MPI_COMM_WORLD, &status);
     MPI_Recv(local_target_mesh.localRWGNumber_CFIE_OK.data(), NRWG, MPI_INT, 0, my_id+2, MPI_COMM_WORLD, &status);
-    cout << "receive to P" << my_id << " : " << "N_local_RWGs = " << local_target_mesh.localRWGNumber_CFIE_OK.size() << endl;
-    flush(cout);
-    MPI_Recv(local_target_mesh.localRWGNumber_trianglesCoord.data(), local_target_mesh.localRWGNumber_trianglesCoord.size(), MPI_FLOAT, 0, my_id+3, MPI_COMM_WORLD, &status);
-    cout << "receive to P" << my_id << " : " << "local_target_mesh.localRWGNumber_trianglesCoord.size() = " << local_target_mesh.localRWGNumber_trianglesCoord.size() << endl;
-    flush(cout);
+    MPI_Recv(local_target_mesh.localRWGNumber_signedTriangles.data(), local_target_mesh.localRWGNumber_signedTriangles.size(), MPI_INT, 0, my_id+3, MPI_COMM_WORLD, &status);
+    MPI_Recv(local_target_mesh.localRWGNumber_trianglesCoord.data(), local_target_mesh.localRWGNumber_trianglesCoord.size(), MPI_FLOAT, 0, my_id+4, MPI_COMM_WORLD, &status);
   }
      
   ierror = MPI_Barrier(MPI_COMM_WORLD);
 
   // now let's construct the octtree cubes local meshes!
-  octtree.computeGaussLocatedArguments(local_cubes_NRWG, local_target_mesh.localRWGNumbers, local_target_mesh.localRWGNumber_CFIE_OK, local_target_mesh.localRWGNumber_trianglesCoord);
+  octtree.computeGaussLocatedArguments(local_cubes_NRWG, local_target_mesh.localRWGNumbers, local_target_mesh.localRWGNumber_CFIE_OK, local_target_mesh.localRWGNumber_signedTriangles, local_target_mesh.localRWGNumber_trianglesCoord);
   octtree.RWGs_renumbering();
   // final moves
   local_target_mesh.reallyLocalRWGNumbers.resize(local_target_mesh.localRWGNumbers.size());

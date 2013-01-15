@@ -837,6 +837,7 @@ void Level::computeOldIndexesOfCubes(blitz::Array<int, 1>& oldIndexesOfCubes) {
 void Level::computeGaussLocatedArguments(const blitz::Array<int, 1>& local_cubes_NRWG, 
                                          const blitz::Array<int, 1>& local_RWG_numbers, 
                                          const blitz::Array<int, 1>& local_RWG_Numbers_CFIE_OK, 
+                                         const blitz::Array<int, 2>& local_RWGNumbers_signedTriangles,
                                          const blitz::Array<float, 2>& local_RWGNumbers_trianglesCoord,
                                          const int N_Gauss)
 {
@@ -846,7 +847,7 @@ void Level::computeGaussLocatedArguments(const blitz::Array<int, 1>& local_cubes
     for (int i=0 ; i<N_local_cubes ; ++i) {
       const int indexLocalCube = cubesIndexesAfterReduction[localCubesIndexes[i]];      
       const int NRWG = local_cubes_NRWG(i);
-      cubes[indexLocalCube].computeGaussLocatedArguments(local_RWG_numbers, local_RWG_Numbers_CFIE_OK, local_RWGNumbers_trianglesCoord, startIndex_in_localArrays, NRWG, N_Gauss);
+      cubes[indexLocalCube].computeGaussLocatedArguments(local_RWG_numbers, local_RWG_Numbers_CFIE_OK, local_RWGNumbers_signedTriangles, local_RWGNumbers_trianglesCoord, startIndex_in_localArrays, NRWG, N_Gauss);
       startIndex_in_localArrays += NRWG;
     }
   } 
@@ -873,7 +874,7 @@ void Level::computeSup(blitz::Array<std::complex<float>, 2> & Sup,
                        const blitz::Array<float, 1>& thetas,
                        const blitz::Array<float, 1>& phis)
 {
-  const int NThetas = thetas.size(), NPhis = phis.size(), NGauss = cube.GaussLocatedWeightedRWG.extent(1)/2;
+  const int NThetas = thetas.size(), NPhis = phis.size(), NGauss = cube.triangle_GaussCoord.extent(1)/3;
   blitz::Array< float [3], 1> kHats(NThetas * NPhis), thetaHats(NThetas * NPhis), phiHats(NThetas * NPhis);
   blitz::Array< std::complex<float> [3], 1> FC3Components(NThetas * NPhis);
   std::vector<float> sin_thetas, cos_thetas;
@@ -900,24 +901,28 @@ void Level::computeSup(blitz::Array<std::complex<float>, 2> & Sup,
   }
   // computation of FC3Components array
   const std::complex<float> I_k(static_cast<std::complex<float> >(I*k));
-  const int N_rwg = cube.RWG_numbers.size();
-  for (int i=0 ; i<N_rwg ; ++i) {
-    const int RWGNumber = cube.RWG_numbers[i];
-    const std::complex<float> i_pq = I_PQ(RWGNumber);
-    for (int j=0 ; j<2*NGauss ; ++j) {
-      // computing the local arrays
-      const float * localGaussLocatedWeightedRWG = cube.GaussLocatedWeightedRWG(i, j);
-      const float * localGaussLocatedExpArg = cube.GaussLocatedExpArg(i, j);
-      // construction of the evaluation of the RWG at one point
-      std::complex<float> fj[3];
-      fj[0] = i_pq * localGaussLocatedWeightedRWG[0];
-      fj[1] = i_pq * localGaussLocatedWeightedRWG[1];
-      fj[2] = i_pq * localGaussLocatedWeightedRWG[2];
+  const int T = cube.TriangleToRWGindex.size();
+  for (int i=0; i<T; i++) {
+    const int n_rwg = cube.TriangleToRWGindex[i].size();
+    for (int j=0; j<NGauss; j++) {
+      const float r[3] = {cube.triangle_GaussCoord(i, j*3), cube.triangle_GaussCoord(i, j*3+1), cube.triangle_GaussCoord(i, j*3+2)};
+      std::complex<float> fj[3] = {0.0, 0.0, 0.0};
+      // loop on the RWGs for triangle i
+      for (int rwg=0; rwg<n_rwg; rwg++) {
+        const int RWG_index = cube.TriangleToRWGindex[i][rwg];
+        const int RWGNumber = cube.RWG_numbers[RWG_index];
+        const float weight = cube.TriangleToRWGweight[i][rwg];
+        const std::complex<float> i_pq = I_PQ(RWGNumber);
+        fj[0] += i_pq*((r[0]-cube.TriangleToRWG_ropp[i][rwg*3]) * weight);
+        fj[1] += i_pq*((r[1]-cube.TriangleToRWG_ropp[i][rwg*3+1]) * weight);
+        fj[2] += i_pq*((r[2]-cube.TriangleToRWG_ropp[i][rwg*3+2]) * weight);
+      } // end loop RWGs
+      const float expArg[3] = {r[0]-cube.rCenter[0], r[1]-cube.rCenter[1], r[2]-cube.rCenter[2]};
       for (int q=0 ; q<NPhis/2 ; q++) {// for phi>pi, kHat = -kHat(pi-theta, phi-pi)
         const int index_1 = q*NThetas, opp_index_1 = NThetas-1 + (q+NPhis/2) * NThetas;
         for (int p=0 ; p<NThetas ; p++) {
           const int index = p + index_1, opp_index = opp_index_1-p;
-          const std::complex<float> Exp = exp( I_k * (localGaussLocatedExpArg[0]*kHats(index)[0] + localGaussLocatedExpArg[1]*kHats(index)[1] + localGaussLocatedExpArg[2]*kHats(index)[2]) );
+          const std::complex<float> Exp = exp( I_k * (expArg[0]*kHats(index)[0] + expArg[1]*kHats(index)[1] + expArg[2]*kHats(index)[2]) );
           FC3Components(index)[0] += fj[0] * Exp;
           FC3Components(index)[1] += fj[1] * Exp;
           FC3Components(index)[2] += fj[2] * Exp;

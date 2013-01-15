@@ -311,10 +311,11 @@ void Octtree::computeIndexesOfCubesInOriginalMesh(blitz::Array<int, 1>& oldIndex
 void Octtree::computeGaussLocatedArguments(const blitz::Array<int, 1>& local_cubes_NRWG, 
                                            const blitz::Array<int, 1>& local_RWG_numbers, 
                                            const blitz::Array<int, 1>& local_RWG_Numbers_CFIE_OK, 
+                                           const blitz::Array<int, 2>& local_RWGNumbers_signedTriangles, 
                                            const blitz::Array<float, 2>& local_RWGNumbers_trianglesCoord)
 {
   if ( (getProcNumber()==0) && (VERBOSE==1) ) cout << "computing the leaf level Gauss located arguments.........." << endl;
-  levels[0].computeGaussLocatedArguments(local_cubes_NRWG, local_RWG_numbers, local_RWG_Numbers_CFIE_OK, local_RWGNumbers_trianglesCoord, this->N_GaussOnTriangle);
+  levels[0].computeGaussLocatedArguments(local_cubes_NRWG, local_RWG_numbers, local_RWG_Numbers_CFIE_OK, local_RWGNumbers_signedTriangles, local_RWGNumbers_trianglesCoord, this->N_GaussOnTriangle);
 }
 
 void Octtree::RWGs_renumbering(void)

@@ -11,6 +11,7 @@ using namespace std;
 
 #include "EMConstants.h"
 #include "GK_triangle.h"
+#include "dictionary.h"
 
 class Cube {
     //! tells if the current cube is leaf (finest) or not
@@ -50,6 +51,12 @@ class Cube {
     //! the numbers of the RWGs pertaining to the current cube
     std::vector<int> RWG_numbers;
     std::vector<int> RWG_numbers_CFIE_OK;
+    std::vector< std::vector<int> > TriangleToRWGindex;
+    std::vector< std::vector<float> > TriangleToRWGweight; 
+    std::vector< std::vector<float> > TriangleToRWG_ropp;
+    blitz::Array<float, 2> triangle_GaussCoord;
+    blitz::Array<float, 2> triangle_nHat;
+
     blitz::Array< float [3], 2> GaussLocatedWeightedRWG;
     blitz::Array< float [3], 2> GaussLocatedWeighted_nHat_X_RWG;
     blitz::Array< float [3], 2> GaussLocatedExpArg;
@@ -129,6 +136,7 @@ class Cube {
     */
     void computeGaussLocatedArguments(const blitz::Array<int, 1>& local_RWG_numbers,
                                       const blitz::Array<int, 1>& local_RWG_Numbers_CFIE_OK,
+                                      const blitz::Array<int, 2>& local_RWGNumbers_signedTriangles,
                                       const blitz::Array<float, 2>& local_RWGNumbers_trianglesCoord,
                                       const int startIndex_in_localArrays,
                                       const int NRWG,
