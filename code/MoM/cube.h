@@ -56,11 +56,6 @@ class Cube {
     std::vector< std::vector<float> > TriangleToRWG_ropp;
     blitz::Array<float, 2> triangle_GaussCoord;
     blitz::Array<float, 2> triangle_nHat;
-
-    blitz::Array< float [3], 2> GaussLocatedWeightedRWG;
-    blitz::Array< float [3], 2> GaussLocatedWeighted_nHat_X_RWG;
-    blitz::Array< float [3], 2> GaussLocatedExpArg;
-
     // constructors
     Cube(void){};
     //! the base constructor

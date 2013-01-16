@@ -952,11 +952,14 @@ void Level::sphericalIntegration(blitz::Array<std::complex<float>, 1>& ZI,
                                  const blitz::Array<std::complex<float>, 1>& CFIE)
 {
   const std::complex<float> ZZERO(0.0, 0.0);
-  const bool tE_tmp = (CFIE(0)!=ZZERO), nH_tmp = (CFIE(3)!=ZZERO);
-  const int NThetas = thetas.size(), NPhis = phis.size(), NGauss = cube.GaussLocatedWeightedRWG.extent(1)/2;
+  const bool tE_tmp = (CFIE(0)!=ZZERO), nE_tmp = (CFIE(1)!=ZZERO); 
+  const bool tH_tmp = (CFIE(2)!=ZZERO), nH_tmp = (CFIE(3)!=ZZERO);
+  const std::complex<float> JEFIE_factor(static_cast<std::complex<float> >(-I*mu_0)  * w * mu_r * CFIE(0));
+  const std::complex<float> JMFIE_factor(static_cast<std::complex<float> >(I*k) * CFIE(3));
+  const int NThetas = thetas.size(), NPhis = phis.size(), NGauss = cube.triangle_GaussCoord.extent(1)/3;
   float thetaHat[3], phiHat[3];
-  blitz::Array< float [3], 1> kHats(NThetas * NPhis);
-  blitz::Array< std::complex<float> [3], 1> GC3Components(NThetas * NPhis);
+  blitz::Array< float, 2> kHats(NThetas * NPhis, 3);
+  blitz::Array< std::complex<float>, 2> GC3Components(NThetas * NPhis, 3), GC3Exp(NThetas * NPhis, 3);
   std::vector<float> sin_thetas, cos_thetas;
   sin_thetas.resize(NThetas);
   cos_thetas.resize(NThetas);
@@ -968,58 +971,79 @@ void Level::sphericalIntegration(blitz::Array<std::complex<float>, 1>& ZI,
     for (int p=0 ; p<NThetas ; ++p) {
       int index = p + q*NThetas;
       const float sin_theta = sin_thetas[p], cos_theta = cos_thetas[p];
-      kHats(index)[0] = sin_theta*cos_phi;
-      kHats(index)[1] = sin_theta*sin_phi;
-      kHats(index)[2] = cos_theta;
+      kHats(index, 0) = sin_theta*cos_phi;
+      kHats(index, 1) = sin_theta*sin_phi;
+      kHats(index, 2) = cos_theta;
       const float thetaHat[3] = {cos_theta*cos_phi, cos_theta*sin_phi, -sin_theta};
-      GC3Components(index)[0] = Sdown(0, index) * thetaHat[0] + Sdown(1, index) * phiHat[0];
-      GC3Components(index)[1] = Sdown(0, index) * thetaHat[1] + Sdown(1, index) * phiHat[1];
-      GC3Components(index)[2] = Sdown(0, index) * thetaHat[2] + Sdown(1, index) * phiHat[2];
+      GC3Components(index, 0) = Sdown(0, index) * thetaHat[0] + Sdown(1, index) * phiHat[0];
+      GC3Components(index, 1) = Sdown(0, index) * thetaHat[1] + Sdown(1, index) * phiHat[1];
+      GC3Components(index, 2) = Sdown(0, index) * thetaHat[2] + Sdown(1, index) * phiHat[2];
     }
   }
   // computation of integration
   blitz::Array<std::complex<float>, 1> EXP(NThetas * NPhis/2);
   // defining local arrays used for faster computations
-  const std::complex<float> I_k(static_cast<std::complex<float> >(I*k)), minus_I_k(static_cast<std::complex<float> >(-I*k));
-  const int N_rwg = cube.RWG_numbers.size();
-  for (int i=0 ; i<N_rwg ; ++i) {
-    const int RWGNumber = cube.RWG_numbers[i];
-    std::complex<float> ZI_tE(0.0, 0.0), ZI_nH(0.0, 0.0);
-    const bool tE = tE_tmp, nH = nH_tmp * cube.RWG_numbers_CFIE_OK[i];
-    for (int j=0 ; j<2*NGauss ; ++j) {
-      // filling the local arrays
-      const float * localGaussLocatedWeightedRWG = cube.GaussLocatedWeightedRWG(i, j);
-      const float * localGaussLocatedWeighted_nHat_X_RWG = cube.GaussLocatedWeighted_nHat_X_RWG(i, j);
-      const float * localGaussLocatedExpArg = cube.GaussLocatedExpArg(i, j);
-      // computing the integration
+  const std::complex<float> minus_I_k(static_cast<std::complex<float> >(-I*k));
+  const int T = cube.TriangleToRWGindex.size();
+  for (int i=0; i<T; i++) {
+    const int n_rwg = cube.TriangleToRWGindex[i].size();
+    const float nHat[3] = {cube.triangle_nHat(i, 0), cube.triangle_nHat(i, 1), cube.triangle_nHat(i, 2)};
+    for (int j=0; j<NGauss; j++) {
+      const float r[3] = {cube.triangle_GaussCoord(i, j*3), cube.triangle_GaussCoord(i, j*3+1), cube.triangle_GaussCoord(i, j*3+2)};
+      // computation of the shifting terms
+      const float expArg[3] = {r[0]-cube.rCenter[0], r[1]-cube.rCenter[1], r[2]-cube.rCenter[2]};
+      std::complex<float> EJ[3] = {0.0, 0.0, 0.0};
       for (int q=0 ; q<NPhis/2 ; q++) {// for phi>pi, kHat = -kHat(pi-theta, phi-pi)
         const int index_1 = q*NThetas, opp_index_1 = NThetas-1 + (q+NPhis/2) * NThetas;
         for (int p=0 ; p<NThetas ; p++) {
           const int index = p + index_1, opp_index = opp_index_1-p;
-          EXP(index) = exp( minus_I_k * (localGaussLocatedExpArg[0]*kHats(index)[0] + localGaussLocatedExpArg[1]*kHats(index)[1] + localGaussLocatedExpArg[2]*kHats(index)[2]) );
-          ZI_tE += (GC3Components(index)[0] * localGaussLocatedWeightedRWG[0] + GC3Components(index)[1] * localGaussLocatedWeightedRWG[1] + GC3Components(index)[2] * localGaussLocatedWeightedRWG[2]) * EXP(index);
-          const std::complex<float> zi_te_2((GC3Components(opp_index)[0] * localGaussLocatedWeightedRWG[0] + GC3Components(opp_index)[1] * localGaussLocatedWeightedRWG[1] + GC3Components(opp_index)[2] * localGaussLocatedWeightedRWG[2]) * conj(EXP(index)));
-          ZI_tE += zi_te_2;
+          EXP(index) = exp( minus_I_k * (expArg[0]*kHats(index, 0) + expArg[1]*kHats(index, 1) + expArg[2]*kHats(index, 2)) );
+          GC3Exp(index, 0) = GC3Components(index, 0)*EXP(index);
+          GC3Exp(index, 1) = GC3Components(index, 1)*EXP(index);
+          GC3Exp(index, 2) = GC3Components(index, 2)*EXP(index);
+          std::complex<float> conjExp = conj(EXP(index));
+          GC3Exp(opp_index, 0) = GC3Components(opp_index, 0)*conjExp;
+          GC3Exp(opp_index, 1) = GC3Components(opp_index, 1)*conjExp;
+          GC3Exp(opp_index, 2) = GC3Components(opp_index, 2)*conjExp;
+          EJ[0] += (GC3Exp(index, 0) + GC3Exp(opp_index, 0));
+          EJ[1] += (GC3Exp(index, 1) + GC3Exp(opp_index, 1));
+          EJ[2] += (GC3Exp(index, 2) + GC3Exp(opp_index, 2));
         }
       }
-      // nH     
-      if (nH) {
-        for (int q=0 ; q<NPhis/2 ; q++) {// for phi>pi, kHat = -kHat(pi-theta, phi-pi)
-          const int index_1 = q*NThetas, opp_index_1 = NThetas-1 + (q+NPhis/2) * NThetas;
+      // now for the MFIEs
+      std::complex<float> GC3_x_kHat[3] = {0.0, 0.0, 0.0};
+      if (tH_tmp || nH_tmp) {
+        // we first have to compute GC3_x_kHat
+        for (int q=0 ; q<NPhis ; q++) {// for phi>pi, kHat = -kHat(pi-theta, phi-pi)
+          const int index_1 = q*NThetas;
           for (int p=0 ; p<NThetas ; p++) {
-            const int index = p + index_1, opp_index = opp_index_1-p;
-            std::complex<float> kHat_X_nHat_X_fj[3];
-            kHat_X_nHat_X_fj[0] = (kHats(index)[1]*localGaussLocatedWeighted_nHat_X_RWG[2] - kHats(index)[2]*localGaussLocatedWeighted_nHat_X_RWG[1]);
-            kHat_X_nHat_X_fj[1] = (kHats(index)[2]*localGaussLocatedWeighted_nHat_X_RWG[0] - kHats(index)[0]*localGaussLocatedWeighted_nHat_X_RWG[2]);
-            kHat_X_nHat_X_fj[2] = (kHats(index)[0]*localGaussLocatedWeighted_nHat_X_RWG[1] - kHats(index)[1]*localGaussLocatedWeighted_nHat_X_RWG[0]);
-            ZI_nH += (GC3Components(index)[0] * kHat_X_nHat_X_fj[0] + GC3Components(index)[1] * kHat_X_nHat_X_fj[1] + GC3Components(index)[2] * kHat_X_nHat_X_fj[2]) * EXP(index);
-            const std::complex<float> zi_nh_2((GC3Components(opp_index)[0] * kHat_X_nHat_X_fj[0] + GC3Components(opp_index)[1] * kHat_X_nHat_X_fj[1] + GC3Components(opp_index)[2] * kHat_X_nHat_X_fj[2]) * conj(EXP(index)));
-            ZI_nH -= zi_nh_2;
+            const int index = p + index_1;
+            GC3_x_kHat[0] += GC3Exp(index, 1) * kHats(index, 2) - GC3Exp(index, 2) * kHats(index, 1);
+            GC3_x_kHat[1] += GC3Exp(index, 2) * kHats(index, 0) - GC3Exp(index, 0) * kHats(index, 2);
+            GC3_x_kHat[2] += GC3Exp(index, 0) * kHats(index, 1) - GC3Exp(index, 1) * kHats(index, 0);
           }
         }
-      } // end nH
-    }
-    ZI(RWGNumber) += static_cast<std::complex<float> >(-I*mu_0)  * w * mu_r * CFIE(0) * ZI_tE + CFIE(3) * I_k * ZI_nH;
-  }
+      } // end if for MFIE
+      // loop on the RWGs for triangle i
+      for (int rwg=0; rwg<n_rwg; rwg++) {
+        // common EFIE and MFIE
+        const int RWG_index = cube.TriangleToRWGindex[i][rwg];
+        const int RWGNumber = cube.RWG_numbers[RWG_index];
+        const float weight = cube.TriangleToRWGweight[i][rwg];
+        // EFIE
+        const float fj[3] = {(r[0]-cube.TriangleToRWG_ropp[i][rwg*3]) * weight, (r[1]-cube.TriangleToRWG_ropp[i][rwg*3+1]) * weight, (r[2]-cube.TriangleToRWG_ropp[i][rwg*3+2]) * weight};
+        ZI(RWGNumber) += JEFIE_factor * (EJ[0]*fj[0] + EJ[1]*fj[1] + EJ[2]*fj[2]);
+        // MFIE
+        const bool nH = nH_tmp * cube.RWG_numbers_CFIE_OK[RWG_index];
+        if (nH) {
+          float nHat_x_fj[3];
+          nHat_x_fj[0] = nHat[1]*fj[2]-nHat[2]*fj[1];
+          nHat_x_fj[1] = nHat[2]*fj[0]-nHat[0]*fj[2];
+          nHat_x_fj[2] = nHat[0]*fj[1]-nHat[1]*fj[0];
+          ZI(RWGNumber) += JMFIE_factor * (nHat_x_fj[0]*GC3_x_kHat[0] + nHat_x_fj[1]*GC3_x_kHat[1] + nHat_x_fj[2]*GC3_x_kHat[2]);
+        } // end if (nH)
+      }// end loop on the RWGs
+    }// end Gauss integration points loop
+  }// end triangles loop
 }
 
