@@ -981,7 +981,6 @@ void Level::sphericalIntegration(blitz::Array<std::complex<float>, 1>& ZI,
     }
   }
   // computation of integration
-  blitz::Array<std::complex<float>, 1> EXP(NThetas * NPhis/2);
   // defining local arrays used for faster computations
   const std::complex<float> minus_I_k(static_cast<std::complex<float> >(-I*k));
   const int T = cube.TriangleToRWGindex.size();
@@ -997,11 +996,11 @@ void Level::sphericalIntegration(blitz::Array<std::complex<float>, 1>& ZI,
         const int index_1 = q*NThetas, opp_index_1 = NThetas-1 + (q+NPhis/2) * NThetas;
         for (int p=0 ; p<NThetas ; p++) {
           const int index = p + index_1, opp_index = opp_index_1-p;
-          EXP(index) = exp( minus_I_k * (expArg[0]*kHats(index, 0) + expArg[1]*kHats(index, 1) + expArg[2]*kHats(index, 2)) );
-          GC3Exp(index, 0) = GC3Components(index, 0)*EXP(index);
-          GC3Exp(index, 1) = GC3Components(index, 1)*EXP(index);
-          GC3Exp(index, 2) = GC3Components(index, 2)*EXP(index);
-          std::complex<float> conjExp = conj(EXP(index));
+          const std::complex<float> EXP = exp( minus_I_k * (expArg[0]*kHats(index, 0) + expArg[1]*kHats(index, 1) + expArg[2]*kHats(index, 2)) );
+          GC3Exp(index, 0) = GC3Components(index, 0)*EXP;
+          GC3Exp(index, 1) = GC3Components(index, 1)*EXP;
+          GC3Exp(index, 2) = GC3Components(index, 2)*EXP;
+          const std::complex<float> conjExp = conj(EXP);
           GC3Exp(opp_index, 0) = GC3Components(opp_index, 0)*conjExp;
           GC3Exp(opp_index, 1) = GC3Components(opp_index, 1)*conjExp;
           GC3Exp(opp_index, 2) = GC3Components(opp_index, 2)*conjExp;
