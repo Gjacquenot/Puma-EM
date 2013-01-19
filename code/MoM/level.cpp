@@ -875,8 +875,8 @@ void Level::computeSup(blitz::Array<std::complex<float>, 2> & Sup,
                        const blitz::Array<float, 1>& phis)
 {
   const int NThetas = thetas.size(), NPhis = phis.size(), NGauss = cube.triangle_GaussCoord.extent(1)/3;
-  blitz::Array< float [3], 1> kHats(NThetas * NPhis), thetaHats(NThetas * NPhis), phiHats(NThetas * NPhis);
-  blitz::Array< std::complex<float> [3], 1> FC3Components(NThetas * NPhis);
+  blitz::Array< float, 2> kHats(NThetas * NPhis, 3), thetaHats(NThetas * NPhis, 3), phiHats(NThetas * NPhis, 3);
+  blitz::Array< std::complex<float>, 2> FC3Components(NThetas * NPhis, 3);
   std::vector<float> sin_thetas, cos_thetas;
   sin_thetas.resize(NThetas);
   cos_thetas.resize(NThetas);
@@ -887,16 +887,16 @@ void Level::computeSup(blitz::Array<std::complex<float>, 2> & Sup,
     for (int p=0 ; p<NThetas ; ++p) {
       int index = p + q*NThetas;
       const float sin_theta = sin_thetas[p], cos_theta = cos_thetas[p];
-      kHats(index)[0] = sin_theta*cos_phi;
-      kHats(index)[1] = sin_theta*sin_phi;
-      kHats(index)[2] = cos_theta;
-      thetaHats(index)[0] = cos_theta*cos_phi;
-      thetaHats(index)[1] = cos_theta*sin_phi;
-      thetaHats(index)[2] = -sin_theta;
-      phiHats(index)[0] = -sin_phi;
-      phiHats(index)[1] = cos_phi;
-      phiHats(index)[2] = 0.0;
-      for (int i=0 ; i<3 ; i++) FC3Components(index)[i] = 0.0;
+      kHats(index, 0) = sin_theta*cos_phi;
+      kHats(index, 1) = sin_theta*sin_phi;
+      kHats(index, 2) = cos_theta;
+      thetaHats(index, 0) = cos_theta*cos_phi;
+      thetaHats(index, 1) = cos_theta*sin_phi;
+      thetaHats(index, 2) = -sin_theta;
+      phiHats(index, 0) = -sin_phi;
+      phiHats(index, 1) = cos_phi;
+      phiHats(index, 2) = 0.0;
+      for (int i=0 ; i<3 ; i++) FC3Components(index, i) = 0.0;
     }
   }
   // computation of FC3Components array
@@ -922,22 +922,22 @@ void Level::computeSup(blitz::Array<std::complex<float>, 2> & Sup,
         const int index_1 = q*NThetas, opp_index_1 = NThetas-1 + (q+NPhis/2) * NThetas;
         for (int p=0 ; p<NThetas ; p++) {
           const int index = p + index_1, opp_index = opp_index_1-p;
-          const std::complex<float> Exp = exp( I_k * (expArg[0]*kHats(index)[0] + expArg[1]*kHats(index)[1] + expArg[2]*kHats(index)[2]) );
-          FC3Components(index)[0] += fj[0] * Exp;
-          FC3Components(index)[1] += fj[1] * Exp;
-          FC3Components(index)[2] += fj[2] * Exp;
+          const std::complex<float> Exp = exp( I_k * (expArg[0]*kHats(index, 0) + expArg[1]*kHats(index, 1) + expArg[2]*kHats(index, 2)) );
+          FC3Components(index, 0) += fj[0] * Exp;
+          FC3Components(index, 1) += fj[1] * Exp;
+          FC3Components(index, 2) += fj[2] * Exp;
           const std::complex<float> conjExp(conj(Exp));
-          FC3Components(opp_index)[0] += fj[0] * conjExp;
-          FC3Components(opp_index)[1] += fj[1] * conjExp;
-          FC3Components(opp_index)[2] += fj[2] * conjExp;
+          FC3Components(opp_index, 0) += fj[0] * conjExp;
+          FC3Components(opp_index, 1) += fj[1] * conjExp;
+          FC3Components(opp_index, 2) += fj[2] * conjExp;
         }
       }
     }
   }
   // transformation from cartesian to spherical coordinates and assignation to Sup
   for (int i=0 ; i<Sup.extent(1) ; ++i) {
-    Sup(0, i) = thetaHats(i)[0]*FC3Components(i)[0] + thetaHats(i)[1]*FC3Components(i)[1] + thetaHats(i)[2]*FC3Components(i)[2];
-    Sup(1, i) = phiHats(i)[0]*FC3Components(i)[0] + phiHats(i)[1]*FC3Components(i)[1] + phiHats(i)[2]*FC3Components(i)[2];
+    Sup(0, i) = thetaHats(i, 0)*FC3Components(i, 0) + thetaHats(i, 1)*FC3Components(i, 1) + thetaHats(i, 2)*FC3Components(i, 2);
+    Sup(1, i) = phiHats(i, 0)*FC3Components(i, 0) + phiHats(i, 1)*FC3Components(i, 1) + phiHats(i, 2)*FC3Components(i, 2);
   }
 }
 
