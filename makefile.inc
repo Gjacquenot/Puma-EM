@@ -1,6 +1,6 @@
 CC:= g++
 MPICC:= mpiCC
-CFLAGS:= -c -O3 -fPIC
+CFLAGS:= -c -O2 -fPIC
 #CFLAGS:= -c -O3 -funroll-loops -ftemplate-depth-30 -fPIC
 #CFLAGS:= -c -g -fPIC
 F77:= gfortran

@@ -405,7 +405,7 @@ Octtree::~Octtree()
   CFIE.free();
 }
 
-const std::vector<int> Octtree::getNeighborsSonsIndexes(const int index, const int l) const
+std::vector<int> Octtree::getNeighborsSonsIndexes(const int index, const int l) const
 {
   std::vector<int> sonsOfNeighbors, sonsOfNeighborsTmp;
   const std::vector<int> neighborsIndexes(getCubeLevel(index, l).getNeighborsIndexes());

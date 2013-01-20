@@ -228,48 +228,48 @@ class Level {
     ~Level();
 
     // specific functions
-    const bool getLeaf(void) const {return leaf;};
-    void setCeiling(bool l) {ceiling = l;};
-    const bool getCeiling(void) const {return ceiling;};
-    void setLevel(int l) {level = l;};
-    const int getLevel(void) const {return level;};
+    bool getLeaf(void) const {return leaf;}
+    void setCeiling(bool l) {ceiling = l;}
+    bool getCeiling(void) const {return ceiling;}
+    void setLevel(int l) {level = l;}
+    int getLevel(void) const {return level;}
     //! maxNumberCubes1D = static_cast<int> pow(2.0, level)
-    const int getMaxNumberCubes1D(void) const {return maxNumberCubes1D;};
-    const int getNumberTimesCopied(void) const {return numberTimesCopied;};
-    void incrementNumberTimesCopied(void) {numberTimesCopied += 1;};
+    int getMaxNumberCubes1D(void) const {return maxNumberCubes1D;}
+    int getNumberTimesCopied(void) const {return numberTimesCopied;}
+    void incrementNumberTimesCopied(void) {numberTimesCopied += 1;}
     void NCubesXYZComputation(const int VERBOSE);
-    const int getNCubesX(void) const {return NCubesX;};
-    const int getNCubesY(void) const {return NCubesY;};
-    const int getNCubesZ(void) const {return NCubesZ;};
-    const int getOffsetAlphaIndexX(void) const {return offsetAlphaIndexX;};
-    const int getOffsetAlphaIndexY(void) const {return offsetAlphaIndexY;};
-    const int getOffsetAlphaIndexZ(void) const {return offsetAlphaIndexZ;};
-    const int getN(void) const {return N;};
-    const double getCubeSideLength(void) const {return cubeSideLength;};
-    const std::complex<double> getK(void) const {return k;};
-    void addNode(Cube cube) {cubes.push_back(cube);};
-    const Cube getCube(const int i) const {return cubes[i];};
-    const std::vector<Cube> getCubes(void) const {return cubes;};
-    const double getCubesSizeMB(void) const {return cubes.size() * (thetas.size()*phis.size()) *  2 * 2.0*4.0/(1024.0*1024.0);};
-    const std::vector<int> getCubeNeighbors(const int i) const {return cubes[i].getNeighborsIndexes();};
-    const std::vector< Dictionary<int, int> > getNumbersToIndexes(void) const {return numbersToIndexes;};
-    const std::vector<int> getLocalCubesIndexes(void) const {return localCubesIndexes;};
-    const std::vector< std::vector<int> > getListOfFcToBeReceived(void) const {return listOfFcToBeReceived;};
-    const std::vector< std::vector<int> > getListOfFcToBeSent(void) const {return listOfFcToBeSent;};
-    const std::vector<int> getCubesIndexesAfterReduction(void) const {return cubesIndexesAfterReduction;};
+    int getNCubesX(void) const {return NCubesX;}
+    int getNCubesY(void) const {return NCubesY;}
+    int getNCubesZ(void) const {return NCubesZ;}
+    int getOffsetAlphaIndexX(void) const {return offsetAlphaIndexX;}
+    int getOffsetAlphaIndexY(void) const {return offsetAlphaIndexY;}
+    int getOffsetAlphaIndexZ(void) const {return offsetAlphaIndexZ;}
+    int getN(void) const {return N;}
+    double getCubeSideLength(void) const {return cubeSideLength;}
+    std::complex<double> getK(void) const {return k;}
+    void addNode(Cube cube) {cubes.push_back(cube);}
+    Cube getCube(const int i) const {return cubes[i];}
+    std::vector<Cube> getCubes(void) const {return cubes;}
+    double getCubesSizeMB(void) const {return cubes.size() * (thetas.size()*phis.size()) *  2 * 2.0*4.0/(1024.0*1024.0);}
+    std::vector<int> getCubeNeighbors(const int i) const {return cubes[i].getNeighborsIndexes();}
+    std::vector< Dictionary<int, int> > getNumbersToIndexes(void) const {return numbersToIndexes;}
+    std::vector<int> getLocalCubesIndexes(void) const {return localCubesIndexes;}
+    std::vector< std::vector<int> > getListOfFcToBeReceived(void) const {return listOfFcToBeReceived;}
+    std::vector< std::vector<int> > getListOfFcToBeSent(void) const {return listOfFcToBeSent;}
+    std::vector<int> getCubesIndexesAfterReduction(void) const {return cubesIndexesAfterReduction;}
     void computeOldIndexesOfCubes(blitz::Array<int, 1>& /*oldIndexesOfCubes*/); 
     void computeLevelReduction(void);
-    const int getNumbersToIndexesSize(void) const {return numbersToIndexes.size();};
-    const int getNumberToIndex(const int i) const {return numbersToIndexes[i].getKey();};
-    const int getIndexToIndex(const int i) const {return numbersToIndexes[i].getVal();};
-    const int getIndexOfNumber(const int) const;
-    int getLevelSize(void) const {return cubes.size();};
-    const int getSizeOfAlphaTransParticipantsIndexes(void) const {int result = 0; for (int i=0; i<cubes.size(); ++i) result += (cubes[i].localAlphaTransParticipantsIndexes.size() + cubes[i].nonLocalAlphaTransParticipantsIndexes.size()); return result;};
-    const float getSizeMBOfAlphaTransParticipantsIndexes(void) const {return getSizeOfAlphaTransParticipantsIndexes()*4.0/(1024.0*1024.0);}
-    const blitz::Array<float, 1> getThetas(void) const {return thetas;};
-    const blitz::Array<float, 1> getPhis(void) const {return phis;};
-    const int getNThetas(void) const {return thetas.size();};
-    const int getNPhis(void) const {return phis.size();};
+    int getNumbersToIndexesSize(void) const {return numbersToIndexes.size();}
+    int getNumberToIndex(const int i) const {return numbersToIndexes[i].getKey();}
+    int getIndexToIndex(const int i) const {return numbersToIndexes[i].getVal();}
+    int getIndexOfNumber(const int) const;
+    int getLevelSize(void) const {return cubes.size();}
+    int getSizeOfAlphaTransParticipantsIndexes(void) const {int result = 0; for (int i=0; i<cubes.size(); ++i) result += (cubes[i].localAlphaTransParticipantsIndexes.size() + cubes[i].nonLocalAlphaTransParticipantsIndexes.size()); return result;}
+    float getSizeMBOfAlphaTransParticipantsIndexes(void) const {return getSizeOfAlphaTransParticipantsIndexes()*4.0/(1024.0*1024.0);}
+    blitz::Array<float, 1> getThetas(void) const {return thetas;}
+    blitz::Array<float, 1> getPhis(void) const {return phis;}
+    int getNThetas(void) const {return thetas.size();}
+    int getNPhis(void) const {return phis.size();}
     void computeGaussLocatedArguments(const blitz::Array<int, 1>& /*local_cubes_NRWG*/, 
                                       const blitz::Array<int, 1>& /*local_RWG_numbers*/, 
                                       const blitz::Array<int, 1>& /*local_RWG_Numbers_CFIE_OK*/, 
@@ -278,13 +278,13 @@ class Level {
                                       const int /*N_Gauss*/);
     void RWGs_renumbering(void);
     void shiftingArraysComputation(void);
-    const double getShiftingArraysSizeMB(void) const {return shiftingArrays.size() *  2.0*4.0/(1024.0*1024.0);};
-    const blitz::Array<int, 1> getAlphaTranslationsExtents(void) const;
-    const blitz::Array< blitz::Array<std::complex<float>, 1>, 3> getAlphaTranslations(void) const {return alphaTranslations;};
-    const double getAlphaTranslationsSizeMB(void) const;
-    const double getAlphaTranslationsIndexesSizeMB(void) const {return alphaTranslationsIndexes.size() * 4.0/(1024.0*1024.0);};
-    const blitz::Array<std::complex<float>, 2> getShiftingArrays(void) const {return shiftingArrays;};
-    const blitz::Array<std::complex<float>, 1> getShiftingArray(const double Dx, const double Dy, const double Dz) const {return shiftingArrays((Dx>0.0) * 4 + (Dy>0.0) * 2 + (Dz>0.0), blitz::Range::all());};
+    double getShiftingArraysSizeMB(void) const {return shiftingArrays.size() *  2.0*4.0/(1024.0*1024.0);}
+    blitz::Array<int, 1> getAlphaTranslationsExtents(void) const;
+    blitz::Array< blitz::Array<std::complex<float>, 1>, 3> getAlphaTranslations(void) const {return alphaTranslations;}
+    double getAlphaTranslationsSizeMB(void) const;
+    double getAlphaTranslationsIndexesSizeMB(void) const {return alphaTranslationsIndexes.size() * 4.0/(1024.0*1024.0);}
+    blitz::Array<std::complex<float>, 2> getShiftingArrays(void) const {return shiftingArrays;}
+    const blitz::Array<std::complex<float>, 1> getShiftingArray(const double Dx, const double Dy, const double Dz) const {return shiftingArrays((Dx>0.0) * 4 + (Dy>0.0) * 2 + (Dz>0.0), blitz::Range::all());}
     void alphaTranslationsComputation(const int VERBOSE,
                                       const float alphaTranslation_smoothing_factor,
                                       const float alphaTranslation_thresholdRelValueMax,
@@ -304,9 +304,9 @@ class Level {
                                             const int /*alphaCartesianCoordX*/,
                                             const int /*N_theta*/,
                                             const int /*N_phi*/);
-    const blitz::Array<float, 1> getWeightsThetas(void) const {return weightsThetas;}; 
-    const blitz::Array<float, 1> getWeightsPhis(void) const {return weightsPhis;}; 
-    const LagrangeFastInterpolator2D getLfi2D(void) const {return lfi2D;};
+    blitz::Array<float, 1> getWeightsThetas(void) const {return weightsThetas;} 
+    blitz::Array<float, 1> getWeightsPhis(void) const {return weightsPhis;} 
+    LagrangeFastInterpolator2D getLfi2D(void) const {return lfi2D;}
 
     void sortCubesByParents(void);
     void printCubesSonsIndexes(void);

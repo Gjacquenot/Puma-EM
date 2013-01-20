@@ -405,7 +405,7 @@ void change_triangle_circulation(blitz::Array<int, 2>& triangle_vertexes, const 
   }
 }
 
-const bool array_has_zero(int & index, const blitz::Array<int, 1>& x)
+bool array_has_zero(int & index, const blitz::Array<int, 1>& x)
 /* this function checks if an int array has zero and where */
 {
   const int N = x.size();

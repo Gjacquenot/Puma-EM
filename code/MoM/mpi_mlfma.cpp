@@ -45,24 +45,24 @@ class MatvecMLFMA {
     string simuDir;
 
     // constructors
-    MatvecMLFMA(void){;};
+    MatvecMLFMA(void){}
     MatvecMLFMA(Octtree & /*octtree*/,
                 const int /*numberOfRWG*/,
                 const blitz::Array<int, 1>& /*localRWGindexes*/,
 		const string & /*simuDir*/);
     // destructor
-    ~MatvecMLFMA(void){localRWGnumbers.free();};
+    ~MatvecMLFMA(void){localRWGnumbers.free();}
     // copy operators
     void copyMatvecMLFMA (const MatvecMLFMA&);
     MatvecMLFMA(const MatvecMLFMA&); // copy constructor
     MatvecMLFMA& operator=(const MatvecMLFMA&); // copy assignment operator
 
     // function
-    void setProcNumber(const int n) {procNumber = n;};
-    const int getProcNumber(void) const {return procNumber;};
-    void setTotalProcNumber(const int n) {totalProcNumber = n;};
-    const int getTotalProcNumber(void) const {return totalProcNumber;};
-    const int getN_RWG(void) const {return N_RWG;};
+    void setProcNumber(const int n) {procNumber = n;}
+    int getProcNumber(void) const {return procNumber;}
+    void setTotalProcNumber(const int n) {totalProcNumber = n;}
+    int getTotalProcNumber(void) const {return totalProcNumber;}
+    int getN_RWG(void) const {return N_RWG;}
     void matvecZnear(blitz::Array<std::complex<float>, 1> & /*y*/,
                      const blitz::Array<std::complex<float>, 1> & /*x*/);
     blitz::Array<std::complex<float>, 1> matvec(const blitz::Array<std::complex<float>, 1> & /*x*/);
@@ -185,12 +185,12 @@ class LeftFrobPsolveMLFMA {
     string simuDir;
 
     // constructors
-    LeftFrobPsolveMLFMA(void){;};
+    LeftFrobPsolveMLFMA(void){}
     LeftFrobPsolveMLFMA(const int /*numberOfRWG*/,
                         const blitz::Array<int, 1>& /*localRWGindexes*/,
                         const string & /*simuDir*/);
     // destructor
-    ~LeftFrobPsolveMLFMA(void){localRWGnumbers.free();};
+    ~LeftFrobPsolveMLFMA(void){localRWGnumbers.free();}
     // copy operators
     void copyLeftFrobPsolveMLFMA (const LeftFrobPsolveMLFMA&);
     LeftFrobPsolveMLFMA(const LeftFrobPsolveMLFMA&); // copy constructor
@@ -307,7 +307,7 @@ class PsolveAMLFMA { // should use FGMRES and _NOT_ GMRES or BiCGSTAB
                  const int /*numberOfRWG*/,
                  const string & /*INNER_SOLVER*/,
                  const string & /*simuDir*/);
-    ~PsolveAMLFMA(void){};
+    ~PsolveAMLFMA(void){}
     // function
     blitz::Array<std::complex<float>, 1> psolve(const blitz::Array<std::complex<float>, 1> & /*x*/);
 };

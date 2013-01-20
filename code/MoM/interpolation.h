@@ -55,14 +55,14 @@ class LagrangeFastInterpolator2D {
     ~LagrangeFastInterpolator2D();
 
     // functions
-    const int getNCoefficientsForLinesInterp() const {return coefficientsForLinesInterp.extent(0);};
-    const int getNOrderCoefficientsForLinesInterp() const {return coefficientsForLinesInterp.extent(1);};
-    const int getNCoefficientsForColumnsInterp() const {return coefficientsForColumnsInterp.extent(0);};
-    const int getNOrderCoefficientsForColumnsInterp() const {return coefficientsForColumnsInterp.extent(1);};
-    blitz::Array<float, 2> getCoefficientsForLinesInterp() const {return coefficientsForLinesInterp;};
-    blitz::Array<float, 2> getCoefficientsForColumnsInterp() const {return coefficientsForColumnsInterp;};
-    blitz::Array<int, 2> getIndexesForLinesInterp() const {return indexesForLinesInterp;};
-    blitz::Array<int, 2> getIndexesForColumnsInterp() const {return indexesForColumnsInterp;};
+    int getNCoefficientsForLinesInterp() const {return coefficientsForLinesInterp.extent(0);}
+    int getNOrderCoefficientsForLinesInterp() const {return coefficientsForLinesInterp.extent(1);}
+    int getNCoefficientsForColumnsInterp() const {return coefficientsForColumnsInterp.extent(0);}
+    int getNOrderCoefficientsForColumnsInterp() const {return coefficientsForColumnsInterp.extent(1);}
+    blitz::Array<float, 2> getCoefficientsForLinesInterp() const {return coefficientsForLinesInterp;}
+    blitz::Array<float, 2> getCoefficientsForColumnsInterp() const {return coefficientsForColumnsInterp;}
+    blitz::Array<int, 2> getIndexesForLinesInterp() const {return indexesForLinesInterp;}
+    blitz::Array<int, 2> getIndexesForColumnsInterp() const {return indexesForColumnsInterp;}
     void setLfi2D(const LagrangeFastInterpolator2D &);
 };
 

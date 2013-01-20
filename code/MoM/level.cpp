@@ -384,7 +384,7 @@ void Level::alphaTranslationsComputation(const int VERBOSE,
 
   double r_mn[3];
   for (int x = 0 ; x<Nx ; ++x) {
-    if ( (my_id==0) && (VERBOSE==1) ) cout << "\r    " << (x+1)*100/Nx << " \% computed";
+    if ( (my_id==0) && (VERBOSE==1) ) cout << "\r    " << (x+1)*100/Nx << " % computed";
     flush(cout);
     for (int y = 0 ; y<Ny ; ++y) {
       for (int z = 0 ; z<Nz ; ++z) {
@@ -473,7 +473,7 @@ void Level::alphaTranslationsComputation(const int VERBOSE,
   }
 }
 
-const double Level::getAlphaTranslationsSizeMB(void) const
+double Level::getAlphaTranslationsSizeMB(void) const
 {
   const int Nx = this->alphaTranslations.extent(0), Ny = this->alphaTranslations.extent(1), Nz = this->alphaTranslations.extent(2);
   int N_alpha_elements = 0;
@@ -613,7 +613,7 @@ void Level::shiftingArraysComputation(void)
   }
 }
 
-const blitz::Array<int, 1> Level::getAlphaTranslationsExtents(void) const
+blitz::Array<int, 1> Level::getAlphaTranslationsExtents(void) const
 {
   blitz::Array<int, 1> dimensions(3);
   dimensions = alphaTranslations.extent(0), alphaTranslations.extent(1), alphaTranslations.extent(2);
@@ -753,7 +753,7 @@ void Level::searchCubesNeighborsIndexes(void)
   }
 }
 
-const int Level::getIndexOfNumber(const int number) const // "numbersToIndexes" must be ordered
+int Level::getIndexOfNumber(const int number) const // "numbersToIndexes" must be ordered
                                                           // this is done in the calling function...
 {
   int ind_inf, ind_sup, ind_mid, index;

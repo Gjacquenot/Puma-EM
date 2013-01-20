@@ -41,7 +41,7 @@ class Octtree {
     string octtreeDataPath;
 
     // constructors
-    Octtree(void) {};
+    Octtree(void) {}
     Octtree(const string /*octtree_data_path*/,
             const blitz::Array<double, 2>& /*cubes_centroids*/,
             const int /*proc_id*/,
@@ -60,20 +60,20 @@ class Octtree {
     ~Octtree();
 
     // functions
-    const int getNumberOfUpdates (void) const {return numberOfUpdates;};
-    const int setNumberOfUpdates (const int n) {numberOfUpdates = n;};
-    const int getL(void) const {return L;};
-    void setProcNumber (const int n) {procNumber = n;};
-    const int getProcNumber (void) const {return procNumber;};
-    void setTotalNumProcs (const int n) {totalNumProcs = n;};
-    const int getTotalNumProcs (void) const {return totalNumProcs;};
-    const int getLevelsSize (void) const {return levels.size();};
-    const complex<double> getK(void) const {return k;};
-    const complex<float> getEps_r(void) const {return eps_r;};
-    const complex<float> getMu_r(void) const {return mu_r;};
-    const float getW(void) const {return w;};
-    const Level getLevel(const int l) const {return levels[l];};
-    const Cube getCubeLevel(const int i, const int l) const {return levels[l].getCube(i);}; 
+    int getNumberOfUpdates (void) const {return numberOfUpdates;}
+    const int setNumberOfUpdates (const int n) {numberOfUpdates = n;}
+    int getL(void) const {return L;}
+    void setProcNumber (const int n) {procNumber = n;}
+    int getProcNumber (void) const {return procNumber;}
+    void setTotalNumProcs (const int n) {totalNumProcs = n;}
+    int getTotalNumProcs (void) const {return totalNumProcs;}
+    int getLevelsSize (void) const {return levels.size();}
+    complex<double> getK(void) const {return k;}
+    complex<float> getEps_r(void) const {return eps_r;}
+    complex<float> getMu_r(void) const {return mu_r;}
+    float getW(void) const {return w;}
+    Level getLevel(const int l) const {return levels[l];}
+    Cube getCubeLevel(const int i, const int l) const {return levels[l].getCube(i);} 
     void assignCubesToProcessors(const int /*num_procs*/, const int /*CUBES_DISTRIBUTION*/);
     void writeAssignedLeafCubesToDisk(const string /*path*/, const string /*filename*/);
     void updateSup(const blitz::Array<std::complex<float>, 1>&); // coefficients of RWG functions
@@ -81,8 +81,8 @@ class Octtree {
     void exchangeSupsInBlocks(blitz::Array< blitz::Array<std::complex<float>, 2>, 1>& /*SupThisLevel*/, const int /*l*/, const vector<int> & /*localCubesIndexes*/);
     void ZIFarComputation(blitz::Array<std::complex<float>, 1>& /*ZI*/, // result of matrix-vector multiplication
                           const blitz::Array<std::complex<float>, 1>& /*I_PQ*/); // coefficients of RWGs
-    const blitz::Array<std::complex<float>, 1> getCFIE(void) const {return CFIE;};
-    const vector<int> getNeighborsSonsIndexes(const int, const int) const;
+    blitz::Array<std::complex<float>, 1> getCFIE(void) const {return CFIE;}
+    std::vector<int> getNeighborsSonsIndexes(const int, const int) const;
     void findAlphaTransParticipantsIndexes(const int l);
     void SupAlphaMultiplication(blitz::Array<std::complex<float>, 2>& /*SupAlpha*/,
                                 const blitz::Array<std::complex<float>, 2>& /*Sup*/,
@@ -112,7 +112,7 @@ class Octtree {
                           const blitz::Array<float, 1>& octtreeXphis_coarsest,
                           const blitz::Array<std::complex<float>, 1>& I_PQ,
                           const string octtree_data_path);
-    void resizeSdownLevelsToZero(void) {for (int i=0 ; i<levels.size() ; ++i) levels[i].Sdown.resize(0);};
+    void resizeSdownLevelsToZero(void) {for (int i=0 ; i<levels.size() ; ++i) levels[i].Sdown.resize(0);}
 };
 
 #endif

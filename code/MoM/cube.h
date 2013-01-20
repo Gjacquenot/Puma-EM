@@ -96,31 +96,31 @@ class Cube {
 
     // specific functions
     //! returns true if we are at leaf level, false otherwise
-    const bool getLeaf(void) const {return leaf;}
+    bool getLeaf(void) const {return leaf;}
     void addSon(const Cube&);
     //! returns the size of the sonsIndexes vector
-    const int getSonsIndexesSize(void) const {return sonsIndexes.size();};
+    int getSonsIndexesSize(void) const {return sonsIndexes.size();}
     //! returns the sonsIndexes vector
-    const vector<int> getSonsIndexes(void) const {return sonsIndexes;};
+    const vector<int> getSonsIndexes(void) const {return sonsIndexes;}
     //! returns the porocesses numbers of the sons, arranged as a vector
-    const vector<int> getSonsProcNumbers(void) const {return sonsProcNumbers;};
-    const vector<int> getNeighborsIndexes(void) const {return neighborsIndexes;};
-    const vector<int> getLocalAlphaTransParticipantsIndexes(void) const {return localAlphaTransParticipantsIndexes;};
-    const vector<int> getNonLocalAlphaTransParticipantsIndexes(void) const {return nonLocalAlphaTransParticipantsIndexes;};
-    const vector<int> getRWG_numbers(void) const {return RWG_numbers;};
-    const vector<int> getRWG_numbers_CFIE_OK(void) const {return RWG_numbers_CFIE_OK;};
-    void setIndex(const int i) {index = i;};
-    const int getIndex(void) const {return index;};
-    void setOldIndex(const int i) {oldIndex = i;};
-    const int getOldIndex(void) const {return oldIndex;};
-    const int getNumber(void) const {return number;};
-    const int getProcNumber(void) const {return procNumber;};
-    const int getFatherNumber(void) const {return fatherNumber;};
-    const int getFatherProcNumber(void) const {return fatherProcNumber;};
-    void setFatherNumber(const int n) {fatherNumber = n;};
-    const int getFatherIndex(void) const {return fatherIndex;};
-    void setFatherIndex(const int i) {fatherIndex = i;};
-    const int getSonIndex(const int i) {return sonsIndexes[i];};
+    vector<int> getSonsProcNumbers(void) const {return sonsProcNumbers;}
+    vector<int> getNeighborsIndexes(void) const {return neighborsIndexes;}
+    vector<int> getLocalAlphaTransParticipantsIndexes(void) const {return localAlphaTransParticipantsIndexes;}
+    vector<int> getNonLocalAlphaTransParticipantsIndexes(void) const {return nonLocalAlphaTransParticipantsIndexes;}
+    vector<int> getRWG_numbers(void) const {return RWG_numbers;}
+    vector<int> getRWG_numbers_CFIE_OK(void) const {return RWG_numbers_CFIE_OK;}
+    void setIndex(const int i) {index = i;}
+    int getIndex(void) const {return index;}
+    void setOldIndex(const int i) {oldIndex = i;}
+    int getOldIndex(void) const {return oldIndex;}
+    int getNumber(void) const {return number;}
+    int getProcNumber(void) const {return procNumber;}
+    int getFatherNumber(void) const {return fatherNumber;}
+    int getFatherProcNumber(void) const {return fatherProcNumber;}
+    void setFatherNumber(const int n) {fatherNumber = n;}
+    int getFatherIndex(void) const {return fatherIndex;}
+    void setFatherIndex(const int i) {fatherIndex = i;}
+    const int getSonIndex(const int i) {return sonsIndexes[i];}
 
     //! \brief computes the points locations and values for the arguments for the complex exponentials 
     //! that will be used in computing the radiation function of the leaf cube 
