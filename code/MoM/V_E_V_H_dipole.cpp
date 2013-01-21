@@ -32,10 +32,11 @@ void G_EJ_G_HJ (blitz::Array<std::complex<double>, 2>& G_EJ,
   const std::complex<double> term_1 = 1.0 + 1.0/(I*k*R);
   const std::complex<double> term_2 = 1.0/R * term_1 + I*k/2.0 * (term_1 - 1.0/kRsquare);
   const std::complex<double> exp_ikR = exp(-I*k*R), exp_ikR_R = exp_ikR/R;
-  const double x_xp = r_obs[0]-r_dip[0], y_yp = r_obs[1]-r_dip[1], z_zp = r_obs[2]-r_dip[2];
-  const double x_xp_R_square = (x_xp/R) * (x_xp/R);
-  const double y_yp_R_square = (y_yp/R) * (y_yp/R);
-  const double z_zp_R_square = (z_zp/R) * (z_zp/R);
+  const double x_xp = r_obs_r_dip[0], y_yp = r_obs_r_dip[1], z_zp = r_obs_r_dip[2];
+  const double ONE_R_R = 1.0/(R*R);
+  const double x_xp_R_square = (x_xp*x_xp) * ONE_R_R;
+  const double y_yp_R_square = (y_yp*y_yp) * ONE_R_R;
+  const double z_zp_R_square = (z_zp*z_zp) * ONE_R_R;
   G_EJ (0, 1) = term_2*y_yp/R*x_xp/R; 
   G_EJ (0, 2) = term_2*z_zp/R*x_xp/R; 
   G_EJ (1, 2) = term_2*z_zp/R*y_yp/R;

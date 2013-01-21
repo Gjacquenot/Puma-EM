@@ -1,6 +1,6 @@
 import os.path
-from scipy import zeros, ones, arange, reshape, take, put, array, arccos, arcsin, sqrt, dot, sum, real, imag
-from scipy import weave, sin, cos
+from scipy import zeros, ones, arange, reshape, take, put, array, arccos, arcsin, sqrt, dot, sum, real, imag, exp
+from scipy import weave, sin, cos, pi
 from scipy.weave import converters
 from mesh_functions_seb import edgeNumber_triangles_indexes
 from meshClass import MeshClass
@@ -8,17 +8,19 @@ from EM_constants import *
 from PyGmsh import findParameterValue, executeGmsh, write_geo
 
 
-def G_EJ_G_HJ(r_dip, r_obs, eps_r, mu_r, k):
+def G_EJ_G_HJ_cpp(r_dip, r_obs, eps_r, mu_r, k):
     G_EJ = zeros((3,3), 'D')
     G_HJ = zeros((3,3), 'D')
+    mu = mu_0*mu_r
+    eps = eps_0*eps_r
     wrapping_code = """
     double rDip[3], rObs[3];
     for (int i=0 ; i<3 ; ++i) rDip[i] = r_dip(i);
     for (int i=0 ; i<3 ; ++i) rObs[i] = r_obs(i);
-    G_EJ_G_HJ (G_EJ, G_HJ, rDip, rObs, eps_r, mu_r, k);
+    G_EJ_G_HJ (G_EJ, G_HJ, rDip, rObs, eps, mu, k);
     """
     weave.inline(wrapping_code,
-                 ['G_EJ', 'G_HJ', 'r_dip', 'r_obs', 'eps_r', 'mu_r', 'k'],
+                 ['G_EJ', 'G_HJ', 'r_dip', 'r_obs', 'eps', 'mu', 'k'],
                  type_converters = converters.blitz,
                  include_dirs = ['./code/MoM/'],
                  library_dirs = ['./code/MoM/'],
@@ -26,6 +28,46 @@ def G_EJ_G_HJ(r_dip, r_obs, eps_r, mu_r, k):
                  headers = ['<iostream>','<complex>','"V_E_V_H.h"'],
                  compiler = 'gcc',
                  extra_compile_args = ['-O3', '-pthread', '-w'])
+    return G_EJ, G_HJ
+
+def G_EJ_G_HJ(r_dip, r_obs, eps_r, mu_r, k):
+    """inspired from its C++ counterpart"""
+    G_EJ = zeros((3,3), 'D')
+    G_HJ = zeros((3,3), 'D')
+    mu = mu_0*mu_r
+    eps = eps_0*eps_r
+    r_obs_r_dip = r_obs-r_dip
+    R = sqrt(dot(r_obs_r_dip,r_obs_r_dip))
+    kRsquare = k*k*R*R
+    term_1 = 1.0 + 1.0/(1.j*k*R)
+    term_2 = 1.0/R * term_1 + 1.j*k/2.0 * (term_1 - 1.0/kRsquare)
+    exp_ikR = exp(-1.j*k*R)
+    exp_ikR_R = exp_ikR/R
+    x_xp = r_obs_r_dip[0]
+    y_yp = r_obs_r_dip[1]
+    z_zp = r_obs_r_dip[2]
+    x_xp_R_square = (x_xp/R) * (x_xp/R)
+    y_yp_R_square = (y_yp/R) * (y_yp/R)
+    z_zp_R_square = (z_zp/R) * (z_zp/R)
+    G_EJ [0, 1] = term_2*y_yp/R*x_xp/R
+    G_EJ [0, 2] = term_2*z_zp/R*x_xp/R 
+    G_EJ [1, 2] = term_2*z_zp/R*y_yp/R
+    G_EJ [1, 0] = G_EJ [0, 1]
+    G_EJ [2, 0] = G_EJ [0, 2]
+    G_EJ [2, 1] = G_EJ [1, 2]
+    G_EJ [0, 0] = x_xp_R_square*term_1/R-(1.0-x_xp_R_square)*1.j*k/2.0*(term_1 - 1.0/kRsquare)
+    G_EJ [1, 1] = y_yp_R_square*term_1/R-(1.0-y_yp_R_square)*1.j*k/2.0*(term_1 - 1.0/kRsquare)
+    G_EJ [2, 2] = z_zp_R_square*term_1/R-(1.0-z_zp_R_square)*1.j*k/2.0*(term_1 - 1.0/kRsquare)
+    G_EJ = G_EJ*sqrt(mu/eps)/(2.0*pi) * exp_ikR_R
+
+    G_i = exp_ikR/(4.0*pi) * (1.0+1.j*k*R)/(R*R*R)
+    G_HJ [0, 1] = (z_zp) * G_i
+    G_HJ [1, 0] = -G_HJ [0, 1]
+    G_HJ [2, 0] = (y_yp) * G_i
+    G_HJ [2, 1] = -1.0*(x_xp) * G_i
+    G_HJ [0, 2] = -G_HJ [2, 0]
+    G_HJ [1, 2] = -G_HJ [2, 1]
+
     return G_EJ, G_HJ
 
 def V_EH_dipole(J_dip, r_dip, list_of_edges_numbers, RWGNumber_CFIE_OK, RWGNumber_signedTriangles, RWGNumber_edgeVertexes, RWGNumber_oppVertexes, vertexes_coord, w, eps_r, mu_r):
@@ -100,7 +142,7 @@ def V_EH_plane(J_dip, r_dip, list_of_edges_numbers, RWGNumber_CFIE_OK, RWGNumber
     R_hat = (r_dip - r_ref)/sqrt(dot(r_dip - r_ref, r_dip - r_ref))
     k_hat = -R_hat # the propagation vector is indeed opposed to R_hat
     k = w * sqrt(eps_0*eps_r * mu_0*mu_r) # the wavenumber
-    G_EJ, G_HJ = G_EJ_G_HJ(r_dip, r_ref, eps_r*eps_0, mu_r*mu_0, k)
+    G_EJ, G_HJ = G_EJ_G_HJ(r_dip, r_ref, eps_r, mu_r, k)
     E_0 = dot(G_EJ, J_dip).astype('D')
     # creation of the local V arrays
     E = list_of_edges_numbers.shape[0]
@@ -187,5 +229,16 @@ if __name__=="__main__":
     LineWidth=1
     plot(arange(V_EH[:,coord].shape[0]), real(V_EH[:,coord]), 'b', arange(V_EH[:,coord].shape[0]), real(V_EH2[:,coord]), 'r--', linewidth = LineWidth)
     show()
+
+    r_dip = array([0.1, 0.1, 20.0], 'd')
+    r_obs = array([0.15, 0.15, 20.1], 'd')
+    mu = mu_0*mu_r
+    eps = eps_0*eps_r
+    k = w * sqrt(eps_0*eps_r * mu_0*mu_r) # the wavenumber
+    G_EJ_cpp, G_HJ_cpp = G_EJ_G_HJ_cpp(r_dip, r_obs, eps_r, mu_r, k)
+    G_EJ, G_HJ = G_EJ_G_HJ(r_dip, r_obs, eps_r, mu_r, k)
+
+    print G_EJ-G_EJ_cpp
+    print G_HJ_cpp-G_HJ
 
 
