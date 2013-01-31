@@ -901,21 +901,22 @@ void Level::computeSup(blitz::Array<std::complex<float>, 2> & Sup,
   }
   // computation of FC3Components array
   const std::complex<float> I_k(static_cast<std::complex<float> >(I*k));
-  const int T = cube.TriangleToRWGindex.size();
+  const int T = cube.Triangle_numberOfRWGs.size();
+  int startIndex = 0, startIndex_r_opp = 0;
   for (int i=0; i<T; i++) {
-    const int n_rwg = cube.TriangleToRWGindex[i].size();
+    const int n_rwg = cube.Triangle_numberOfRWGs[i];
     for (int j=0; j<NGauss; j++) {
       const float r[3] = {cube.triangle_GaussCoord(i, j*3), cube.triangle_GaussCoord(i, j*3+1), cube.triangle_GaussCoord(i, j*3+2)};
       std::complex<float> fj[3] = {0.0, 0.0, 0.0};
       // loop on the RWGs for triangle i
       for (int rwg=0; rwg<n_rwg; rwg++) {
-        const int RWG_index = cube.TriangleToRWGindex[i][rwg];
+        const int RWG_index = cube.TriangleToRWGindex[startIndex + rwg];
         const int RWGNumber = cube.RWG_numbers[RWG_index];
-        const float weight = cube.TriangleToRWGweight[i][rwg];
-        const std::complex<float> i_pq = I_PQ(RWGNumber);
-        fj[0] += i_pq*((r[0]-cube.TriangleToRWG_ropp[i][rwg*3]) * weight);
-        fj[1] += i_pq*((r[1]-cube.TriangleToRWG_ropp[i][rwg*3+1]) * weight);
-        fj[2] += i_pq*((r[2]-cube.TriangleToRWG_ropp[i][rwg*3+2]) * weight);
+        const float weight = cube.TriangleToRWGweight[startIndex + rwg];
+        const std::complex<float> i_pq = I_PQ(RWGNumber) * weight;
+        fj[0] += i_pq*(r[0]-cube.TriangleToRWG_ropp[startIndex_r_opp + rwg*3]);
+        fj[1] += i_pq*(r[1]-cube.TriangleToRWG_ropp[startIndex_r_opp + rwg*3 + 1]);
+        fj[2] += i_pq*(r[2]-cube.TriangleToRWG_ropp[startIndex_r_opp + rwg*3 + 2]);
       } // end loop RWGs
       const float expArg[3] = {r[0]-cube.rCenter[0], r[1]-cube.rCenter[1], r[2]-cube.rCenter[2]};
       for (int q=0 ; q<NPhis/2 ; q++) {// for phi>pi, kHat = -kHat(pi-theta, phi-pi)
@@ -931,8 +932,10 @@ void Level::computeSup(blitz::Array<std::complex<float>, 2> & Sup,
           FC3Components(opp_index, 1) += fj[1] * conjExp;
           FC3Components(opp_index, 2) += fj[2] * conjExp;
         }
-      }
-    }
+      } // end q loop
+    } // end j Gauss loop
+    startIndex += n_rwg;
+    startIndex_r_opp += n_rwg*3;
   }
   // transformation from cartesian to spherical coordinates and assignation to Sup
   for (int i=0 ; i<Sup.extent(1) ; ++i) {
@@ -983,9 +986,10 @@ void Level::sphericalIntegration(blitz::Array<std::complex<float>, 1>& ZI,
   // computation of integration
   // defining local arrays used for faster computations
   const std::complex<float> minus_I_k(static_cast<std::complex<float> >(-I*k));
-  const int T = cube.TriangleToRWGindex.size();
+  const int T = cube.Triangle_numberOfRWGs.size();
+  int startIndex = 0, startIndex_r_opp = 0;
   for (int i=0; i<T; i++) {
-    const int n_rwg = cube.TriangleToRWGindex[i].size();
+    const int n_rwg = cube.Triangle_numberOfRWGs[i];
     const float nHat[3] = {cube.triangle_nHat(i, 0), cube.triangle_nHat(i, 1), cube.triangle_nHat(i, 2)};
     for (int j=0; j<NGauss; j++) {
       const float r[3] = {cube.triangle_GaussCoord(i, j*3), cube.triangle_GaussCoord(i, j*3+1), cube.triangle_GaussCoord(i, j*3+2)};
@@ -1026,12 +1030,12 @@ void Level::sphericalIntegration(blitz::Array<std::complex<float>, 1>& ZI,
       // loop on the RWGs for triangle i
       for (int rwg=0; rwg<n_rwg; rwg++) {
         // common EFIE and MFIE
-        const int RWG_index = cube.TriangleToRWGindex[i][rwg];
+        const int RWG_index = cube.TriangleToRWGindex[startIndex + rwg];
         const int RWGNumber = cube.RWG_numbers[RWG_index];
-        const float weight = cube.TriangleToRWGweight[i][rwg];
+        const float weight = cube.TriangleToRWGweight[startIndex + rwg];
         // EFIE
-        const float fj[3] = {(r[0]-cube.TriangleToRWG_ropp[i][rwg*3]) * weight, (r[1]-cube.TriangleToRWG_ropp[i][rwg*3+1]) * weight, (r[2]-cube.TriangleToRWG_ropp[i][rwg*3+2]) * weight};
-        ZI(RWGNumber) += JEFIE_factor * (EJ[0]*fj[0] + EJ[1]*fj[1] + EJ[2]*fj[2]);
+        const float fj[3] = {(r[0]-cube.TriangleToRWG_ropp[startIndex_r_opp + rwg*3]), (r[1]-cube.TriangleToRWG_ropp[startIndex_r_opp + rwg*3 + 1]), (r[2]-cube.TriangleToRWG_ropp[startIndex_r_opp + rwg*3+2])};
+        ZI(RWGNumber) += JEFIE_factor * (EJ[0]*fj[0] + EJ[1]*fj[1] + EJ[2]*fj[2]) * weight;
         // MFIE
         const bool nH = nH_tmp * cube.RWG_numbers_CFIE_OK[RWG_index];
         if (nH) {
@@ -1039,10 +1043,12 @@ void Level::sphericalIntegration(blitz::Array<std::complex<float>, 1>& ZI,
           nHat_x_fj[0] = nHat[1]*fj[2]-nHat[2]*fj[1];
           nHat_x_fj[1] = nHat[2]*fj[0]-nHat[0]*fj[2];
           nHat_x_fj[2] = nHat[0]*fj[1]-nHat[1]*fj[0];
-          ZI(RWGNumber) += JMFIE_factor * (nHat_x_fj[0]*GC3_x_kHat[0] + nHat_x_fj[1]*GC3_x_kHat[1] + nHat_x_fj[2]*GC3_x_kHat[2]);
+          ZI(RWGNumber) += JMFIE_factor * (nHat_x_fj[0]*GC3_x_kHat[0] + nHat_x_fj[1]*GC3_x_kHat[1] + nHat_x_fj[2]*GC3_x_kHat[2]) * weight;
         } // end if (nH)
       }// end loop on the RWGs
     }// end Gauss integration points loop
+    startIndex += n_rwg;
+    startIndex_r_opp += n_rwg*3;
   }// end triangles loop
 }
 

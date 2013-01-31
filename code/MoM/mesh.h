@@ -72,10 +72,6 @@ class LocalMesh {
     void writeLocalMeshToFile(const string /*path*/);
 };
 
-void compute_RWGNumber_trianglesNumbers(blitz::Array<int, 1>& indexes_of_triangles,
-                                        const blitz::Array<int, 1>& list_of_RWG_numbers,
-                                        const blitz::Array<int, 2>& RWGNumber_signedTriangles);
-
 void compute_indexesEqualEdges(std::vector<std::vector<int> >& indexesEqualEdges,
                                const blitz::Array<int, 1>& indexesEqualPreceding,
                                const blitz::Array<int, 1>& ind_sorted_e_v);

@@ -257,29 +257,6 @@ void LocalMesh::writeLocalMeshToFile(const string path)
 /************** various mesh functions ****************/
 /******************************************************/
 
-void compute_RWGNumber_trianglesNumbers(blitz::Array<int, 1>& numbers_of_triangles,
-                                        const blitz::Array<int, 1>& list_of_RWG_numbers,
-                                        const blitz::Array<int, 2>& RWGNumber_signedTriangles)
-{
-  const int N_RWG = list_of_RWG_numbers.size();
-  std::vector<int> numbers_of_triangles_tmp1, numbers_of_triangles_tmp2;
-  numbers_of_triangles_tmp1.resize(N_RWG * 2);
-  for (int i=0 ; i<N_RWG ; ++i) {
-    numbers_of_triangles_tmp1[2*i] = RWGNumber_signedTriangles(list_of_RWG_numbers(i), 0);
-    numbers_of_triangles_tmp1[2*i+1] = RWGNumber_signedTriangles(list_of_RWG_numbers(i), 1);
-  }
-  sort(numbers_of_triangles_tmp1.begin(), numbers_of_triangles_tmp1.end());
-  // we now eliminate the redundant triangles
-  numbers_of_triangles_tmp2.push_back(numbers_of_triangles_tmp1[0]);
-  for (int i=1 ; i<numbers_of_triangles_tmp1.size() ; ++i) {
-    const int numberOfTriangle = numbers_of_triangles_tmp1[i], size = numbers_of_triangles_tmp2.size();
-    if (numberOfTriangle != numbers_of_triangles_tmp2[size-1]) numbers_of_triangles_tmp2.push_back(numberOfTriangle);
-  }
-  // filling of numbers_of_triangles
-  numbers_of_triangles.resize(numbers_of_triangles_tmp2.size());
-  for (int i=0 ; i<numbers_of_triangles_tmp2.size() ; ++i) numbers_of_triangles(i) = numbers_of_triangles_tmp2[i];
-}
-
 void compute_indexesEqualEdges(std::vector<std::vector<int> >& indexesEqualEdges,
                                const blitz::Array<int, 1>& indexesEqualPreceding,
                                const blitz::Array<int, 1>& ind_sorted_e_v)
@@ -424,7 +401,8 @@ void compute_list_t_to_reorder(std::vector<int>& list_t_to_reorder,
                                std::vector<int>& list_calling_t_to_reorder,
                                const int calling_t,
                                const std::vector<std::vector<int> >& triangle_adjacentTriangles,
-                               const blitz::Array<int, 1>& is_triangle_reordered)
+                               const blitz::Array<int, 1>& is_triangle_reordered,
+                               blitz::Array<int, 1>& is_triangle_in_list)
 {
   std::vector<int> calling_t_adjacentTriangles = triangle_adjacentTriangles[calling_t];
   // we fill in list_t_to_reorder
@@ -435,7 +413,10 @@ void compute_list_t_to_reorder(std::vector<int>& list_t_to_reorder,
       tn = -tn - 1;
       is_triangle_not_adjacent_via_junction = false;
     }
-    if ( (is_triangle_reordered(tn)==0) && (is_triangle_not_adjacent_via_junction) ) list_t_to_reorder.push_back(tn);
+    if ( (is_triangle_reordered(tn)==0) && (is_triangle_in_list(tn)==0) && (is_triangle_not_adjacent_via_junction) ) {
+      is_triangle_in_list(tn) = 1;
+      list_t_to_reorder.push_back(tn);     
+    }
   }
   // creation of the list_calling_t
   list_calling_t_to_reorder.resize(list_t_to_reorder.size());
@@ -452,8 +433,10 @@ void reorder_triangle_vertexes(blitz::Array<int, 2>& triangle_vertexes,
   triangles_surfaces.resize(T);
   triangles_surfaces = -1;
   // is_triangle_reordered tells if a triangle has been reordered (1) or not (0)
-  blitz::Array<int, 1> is_triangle_reordered(T);
+  blitz::Array<int, 1> is_triangle_reordered(T), is_triangle_in_list(T);
+  std::vector<int> is_triangle_in_listTmp;
   is_triangle_reordered = 0;
+  is_triangle_in_list = 0;
   int surface_number = -1, index_first_zero = 0;
   while (array_has_zero(index_first_zero, is_triangle_reordered)) {
     int t_start = index_first_zero;
@@ -462,18 +445,21 @@ void reorder_triangle_vertexes(blitz::Array<int, 2>& triangle_vertexes,
     triangles_surfaces(t_start) = surface_number;
     // construction of the list of triangles that will be reordered
     std::vector<int> list_t_to_reorder, list_calling_t;
-    compute_list_t_to_reorder(list_t_to_reorder, list_calling_t, t_start, triangle_adjacentTriangles, is_triangle_reordered);
+    compute_list_t_to_reorder(list_t_to_reorder, list_calling_t, t_start, triangle_adjacentTriangles, is_triangle_reordered, is_triangle_in_list);
     while (list_t_to_reorder.size()>0) {
       int t = list_t_to_reorder.back();
       int calling_t = list_calling_t.back();
+      is_triangle_in_listTmp.push_back(t);
       list_t_to_reorder.pop_back();
       list_calling_t.pop_back();
       change_triangle_circulation(triangle_vertexes, calling_t, t);
       is_triangle_reordered(t) = 1;
+      is_triangle_reordered(calling_t) = 1;
       triangles_surfaces(t) = surface_number;
+      triangles_surfaces(calling_t) = surface_number;
       // we now augment list_t_to_reorder and list_calling_t
       std::vector<int> list_t_to_reorderTmp, list_calling_tTmp;
-      compute_list_t_to_reorder(list_t_to_reorderTmp, list_calling_tTmp, t, triangle_adjacentTriangles, is_triangle_reordered);
+      compute_list_t_to_reorder(list_t_to_reorderTmp, list_calling_tTmp, t, triangle_adjacentTriangles, is_triangle_reordered, is_triangle_in_list);
       for (int i=0 ; i<list_t_to_reorderTmp.size() ; i++) {
         list_t_to_reorder.push_back(list_t_to_reorderTmp[i]);
         list_calling_t.push_back(list_calling_tTmp[i]);

@@ -216,28 +216,6 @@ def edges_computation_C_old(triangle_vertexes, vertexes_coord, saveDir):
     return triangles_surfaces, is_closed_surface, RWGNumber_signedTriangles, RWGNumber_edgeVertexes, RWGNumber_oppVertexes
 
 
-def edgeNumber_triangles_indexes_C(N_triangles, list_of_edges_numbers, RWGNumber_signedTriangles):
-    """This function returns a 1-D array of the indexes of the triangles corresponding
-    to a 1-D array of edges_numbers. This function is important for creating lists of triangles
-    that will participate to the MoM, given a particular criterium concerning the edges.
-
-    Same as above but wraps a C++ function... As we can't resize the 'indexes_of_triangles'
-    array in C++ when it has been created in Python, we need to pass as an argument the size
-    of 'indexes_of_triangles', which is 'N_triangles'.
-    """
-    indexes_of_triangles = zeros(N_triangles, 'i')
-    wrapping_code = """compute_RWGNumber_trianglesNumbers(indexes_of_triangles, list_of_edges_numbers, RWGNumber_signedTriangles);"""
-    weave.inline(wrapping_code,
-                 ['indexes_of_triangles', 'list_of_edges_numbers', 'RWGNumber_signedTriangles'],
-                 type_converters = converters.blitz,
-                 include_dirs = ['./code/MoM/'],
-                 library_dirs = ['./code/MoM/'],
-                 libraries = ['MoM'],
-                 headers = ['<iostream>','"mesh.h"'],
-                 compiler = 'gcc',
-                 extra_compile_args = ['-O3', '-pthread', '-w'])
-    return indexes_of_triangles.astype('i')
-
 if __name__=="__main__":
     path = './geo'
     targetName = 'strip'

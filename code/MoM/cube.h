@@ -51,9 +51,10 @@ class Cube {
     //! the numbers of the RWGs pertaining to the current cube
     std::vector<int> RWG_numbers;
     std::vector<int> RWG_numbers_CFIE_OK;
-    std::vector< std::vector<int> > TriangleToRWGindex;
-    std::vector< std::vector<float> > TriangleToRWGweight; 
-    std::vector< std::vector<float> > TriangleToRWG_ropp;
+    std::vector<int> Triangle_numberOfRWGs;
+    std::vector<int> TriangleToRWGindex;
+    std::vector<float> TriangleToRWGweight; 
+    std::vector<float> TriangleToRWG_ropp;
     blitz::Array<float, 2> triangle_GaussCoord;
     blitz::Array<float, 2> triangle_nHat;
     // constructors
