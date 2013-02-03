@@ -911,12 +911,12 @@ void Level::computeSup(blitz::Array<std::complex<float>, 2> & Sup,
       // loop on the RWGs for triangle i
       for (int rwg=0; rwg<n_rwg; rwg++) {
         const int RWG_index = cube.TriangleToRWGindex[startIndex + rwg];
-        const int RWGNumber = cube.RWG_numbers[RWG_index];
         const float weight = cube.TriangleToRWGweight[startIndex + rwg];
-        const std::complex<float> i_pq = I_PQ(RWGNumber) * weight;
-        fj[0] += i_pq*(r[0]-cube.TriangleToRWG_ropp[startIndex_r_opp + rwg*3]);
-        fj[1] += i_pq*(r[1]-cube.TriangleToRWG_ropp[startIndex_r_opp + rwg*3 + 1]);
-        fj[2] += i_pq*(r[2]-cube.TriangleToRWG_ropp[startIndex_r_opp + rwg*3 + 2]);
+        const std::complex<float> i_pq = I_PQ(cube.RWG_numbers[RWG_index]) * weight;
+        const int index = startIndex_r_opp + rwg*3;
+        fj[0] += i_pq*(r[0]-cube.TriangleToRWG_ropp[index]);
+        fj[1] += i_pq*(r[1]-cube.TriangleToRWG_ropp[index + 1]);
+        fj[2] += i_pq*(r[2]-cube.TriangleToRWG_ropp[index + 2]);
       } // end loop RWGs
       const float expArg[3] = {r[0]-cube.rCenter[0], r[1]-cube.rCenter[1], r[2]-cube.rCenter[2]};
       for (int q=0 ; q<NPhis/2 ; q++) {// for phi>pi, kHat = -kHat(pi-theta, phi-pi)
@@ -1031,10 +1031,11 @@ void Level::sphericalIntegration(blitz::Array<std::complex<float>, 1>& ZI,
       for (int rwg=0; rwg<n_rwg; rwg++) {
         // common EFIE and MFIE
         const int RWG_index = cube.TriangleToRWGindex[startIndex + rwg];
-        const int RWGNumber = cube.RWG_numbers[RWG_index];
         const float weight = cube.TriangleToRWGweight[startIndex + rwg];
+        const int RWGNumber = cube.RWG_numbers[RWG_index];
         // EFIE
-        const float fj[3] = {(r[0]-cube.TriangleToRWG_ropp[startIndex_r_opp + rwg*3]), (r[1]-cube.TriangleToRWG_ropp[startIndex_r_opp + rwg*3 + 1]), (r[2]-cube.TriangleToRWG_ropp[startIndex_r_opp + rwg*3+2])};
+        const int index = startIndex_r_opp + rwg*3;
+        const float fj[3] = {(r[0]-cube.TriangleToRWG_ropp[index]), (r[1]-cube.TriangleToRWG_ropp[index + 1]), (r[2]-cube.TriangleToRWG_ropp[index + 2])};
         ZI(RWGNumber) += JEFIE_factor * (EJ[0]*fj[0] + EJ[1]*fj[1] + EJ[2]*fj[2]) * weight;
         // MFIE
         const bool nH = nH_tmp * cube.RWG_numbers_CFIE_OK[RWG_index];
