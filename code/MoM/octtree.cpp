@@ -783,12 +783,9 @@ void Octtree::updateSup(const blitz::Array<std::complex<float>, 1>& I_PQ) /// co
     }
     // alpha translations for directions-parallelized level
     else {
-      blitz::Array<std::complex<float>, 2> S_tmp(2, N_directions);
       for (int i=0 ; i<N_local_cubes ; ++i) {
         int indexLocalCube = levels[l].cubesIndexesAfterReduction[localCubesIndexes[i]];
-        alphaTranslationsToCube(S_tmp, SupThisLevel, l, indexLocalCube, levels[l].cubes[indexLocalCube].getLocalAlphaTransParticipantsIndexes(), levels[l].DIRECTIONS_PARALLELIZATION);
-        //levels[l].Sdown(indexLocalCube).resize(2, N_directions);
-        levels[l].Sdown(indexLocalCube) = S_tmp;
+        alphaTranslationsToCube(levels[l].Sdown(indexLocalCube), SupThisLevel, l, indexLocalCube, levels[l].cubes[indexLocalCube].getLocalAlphaTransParticipantsIndexes(), levels[l].DIRECTIONS_PARALLELIZATION);
       }
     }
     ierror = MPI_Barrier(MPI::COMM_WORLD);
@@ -829,12 +826,9 @@ void Octtree::exchangeSupsIndividually(blitz::Array< blitz::Array<std::complex<f
   }
   // we then perform all the necessary local alpha translations at level l
   const int N_local_cubes = localCubesIndexes.size();
-  blitz::Array<std::complex<float>, 2> S_tmp(N_coord, N_theta*N_phi);
   for (int i=0 ; i<N_local_cubes ; ++i) {
     int indexLocalCube = levels[l].cubesIndexesAfterReduction[localCubesIndexes[i]];
-    alphaTranslationsToCube(S_tmp, SupThisLevel, l, indexLocalCube, levels[l].cubes[indexLocalCube].getLocalAlphaTransParticipantsIndexes(), levels[l].DIRECTIONS_PARALLELIZATION);
-    //levels[l].Sdown(indexLocalCube).resize(N_coord, N_theta*N_phi);
-    levels[l].Sdown(indexLocalCube) = S_tmp;
+    alphaTranslationsToCube(levels[l].Sdown(indexLocalCube), SupThisLevel, l, indexLocalCube, levels[l].cubes[indexLocalCube].getLocalAlphaTransParticipantsIndexes(), levels[l].DIRECTIONS_PARALLELIZATION);
   }
   // wait operation
   for (int i=0 ; i<getTotalNumProcs() ; ++i) {
@@ -888,12 +882,9 @@ void Octtree::exchangeSupsInBlocks(blitz::Array< blitz::Array<std::complex<float
   }
   // we then perform all the necessary alpha translations at level l
   const int N_local_cubes = localCubesIndexes.size();
-  blitz::Array<std::complex<float>, 2> S_tmp(N_coord, N_theta*N_phi);
   for (int i=0 ; i<N_local_cubes ; ++i) {
     int indexLocalCube = levels[l].cubesIndexesAfterReduction[localCubesIndexes[i]];
-    alphaTranslationsToCube(S_tmp, SupThisLevel, l, indexLocalCube, levels[l].cubes[indexLocalCube].getLocalAlphaTransParticipantsIndexes(), levels[l].DIRECTIONS_PARALLELIZATION);
-    //levels[l].Sdown(indexLocalCube).resize(N_coord, N_theta*N_phi);
-    levels[l].Sdown(indexLocalCube) = S_tmp;
+    alphaTranslationsToCube(levels[l].Sdown(indexLocalCube), SupThisLevel, l, indexLocalCube, levels[l].cubes[indexLocalCube].getLocalAlphaTransParticipantsIndexes(), levels[l].DIRECTIONS_PARALLELIZATION);
   }
   // wait operation
   for (int i=0 ; i<getTotalNumProcs() ; ++i) {

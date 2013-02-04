@@ -901,6 +901,7 @@ void Level::computeSup(blitz::Array<std::complex<float>, 2> & Sup,
   }
   // computation of FC3Components array
   const std::complex<float> I_k(static_cast<std::complex<float> >(I*k));
+  const float * rCenter = cube.rCenter;
   const int T = cube.Triangle_numberOfRWGs.size();
   int startIndex = 0, startIndex_r_opp = 0;
   for (int i=0; i<T; i++) {
@@ -918,7 +919,7 @@ void Level::computeSup(blitz::Array<std::complex<float>, 2> & Sup,
         fj[1] += i_pq*(r[1]-cube.TriangleToRWG_ropp[index + 1]);
         fj[2] += i_pq*(r[2]-cube.TriangleToRWG_ropp[index + 2]);
       } // end loop RWGs
-      const float expArg[3] = {r[0]-cube.rCenter[0], r[1]-cube.rCenter[1], r[2]-cube.rCenter[2]};
+      const float expArg[3] = {r[0]-rCenter[0], r[1]-rCenter[1], r[2]-rCenter[2]};
       for (int q=0 ; q<NPhis/2 ; q++) {// for phi>pi, kHat = -kHat(pi-theta, phi-pi)
         const int index_1 = q*NThetas, opp_index_1 = NThetas-1 + (q+NPhis/2) * NThetas;
         for (int p=0 ; p<NThetas ; p++) {
@@ -986,6 +987,7 @@ void Level::sphericalIntegration(blitz::Array<std::complex<float>, 1>& ZI,
   // computation of integration
   // defining local arrays used for faster computations
   const std::complex<float> minus_I_k(static_cast<std::complex<float> >(-I*k));
+  const float * rCenter = cube.rCenter;
   const int T = cube.Triangle_numberOfRWGs.size();
   int startIndex = 0, startIndex_r_opp = 0;
   for (int i=0; i<T; i++) {
@@ -994,7 +996,7 @@ void Level::sphericalIntegration(blitz::Array<std::complex<float>, 1>& ZI,
     for (int j=0; j<NGauss; j++) {
       const float r[3] = {cube.triangle_GaussCoord(i, j*3), cube.triangle_GaussCoord(i, j*3+1), cube.triangle_GaussCoord(i, j*3+2)};
       // computation of the shifting terms
-      const float expArg[3] = {r[0]-cube.rCenter[0], r[1]-cube.rCenter[1], r[2]-cube.rCenter[2]};
+      const float expArg[3] = {r[0]-rCenter[0], r[1]-rCenter[1], r[2]-rCenter[2]};
       std::complex<float> EJ[3] = {0.0, 0.0, 0.0};
       for (int q=0 ; q<NPhis/2 ; q++) {// for phi>pi, kHat = -kHat(pi-theta, phi-pi)
         const int index_1 = q*NThetas, opp_index_1 = NThetas-1 + (q+NPhis/2) * NThetas;
