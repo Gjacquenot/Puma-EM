@@ -1,6 +1,6 @@
 #!/bin/bash
 ###############################################################
-# script for Ubuntu 8.10 to compile puma-em MoM simulator. #
+# script for Ubuntu 12.10 to compile puma-em MoM simulator. #
 # script produced by simon.batchelor@wirelessconsultancy.com #
 ###############################################################
 
@@ -20,7 +20,7 @@ echo " You will be asked for your root password so that the machine can install 
 # installing the main dependencies...
 echo " sudo password for installing main dependencies... "
 sudo apt-get update
-sudo apt-get install g++ gfortran gmsh autoconf libtool python-dev python-scipy python-matplotlib python-tk openmpi-bin libopenmpi-dev dvipng cvs doxygen ssh
+sudo apt-get install g++ gfortran gmsh autoconf libtool python-dev python-scipy python-matplotlib python-mpi4py python-tk openmpi-bin libopenmpi-dev dvipng cvs automake
 # create makefile.inc
 cd ..
 PUMA_EM_DIR=$PWD
@@ -38,23 +38,13 @@ make
 sudo make install
 # scipy-weave uses the old blitz++, so we need to replace them
 sudo cp -r ./blitz /usr/lib/python2.7/dist-packages/scipy/weave/blitz/
-# installing mpi4py. No package yet for this one...
-cd $PUMA_EM_DIR/installScripts
-wget http://mpi4py.googlecode.com/files/mpi4py-1.3.tar.gz
-tar xzf mpi4py-1.3.tar.gz
-cd mpi4py-1.3
-sudo python setup.py install
-# cleaning up...
 cd $PUMA_EM_DIR/installScripts
 sudo make clean
 # actual Puma-em installation
 cd $PUMA_EM_DIR
-# now correcting a little problem on Ubuntu 9.04:
 echo " "
 echo " "
-# choose the appropriate make according to your MPI library
 make install_open-mpi
-#make install_lam-mpi
 echo " "
 echo "=========================================================================="
 echo "                         INSTALLATION COMPLETE! "
