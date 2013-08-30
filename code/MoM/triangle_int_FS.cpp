@@ -4,6 +4,7 @@
 using namespace std;
 
 const std::complex<double> I (0.0, 1.0);
+const double rsmall = 1.0e-6; // A. Francavilla (2013)
 
 #include "GK_triangle.h"
 #include "GL.h"
@@ -240,7 +241,7 @@ void IT_singularities (double & IT_1_R,
  */
 {
   const double w0 = ((r[0]-T.r_nodes_0[0]) * T.n_hat[0] + (r[1]-T.r_nodes_0[1]) * T.n_hat[1] + (r[2]-T.r_nodes_0[2]) * T.n_hat[2]); 
-  const double abs_w0 = abs(w0), sign_w0 = (abs_w0<1.0e-10) ? 0.0 : w0/abs_w0;
+  const double abs_w0 = abs(w0), sign_w0 = (abs_w0<rsmall) ? 0.0 : w0/abs_w0;
   const double third(1.0/3.0);
   double I_L_minus_1__i, I_L_plus_1__i, I_L_plus_3__i, beta_i, K_1_minus_1__i, K_1_plus_1__i;
   
@@ -278,15 +279,15 @@ void IT_singularities (double & IT_1_R,
     const double R_i_0_square = t_i_0*t_i_0 + w0*w0;
 
     // different cases according to the position vector
-    if (abs_w0>1.0e-10) {
-      if (abs(t_i_0) > 1.0e-8) beta_i = atan(t_i_0*s_plus__i/(R_i_0_square + abs_w0*R_plus__i)) - atan(t_i_0*s_minus__i/(R_i_0_square + abs_w0*R_minus__i));
+    if (abs_w0>rsmall) {
+      if (abs(t_i_0) > rsmall) beta_i = atan(t_i_0*s_plus__i/(R_i_0_square + abs_w0*R_plus__i)) - atan(t_i_0*s_minus__i/(R_i_0_square + abs_w0*R_minus__i));
       else t_i_0 = beta_i = 0.0;
       I_L_minus_1__i = log((R_plus__i+s_plus__i)/(R_minus__i+s_minus__i));
       I_L_plus_1__i = 0.5 * (s_plus__i*R_plus__i - s_minus__i*R_minus__i + R_i_0_square*I_L_minus_1__i);
     }
     else {
       beta_i = 0.0;
-      if (abs(t_i_0) > 1.0e-8) {
+      if (abs(t_i_0) > rsmall) {
         I_L_minus_1__i = log((R_plus__i+s_plus__i)/(R_minus__i+s_minus__i));
         I_L_plus_1__i = 0.5 * (s_plus__i*R_plus__i - s_minus__i*R_minus__i + R_i_0_square*I_L_minus_1__i);
       }
@@ -389,12 +390,12 @@ void ITs_free (std::complex<double>& ITs_G,
       R = sqrt(R_square);
       minus_I_k_R = minus_I_k*R;
       exp_minus_I_k_R = exp(minus_I_k_R);  // exp(-(a + ib)) = exp(-a) * (cos(b) - i*sin(b))
-      G_j = (R>1.0e-10) ? (exp_minus_I_k_R - 1.0) * (weights[j]/R) : minus_I_k * weights[j];
+      G_j = (R>rsmall) ? (exp_minus_I_k_R - 1.0) * (weights[j]/R) : minus_I_k * weights[j];
       ITs_G += G_j;
       ITs_G_rprime_r[0] += G_j * rprime_r[0];
       ITs_G_rprime_r[1] += G_j * rprime_r[1];
       ITs_G_rprime_r[2] += G_j * rprime_r[2];
-      if (R>1.0e-10) {
+      if (R>rsmall) {
         const std::complex<double> temp((exp_minus_I_k_R*(1.0-minus_I_k_R) - 1.0) * (weights[j]/(R*R_square)) );
         ITs_grad_G[0] += temp * rprime_r[0];
         ITs_grad_G[1] += temp * rprime_r[1];
@@ -421,12 +422,12 @@ void ITs_free (std::complex<double>& ITs_G,
       R = sqrt(R_square);
       minus_I_k_R = minus_I_k*R;
       exp_minus_I_k_R = exp(minus_I_k_R);  // exp(-(a + ib)) = exp(-a) * (cos(b) - i*sin(b))
-      G_j = (R>1.0e-10) ? ( (exp_minus_I_k_R - 1.0)/R + k_square * (R*0.5) ) * weights[j] : minus_I_k * weights[j];
+      G_j = (R>rsmall) ? ( (exp_minus_I_k_R - 1.0)/R + k_square * (R*0.5) ) * weights[j] : minus_I_k * weights[j];
       ITs_G += G_j;
       ITs_G_rprime_r[0] += G_j * rprime_r[0];
       ITs_G_rprime_r[1] += G_j * rprime_r[1];
       ITs_G_rprime_r[2] += G_j * rprime_r[2];
-      if (R>1.0e-10) {
+      if (R>rsmall) {
         const std::complex<double> temp( (exp_minus_I_k_R*(1.0-minus_I_k_R) - 1.0 - k_square * (0.5*R_square)) * (weights[j]/(R*R_square)) );
         ITs_grad_G[0] += temp * rprime_r[0];
         ITs_grad_G[1] += temp * rprime_r[1];
@@ -690,12 +691,12 @@ void V_EH_ITo_free (std::complex<double>& ITo_G,
       R = sqrt(dot3D(rprime_r, rprime_r));
       I_k_R = I*k*R;
       exp_minus_I_k_R = exp(-I_k_R);
-      G_j = (R>1.0e-10) ? (exp_minus_I_k_R - 1.0)/R * weigths[j] : -I * k * weigths[j];
+      G_j = (R>rsmall) ? (exp_minus_I_k_R - 1.0)/R * weigths[j] : -I * k * weigths[j];
       ITo_G += G_j;
       ITo_G_rprime_r[0] += G_j * rprime_r[0];
       ITo_G_rprime_r[1] += G_j * rprime_r[1];
       ITo_G_rprime_r[2] += G_j * rprime_r[2];
-      if (R>1.0e-10) {
+      if (R>rsmall) {
         const std::complex<double> temp( -(-exp_minus_I_k_R*(1.0+I_k_R) + 1.0)/(R*R*R) * weigths[j] );
         ITo_grad_G[0] += temp * rprime_r[0];
         ITo_grad_G[1] += temp * rprime_r[1];
@@ -729,12 +730,12 @@ void V_EH_ITo_free (std::complex<double>& ITo_G,
       R = sqrt(dot3D(rprime_r, rprime_r));
       I_k_R = I*k*R;
       exp_minus_I_k_R = exp(-I_k_R);
-      G_j = (R>1.0e-10) ? ( (exp_minus_I_k_R - 1.0)/R + k_square/2.0 * R ) * weigths[j] : -I * k * weigths[j];
+      G_j = (R>rsmall) ? ( (exp_minus_I_k_R - 1.0)/R + k_square/2.0 * R ) * weigths[j] : -I * k * weigths[j];
       ITo_G += G_j;
       ITo_G_rprime_r[0] += G_j * rprime_r[0];
       ITo_G_rprime_r[1] += G_j * rprime_r[1];
       ITo_G_rprime_r[2] += G_j * rprime_r[2];
-      if (R>1.0e-10) {
+      if (R>rsmall) {
         const std::complex<double> temp( -(-exp_minus_I_k_R*(1.0+I_k_R) + 1.0 + k_square/2.0 * R*R)/(R*R*R) * weigths[j] );
         ITo_grad_G[0] += temp * rprime_r[0];
         ITo_grad_G[1] += temp * rprime_r[1];

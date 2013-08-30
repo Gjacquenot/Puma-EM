@@ -875,6 +875,12 @@ void Level::computeSup(blitz::Array<std::complex<float>, 2> & Sup,
                        const blitz::Array<float, 1>& phis)
 {
   const int NThetas = thetas.size(), NPhis = phis.size(), NGauss = cube.triangle_GaussCoord.extent(1)/3;
+
+  // A. Francavilla (29-05-2013)
+  double sum_weigths;
+  const double *xi, *eta, *weigths;
+  IT_points (xi, eta, weigths, sum_weigths, NGauss);
+
   blitz::Array< float, 2> kHats(NThetas * NPhis, 3), thetaHats(NThetas * NPhis, 3), phiHats(NThetas * NPhis, 3);
   blitz::Array< std::complex<float>, 2> FC3Components(NThetas * NPhis, 3);
   std::vector<float> sin_thetas, cos_thetas;
@@ -909,11 +915,12 @@ void Level::computeSup(blitz::Array<std::complex<float>, 2> & Sup,
     for (int j=0; j<NGauss; j++) {
       const float r[3] = {cube.triangle_GaussCoord(i, j*3), cube.triangle_GaussCoord(i, j*3+1), cube.triangle_GaussCoord(i, j*3+2)};
       std::complex<float> fj[3] = {0.0, 0.0, 0.0};
+      const std::complex<float> c3float ( weigths[j], 0.0 );
       // loop on the RWGs for triangle i
       for (int rwg=0; rwg<n_rwg; rwg++) {
         const int RWG_index = cube.TriangleToRWGindex[startIndex + rwg];
         const float weight = cube.TriangleToRWGweight[startIndex + rwg];
-        const std::complex<float> i_pq = I_PQ(cube.RWG_numbers[RWG_index]) * weight;
+        const std::complex<float> i_pq = I_PQ(cube.RWG_numbers[RWG_index]) * weight * c3float;
         const int index = startIndex_r_opp + rwg*3;
         fj[0] += i_pq*(r[0]-cube.TriangleToRWG_ropp[index]);
         fj[1] += i_pq*(r[1]-cube.TriangleToRWG_ropp[index + 1]);
@@ -961,6 +968,12 @@ void Level::sphericalIntegration(blitz::Array<std::complex<float>, 1>& ZI,
   const std::complex<float> JEFIE_factor(static_cast<std::complex<float> >(-I*mu_0)  * w * mu_r * CFIE(0));
   const std::complex<float> JMFIE_factor(static_cast<std::complex<float> >(I*k) * CFIE(3));
   const int NThetas = thetas.size(), NPhis = phis.size(), NGauss = cube.triangle_GaussCoord.extent(1)/3;
+
+  // A. Francavilla (29-05-2013)
+  double sum_weigths;
+  const double *xi, *eta, *weigths;
+  IT_points (xi, eta, weigths, sum_weigths, NGauss);
+
   float thetaHat[3], phiHat[3];
   blitz::Array< float, 2> kHats(NThetas * NPhis, 3);
   blitz::Array< std::complex<float>, 2> GC3Components(NThetas * NPhis, 3), GC3Exp(NThetas * NPhis, 3);
@@ -995,6 +1008,7 @@ void Level::sphericalIntegration(blitz::Array<std::complex<float>, 1>& ZI,
     const float nHat[3] = {cube.triangle_nHat(i, 0), cube.triangle_nHat(i, 1), cube.triangle_nHat(i, 2)};
     for (int j=0; j<NGauss; j++) {
       const float r[3] = {cube.triangle_GaussCoord(i, j*3), cube.triangle_GaussCoord(i, j*3+1), cube.triangle_GaussCoord(i, j*3+2)};
+      const std::complex<float> c3float ( weigths[j], 0.0 );
       // computation of the shifting terms
       const float expArg[3] = {r[0]-rCenter[0], r[1]-rCenter[1], r[2]-rCenter[2]};
       std::complex<float> EJ[3] = {0.0, 0.0, 0.0};
@@ -1038,7 +1052,7 @@ void Level::sphericalIntegration(blitz::Array<std::complex<float>, 1>& ZI,
         // EFIE
         const int index = startIndex_r_opp + rwg*3;
         const float fj[3] = {(r[0]-cube.TriangleToRWG_ropp[index]), (r[1]-cube.TriangleToRWG_ropp[index + 1]), (r[2]-cube.TriangleToRWG_ropp[index + 2])};
-        ZI(RWGNumber) += JEFIE_factor * (EJ[0]*fj[0] + EJ[1]*fj[1] + EJ[2]*fj[2]) * weight;
+        ZI(RWGNumber) += c3float * JEFIE_factor * (EJ[0]*fj[0] + EJ[1]*fj[1] + EJ[2]*fj[2]) * weight;
         // MFIE
         const bool nH = nH_tmp * cube.RWG_numbers_CFIE_OK[RWG_index];
         if (nH) {
@@ -1046,7 +1060,7 @@ void Level::sphericalIntegration(blitz::Array<std::complex<float>, 1>& ZI,
           nHat_x_fj[0] = nHat[1]*fj[2]-nHat[2]*fj[1];
           nHat_x_fj[1] = nHat[2]*fj[0]-nHat[0]*fj[2];
           nHat_x_fj[2] = nHat[0]*fj[1]-nHat[1]*fj[0];
-          ZI(RWGNumber) += JMFIE_factor * (nHat_x_fj[0]*GC3_x_kHat[0] + nHat_x_fj[1]*GC3_x_kHat[1] + nHat_x_fj[2]*GC3_x_kHat[2]) * weight;
+          ZI(RWGNumber) += c3float * JMFIE_factor * (nHat_x_fj[0]*GC3_x_kHat[0] + nHat_x_fj[1]*GC3_x_kHat[1] + nHat_x_fj[2]*GC3_x_kHat[2]) * weight;
         } // end if (nH)
       }// end loop on the RWGs
     }// end Gauss integration points loop
