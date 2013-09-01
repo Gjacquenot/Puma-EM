@@ -12,8 +12,8 @@ using namespace std;
 #include "dictionary.h"
 #include "V_E_V_H.h"
 
-void G_EJ_G_HJ (blitz::Array<std::complex<double>, 2>& G_EJ,
-                blitz::Array<std::complex<double>, 2>& G_HJ,
+void G_EJ_G_HJ (std::vector<std::vector< std::complex<double> > >& G_EJ,
+                std::vector<std::vector< std::complex<double> > >& G_HJ,
                 const double r_dip[],
                 const double r_obs[],
                 const std::complex<double>& eps,
@@ -31,39 +31,38 @@ void G_EJ_G_HJ (blitz::Array<std::complex<double>, 2>& G_EJ,
   const std::complex<double> kRsquare = k*k*R*R;
   const std::complex<double> term_1 = 1.0 + 1.0/(I*k*R);
   const std::complex<double> term_2 = 1.0/R * term_1 + I*k/2.0 * (term_1 - 1.0/kRsquare);
-  const std::complex<double> exp_ikR = exp(-I*k*R), exp_ikR_R = exp_ikR/R;
+  const std::complex<double> exp_ikR = exp(-I*k*R), exp_ikR_R = sqrt(mu/eps)/(2.0*M_PI) * exp_ikR/R;
   const double x_xp = r_obs_r_dip[0], y_yp = r_obs_r_dip[1], z_zp = r_obs_r_dip[2];
   const double ONE_R_R = 1.0/(R*R);
   const double x_xp_R_square = (x_xp*x_xp) * ONE_R_R;
   const double y_yp_R_square = (y_yp*y_yp) * ONE_R_R;
   const double z_zp_R_square = (z_zp*z_zp) * ONE_R_R;
-  G_EJ (0, 1) = term_2*y_yp/R*x_xp/R; 
-  G_EJ (0, 2) = term_2*z_zp/R*x_xp/R; 
-  G_EJ (1, 2) = term_2*z_zp/R*y_yp/R;
-  G_EJ (1, 0) = G_EJ (0, 1);
-  G_EJ (2, 0) = G_EJ (0, 2);
-  G_EJ (2, 1) = G_EJ (1, 2);
-  G_EJ (0, 0) = x_xp_R_square*term_1/R-(1.0-x_xp_R_square)*I*k/2.0*(term_1 - 1.0/kRsquare);
-  G_EJ (1, 1) = y_yp_R_square*term_1/R-(1.0-y_yp_R_square)*I*k/2.0*(term_1 - 1.0/kRsquare);
-  G_EJ (2, 2) = z_zp_R_square*term_1/R-(1.0-z_zp_R_square)*I*k/2.0*(term_1 - 1.0/kRsquare);
-  G_EJ *= sqrt(mu/eps)/(2.0*M_PI) * exp_ikR_R;
+  G_EJ [0][1] = term_2*y_yp/R*x_xp/R * exp_ikR_R; 
+  G_EJ [0][2] = term_2*z_zp/R*x_xp/R * exp_ikR_R; 
+  G_EJ [1][2] = term_2*z_zp/R*y_yp/R * exp_ikR_R;
+  G_EJ [1][0] = G_EJ [0][1];
+  G_EJ [2][0] = G_EJ [0][2];
+  G_EJ [2][1] = G_EJ [1][2];
+  G_EJ [0][0] = (x_xp_R_square*term_1/R-(1.0-x_xp_R_square)*I*k/2.0*(term_1 - 1.0/kRsquare)) * exp_ikR_R;
+  G_EJ [1][1] = (y_yp_R_square*term_1/R-(1.0-y_yp_R_square)*I*k/2.0*(term_1 - 1.0/kRsquare)) * exp_ikR_R;
+  G_EJ [2][2] = (z_zp_R_square*term_1/R-(1.0-z_zp_R_square)*I*k/2.0*(term_1 - 1.0/kRsquare)) * exp_ikR_R;
 
   std::complex<double> G_i = exp_ikR/(4.0*M_PI) * (1.0+I*k*R)/(R*R*R);
-  G_HJ (0, 1) = (z_zp) * G_i;
-  G_HJ (1, 0) = -G_HJ (0, 1);
-  G_HJ (2, 0) = (y_yp) * G_i;
-  G_HJ (2, 1) = -1.0*(x_xp) * G_i;
-  G_HJ (0, 2) = -G_HJ (2, 0);
-  G_HJ (1, 2) = -G_HJ (2, 1);
-  for (int i=0 ; i<3 ; i++) G_HJ(i, i) = 0.0;
+  G_HJ [0][1] = (z_zp) * G_i;
+  G_HJ [1][0] = -G_HJ [0][1];
+  G_HJ [2][0] = (y_yp) * G_i;
+  G_HJ [2][1] = -1.0*(x_xp) * G_i;
+  G_HJ [0][2] = -G_HJ [2][0];
+  G_HJ [1][2] = -G_HJ [2][1];
+  for (int i=0 ; i<3 ; i++) G_HJ[i][i] = 0.0;
 }
 
-void V_EJ_HJ_dipole (blitz::Array<std::complex<double>, 1> V_tE_J,
-                     blitz::Array<std::complex<double>, 1> V_nE_J,
-                     blitz::Array<std::complex<double>, 1> V_tH_J,
-                     blitz::Array<std::complex<double>, 1> V_nH_J,
-                     const blitz::Array<std::complex<double>, 1>& J_dip,
-                     const blitz::Array<double, 1>& r_dip,
+void V_EJ_HJ_dipole (std::vector<std::complex<double> >& V_tE_J,
+                     std::vector<std::complex<double> >& V_nE_J,
+                     std::vector<std::complex<double> >& V_tH_J,
+                     std::vector<std::complex<double> >& V_nH_J,
+                     const std::complex<double> JDip[],
+                     const double rDip[],
                      const blitz::Array<int, 1>& numbers_RWG_test,
                      const blitz::Array<int, 1>& RWGNumber_CFIE_OK,
                      const blitz::Array<int, 2>& RWGNumber_signedTriangles,
@@ -75,13 +74,12 @@ void V_EJ_HJ_dipole (blitz::Array<std::complex<double>, 1> V_tE_J,
                      const int FULL_PRECISION)
 /**
  * This function computes the 4 excitation vectors of the MoM due to an
- * elementary electric current element J_dip located at r_dip.
+ * elementary electric current element JDip located at rDip.
  *
  * By reciprocity, we have that V_EM = -V_HJ and V_HM = eps/mu * V_EJ.
  */
 {
   // def of k, mu_i, eps_i
-  blitz::Range all = blitz::Range::all();
   int N_RWG_test = numbers_RWG_test.size();
   std::complex<double> mu = mu_0 * mu_r, eps = eps_0 * eps_r, k = w * sqrt(eps*mu);
   // triangle integration precision. Possible values for N_points: 1, 3, 6, 9, 12, 13
@@ -95,8 +93,10 @@ void V_EJ_HJ_dipole (blitz::Array<std::complex<double>, 1> V_tE_J,
     N_points_near = 3;
   }
 
-  V_tE_J = 0.0; V_tH_J = 0.0;
-  V_nE_J = 0.0; V_nH_J = 0.0;
+  for (int i=0; i<V_tE_J.size(); i++) {
+    V_tE_J[i] = 0.0; V_tH_J[i] = 0.0;
+    V_nE_J[i] = 0.0; V_nH_J[i] = 0.0;
+  }
   std::vector<RWG> test_RWGs;
   test_RWGs.reserve(N_RWG_test);
   for (int i=0 ; i<N_RWG_test ; ++i) {
@@ -128,11 +128,14 @@ void V_EJ_HJ_dipole (blitz::Array<std::complex<double>, 1> V_tE_J,
   const double *r0, *r1, *r2, *rGrav;
   std::complex<double> ITo_r_dot_H_inc, ITo_r_dot_E_inc, ITo_n_hat_X_r_dot_H_inc, ITo_n_hat_X_r_dot_E_inc;
   std::complex<double> H_inc_i[3], ITo_H_inc[3], E_inc_i[3], ITo_E_inc[3];
-  blitz::Array<std::complex<double>, 2> G_EJ (3, 3), G_HJ (3, 3);
-  double rDip[3];
-  std::complex<double> JDip[3];
-  for (int i=0 ; i<3 ; ++i) rDip[i] = r_dip(i);
-  for (int i=0 ; i<3 ; ++i) JDip[i] = J_dip(i);
+  std::vector< std::vector < std::complex<double> > > G_EJ, G_HJ;
+  G_EJ.resize(3);
+  G_HJ.resize(3);
+  for (int i=0; i<3; i++) {
+    G_EJ[i].resize(3);
+    G_HJ[i].resize(3);
+  }
+
 
   for (int r=0 ; r<triangles_test.size() ; ++r) { // loop on the observation triangles
       // the RWGs concerned by the test triangle
@@ -171,7 +174,7 @@ void V_EJ_HJ_dipole (blitz::Array<std::complex<double>, 1> V_tE_J,
         G_EJ_G_HJ (G_EJ, G_HJ, rDip, r_obs, eps, mu, k);
 
         // computation of ITo_E_inc due to a dipole located at r_dip
-        for (int m=0 ; m<3 ; m++) E_inc_i[m] = (G_EJ (m, 0) * JDip[0] + G_EJ (m, 1) * JDip[1] + G_EJ (m, 2) * JDip[2]) * weigths[j];
+        for (int m=0 ; m<3 ; m++) E_inc_i[m] = (G_EJ [m][0] * JDip[0] + G_EJ [m][1] * JDip[1] + G_EJ [m][2] * JDip[2]) * weigths[j];
         ITo_E_inc[0] += E_inc_i[0];
         ITo_E_inc[1] += E_inc_i[1];
         ITo_E_inc[2] += E_inc_i[2];
@@ -179,7 +182,7 @@ void V_EJ_HJ_dipole (blitz::Array<std::complex<double>, 1> V_tE_J,
         ITo_n_hat_X_r_dot_E_inc += n_hat_X_r[0] * E_inc_i[0] + n_hat_X_r[1] * E_inc_i[1] + n_hat_X_r[2] * E_inc_i[2];
 
         // computation of ITo_H_inc due to a dipole located at r_dip
-        for (int m=0 ; m<3 ; m++) H_inc_i[m] = (G_HJ (m, 0) * JDip[0] + G_HJ (m, 1) * JDip[1] + G_HJ (m, 2) * JDip[2]) * weigths[j];
+        for (int m=0 ; m<3 ; m++) H_inc_i[m] = (G_HJ [m][0] * JDip[0] + G_HJ [m][1] * JDip[1] + G_HJ [m][2] * JDip[2]) * weigths[j];
         ITo_H_inc[0] += H_inc_i[0];
         ITo_H_inc[1] += H_inc_i[1];
         ITo_H_inc[2] += H_inc_i[2];
@@ -210,10 +213,10 @@ void V_EJ_HJ_dipole (blitz::Array<std::complex<double>, 1> V_tE_J,
         }
         cross3D(n_hat_X_r_p, triangles_test[r].n_hat, r_p);
 
-        V_tE_J (local_number_edge_p) += -C_rp * (ITo_r_dot_E_inc - (r_p[0]*ITo_E_inc[0] + r_p[1]*ITo_E_inc[1] + r_p[2]*ITo_E_inc[2])); // -<f_m ; E_inc> 
-        V_tH_J (local_number_edge_p) += -C_rp * (ITo_r_dot_H_inc - (r_p[0]*ITo_H_inc[0] + r_p[1]*ITo_H_inc[1] + r_p[2]*ITo_H_inc[2])); // -<f_m ; H_inc>
-        V_nE_J (local_number_edge_p) += -C_rp * (ITo_n_hat_X_r_dot_E_inc - (n_hat_X_r_p[0]*ITo_E_inc[0] + n_hat_X_r_p[1]*ITo_E_inc[1] + n_hat_X_r_p[2]*ITo_E_inc[2])); // -<n_hat x f_m ; E_inc> 
-        V_nH_J (local_number_edge_p) += -C_rp * (ITo_n_hat_X_r_dot_H_inc - (n_hat_X_r_p[0]*ITo_H_inc[0] + n_hat_X_r_p[1]*ITo_H_inc[1] + n_hat_X_r_p[2]*ITo_H_inc[2])); // -<n_hat x f_m ; H_inc> 
+        V_tE_J [local_number_edge_p] += -C_rp * (ITo_r_dot_E_inc - (r_p[0]*ITo_E_inc[0] + r_p[1]*ITo_E_inc[1] + r_p[2]*ITo_E_inc[2])); // -<f_m ; E_inc> 
+        V_tH_J [local_number_edge_p] += -C_rp * (ITo_r_dot_H_inc - (r_p[0]*ITo_H_inc[0] + r_p[1]*ITo_H_inc[1] + r_p[2]*ITo_H_inc[2])); // -<f_m ; H_inc>
+        V_nE_J [local_number_edge_p] += -C_rp * (ITo_n_hat_X_r_dot_E_inc - (n_hat_X_r_p[0]*ITo_E_inc[0] + n_hat_X_r_p[1]*ITo_E_inc[1] + n_hat_X_r_p[2]*ITo_E_inc[2])); // -<n_hat x f_m ; E_inc> 
+        V_nH_J [local_number_edge_p] += -C_rp * (ITo_n_hat_X_r_dot_H_inc - (n_hat_X_r_p[0]*ITo_H_inc[0] + n_hat_X_r_p[1]*ITo_H_inc[1] + n_hat_X_r_p[2]*ITo_H_inc[2])); // -<n_hat x f_m ; H_inc> 
       }
   }
 }
@@ -236,7 +239,6 @@ void V_CFIE_dipole (blitz::Array<std::complex<float>, 1> V_CFIE,
  */
 {
   // def of k, mu_i, eps_i
-  blitz::Range all = blitz::Range::all();
   int N_RWG_test = numbers_RWG_test.size();
   std::complex<double> mu = mu_0 * mu_r, eps = eps_0 * eps_r, k = w * sqrt(eps*mu);
   const complex<double> tE = CFIE(0), nE = CFIE(1), tH = CFIE(2), nH = CFIE(3);
@@ -255,7 +257,13 @@ void V_CFIE_dipole (blitz::Array<std::complex<float>, 1> V_CFIE,
   double r0[3], r1[3], r2[3], *r_opp;
   std::complex<double> ITo_r_dot_H_inc, ITo_r_dot_E_inc, ITo_n_hat_X_r_dot_H_inc, ITo_n_hat_X_r_dot_E_inc;
   std::complex<double> H_inc_i[3], ITo_H_inc[3], E_inc_i[3], ITo_E_inc[3];
-  blitz::Array<std::complex<double>, 2> G_EJ (3, 3), G_HJ (3, 3);
+  std::vector< std::vector < std::complex<double> > > G_EJ, G_HJ;
+  G_EJ.resize(3);
+  G_HJ.resize(3);
+  for (int i=0; i<3; i++) {
+    G_EJ[i].resize(3);
+    G_HJ[i].resize(3);
+  }
   double rDip[3];
   std::complex<double> JDip[3];
   for (int i=0 ; i<3 ; ++i) rDip[i] = r_dip(i);
@@ -314,7 +322,7 @@ void V_CFIE_dipole (blitz::Array<std::complex<float>, 1> V_CFIE,
         G_EJ_G_HJ (G_EJ, G_HJ, rDip, r_obs, eps, mu, k);
 
         // computation of ITo_E_inc due to a dipole located at r_dip
-        for (int m=0 ; m<3 ; m++) E_inc_i[m] = (G_EJ (m, 0) * JDip[0] + G_EJ (m, 1) * JDip[1] + G_EJ (m, 2) * JDip[2]) * weigths[j];
+        for (int m=0 ; m<3 ; m++) E_inc_i[m] = (G_EJ [m][0] * JDip[0] + G_EJ [m][1] * JDip[1] + G_EJ [m][2] * JDip[2]) * weigths[j];
         ITo_E_inc[0] += E_inc_i[0];
         ITo_E_inc[1] += E_inc_i[1];
         ITo_E_inc[2] += E_inc_i[2];
@@ -322,7 +330,7 @@ void V_CFIE_dipole (blitz::Array<std::complex<float>, 1> V_CFIE,
         ITo_n_hat_X_r_dot_E_inc += (n_hat_X_r[0] * E_inc_i[0] + n_hat_X_r[1] * E_inc_i[1] + n_hat_X_r[2] * E_inc_i[2]);
 
         // computation of ITo_H_inc due to a dipole located at r_dip
-        for (int m=0 ; m<3 ; m++) H_inc_i[m] = (G_HJ (m, 0) * JDip[0] + G_HJ (m, 1) * JDip[1] + G_HJ (m, 2) * JDip[2]) * weigths[j];
+        for (int m=0 ; m<3 ; m++) H_inc_i[m] = (G_HJ [m][0] * JDip[0] + G_HJ [m][1] * JDip[1] + G_HJ [m][2] * JDip[2]) * weigths[j];
         ITo_H_inc[0] += H_inc_i[0];
         ITo_H_inc[1] += H_inc_i[1];
         ITo_H_inc[2] += H_inc_i[2];
@@ -417,7 +425,13 @@ void V_CFIE_dipole_array (blitz::Array<std::complex<float>, 1> V_CFIE,
   double r0[3], r1[3], r2[3], *r_opp;
   std::complex<double> ITo_r_dot_H_inc, ITo_r_dot_E_inc, ITo_n_hat_X_r_dot_H_inc, ITo_n_hat_X_r_dot_E_inc;
   std::complex<double> H_inc_i[3], ITo_H_inc[3], E_inc_i[3], ITo_E_inc[3];
-  blitz::Array<std::complex<double>, 2> G_EJ (3, 3), G_HJ (3, 3);
+  std::vector< std::vector < std::complex<double> > > G_EJ, G_HJ;
+  G_EJ.resize(3);
+  G_HJ.resize(3);
+  for (int i=0; i<3; i++) {
+    G_EJ[i].resize(3);
+    G_HJ[i].resize(3);
+  }
   double rDip[3];
   std::complex<double> JDip[3];
   for (int i=0 ; i<3 ; ++i) rDip[i] = r_dip(i);
@@ -488,14 +502,22 @@ void V_CFIE_dipole_array (blitz::Array<std::complex<float>, 1> V_CFIE,
             // then G_EJ should be filled with G_EM values
             // and G_HJ with G_HM values. Since G_EM = -G_HJ, and G_HM = eps/mu * G_EJ
             // it is a simple interchange and scaling of G_EJ and G_HJ values.
-            blitz::Array<std::complex<double>, 2> G_tmp(3, 3);
-            G_tmp = G_EJ; // we "save" G_EJ values
-            G_EJ = -G_HJ; // G_EJ becomes G_EM
-            G_HJ = eps/mu * G_tmp; // G_HJ becomes G_HM
+            std::vector<std::vector<std::complex<double> > > G_tmp;
+            G_tmp.resize(3);
+            for (int i=0; i<3; i++) G_tmp[i].resize(3);
+            for (int i=0; i<3; i++) {
+              for (int ii=0; ii<3; ii++) G_tmp[i][ii] = G_EJ[i][ii]; // we "save" G_EJ values;
+            }
+            for (int i=0; i<3; i++) {
+              for (int ii=0; ii<3; ii++) G_EJ[i][ii] = -G_HJ[i][ii]; // G_EJ becomes G_EM
+            }
+            for (int i=0; i<3; i++) {
+              for (int ii=0; ii<3; ii++) G_HJ[i][ii] = eps/mu * G_tmp[i][ii]; // G_HJ becomes G_HM
+            }
           }
 
           // computation of ITo_E_inc due to a dipole located at r_dip
-          for (int m=0 ; m<3 ; m++) E_inc_i[m] = (G_EJ (m, 0) * JDip[0] + G_EJ (m, 1) * JDip[1] + G_EJ (m, 2) * JDip[2]) * weigths[j];
+          for (int m=0 ; m<3 ; m++) E_inc_i[m] = (G_EJ [m][0] * JDip[0] + G_EJ [m][1] * JDip[1] + G_EJ [m][2] * JDip[2]) * weigths[j];
           ITo_E_inc[0] += E_inc_i[0];
           ITo_E_inc[1] += E_inc_i[1];
           ITo_E_inc[2] += E_inc_i[2];
@@ -503,7 +525,7 @@ void V_CFIE_dipole_array (blitz::Array<std::complex<float>, 1> V_CFIE,
           ITo_n_hat_X_r_dot_E_inc += (n_hat_X_r[0] * E_inc_i[0] + n_hat_X_r[1] * E_inc_i[1] + n_hat_X_r[2] * E_inc_i[2]);
 
           // computation of ITo_H_inc due to a dipole located at r_dip
-          for (int m=0 ; m<3 ; m++) H_inc_i[m] = (G_HJ (m, 0) * JDip[0] + G_HJ (m, 1) * JDip[1] + G_HJ (m, 2) * JDip[2]) * weigths[j];
+          for (int m=0 ; m<3 ; m++) H_inc_i[m] = (G_HJ [m][0] * JDip[0] + G_HJ [m][1] * JDip[1] + G_HJ [m][2] * JDip[2]) * weigths[j];
           ITo_H_inc[0] += H_inc_i[0];
           ITo_H_inc[1] += H_inc_i[1];
           ITo_H_inc[2] += H_inc_i[2];

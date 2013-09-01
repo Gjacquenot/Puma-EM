@@ -5,20 +5,20 @@ using namespace std;
 
 #include "mesh.h"
 
-void G_EJ_G_HJ (blitz::Array<std::complex<double>, 2>& G_EJ, 
-                blitz::Array<std::complex<double>, 2>& G_HJ, 
+void G_EJ_G_HJ (std::vector<std::vector< std::complex<double> > >& G_EJ,
+                std::vector<std::vector< std::complex<double> > >& G_HJ,
                 const double r_dip[], 
                 const double r_obs[], 
                 const std::complex<double>& eps, 
                 const std::complex<double>& mu, 
                 const std::complex<double>& k);
 
-void V_EJ_HJ_dipole (blitz::Array<std::complex<double>, 1> V_tE_J,
-                     blitz::Array<std::complex<double>, 1> V_nE_J,
-                     blitz::Array<std::complex<double>, 1> V_tH_J,
-                     blitz::Array<std::complex<double>, 1> V_nH_J,
-                     const blitz::Array<std::complex<double>, 1>& J_dip,
-                     const blitz::Array<double, 1>& r_dip,
+void V_EJ_HJ_dipole (std::vector<std::complex<double> >& V_tE_J,
+                     std::vector<std::complex<double> >& V_nE_J,
+                     std::vector<std::complex<double> >& V_tH_J,
+                     std::vector<std::complex<double> >& V_nH_J,
+                     const std::complex<double> JDip[],
+                     const double rDip[],
                      const blitz::Array<int, 1>& numbers_RWG_test,
                      const blitz::Array<int, 1>& RWGNumber_CFIE_OK,
                      const blitz::Array<int, 2>& RWGNumber_signedTriangles,

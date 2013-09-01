@@ -14,10 +14,23 @@ def G_EJ_G_HJ_cpp(r_dip, r_obs, eps_r, mu_r, k):
     mu = mu_0*mu_r
     eps = eps_0*eps_r
     wrapping_code = """
+    std::vector< std::vector < std::complex<double> > > G_EJ_vector, G_HJ_vector;
+    G_EJ_vector.resize(3);
+    G_HJ_vector.resize(3);
+    for (int i=0; i<3; i++) {
+      G_EJ_vector[i].resize(3);
+      G_HJ_vector[i].resize(3);
+    }
     double rDip[3], rObs[3];
     for (int i=0 ; i<3 ; ++i) rDip[i] = r_dip(i);
     for (int i=0 ; i<3 ; ++i) rObs[i] = r_obs(i);
-    G_EJ_G_HJ (G_EJ, G_HJ, rDip, rObs, eps, mu, k);
+    G_EJ_G_HJ (G_EJ_vector, G_HJ_vector, rDip, rObs, eps, mu, k);
+    for (int i=0; i<3; i++) {
+      for (int j=0; j<3; j++) {
+        G_EJ(i, j) = G_EJ_vector[i][j];
+        G_HJ(i, j) = G_HJ_vector[i][j];
+      }
+    }    
     """
     weave.inline(wrapping_code,
                  ['G_EJ', 'G_HJ', 'r_dip', 'r_obs', 'eps', 'mu', 'k'],
@@ -25,7 +38,7 @@ def G_EJ_G_HJ_cpp(r_dip, r_obs, eps_r, mu_r, k):
                  include_dirs = ['./code/MoM/'],
                  library_dirs = ['./code/MoM/'],
                  libraries = ['MoM'],
-                 headers = ['<iostream>','<complex>','"V_E_V_H.h"'],
+                 headers = ['<iostream>','<complex>', '<vector>','"V_E_V_H.h"'],
                  compiler = 'gcc',
                  extra_compile_args = ['-O3', '-pthread', '-w'])
     return G_EJ, G_HJ
@@ -86,11 +99,25 @@ def V_EH_dipole(J_dip, r_dip, list_of_edges_numbers, RWGNumber_CFIE_OK, RWGNumbe
     RWGNumber_oppVertexesCoord[:, 0:3] = take(vertexes_coord, RWGNumber_oppVertexes[:,0], axis=0).astype('d')
     RWGNumber_oppVertexesCoord[:, 3:6] = take(vertexes_coord, RWGNumber_oppVertexes[:,1], axis=0).astype('d')
     wrapping_code = """
-    blitz::Range all = blitz::Range::all();
-    V_EJ_HJ_dipole (V_EH(all, 0), V_EH(all, 1), V_EH(all, 2), V_EH(all, 3), J_dip, r_dip, list_of_edges_numbers, RWGNumber_CFIE_OK, RWGNumber_signedTriangles, RWGNumber_vertexesCoord, RWGNumber_oppVertexesCoord, w, eps_r, mu_r, V_FULL_PRECISION);
+    std::vector<std::complex<double> > V_tE_J, V_tH_J, V_nE_J, V_nH_J;
+    V_tE_J.resize(E);
+    V_tH_J.resize(E);
+    V_nE_J.resize(E);
+    V_nH_J.resize(E);
+    double rDip[3];
+    std::complex<double> JDip[3];
+    for (int i=0 ; i<3 ; ++i) rDip[i] = r_dip(i);
+    for (int i=0 ; i<3 ; ++i) JDip[i] = J_dip(i);
+    V_EJ_HJ_dipole (V_tE_J, V_tH_J, V_nE_J, V_nH_J, JDip, rDip, list_of_edges_numbers, RWGNumber_CFIE_OK, RWGNumber_signedTriangles, RWGNumber_vertexesCoord, RWGNumber_oppVertexesCoord, w, eps_r, mu_r, V_FULL_PRECISION);
+    for (int i=0; i<E; i++) {
+      V_EH(i, 0) = V_tE_J[i];
+      V_EH(i, 1) = V_tH_J[i];
+      V_EH(i, 2) = V_nE_J[i];
+      V_EH(i, 3) = V_nH_J[i];
+    }
     """
     weave.inline(wrapping_code,
-                 ['V_EH', 'J_dip', 'r_dip', 'list_of_edges_numbers', 'RWGNumber_CFIE_OK', 'RWGNumber_signedTriangles', 'RWGNumber_vertexesCoord', 'RWGNumber_oppVertexesCoord', 'w', 'eps_r', 'mu_r', 'V_FULL_PRECISION'],
+                 ['V_EH', 'J_dip', 'r_dip', 'list_of_edges_numbers', 'RWGNumber_CFIE_OK', 'RWGNumber_signedTriangles', 'RWGNumber_vertexesCoord', 'RWGNumber_oppVertexesCoord', 'w', 'eps_r', 'mu_r', 'V_FULL_PRECISION', 'E'],
                  type_converters = converters.blitz,
                  include_dirs = ['./code/MoM/'],
                  library_dirs = ['./code/MoM/'],

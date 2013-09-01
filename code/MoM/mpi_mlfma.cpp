@@ -852,14 +852,20 @@ void computeMonostaticSAR(Octtree & octtree,
           local_V_CFIE_dipole (V_CFIE, J_ant, r_src, local_target_mesh, w, eps_r, mu_r, octtree.CFIE, V_FULL_PRECISION);
           local_target_mesh.resizeToZero();
           // target incoming field: reference field for RCS computation
-          blitz::Array<std::complex<double>, 2> G_EJ(3, 3), G_HJ(3, 3);
+          std::vector< std::vector < std::complex<double> > > G_EJ, G_HJ;
+          G_EJ.resize(3);
+          G_HJ.resize(3);
+          for (int i=0; i<3; i++) {
+            G_EJ[i].resize(3);
+            G_HJ[i].resize(3);
+          }
           double r_dip[3], r_obs2[3];
           for (int m=0 ; m<3 ; m++) {
             r_dip[m] = r_src(m);
             r_obs2[m] = r_ref(m);
           }
           G_EJ_G_HJ (G_EJ, G_HJ, r_dip, r_obs2, eps, mu, k);
-          for (int m=0 ; m<3 ; m++) E_0(m) = G_EJ(m, 0) * J_ant(0) + G_EJ(m, 1) * J_ant(1) + G_EJ(m, 2) * J_ant(2);
+          for (int m=0 ; m<3 ; m++) E_0(m) = G_EJ [m][0] * J_ant(0) + G_EJ[m][1] * J_ant(1) + G_EJ[m][2] * J_ant(2);
           // solving
           octtree.setNumberOfUpdates(0);
           if (USE_PREVIOUS_SOLUTION != 1) ZI = 0.0;
