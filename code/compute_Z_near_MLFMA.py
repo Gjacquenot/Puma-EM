@@ -94,6 +94,7 @@ def compute_Z_near(params_simu, simuDirName):
     # we exchange the missing Z_near parts for each process
     pathToReadFrom = os.path.join(tmpDirName, 'Z_tmp')
     Mg_listsOfZnearBlocks_ToTransmitAndReceive(variables['chunkNumber_to_cubesNumbers'], variables['cubeNumber_to_chunkNumber'], variables['chunkNumber_to_processNumber'], variables['processNumber_to_ChunksNumbers'], pathToReadFrom, 'F')
+
     # we now dump-pickle the necessary variables
     CPU_time_Z_near_computation = time.clock() - CPU_t0
     Wall_time_Z_near_computation = time.time() - Wall_t0

@@ -22,6 +22,9 @@ RWGs_renumbering: RWGs_renumbering.o readWriteBlitzArrayFromFile.o
 compute_Z_near: compute_Z_near.o scatter_mesh_per_cube.o $(OBJECTS_LIBMOM)
 	$(MPICC) $(INCLUDE_PATH) compute_Z_near.o scatter_mesh_per_cube.o -L$(WORKING_DIR_PATH) -lMoM $(LIB_SEARCH_PATH) -lblitz -lm -o compute_Z_near
 
+compute_SAI_precond: compute_SAI_precond.o readWriteBlitzArrayFromFile.o
+	$(MPICC) $(INCLUDE_PATH) compute_SAI_precond.o readWriteBlitzArrayFromFile.o -L$(WORKING_DIR_PATH) -lMoM -L$(LIBLAPACK_PATH) -lZGELS $(LIB_SEARCH_PATH) -lblitz -l$(G2C) -lm -o compute_SAI_precond
+
 mpi_mlfma: mpi_mlfma.o $(OBJECTS_LIBMLFMA)
 #	$(MPICC) $(INCLUDE_PATH) mpi_mlfma.o -L$(WORKING_DIR_PATH) -lMoM -L$(WORKING_DIR_PATH) -lMLFMA -L$(WORKING_DIR_PATH)/amos/zbesh -lAMOS -l$(G2C) -lblitz -lm -o mpi_mlfma
 	$(MPICC) $(INCLUDE_PATH) mpi_mlfma.o -L$(WORKING_DIR_PATH) -lMLFMA -L$(WORKING_DIR_PATH)/amos/zbesh -lAMOS -L$(WORKING_DIR_PATH)/lapack -lZGELS -l$(G2C) $(LIB_SEARCH_PATH) -lblitz -lm -o mpi_mlfma
@@ -59,6 +62,8 @@ scatter_mesh_per_cube.o: scatter_mesh_per_cube.cpp readWriteBlitzArrayFromFile.h
 	$(MPICC) $(INCLUDE_PATH) $(CFLAGS) scatter_mesh_per_cube.cpp
 compute_Z_near.o: compute_Z_near.cpp readWriteBlitzArrayFromFile.h Z_EJ_Z_HJ.h scatter_mesh_per_cube.h scatter_mesh_per_cube.cpp
 	$(MPICC) $(INCLUDE_PATH) $(CFLAGS) compute_Z_near.cpp
+compute_SAI_precond.o: compute_SAI_precond.cpp readWriteBlitzArrayFromFile.h 
+	$(MPICC) $(INCLUDE_PATH) $(CFLAGS) compute_SAI_precond.cpp
 mpi_mlfma.o: mpi_mlfma.cpp  Z_sparse_MLFMA.h mesh.h octtree.h octtree.cpp level.h level.cpp ./iterative/iterative.h V_E_V_H.h alpha_computation.h V_E_V_H_dipole.cpp V_E_V_H_plane.cpp EMConstants.h
 	$(MPICC) $(INCLUDE_PATH) $(CFLAGS) mpi_mlfma.cpp
 distribute_Z_cubes.o: distribute_Z_cubes.cpp octtree.h octtree.cpp level.h level.cpp EMConstants.h
@@ -97,7 +102,7 @@ GL.o: GL.cpp
 
 
 clean: 
-	rm -f *.o *.a *.txt *~ *.pyc octtree mpi_mlfma testMPI communicateZnearBlocks mesh_functions_seb distribute_Z_cubes RWGs_renumbering compute_Z_near; 
+	rm -f *.o *.a *.txt *~ *.pyc octtree mpi_mlfma testMPI communicateZnearBlocks mesh_functions_seb distribute_Z_cubes RWGs_renumbering compute_Z_near compute_SAI_precond; 
 	cd $(LIBAMOS_ZBESH_PATH); make clean; 
 	cd $(LIBLAPACK_PATH); make clean; 
 	cd $(LIBITERATIVE_PATH); make clean;

@@ -84,10 +84,12 @@ int main(int argc, char* argv[]) {
   const string OCTTREE_DATA_PATH = TMP + "/octtree_data/";
   string filename;
 
-
+  blitz::Array<int, 1> chunkNumbers;
+  readIntBlitzArray1DFromASCIIFile(SAI_PRECOND_DATA_PATH + "chunkNumbers.txt", chunkNumbers);
 
 
   
+
   // Get peak memory usage of each rank
   long memusage_local = MemoryUsageGetPeak();
   std::cout << "MEMINFO " << argv[0] << " rank " << my_id << " mem=" << memusage_local/(1024*1024) << " MB" << std::endl;

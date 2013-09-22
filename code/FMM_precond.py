@@ -166,6 +166,8 @@ def Mg_CSR(my_id, processNumber_to_ChunksNumbers, chunkNumber_to_cubesNumbers, c
     """this function computes Mg by slices and stores them on the disk."""
     NAME = "Mg_LeftFrob"
     chunkNumbers = processNumber_to_ChunksNumbers[my_id]
+    # we write the chunks numbers of the process
+    writeASCIIBlitzArrayToDisk(array(chunkNumbers).astype('i'), os.path.join(pathToSaveTo, 'chunkNumbers.txt'))
     index, percentage = 0, 0
     for chunkNumber in chunkNumbers:
         if my_id==0:
@@ -180,6 +182,4 @@ def Mg_CSR(my_id, processNumber_to_ChunksNumbers, chunkNumber_to_cubesNumbers, c
         Mg, src_RWG_numbers, rowIndexToColumnIndexes, test_RWG_numbers = chunk_of_Mg_CSR(cubesNumbers, chunkNumber, ELEM_TYPE, Z_TMP_ELEM_TYPE, LIB_G2C, pathToReadFrom, cubeNumber_to_chunkNumber)
         writeToDisk_chunk_of_Z_sparse(pathToSaveTo, NAME, Mg, src_RWG_numbers, rowIndexToColumnIndexes, test_RWG_numbers, chunkNumber)
         index += 1
-    # we write the chunks numbers of the process
-    writeASCIIBlitzArrayToDisk(array(chunkNumbers).astype('i'), os.path.join(pathToSaveTo, 'chunkNumbers.txt'))
 
