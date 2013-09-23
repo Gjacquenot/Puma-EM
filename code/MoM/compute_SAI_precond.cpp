@@ -84,12 +84,19 @@ int main(int argc, char* argv[]) {
   const string OCTTREE_DATA_PATH = TMP + "/octtree_data/";
   string filename;
 
-  blitz::Array<int, 1> chunkNumbers;
+  blitz::Array<int, 1> chunkNumbers, cubeNumber_to_chunkNumber;
   readIntBlitzArray1DFromASCIIFile(SAI_PRECOND_DATA_PATH + "chunkNumbers.txt", chunkNumbers);
+  readIntBlitzArray1DFromASCIIFile(SAI_PRECOND_DATA_PATH + "cubeNumber_to_chunkNumber.txt", cubeNumber_to_chunkNumber);
 
-
+  const int N_chunks = chunkNumbers.size();
+  for (int i=0; i<N_chunks; i++) {
+    const int chunk = chunkNumbers(i);
+    blitz::Array<int, 1> cubesNumbers;
+    readIntBlitzArray1DFromASCIIFile(SAI_PRECOND_DATA_PATH + "chunk" + intToString(chunk) + "cubesNumbers.txt", cubesNumbers);
+    
+    
+  }
   
-
   // Get peak memory usage of each rank
   long memusage_local = MemoryUsageGetPeak();
   std::cout << "MEMINFO " << argv[0] << " rank " << my_id << " mem=" << memusage_local/(1024*1024) << " MB" << std::endl;

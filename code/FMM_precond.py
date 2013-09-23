@@ -167,11 +167,11 @@ def Mg_CSR(my_id, processNumber_to_ChunksNumbers, chunkNumber_to_cubesNumbers, c
     NAME = "Mg_LeftFrob"
     chunkNumbers = processNumber_to_ChunksNumbers[my_id]
     # we write the chunks numbers of the process
-    writeASCIIBlitzArrayToDisk(array(chunkNumbers).astype('i'), os.path.join(pathToSaveTo, 'chunkNumbers.txt'))
+    #writeASCIIBlitzArrayToDisk(array(chunkNumbers).astype('i'), os.path.join(pathToSaveTo, 'chunkNumbers.txt'))
     index, percentage = 0, 0
     for chunkNumber in chunkNumbers:
         if my_id==0:
-            newPercentage = int(index * 100.0/len(processNumber_to_ChunksNumbers[my_id]))
+            newPercentage = int(index * 100.0/len(chunkNumbers))
             if (newPercentage - percentage)>=5:
                 print "Process", my_id, ": computing SAI precond chunk.", newPercentage, "% completed"
                 sys.stdout.flush()
