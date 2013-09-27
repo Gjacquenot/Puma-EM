@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 #include <complex>
+#include <vector>
 #include <blitz/array.h>
 #include <mpi.h>
 
@@ -93,8 +94,48 @@ int main(int argc, char* argv[]) {
     const int chunk = chunkNumbers(i);
     blitz::Array<int, 1> cubesNumbers;
     readIntBlitzArray1DFromASCIIFile(SAI_PRECOND_DATA_PATH + "chunk" + intToString(chunk) + "cubesNumbers.txt", cubesNumbers);
+    const int N_cubes = cubesNumbers.size();
+    for (int j=0; j<N_cubes; j++) {
+      const int cubeNumber = cubesNumbers(j);
+      const string pathToCubeIntArrays = Z_TMP_DATA_PATH + "chunk" + intToString(chunk) + "/" + intToString(cubeNumber) + "_IntArrays.txt";
+      // reading cubeIntArrays (cube information)
+      blitz::Array<int, 1> cubeIntArrays;
+      blitz::ifstream ifs(pathToCubeIntArrays.c_str(), blitz::ios::binary);
+      ifs.seekg (0, blitz::ios::end);
+      int length = ifs.tellg();
+      ifs.close();
+      int N_cubeIntArrays = length/4;
+      cubeIntArrays.resize(N_cubeIntArrays);
+      readIntBlitzArray1DFromBinaryFile(pathToCubeIntArrays, cubeIntArrays);
+      int N_RWG_test = cubeIntArrays(0);
+      int N_RWG_src = cubeIntArrays(1);
+      int N_neighbors = cubeIntArrays(2);
+      int N_nodes = cubeIntArrays(3);
+      int startIndex = 5, stopIndex = startIndex + N_RWG_src;
+      std::vector<int> testSrc_RWGsNumbers;
+      testSrc_RWGsNumbers.reserve(N_RWG_src);
+      for (int index=startIndex; index<stopIndex; index++) testSrc_RWGsNumbers.push_back(cubeIntArrays(index));
+
+      std::vector<int> isEdgeInCartesianRadius;
+      isEdgeInCartesianRadius.reserve(N_RWG_src);
+      startIndex = stopIndex;
+      stopIndex = startIndex + N_RWG_src;
+      for (int index=startIndex; index<stopIndex; index++) isEdgeInCartesianRadius.push_back(cubeIntArrays(index));
     
-    
+      std::vector<int> cubeNeighborsIndexes;
+      cubeNeighborsIndexes.reserve(N_neighbors);
+      startIndex = stopIndex;
+      stopIndex = startIndex + N_neighbors;
+      for (int index=startIndex; index<stopIndex; index++) cubeNeighborsIndexes.push_back(cubeIntArrays(index));
+
+      blitz::Array<std::complex<float>, 1> Z_CFIE_J_linear(N_RWG_test * N_RWG_src);
+      blitz::Array<std::complex<float>, 2> Z_CFIE_J(N_RWG_test, N_RWG_src);
+      const string pathToCube_Z = Z_TMP_DATA_PATH + "chunk" + intToString(chunk) + "/" + intToString(cubeNumber);
+      readComplexFloatBlitzArray1DFromBinaryFile(pathToCube_Z, Z_CFIE_J_linear);
+      for (int ii=0; ii<N_RWG_test; ii++) {
+        for (int jj=0; jj<N_RWG_src; jj++) Z_CFIE_J(ii, jj) = Z_CFIE_J_linear(ii*N_RWG_src + jj);
+      }
+    }
   }
   
   // Get peak memory usage of each rank

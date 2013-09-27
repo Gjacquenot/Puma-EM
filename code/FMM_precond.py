@@ -16,6 +16,7 @@ def compute_list_cubes(cubesNumbers, pathToReadCubesFrom, Z_TMP_ELEM_TYPE):
     for i in range(len(cubesNumbers)):
         cubeNumber = cubesNumbers[i]
         cube = CubeClass()
+        # we only need the int arrays of the cubes
         cube.setIntArraysFromFile(pathToReadCubesFrom, cubeNumber)
         list_cubes[cubeNumber] = copy.copy(cube)
         list_Z_tmp[cubeNumber] = read_Z_perCube_fromFile(pathToReadCubesFrom, cubeNumber, cube, Z_TMP_ELEM_TYPE)
