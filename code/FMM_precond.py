@@ -5,7 +5,7 @@ from scipy.weave import converters
 from scipy import prod, rand, eye, put, transpose #, linalg
 from myPseudoInv import computeMyPinvCC #, computeMyPinv
 from FMM_Znear import read_Z_perCube_fromFile, writeToDisk_chunk_of_Z_sparse
-from ReadWriteBlitzArray import writeBlitzArrayToDisk, readBlitzArrayFromDisk, writeScalarToDisk, writeASCIIBlitzArrayToDisk
+from ReadWriteBlitzArray import writeASCIIBlitzArrayToDisk
 from meshClass import CubeClass
 
 
@@ -144,7 +144,6 @@ def chunk_of_Mg_CSR(cubesNumbers, chunkNumber, ELEM_TYPE, Z_TMP_ELEM_TYPE, LIB_G
     indexN_ColumnsPerCube, index_in_rowIndexToColumnIndexes = 0, 0
     for cubeNumber, cube in list_cubes.iteritems():
         # finding the RWGs numbers
-        chunkNumber = cubeNumber_to_chunkNumber[cubeNumber]
         test_RWG_numbers[startIndexInRWGNumbers:startIndexInRWGNumbers + cube.N_RWG_test] = cube.testSrc_RWGsNumbers[:cube.N_RWG_test]
         startIndexInRWGNumbers += cube.N_RWG_test
         # computing the sparse matrix

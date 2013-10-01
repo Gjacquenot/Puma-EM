@@ -5,12 +5,106 @@
 #include <vector>
 #include <blitz/array.h>
 #include <mpi.h>
+#include <map>
 
 using namespace std;
 
 #include "readWriteBlitzArrayFromFile.h"
 #include "GetMemUsage.h"
 #include "./lapack/zgels_interface.h"
+
+class CubeArrays {
+  public:
+    int number;
+    int N_RWG_test;
+    int N_RWG_src;
+    int N_neighbors;
+    std::vector<int> testSrc_RWGsNumbers;
+    std::vector<int> isEdgeInCartesianRadius;
+    std::vector<int> neighborsIndexes;
+    blitz::Array<std::complex<float>, 2> Z_CFIE_J;
+    // constructors
+    CubeArrays(void){};
+    CubeArrays(const int /*cubeNumber*/, const string /*pathToReadFrom*/); 
+    void copyCubeArrays (const CubeArrays& cubeArraysToCopy);
+    CubeArrays(const CubeArrays&); // copy constructor
+    CubeArrays& operator=(const CubeArrays&); // copy assignment operator
+    ~CubeArrays();
+};
+
+CubeArrays::CubeArrays(const int cubeNumber, const string pathToReadFrom)
+{
+  number = cubeNumber;
+  const string pathToCubeIntArrays = pathToReadFrom + intToString(cubeNumber) + "_IntArrays.txt";  
+  const string pathToCube_Z = pathToReadFrom + intToString(cubeNumber);
+  // reading cubeIntArrays (cube information)
+  blitz::Array<int, 1> cubeIntArrays;
+  blitz::ifstream ifs(pathToCubeIntArrays.c_str(), blitz::ios::binary);
+  ifs.seekg (0, blitz::ios::end);
+  int length = ifs.tellg();
+  ifs.close();
+  int N_cubeIntArrays = length/4;
+  cubeIntArrays.resize(N_cubeIntArrays);
+  readIntBlitzArray1DFromBinaryFile(pathToCubeIntArrays, cubeIntArrays);
+
+  N_RWG_test = cubeIntArrays(0);
+  N_RWG_src = cubeIntArrays(1);
+  N_neighbors = cubeIntArrays(2);
+
+  int startIndex = 5, stopIndex = startIndex + N_RWG_src;
+  testSrc_RWGsNumbers.reserve(N_RWG_src);
+  for (int index=startIndex; index<stopIndex; index++) testSrc_RWGsNumbers.push_back(cubeIntArrays(index));
+
+  isEdgeInCartesianRadius.reserve(N_RWG_src);
+  startIndex = stopIndex;
+  stopIndex = startIndex + N_RWG_src;
+  for (int index=startIndex; index<stopIndex; index++) isEdgeInCartesianRadius.push_back(cubeIntArrays(index));
+    
+  neighborsIndexes.reserve(N_neighbors);
+  startIndex = stopIndex;
+  stopIndex = startIndex + N_neighbors;
+  for (int index=startIndex; index<stopIndex; index++) neighborsIndexes.push_back(cubeIntArrays(index));
+
+   blitz::Array<std::complex<float>, 1> Z_CFIE_J_linear(N_RWG_test * N_RWG_src);
+   readComplexFloatBlitzArray1DFromBinaryFile(pathToCube_Z, Z_CFIE_J_linear);
+   Z_CFIE_J.resize(N_RWG_test, N_RWG_src);
+   for (int ii=0; ii<N_RWG_test; ii++) {
+     for (int jj=0; jj<N_RWG_src; jj++) Z_CFIE_J(ii, jj) = Z_CFIE_J_linear(ii*N_RWG_src + jj);
+   }
+}
+
+void CubeArrays::copyCubeArrays(const CubeArrays& cubeArraysToCopy) // copy member function
+{
+  number = cubeArraysToCopy.number;
+  N_RWG_test = cubeArraysToCopy.N_RWG_test;
+  N_RWG_src = cubeArraysToCopy.N_RWG_src;
+  N_neighbors = cubeArraysToCopy.N_neighbors;
+  testSrc_RWGsNumbers.resize(cubeArraysToCopy.testSrc_RWGsNumbers.size());
+  testSrc_RWGsNumbers = cubeArraysToCopy.testSrc_RWGsNumbers;
+  isEdgeInCartesianRadius.resize(cubeArraysToCopy.isEdgeInCartesianRadius.size());
+  isEdgeInCartesianRadius = cubeArraysToCopy.isEdgeInCartesianRadius;
+  neighborsIndexes.resize(cubeArraysToCopy.neighborsIndexes.size());
+  neighborsIndexes = cubeArraysToCopy.neighborsIndexes;
+  Z_CFIE_J.resize(N_RWG_test, N_RWG_src);
+  Z_CFIE_J = cubeArraysToCopy.Z_CFIE_J;
+}
+
+CubeArrays::CubeArrays(const CubeArrays& cubeArraysToCopy) // copy constructor
+{
+  copyCubeArrays(cubeArraysToCopy);
+}
+
+CubeArrays& CubeArrays::operator=(const CubeArrays& cubeArraysToCopy) { // copy assignment
+  copyCubeArrays(cubeArraysToCopy);
+  return *this;
+}
+
+CubeArrays::~CubeArrays() {
+  testSrc_RWGsNumbers.clear();
+  isEdgeInCartesianRadius.clear();
+  neighborsIndexes.clear();
+  Z_CFIE_J.free();
+}
 
 void computeLwork(int & lwork, const int M, const int N, const int nrhs) {
   // computes the space necessary for WORK to.....work!!
@@ -84,6 +178,7 @@ int main(int argc, char* argv[]) {
   const string SAI_PRECOND_DATA_PATH = TMP + "/Mg_LeftFrob/";
   const string OCTTREE_DATA_PATH = TMP + "/octtree_data/";
   string filename;
+  typedef std::map<int, CubeArrays> CubeArraysMap;
 
   blitz::Array<int, 1> chunkNumbers, cubeNumber_to_chunkNumber;
   readIntBlitzArray1DFromASCIIFile(SAI_PRECOND_DATA_PATH + "chunkNumbers.txt", chunkNumbers);
@@ -95,46 +190,12 @@ int main(int argc, char* argv[]) {
     blitz::Array<int, 1> cubesNumbers;
     readIntBlitzArray1DFromASCIIFile(SAI_PRECOND_DATA_PATH + "chunk" + intToString(chunk) + "cubesNumbers.txt", cubesNumbers);
     const int N_cubes = cubesNumbers.size();
+    CubeArraysMap List_1, List_2;
     for (int j=0; j<N_cubes; j++) {
       const int cubeNumber = cubesNumbers(j);
-      const string pathToCubeIntArrays = Z_TMP_DATA_PATH + "chunk" + intToString(chunk) + "/" + intToString(cubeNumber) + "_IntArrays.txt";
-      // reading cubeIntArrays (cube information)
-      blitz::Array<int, 1> cubeIntArrays;
-      blitz::ifstream ifs(pathToCubeIntArrays.c_str(), blitz::ios::binary);
-      ifs.seekg (0, blitz::ios::end);
-      int length = ifs.tellg();
-      ifs.close();
-      int N_cubeIntArrays = length/4;
-      cubeIntArrays.resize(N_cubeIntArrays);
-      readIntBlitzArray1DFromBinaryFile(pathToCubeIntArrays, cubeIntArrays);
-      int N_RWG_test = cubeIntArrays(0);
-      int N_RWG_src = cubeIntArrays(1);
-      int N_neighbors = cubeIntArrays(2);
-      int N_nodes = cubeIntArrays(3);
-      int startIndex = 5, stopIndex = startIndex + N_RWG_src;
-      std::vector<int> testSrc_RWGsNumbers;
-      testSrc_RWGsNumbers.reserve(N_RWG_src);
-      for (int index=startIndex; index<stopIndex; index++) testSrc_RWGsNumbers.push_back(cubeIntArrays(index));
-
-      std::vector<int> isEdgeInCartesianRadius;
-      isEdgeInCartesianRadius.reserve(N_RWG_src);
-      startIndex = stopIndex;
-      stopIndex = startIndex + N_RWG_src;
-      for (int index=startIndex; index<stopIndex; index++) isEdgeInCartesianRadius.push_back(cubeIntArrays(index));
-    
-      std::vector<int> cubeNeighborsIndexes;
-      cubeNeighborsIndexes.reserve(N_neighbors);
-      startIndex = stopIndex;
-      stopIndex = startIndex + N_neighbors;
-      for (int index=startIndex; index<stopIndex; index++) cubeNeighborsIndexes.push_back(cubeIntArrays(index));
-
-      blitz::Array<std::complex<float>, 1> Z_CFIE_J_linear(N_RWG_test * N_RWG_src);
-      blitz::Array<std::complex<float>, 2> Z_CFIE_J(N_RWG_test, N_RWG_src);
-      const string pathToCube_Z = Z_TMP_DATA_PATH + "chunk" + intToString(chunk) + "/" + intToString(cubeNumber);
-      readComplexFloatBlitzArray1DFromBinaryFile(pathToCube_Z, Z_CFIE_J_linear);
-      for (int ii=0; ii<N_RWG_test; ii++) {
-        for (int jj=0; jj<N_RWG_src; jj++) Z_CFIE_J(ii, jj) = Z_CFIE_J_linear(ii*N_RWG_src + jj);
-      }
+      const string pathToCube = Z_TMP_DATA_PATH + "chunk" + intToString(chunk) + "/";
+      List_1.insert(CubeArraysMap::value_type(cubeNumber, CubeArrays(cubeNumber, pathToCube)));
+      
     }
   }
   
