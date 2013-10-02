@@ -168,7 +168,7 @@ int main(int argc, char* argv[]) {
 
   string simuDir = ".";
   if ( argc > 2 ) {
-     if( string(argv[1]) == "--simudir" ) simuDir = argv[2];
+    if( string(argv[1]) == "--simudir" ) simuDir = argv[2];
   }
 
   // general variables
@@ -190,13 +190,36 @@ int main(int argc, char* argv[]) {
     blitz::Array<int, 1> cubesNumbers;
     readIntBlitzArray1DFromASCIIFile(SAI_PRECOND_DATA_PATH + "chunk" + intToString(chunk) + "cubesNumbers.txt", cubesNumbers);
     const int N_cubes = cubesNumbers.size();
-    CubeArraysMap List_1, List_2;
+    CubeArraysMap ListCubes, ListCubesWithNeighbors;
+    // variables needed later
+    int N_RWG = 0, N_precond = 0, N_q_array = 0;
+    std::vector<int> N_ColumnsPerCube;
+    N_ColumnsPerCube.resize(N_cubes);
+    // we construct two lists: one without neighbors, and one with the neighbors
     for (int j=0; j<N_cubes; j++) {
       const int cubeNumber = cubesNumbers(j);
       const string pathToCube = Z_TMP_DATA_PATH + "chunk" + intToString(chunk) + "/";
-      List_1.insert(CubeArraysMap::value_type(cubeNumber, CubeArrays(cubeNumber, pathToCube)));
-      
+      const CubeArrays cube(cubeNumber, pathToCube);
+      ListCubes.insert(CubeArraysMap::value_type(cubeNumber, cube));
+      ListCubesWithNeighbors.insert(CubeArraysMap::value_type(cubeNumber, cube));
+      N_RWG += cube.N_RWG_test;
+      int N_isEdgeInCartesianRadius = 0;
+      for (int kk=0; kk<cube.isEdgeInCartesianRadius.size(); kk++) N_isEdgeInCartesianRadius += cube.isEdgeInCartesianRadius[kk];
+      N_ColumnsPerCube[j] = N_isEdgeInCartesianRadius;
+      N_precond += N_isEdgeInCartesianRadius * cube.N_RWG_test;
+      N_q_array += N_isEdgeInCartesianRadius;
     }
+    // for the q_array, each src function for all the testing functions of a cube appears only once
+    // instead of once per testing function. This allows a dramatic reduction in q_array.size
+    std::vector<int> test_RWG_numbers, q_array;
+    test_RWG_numbers.resize(N_RWG);
+    q_array.resize(N_q_array);
+    // N_precond = number of elements in the preconditioner chunk
+    blitz::Array<std::complex<float>, 1> Mg(N_precond);
+    blitz::Array<int, 2> rowIndexToColumnIndexes(N_RWG, 2);
+    int startIndex = 0, startIndexInRWGNumbers = 0, startIndexInQArray = 0;
+    int indexN_ColumnsPerCube = 0, index_in_rowIndexToColumnIndexes = 0;
+
   }
   
   // Get peak memory usage of each rank

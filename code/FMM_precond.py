@@ -22,20 +22,18 @@ def compute_list_cubes(cubesNumbers, pathToReadCubesFrom, Z_TMP_ELEM_TYPE):
         list_Z_tmp[cubeNumber] = read_Z_perCube_fromFile(pathToReadCubesFrom, cubeNumber, cube, Z_TMP_ELEM_TYPE)
     return list_cubes, list_Z_tmp
 
-def computePreconditionerColumnsPerCube(list_cubes, pathToReadFrom, cubeNumber_to_chunkNumber):
+def computePreconditionerColumnsPerCube(list_cubes, cubeNumber_to_chunkNumber):
     """this function computes the number of columns per cube for the Frobenius preconditioner"""
     NumberOfColumnsPerCube = zeros(len(list_cubes), 'i')
     i = 0
     for cubeNumber, cube in list_cubes.iteritems():
-        chunkNumber = cubeNumber_to_chunkNumber[cubeNumber]
-        pathToReadFromChunk = os.path.join( pathToReadFrom, "chunk" + str(chunkNumber) )
         NumberOfColumnsPerCube[i] = sum(cube.isEdgeInCartesianRadius)
         i += 1
     return NumberOfColumnsPerCube
 
-def numberOfElemsInPrecond(list_cubes, pathToReadFrom, cubeNumber_to_chunkNumber):
+def numberOfElemsInPrecond(list_cubes, cubeNumber_to_chunkNumber):
     """computes the number of elements in the preconditioner"""
-    preconditionerColumnsPerCube = computePreconditionerColumnsPerCube(list_cubes, pathToReadFrom, cubeNumber_to_chunkNumber)
+    preconditionerColumnsPerCube = computePreconditionerColumnsPerCube(list_cubes, cubeNumber_to_chunkNumber)
     N_precond = 0
     i = 0
     for cubeNumber, cube in list_cubes.iteritems():
@@ -134,7 +132,7 @@ def chunk_of_Mg_CSR(cubesNumbers, chunkNumber, ELEM_TYPE, Z_TMP_ELEM_TYPE, LIB_G
         N_RWG += Nl
     test_RWG_numbers = zeros(N_RWG, 'i')
     # number of elements in the preconditioner chunk
-    N_precond, N_ColumnsPerCube = numberOfElemsInPrecond(list_cubes, pathToReadFrom, cubeNumber_to_chunkNumber)
+    N_precond, N_ColumnsPerCube = numberOfElemsInPrecond(list_cubes, cubeNumber_to_chunkNumber)
     Mg = zeros(N_precond, ELEM_TYPE)
     # for the q_array, each src function for all the testing functions of a cube appears only once
     # instead of once per testing function. This allows a dramatic reduction in q_array.size
