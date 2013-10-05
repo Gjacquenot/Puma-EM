@@ -179,6 +179,7 @@ int main(int argc, char* argv[]) {
   const string OCTTREE_DATA_PATH = TMP + "/octtree_data/";
   string filename;
   typedef std::map<int, CubeArrays> CubeArraysMap;
+  typedef std::map<int, CubeArrays>::iterator CubeArraysMapIterator;
 
   blitz::Array<int, 1> chunkNumbers, cubeNumber_to_chunkNumber;
   readIntBlitzArray1DFromASCIIFile(SAI_PRECOND_DATA_PATH + "chunkNumbers.txt", chunkNumbers);
@@ -190,24 +191,36 @@ int main(int argc, char* argv[]) {
     blitz::Array<int, 1> cubesNumbers;
     readIntBlitzArray1DFromASCIIFile(SAI_PRECOND_DATA_PATH + "chunk" + intToString(chunk) + "cubesNumbers.txt", cubesNumbers);
     const int N_cubes = cubesNumbers.size();
-    CubeArraysMap ListCubes, ListCubesWithNeighbors;
+    CubeArraysMap ListCubes;
     // variables needed later
     int N_RWG = 0, N_precond = 0, N_q_array = 0;
     std::vector<int> N_ColumnsPerCube;
     N_ColumnsPerCube.resize(N_cubes);
-    // we construct two lists: one without neighbors, and one with the neighbors
+    // we construct a list of cubes
     for (int j=0; j<N_cubes; j++) {
       const int cubeNumber = cubesNumbers(j);
+      // we read the cube data and construct the cube
       const string pathToCube = Z_TMP_DATA_PATH + "chunk" + intToString(chunk) + "/";
       const CubeArrays cube(cubeNumber, pathToCube);
-      ListCubes.insert(CubeArraysMap::value_type(cubeNumber, cube));
-      ListCubesWithNeighbors.insert(CubeArraysMap::value_type(cubeNumber, cube));
+      // we add the cube only if it is not in the list
+      if (ListCubes.find(cubeNumber) == ListCubes.end()) ListCubes.insert(CubeArraysMap::value_type(cubeNumber, cube));
+      // then we need to construct a series of indexes and offsets
       N_RWG += cube.N_RWG_test;
       int N_isEdgeInCartesianRadius = 0;
       for (int kk=0; kk<cube.isEdgeInCartesianRadius.size(); kk++) N_isEdgeInCartesianRadius += cube.isEdgeInCartesianRadius[kk];
       N_ColumnsPerCube[j] = N_isEdgeInCartesianRadius;
       N_precond += N_isEdgeInCartesianRadius * cube.N_RWG_test;
       N_q_array += N_isEdgeInCartesianRadius;
+      // we add the neighbor cubes to the list
+      for (int kk=0; kk<cube.N_neighbors; kk++) {
+         const int neighborCubeNumber = cube.neighborsIndexes[kk];
+         if (ListCubes.find(neighborCubeNumber) == ListCubes.end()) {
+           const int chunkNumberNeighbor = cubeNumber_to_chunkNumber(neighborCubeNumber);
+           const string pathToCubeNeighbor = Z_TMP_DATA_PATH + "chunk" + intToString(chunkNumberNeighbor) + "/";
+           const CubeArrays cubeNeighbor(neighborCubeNumber, pathToCubeNeighbor);
+           ListCubes.insert(CubeArraysMap::value_type(neighborCubeNumber, cubeNeighbor));
+         }
+      }
     }
     // for the q_array, each src function for all the testing functions of a cube appears only once
     // instead of once per testing function. This allows a dramatic reduction in q_array.size
@@ -219,7 +232,14 @@ int main(int argc, char* argv[]) {
     blitz::Array<int, 2> rowIndexToColumnIndexes(N_RWG, 2);
     int startIndex = 0, startIndexInRWGNumbers = 0, startIndexInQArray = 0;
     int indexN_ColumnsPerCube = 0, index_in_rowIndexToColumnIndexes = 0;
-
+    // constructing test_RWG_numbers
+    for (int j=0; j<N_cubes; j++) {
+      const int cubeNumber = cubesNumbers(j);
+      CubeArraysMapIterator it = ListCubes.find(cubeNumber);
+      const CubeArrays cube((*it).second);
+      for (int kk=0; kk<cube.N_RWG_test; kk++) test_RWG_numbers[kk + startIndexInRWGNumbers] = cube.testSrc_RWGsNumbers[kk];
+      startIndexInRWGNumbers += cube.N_RWG_test;
+    }
   }
   
   // Get peak memory usage of each rank

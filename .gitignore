@@ -15,6 +15,7 @@ code/MoM/distribute_Z_cubes
 code/MoM/RWGs_renumbering
 code/MoM/scatter_mesh_per_cube
 code/MoM/compute_Z_near
+code/MoM/compute_SAI_precond
 code/MoM/mesh_functions_seb
 code/MoM/testMPI
 diff.out
