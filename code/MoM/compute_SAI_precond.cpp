@@ -106,6 +106,10 @@ CubeArrays::~CubeArrays() {
   Z_CFIE_J.free();
 }
 
+typedef std::map<int, CubeArrays> CubeArraysMap;
+typedef std::map<int, CubeArrays>::const_iterator CubeArraysMapIterator;
+
+
 void computeLwork(int & lwork, const int M, const int N, const int nrhs) {
   // computes the space necessary for WORK to.....work!!
   // returns the dimension of the array WORK.
@@ -157,6 +161,14 @@ void computeMyPinvCC(blitz::Array<std::complex<double>, 2>& Y, const blitz::Arra
   }
 }
 
+void MgPreconditionerComputationPerCube(const int cubeNumber,
+                                        const CubeArraysMap & ListCubes)
+{
+  CubeArraysMapIterator it = ListCubes.find(cubeNumber);
+  blitz::Array<std::complex<float>, 2> Z_local((*it).second.N_RWG_src, (*it).second.N_RWG_src);
+  for (int i=0; i<(*it).second.N_RWG_src; i++) Z_local(i, i) = std::complex<float>(1.0, 0.0);
+}
+
 int main(int argc, char* argv[]) {
 
   MPI::Init();
@@ -178,8 +190,6 @@ int main(int argc, char* argv[]) {
   const string SAI_PRECOND_DATA_PATH = TMP + "/Mg_LeftFrob/";
   const string OCTTREE_DATA_PATH = TMP + "/octtree_data/";
   string filename;
-  typedef std::map<int, CubeArrays> CubeArraysMap;
-  typedef std::map<int, CubeArrays>::iterator CubeArraysMapIterator;
 
   blitz::Array<int, 1> chunkNumbers, cubeNumber_to_chunkNumber;
   readIntBlitzArray1DFromASCIIFile(SAI_PRECOND_DATA_PATH + "chunkNumbers.txt", chunkNumbers);
@@ -204,23 +214,23 @@ int main(int argc, char* argv[]) {
       const CubeArrays cube(cubeNumber, pathToCube);
       // we add the cube only if it is not in the list
       if (ListCubes.find(cubeNumber) == ListCubes.end()) ListCubes.insert(CubeArraysMap::value_type(cubeNumber, cube));
+      // we then add the neighbor cubes to the list
+      for (int kk=0; kk<cube.N_neighbors; kk++) {
+        const int neighborCubeNumber = cube.neighborsIndexes[kk];
+        if (ListCubes.find(neighborCubeNumber) == ListCubes.end()) {
+          const int chunkNumberNeighbor = cubeNumber_to_chunkNumber(neighborCubeNumber);
+          const string pathToCubeNeighbor = Z_TMP_DATA_PATH + "chunk" + intToString(chunkNumberNeighbor) + "/";
+          const CubeArrays cubeNeighbor(neighborCubeNumber, pathToCubeNeighbor);
+          ListCubes.insert(CubeArraysMap::value_type(neighborCubeNumber, cubeNeighbor));
+        }
+      }
       // then we need to construct a series of indexes and offsets
       N_RWG += cube.N_RWG_test;
       int N_isEdgeInCartesianRadius = 0;
       for (int kk=0; kk<cube.isEdgeInCartesianRadius.size(); kk++) N_isEdgeInCartesianRadius += cube.isEdgeInCartesianRadius[kk];
       N_ColumnsPerCube[j] = N_isEdgeInCartesianRadius;
       N_precond += N_isEdgeInCartesianRadius * cube.N_RWG_test;
-      N_q_array += N_isEdgeInCartesianRadius;
-      // we add the neighbor cubes to the list
-      for (int kk=0; kk<cube.N_neighbors; kk++) {
-         const int neighborCubeNumber = cube.neighborsIndexes[kk];
-         if (ListCubes.find(neighborCubeNumber) == ListCubes.end()) {
-           const int chunkNumberNeighbor = cubeNumber_to_chunkNumber(neighborCubeNumber);
-           const string pathToCubeNeighbor = Z_TMP_DATA_PATH + "chunk" + intToString(chunkNumberNeighbor) + "/";
-           const CubeArrays cubeNeighbor(neighborCubeNumber, pathToCubeNeighbor);
-           ListCubes.insert(CubeArraysMap::value_type(neighborCubeNumber, cubeNeighbor));
-         }
-      }
+      N_q_array += N_isEdgeInCartesianRadius;      
     }
     // for the q_array, each src function for all the testing functions of a cube appears only once
     // instead of once per testing function. This allows a dramatic reduction in q_array.size
@@ -239,6 +249,11 @@ int main(int argc, char* argv[]) {
       const CubeArrays cube((*it).second);
       for (int kk=0; kk<cube.N_RWG_test; kk++) test_RWG_numbers[kk + startIndexInRWGNumbers] = cube.testSrc_RWGsNumbers[kk];
       startIndexInRWGNumbers += cube.N_RWG_test;
+    }
+    // calculation of the SAI preconditioner
+    for (int j=0; j<N_cubes; j++) {
+      const int cubeNumber = cubesNumbers(j);
+      MgPreconditionerComputationPerCube(cubeNumber, ListCubes);
     }
   }
   
