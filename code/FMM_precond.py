@@ -1,8 +1,8 @@
 from mpi4py import MPI
 import sys, os, copy
-from scipy import zeros, array, compress, arange, take, product, dot, sort, argsort, ones, weave
+from scipy import zeros, array, compress, arange, take, weave
 from scipy.weave import converters
-from scipy import prod, rand, eye, put, transpose #, linalg
+from scipy import eye, put, transpose #, linalg
 from myPseudoInv import computeMyPinvCC #, computeMyPinv
 from FMM_Znear import read_Z_perCube_fromFile, writeToDisk_chunk_of_Z_sparse
 from ReadWriteBlitzArray import writeASCIIBlitzArrayToDisk

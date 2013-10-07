@@ -6,6 +6,7 @@
 #include <blitz/array.h>
 #include <mpi.h>
 #include <map>
+#include <set>
 
 using namespace std;
 
@@ -166,7 +167,44 @@ void MgPreconditionerComputationPerCube(const int cubeNumber,
 {
   CubeArraysMapIterator it = ListCubes.find(cubeNumber);
   blitz::Array<std::complex<float>, 2> Z_local((*it).second.N_RWG_src, (*it).second.N_RWG_src);
+  Z_local = std::complex<float>(0.0, 0.0);
   for (int i=0; i<(*it).second.N_RWG_src; i++) Z_local(i, i) = std::complex<float>(1.0, 0.0);
+
+  std::map<int, int> src_edges_numbers_local_src_edges_numbers;
+  for (int index = 0; index<(*it).second.N_RWG_src; index++) {
+    const int RWG_number = (*it).second.testSrc_RWGsNumbers[index];
+    src_edges_numbers_local_src_edges_numbers[RWG_number] = index;
+  }
+  std::set<int> set_cubeNeighborsIndexes((*it).second.neighborsIndexes.begin(), (*it).second.neighborsIndexes.end());
+
+  for (int index=0; index<(*it).second.N_neighbors; index++) {
+    const int neighborCubeNumber = (*it).second.neighborsIndexes[index];
+    CubeArraysMapIterator it_neighbor = ListCubes.find(neighborCubeNumber);
+    // we first fill in the first lines of Z_local
+    if (index==0) {
+      for (int i=0; i<(*it).second.N_RWG_test; i++) {
+        for (int j=0; j<(*it).second.N_RWG_src; j++) Z_local(i, j) = (*it).second.Z_CFIE_J(i, j);
+      }
+    }
+    // we then fill in the remaining lines
+    else {
+      // first we find the line indexes
+      std::vector<int> Z_local_lines_indexes;
+      Z_local_lines_indexes.resize((*it_neighbor).second.N_RWG_test);
+      for (int i=0; i<(*it_neighbor).second.N_RWG_test; i++) {
+        const int RWG_number = (*it_neighbor).second.testSrc_RWGsNumbers[i];  
+        Z_local_lines_indexes[i] = src_edges_numbers_local_src_edges_numbers[RWG_number];
+      }
+      // then we find the column indexes. A little more complicated
+      std::vector<int> common_neighborsNumbers;
+      for (int i=0; i<(*it_neighbor).second.N_neighbors; i++) {
+        const int val = (*it_neighbor).second.neighborsIndexes[i];
+        if (set_cubeNeighborsIndexes.find(val) != set_cubeNeighborsIndexes.end()) common_neighborsNumbers.push_back(val);
+      }
+      
+    }
+  } // end for 
+
 }
 
 int main(int argc, char* argv[]) {
