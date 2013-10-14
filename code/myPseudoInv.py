@@ -57,14 +57,14 @@ def computeMyPinvCC(A, LIB_G2C):
     lda = A.shape[0]
     ldb = max(n, m)
     nrhs = m
-    B = zeros((ldb, nrhs), 'D', 2)
+    B = zeros((ldb, nrhs), 'D', order='F') # order='F' is Fortran storage
     #for i in range(min(ldb, nrhs)):
     #    B[i, i] += 1.
     lwork = computeLwork(m, n, nrhs)
     work = zeros(lwork, 'D')
     trans = 'N' # 'C'
     info = 0
-    AA = zeros(A.shape, 'D', 2)
+    AA = zeros(A.shape, 'D', order='F') # order='F' is Fortran storage
     AA[:] = A
     wrapping_code = """
     char trans = 'N';

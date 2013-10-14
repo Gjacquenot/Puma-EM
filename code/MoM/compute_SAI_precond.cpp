@@ -122,41 +122,36 @@ void computeLwork(int & lwork, const int M, const int N, const int nrhs) {
   lwork = max( 1, mn + max( mn, nrhs )*NB );
 }
 
-void computeMyPinvCC(blitz::Array<std::complex<double>, 2>& Y, const blitz::Array<std::complex<double>, 2>& A) {
+void computeMyPinvCC(blitz::Array<std::complex<double>, 2>& Y, blitz::Array<std::complex<double>, 1>& A, int m, int n) {
   /* this routine computes the pseudo inverse of A
   and is a wrapper to the fortran function zgels.f
   By the way, to understand this wrapping structure, you
   better check the comments at the beginning of zgels.f */
-  int m = A.extent(0);
-  int n = A.extent(1);
   int lda = m;
   int ldb = max(n, m);
   int nrhs = m;
   const int N = min(ldb, nrhs);
-  blitz::Array<std::complex<double>, 2> B(ldb, nrhs, blitz::fortranArray), AA(ldb, nrhs, blitz::fortranArray);
-  for (int i=0; i<m; i++) {
-    for (int j=0; j<m; j++) AA(i, j) = A(i, j);
-  }
+  blitz::Array<std::complex<double>, 1> B(ldb * nrhs); // B(ldb, nrhs)
   B = 0.0;
-  for (int i=0 ; i<N ; ++i) B(i, i) = 1.0;
+  for (int i=0 ; i<N ; i++) B(i + i*ldb) = 1.0;
   int lwork;
   computeLwork(lwork, m, n, nrhs);
   blitz::Array<std::complex<double>, 1> work(lwork);
   work = 0.0;
   int info = 0;
   char trans = 'N';
-  zgels(trans, m, n, nrhs, AA, lda, B, ldb, work, lwork, info);
+  zgels2(trans, m, n, nrhs, A, lda, B, ldb, work, lwork, info);
   if (info==0) {
     if (m<=n) {
-      Y.resize(B.extent(0), B.extent(1));
-      for (int i=0; i<B.extent(0); i++) {
-        for (int j=0; j<B.extent(1); j++) Y(i, j) = B(i, j);
+      Y.resize(ldb, nrhs);
+      for (int j=0; j<nrhs; j++) {
+        for (int i=0; i<ldb; i++) Y(i, j) = B(i + j*ldb);
       }
     }
     else {
-      Y.resize(n, B.extent(1));
+      Y.resize(n, nrhs);
       for (int i=0; i<n; i++) {
-        for (int j=0; j<B.extent(1); j++) Y(i, j) = B(i, j);
+        for (int j=0; j<nrhs; j++) Y(i, j) = B(i + j*n);
       }
     }
   }
@@ -201,10 +196,55 @@ void MgPreconditionerComputationPerCube(const int cubeNumber,
         const int val = (*it_neighbor).second.neighborsIndexes[i];
         if (set_cubeNeighborsIndexes.find(val) != set_cubeNeighborsIndexes.end()) common_neighborsNumbers.push_back(val);
       }
-      
-    }
+      std::vector<int> src_tmp;
+      for (int i=0; i<common_neighborsNumbers.size(); i++) {
+        const int commonNeighbor = common_neighborsNumbers[i];
+        CubeArraysMapIterator it_commonNeighbor = ListCubes.find(commonNeighbor);
+        for (int kk=0; kk<(*it_commonNeighbor).second.N_RWG_test; kk++) {
+          src_tmp.push_back((*it_commonNeighbor).second.testSrc_RWGsNumbers[kk]);
+        }
+      }
+      std::set<int> set_srcEdges(src_tmp.begin(), src_tmp.end());
+      std::vector<int> columnsOfNeighborCubeToBeConsidered;
+      for (int i=0; i<(*it_neighbor).second.N_RWG_src; i++) {
+        if (set_srcEdges.find((*it_neighbor).second.testSrc_RWGsNumbers[i]) != set_srcEdges.end()) {
+          columnsOfNeighborCubeToBeConsidered.push_back(i);
+        }
+      }
+      std::vector<int> Z_local_columns_indexes;
+      Z_local_columns_indexes.resize(src_tmp.size());
+      for (int i=0; i<src_tmp.size(); i++) {
+        const int RWG_number = src_tmp[i];
+        Z_local_columns_indexes[i] = src_edges_numbers_local_src_edges_numbers[RWG_number];
+      }
+      // we construct Z_local
+      for (int i=0; i<Z_local_lines_indexes.size(); i++) {
+        for (int j=0; j<Z_local_columns_indexes.size(); j++) {
+          const int index_line = Z_local_lines_indexes[i];
+          const int index_column = Z_local_columns_indexes[j];
+          Z_local(index_line, index_column) = (*it_neighbor).second.Z_CFIE_J(i, columnsOfNeighborCubeToBeConsidered[j]);
+        }
+      }
+    } // end else
   } // end for 
 
+  // further reduce the matrix size
+  int N_lines = 0;
+  for (int i=0; i<(*it).second.N_RWG_src; i++) N_lines += (*it).second.isEdgeInCartesianRadius[i];
+  blitz::Array<int, 1> src_edges_numbers_2(N_lines);
+  blitz::Array<std::complex<double>, 1> Z_local_2(N_lines * (*it).second.N_RWG_src);
+  Z_local_2 = 0.0;
+  int line_index = 0;
+  for (int i=0; i<(*it).second.N_RWG_src; i++) {
+    if ((*it).second.isEdgeInCartesianRadius[i]==1) {
+      for (int j=0; j<(*it).second.N_RWG_src; j++) Z_local_2(line_index + j*N_lines) = Z_local (i, j);
+      src_edges_numbers_2(line_index) = (*it).second.testSrc_RWGsNumbers[i];
+      line_index++;
+    }
+  }
+  // compute the SAI matrix
+  blitz::Array<std::complex<double>, 2> Y_CFIE;
+  computeMyPinvCC(Y_CFIE, Z_local_2, N_lines, (*it).second.N_RWG_src);
 }
 
 int main(int argc, char* argv[]) {
