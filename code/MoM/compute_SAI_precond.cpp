@@ -157,7 +157,9 @@ void computeMyPinvCC(blitz::Array<std::complex<double>, 2>& Y, blitz::Array<std:
   }
 }
 
-void MgPreconditionerComputationPerCube(const int cubeNumber,
+void MgPreconditionerComputationPerCube(blitz::Array<std::complex<float>, 1>& Mg_tmp,
+                                        blitz::Array<int, 1>& src_edges_numbers_2,
+                                        const int cubeNumber,
                                         const CubeArraysMap & ListCubes)
 {
   CubeArraysMapIterator it = ListCubes.find(cubeNumber);
@@ -231,7 +233,7 @@ void MgPreconditionerComputationPerCube(const int cubeNumber,
   // further reduce the matrix size
   int N_lines = 0;
   for (int i=0; i<(*it).second.N_RWG_src; i++) N_lines += (*it).second.isEdgeInCartesianRadius[i];
-  blitz::Array<int, 1> src_edges_numbers_2(N_lines);
+  src_edges_numbers_2.resize(N_lines);
   blitz::Array<std::complex<double>, 1> Z_local_2(N_lines * (*it).second.N_RWG_src);
   Z_local_2 = 0.0;
   int line_index = 0;
@@ -245,6 +247,11 @@ void MgPreconditionerComputationPerCube(const int cubeNumber,
   // compute the SAI matrix
   blitz::Array<std::complex<double>, 2> Y_CFIE;
   computeMyPinvCC(Y_CFIE, Z_local_2, N_lines, (*it).second.N_RWG_src);
+  
+  Mg_tmp.resize((*it).second.N_RWG_test * Y_CFIE.extent(1));
+  for (int i=0; i<(*it).second.N_RWG_test; i++) {
+    for (int j=0; j<Y_CFIE.extent(1); j++) Mg_tmp(i*Y_CFIE.extent(1) + j) = Y_CFIE(i, j);    
+  }
 }
 
 int main(int argc, char* argv[]) {
@@ -307,32 +314,59 @@ int main(int argc, char* argv[]) {
       int N_isEdgeInCartesianRadius = 0;
       for (int kk=0; kk<cube.isEdgeInCartesianRadius.size(); kk++) N_isEdgeInCartesianRadius += cube.isEdgeInCartesianRadius[kk];
       N_ColumnsPerCube[j] = N_isEdgeInCartesianRadius;
+      // N_precond = number of elements in the preconditioner chunk
       N_precond += N_isEdgeInCartesianRadius * cube.N_RWG_test;
       N_q_array += N_isEdgeInCartesianRadius;      
     }
-    // for the q_array, each src function for all the testing functions of a cube appears only once
-    // instead of once per testing function. This allows a dramatic reduction in q_array.size
-    std::vector<int> test_RWG_numbers, q_array;
-    test_RWG_numbers.resize(N_RWG);
-    q_array.resize(N_q_array);
-    // N_precond = number of elements in the preconditioner chunk
-    blitz::Array<std::complex<float>, 1> Mg(N_precond);
-    blitz::Array<int, 2> rowIndexToColumnIndexes(N_RWG, 2);
-    int startIndex = 0, startIndexInRWGNumbers = 0, startIndexInQArray = 0;
-    int indexN_ColumnsPerCube = 0, index_in_rowIndexToColumnIndexes = 0;
     // constructing test_RWG_numbers
+    blitz::Array<int, 1> test_RWG_numbers(N_RWG);
+    int startIndexInRWGNumbers = 0;
     for (int j=0; j<N_cubes; j++) {
       const int cubeNumber = cubesNumbers(j);
       CubeArraysMapIterator it = ListCubes.find(cubeNumber);
       const CubeArrays cube((*it).second);
-      for (int kk=0; kk<cube.N_RWG_test; kk++) test_RWG_numbers[kk + startIndexInRWGNumbers] = cube.testSrc_RWGsNumbers[kk];
+      for (int kk=0; kk<cube.N_RWG_test; kk++) test_RWG_numbers(kk + startIndexInRWGNumbers) = cube.testSrc_RWGsNumbers[kk];
       startIndexInRWGNumbers += cube.N_RWG_test;
     }
     // calculation of the SAI preconditioner
+    // for the q_array, each src function for all the testing functions of a cube appears only once
+    // instead of once per testing function. This allows a dramatic reduction in q_array.size
+    blitz::Array<std::complex<float>, 1> Mg(N_precond); // N_precond = number of elements in the preconditioner chunk
+    blitz::Array<int, 2> rowIndexToColumnIndexes(N_RWG, 2);
+    blitz::Array<int, 1> src_RWG_numbers(N_q_array);
+    int startIndex = 0, startIndexInQArray = 0;
+    int indexN_ColumnsPerCube = 0, index_in_rowIndexToColumnIndexes = 0;
     for (int j=0; j<N_cubes; j++) {
       const int cubeNumber = cubesNumbers(j);
-      MgPreconditionerComputationPerCube(cubeNumber, ListCubes);
+      blitz::Array<int, 1> Mg_q_array;
+      blitz::Array<std::complex<float>, 1> Mg_tmp;
+      MgPreconditionerComputationPerCube(Mg_tmp, Mg_q_array, cubeNumber, ListCubes);
+      // filling Mg
+      for (int kk=0; kk<Mg_tmp.size(); kk++) Mg(kk + startIndex) = Mg_tmp(kk);
+      startIndex += Mg_tmp.size();
+      // filling src_RWG_numbers
+      for (int kk=0; kk<Mg_q_array.size(); kk++) src_RWG_numbers(kk + startIndexInQArray) = Mg_q_array(kk);
+      // the rest
+      CubeArraysMapIterator it = ListCubes.find(cubeNumber);
+      const int indInf = index_in_rowIndexToColumnIndexes;
+      const int indSup = index_in_rowIndexToColumnIndexes + (*it).second.N_RWG_test;
+      for (int kk=0; kk<(*it).second.N_RWG_test; kk++) {
+        rowIndexToColumnIndexes(kk + indInf, 0) = startIndexInQArray;
+        rowIndexToColumnIndexes(kk + indInf, 1) = startIndexInQArray + N_ColumnsPerCube[indexN_ColumnsPerCube];
+      }
+      index_in_rowIndexToColumnIndexes = indSup;
+      startIndexInQArray += N_ColumnsPerCube[indexN_ColumnsPerCube];
+      indexN_ColumnsPerCube += 1;  
     }
+    // we write the arrays to disk
+    writeComplexFloatBlitzArray1DToBinaryFile(SAI_PRECOND_DATA_PATH + "Mg_LeftFrob"+ intToString(chunk) + ".txt", Mg);
+    writeIntBlitzArray1DToBinaryFile(SAI_PRECOND_DATA_PATH + "src_RWG_numbers" + intToString(chunk) + ".txt", src_RWG_numbers);
+    writeIntBlitzArray2DToBinaryFile(SAI_PRECOND_DATA_PATH + "rowIndexToColumnIndexes" + intToString(chunk) + ".txt", rowIndexToColumnIndexes);
+    writeIntBlitzArray1DToBinaryFile(SAI_PRECOND_DATA_PATH + "test_RWG_numbers" + intToString(chunk) + ".txt", test_RWG_numbers);
+    // now we write the scalar values
+    writeIntToASCIIFile(SAI_PRECOND_DATA_PATH + "N_test_RWG" + intToString(chunk) + ".txt", test_RWG_numbers.size());
+    writeIntToASCIIFile(SAI_PRECOND_DATA_PATH + "N_near" + intToString(chunk) + ".txt", N_precond);
+    writeIntToASCIIFile(SAI_PRECOND_DATA_PATH + "N_src_RWG" + intToString(chunk) + ".txt", src_RWG_numbers.size());
   }
   
   // Get peak memory usage of each rank
