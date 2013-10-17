@@ -184,6 +184,14 @@ def print_times(params_simu, simuDirName):
         for line in CPU_time_compute_Z_near_tmp:
             if 'real' in line:
                 CPU_time_compute_Z_near = float(line.split()[1])
+        # CPU_time_compute_SAI_precond
+        file = open(os.path.join(simuDirName,'result/CPU_time_compute_SAI_precond.txt'), 'r')
+        CPU_time_compute_SAI_precond_tmp = file.readlines()
+        file.close()
+        CPU_time_compute_SAI_precond = 0.0
+        for line in CPU_time_compute_SAI_precond_tmp:
+            if 'real' in line:
+                CPU_time_compute_SAI_precond = float(line.split()[1])
         # CPU_time_communicateZnearBlocks
         file = open(os.path.join(simuDirName,'result/CPU_time_communicateZnearBlocks.txt'), 'r')
         CPU_time_communicateZnearBlocks_tmp = file.readlines()
@@ -217,6 +225,7 @@ def print_times(params_simu, simuDirName):
             print variables['CPU_time_Z_near_computation'], "CPU time (seconds) for constructing Z_CFIE_near"
             print variables['Wall_time_Z_near_computation'], "Wall time (seconds) for constructing Z_CFIE_near"
             print CPU_time_communicateZnearBlocks, "CPU time (seconds) for communicateZnearBlocks"
+            print CPU_time_compute_SAI_precond, "CPU time (seconds) for computing SAI precond (C++)"
             print variables['CPU_time_Mg_computation'], "CPU time (seconds) for constructing SAI precond"
             print variables['Wall_time_Mg_computation'], "Wall time (seconds) for constructing SAI precond"
             print CPU_time_RWGs_renumbering, "CPU time (seconds) for RWGs_renumbering"
@@ -225,7 +234,7 @@ def print_times(params_simu, simuDirName):
             if numberOfMatvecs>0:
                 print CPU_time_MLFMA/numberOfMatvecs, "CPU time (seconds) per MLFMA matvec"
                 #print target_MLFMA.Wall_time_Target_MLFMA_resolution/target_MLFMA.numberOfMatvecs, "Wall time (seconds) per MLFMA matvec"
-            print CPU_time_GMSH + CPU_time_distribute_Z_cubes + CPU_time_compute_Z_near + variables['CPU_time_Z_near_computation'] + CPU_time_communicateZnearBlocks + variables['CPU_time_Mg_computation'] + CPU_time_RWGs_renumbering + CPU_time_MLFMA, "CPU time (seconds) for complete MLFMA solution"
+            print CPU_time_GMSH + CPU_time_distribute_Z_cubes + CPU_time_compute_Z_near + variables['CPU_time_Z_near_computation'] + CPU_time_communicateZnearBlocks + variables['CPU_time_Mg_computation'] + CPU_time_compute_SAI_precond + CPU_time_RWGs_renumbering + CPU_time_MLFMA, "CPU time (seconds) for complete MLFMA solution"
             #print Wall_time_Z_near_computation + Wall_time_Mg_computation + target_MLFMA.Wall_time_Target_MLFMA_resolution, "Wall time (seconds) for complete MLFMA solution"
         if params_simu.CURRENTS_VISUALIZATION:
             computeCurrentsVisualization(params_simu, variables, simuDirName)
