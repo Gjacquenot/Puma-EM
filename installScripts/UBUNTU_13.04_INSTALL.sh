@@ -1,7 +1,6 @@
 #!/bin/bash
 ###############################################################
-# script for Ubuntu 12.10 to compile puma-em MoM simulator. #
-# script produced by simon.batchelor@wirelessconsultancy.com #
+# script for Ubuntu 13.04 to compile puma-em MoM simulator.   #
 ###############################################################
 
 echo " "
@@ -9,9 +8,6 @@ echo "installing Puma-em"
 echo "=================="
 echo " "
 echo " BEWARE: Some parts of this script need to be run as sudo... "
-echo " "
-echo " BEWARE: if, in the future, apt updates LAM/MPI or OpenMPI, you'll have to reinstall Puma-EM."
-echo " Otherwise, mpi4py risks crashing."
 echo " "
 echo " press enter to continue, ctrl-C to stop"
 read

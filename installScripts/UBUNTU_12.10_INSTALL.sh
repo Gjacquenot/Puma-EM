@@ -1,7 +1,6 @@
 #!/bin/bash
 ###############################################################
-# script for Ubuntu 12.10 to compile puma-em MoM simulator. #
-# script produced by simon.batchelor@wirelessconsultancy.com #
+# script for Ubuntu 12.10 to compile puma-em MoM simulator.   #
 ###############################################################
 
 echo " "
