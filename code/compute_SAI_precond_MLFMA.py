@@ -1,7 +1,7 @@
 import sys, os, cPickle, time, argparse
 from mpi4py import MPI
 from FMM_precond import Mg_CSR
-from FMM_Znear import Z_nearCRS_Assembling
+from assemble_Z_near import Z_nearCRS_Assembling
 from ReadWriteBlitzArray import writeASCIIBlitzArrayToDisk
 from scipy import array
 

@@ -47,8 +47,12 @@ ${MPI_CMD} python code/compute_Z_near_MLFMA.py --simudir ${SIMU_DIR} --simuparam
 { time -p ${MPI_CMD} ./code/MoM/communicateZnearBlocks --simudir ${SIMU_DIR}; } 2> ${SIMU_DIR}/result/CPU_time_communicateZnearBlocks.txt
 
 # now computation of the SAI preconditioner
-${MPI_CMD} python code/compute_SAI_precond_MLFMA.py --simudir ${SIMU_DIR} --simuparams ${SIMU_PARAMS}
-#{ time -p ${MPI_CMD} ./code/MoM/compute_SAI_precond --simudir ${SIMU_DIR}; } 2> ${SIMU_DIR}/result/CPU_time_compute_SAI_precond.txt
+# ${MPI_CMD} python code/compute_SAI_precond_MLFMA.py --simudir ${SIMU_DIR} --simuparams ${SIMU_PARAMS}
+${MPI_CMD} python code/prepare_SAI_precond_CPP.py --simudir ${SIMU_DIR} --simuparams ${SIMU_PARAMS}
+{ time -p ${MPI_CMD} ./code/MoM/compute_SAI_precond --simudir ${SIMU_DIR}; } 2> ${SIMU_DIR}/result/CPU_time_compute_SAI_precond.txt
+
+# assembling the near field interactions blocks
+${MPI_CMD} python code/assemble_Z_near.py --simudir ${SIMU_DIR} --simuparams ${SIMU_PARAMS}
 
 # now renumbering of the RWGs for Znear and preconditioner multiplications
 { time -p ${MPI_CMD} ./code/MoM/RWGs_renumbering --simudir ${SIMU_DIR}; } 2> ${SIMU_DIR}/result/CPU_time_RWGs_renumbering.txt

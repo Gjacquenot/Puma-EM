@@ -4,7 +4,7 @@ from scipy import zeros, array, compress, arange, take, weave
 from scipy.weave import converters
 from scipy import eye, put, transpose #, linalg
 from myPseudoInv import computeMyPinvCC #, computeMyPinv
-from FMM_Znear import read_Z_perCube_fromFile, writeToDisk_chunk_of_Z_sparse
+from assemble_Z_near import read_Z_perCube_fromFile, writeToDisk_chunk_of_Z_sparse
 from ReadWriteBlitzArray import writeASCIIBlitzArrayToDisk
 from meshClass import CubeClass
 
