@@ -1,5 +1,5 @@
 import sys, os, argparse
-import time, copy, commands, pickle, cPickle
+import pickle, cPickle
 from mpi4py import MPI
 from scipy import array, sqrt
 from meshClass import MeshClass

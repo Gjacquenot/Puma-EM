@@ -1,6 +1,6 @@
 import sys, os, argparse
 from mpi4py import MPI
-from scipy import zeros, array, sqrt
+from scipy import zeros, array
 from ReadWriteBlitzArray import writeScalarToDisk, writeASCIIBlitzArrayToDisk
 from read_dipole_excitation import read_dipole_excitation, read_observation_points
 
