@@ -33,7 +33,9 @@ python code/setup_GMSH.py --simudir ${SIMU_DIR} --simuparams ${SIMU_PARAMS}
 { time -p ./GMSHcommand.sh; } 2> ${SIMU_DIR}/result/CPU_time_GMSH.txt
 
 # setup of the MLFMA simulation
+${MPI_CMD} python code/setup_MLFMA_folders.py --simudir ${SIMU_DIR}
 ${MPI_CMD} python code/setup_MLFMA.py --simudir ${SIMU_DIR} --simuparams ${SIMU_PARAMS}
+${MPI_CMD} python code/setup_MLFMA_mesh.py --simudir ${SIMU_DIR} --simuparams ${SIMU_PARAMS}
 
 # distribution of data across processes
 { time -p ${MPI_CMD} ./code/MoM/distribute_Z_cubes --simudir ${SIMU_DIR}; } 2> ${SIMU_DIR}/result/CPU_time_distribute_Z_cubes.txt
