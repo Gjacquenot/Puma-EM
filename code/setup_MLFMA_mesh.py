@@ -1,10 +1,36 @@
-import sys, os, argparse
-import pickle, cPickle
+import sys, os, argparse, time, pickle, cPickle, commands
 from mpi4py import MPI
-from scipy import array, sqrt
-from meshClass import MeshClass
-from ReadWriteBlitzArray import writeScalarToDisk, writeASCIIBlitzArrayToDisk
+from scipy import array, sqrt, take, sum, mean
+from ReadWriteBlitzArray import writeScalarToDisk, writeASCIIBlitzArrayToDisk, writeBlitzArrayToDisk
+from ReadWriteBlitzArray import readIntFromDisk, readASCIIBlitzIntArray1DFromDisk, readBlitzArrayFromDisk
 from MLFMA import computeTreeParameters
+from read_mesh import read_mesh_GMSH_1, read_mesh_GMSH_2, read_mesh_GiD, read_mesh_ANSYS
+from mesh_functions_seb import compute_RWG_meanEdgeLength, compute_RWGNumber_edgeCentroidCoord
+from Cubes import cube_lower_coord_computation, RWGNumber_cubeNumber_computation, cubeIndex_RWGNumbers_computation, findCubeNeighbors, write_cubes
+
+def readMesh(path, name, params_simu):
+    if params_simu.meshFormat == 'GMSH':
+        #vertexes_coord, triangle_vertexes, triangles_physicalSurface = read_mesh_GMSH_1(os.path.join(path, name), params_simu.targetDimensions_scaling_factor, params_simu.z_offset)
+        vertexes_coord, triangle_vertexes, triangles_physicalSurface = read_mesh_GMSH_2(os.path.join(path, name), params_simu.targetDimensions_scaling_factor, params_simu.z_offset)
+    elif params_simu.meshFormat == 'GiD':
+        vertexes_coord, triangle_vertexes, triangles_physicalSurface = read_mesh_GiD(os.path.join(path, name), params_simu.targetDimensions_scaling_factor, params_simu.z_offset)
+    elif params_simu.meshFormat == 'ANSYS':
+        vertexes_coord, triangle_vertexes, triangles_physicalSurface = read_mesh_ANSYS(path, name, params_simu.targetDimensions_scaling_factor, params_simu.z_offset)
+    else:
+        print "setup_MLFMA_mesh.py : error on the mesh format. Enter a correct one please."
+    return vertexes_coord, triangle_vertexes, triangles_physicalSurface
+
+def compute_RWG_CFIE_OK(triangles_surfaces, RWGNumber_signedTriangles, IS_CLOSED_SURFACE):
+    RWGNumber_CFIE_OK_tmp1 = take(triangles_surfaces, RWGNumber_signedTriangles, axis=0)
+    RWGNumber_CFIE_OK_tmp2 = take(IS_CLOSED_SURFACE, RWGNumber_CFIE_OK_tmp1, axis=0)
+    # following the Taskinen et al. paper in PIER
+    # we can have a CFIE on a junction straddling a dielectric and metallic body
+    RWGNumber_CFIE_OK = ((sum(RWGNumber_CFIE_OK_tmp2, axis=1)>=1) * 1).astype('i')
+    # We cannot have M on a junction between a dielectric and metallic body!
+    # The following expression is lacking the fact that a surface can be metallic
+    # or dielectric. If metallic, then there is no M current, even if surface is closed
+    RWGNumber_M_CURRENT_OK = ((sum(RWGNumber_CFIE_OK_tmp2, axis=1)>1) * 1).astype('i')
+    return RWGNumber_CFIE_OK, RWGNumber_M_CURRENT_OK
 
 def setup_MLFMA(params_simu, simuDirName):
     """Sets up the MLFMA parameters.
@@ -15,41 +41,91 @@ def setup_MLFMA(params_simu, simuDirName):
 
     tmpDirName = os.path.join(simuDirName, 'tmp' + str(my_id))
     geoDirName = os.path.join(simuDirName, 'geo')
-    # target_mesh construction
-    target_mesh = MeshClass(geoDirName, params_simu.targetName, params_simu.targetDimensions_scaling_factor, params_simu.z_offset, params_simu.languageForMeshConstruction, params_simu.meshFormat, params_simu.meshFileTermination)
     # size of cube at finest level
     a = c/params_simu.f * params_simu.a_factor
     if (my_id==0):
-        target_mesh.constructFromGmshFile()
-        writeScalarToDisk(target_mesh.average_RWG_length, os.path.join(tmpDirName,'mesh/average_RWG_length.txt'))
+        # reading the mesh
+        path, name = geoDirName, params_simu.targetName + params_simu.meshFileTermination
+        meshPath = os.path.join(tmpDirName, "mesh")
+        print "  reading", os.path.join(path, name), "...",
+        t0 = time.clock()
+        vertexes_coord, triangle_vertexes, triangles_physicalSurface = readMesh(path, name, params_simu)
+        time_reading = time.clock()-t0
+        print "reading mesh time =", time_reading, "seconds"
+        T = triangle_vertexes.shape[0]
+        V = vertexes_coord.shape[0]
+        print "  number of triangles =", T
+        print "  edges classification..."
+        sys.stdout.flush()
+
+        writeScalarToDisk(T, os.path.join(meshPath, "T.txt"))
+        writeScalarToDisk(V, os.path.join(meshPath, "V.txt"))
+        writeBlitzArrayToDisk(vertexes_coord, os.path.join(meshPath, 'vertexes_coord.txt'))
+        writeBlitzArrayToDisk(triangle_vertexes, os.path.join(meshPath, 'triangle_vertexes.txt'))
+
+        t10 = time.clock()
+        print commands.getoutput("./code/MoM/mesh_functions_seb " + meshPath + "/")
+        print "time C++ execution =", time.clock() - t10
+        print "edgeNumber_triangles construction cumulated time =", time.clock() - t10
+
+        is_closed_surface = readASCIIBlitzIntArray1DFromDisk(os.path.join(meshPath, "is_closed_surface.txt"))
+        S = len(is_closed_surface)
+        print "test of the closed surfaces :", is_closed_surface
+
+        N_RWG = readIntFromDisk(os.path.join(meshPath, "N_RWG.txt"))
+        print "Number of RWG =", N_RWG
+        sys.stdout.flush()
+
+        triangles_surfaces = readASCIIBlitzIntArray1DFromDisk(os.path.join(meshPath, "triangles_surfaces.txt"))
+        RWGNumber_signedTriangles = readBlitzArrayFromDisk(os.path.join(meshPath, "RWGNumber_signedTriangles.txt"), N_RWG, 2, 'i')
+        RWGNumber_CFIE_OK, RWGNumber_M_CURRENT_OK = compute_RWG_CFIE_OK(triangles_surfaces, RWGNumber_signedTriangles, is_closed_surface)
+        if N_RWG<1e4:
+            stride = 1
+        else:
+            stride = N_RWG/100
+        RWGNumber_edgeVertexes = readBlitzArrayFromDisk(os.path.join(meshPath, "RWGNumber_edgeVertexes.txt"), N_RWG, 2, 'i')
+        average_RWG_length = compute_RWG_meanEdgeLength(vertexes_coord, RWGNumber_edgeVertexes, stride)
+        writeScalarToDisk(average_RWG_length, os.path.join(meshPath,'average_RWG_length.txt'))
         if params_simu.VERBOSE==1:
-            print "average RWG length =", target_mesh.average_RWG_length, "m = lambda /", (c/params_simu.f)/target_mesh.average_RWG_length
-        # target_mesh cubes computation
-        target_mesh.cubes_data_computation(a)
-        target_mesh.saveToDisk(os.path.join(tmpDirName,'mesh'))
-        IS_CLOSED_SURFACE = target_mesh.IS_CLOSED_SURFACE
-        big_cube_lower_coord = target_mesh.big_cube_lower_coord
-        big_cube_center_coord = target_mesh.big_cube_center_coord
-        N_levels = target_mesh.N_levels
-        N_RWG = target_mesh.N_RWG
-        T = target_mesh.T
-        C = target_mesh.C
+            print "average RWG length =", average_RWG_length, "m = lambda /", (c/params_simu.f)/average_RWG_length
+        # cubes computation
+        max_N_cubes_1D, N_levels, big_cube_lower_coord, big_cube_center_coord = cube_lower_coord_computation(a, vertexes_coord)
+        N_levels = max(N_levels, 2)
+        RWGNumber_edgeCentroidCoord = compute_RWGNumber_edgeCentroidCoord(vertexes_coord, RWGNumber_edgeVertexes)
+        RWGNumber_cube, RWGNumber_cubeNumber, RWGNumber_cubeCentroidCoord = RWGNumber_cubeNumber_computation(a, max_N_cubes_1D, big_cube_lower_coord, RWGNumber_edgeCentroidCoord)
+        cubes_RWGsNumbers, cubes_lists_RWGsNumbers, cube_N_RWGs, cubes_centroids = cubeIndex_RWGNumbers_computation(RWGNumber_cubeNumber, RWGNumber_cubeCentroidCoord)
+        C = cubes_centroids.shape[0]
+        cubes_lists_NeighborsIndexes, cubes_neighborsIndexes, cube_N_neighbors = findCubeNeighbors(max_N_cubes_1D, big_cube_lower_coord, cubes_centroids, a)
+        print "Average number of RWGs per cube:", mean(cube_N_RWGs)
+
+        writeScalarToDisk(C, os.path.join(meshPath, "C.txt"))
+        writeBlitzArrayToDisk(cubes_centroids, os.path.join(meshPath, 'cubes_centroids') + '.txt')
+        writeBlitzArrayToDisk(cubes_RWGsNumbers, os.path.join(meshPath, 'cubes_RWGsNumbers') + '.txt')
+        writeBlitzArrayToDisk(cube_N_RWGs, os.path.join(meshPath, 'cube_N_RWGs') + '.txt')
+        writeBlitzArrayToDisk(cubes_neighborsIndexes, os.path.join(meshPath, 'cubes_neighborsIndexes') + '.txt')
+        writeBlitzArrayToDisk(cube_N_neighbors, os.path.join(meshPath, 'cube_N_neighbors') + '.txt')
+        file = open(os.path.join(meshPath, 'cubes_lists_RWGsNumbers.txt'), 'w')
+        cPickle.dump(cubes_lists_RWGsNumbers, file)
+        file.close()
+        file = open(os.path.join(meshPath, 'cubes_lists_NeighborsIndexes.txt'), 'w')
+        cPickle.dump(cubes_lists_NeighborsIndexes, file)
+        file.close()
+        writeScalarToDisk(S, os.path.join(meshPath, "S.txt"))
+        writeScalarToDisk(N_levels, os.path.join(meshPath, "N_levels.txt"))
+        writeBlitzArrayToDisk(RWGNumber_CFIE_OK, os.path.join(meshPath, 'RWGNumber_CFIE_OK') + '.txt')
+        writeBlitzArrayToDisk(RWGNumber_M_CURRENT_OK, os.path.join(meshPath, 'RWGNumber_M_CURRENT_OK') + '.txt')
+
     else:
-        IS_CLOSED_SURFACE = ['blabla']
         big_cube_lower_coord = ['blabla']
         big_cube_center_coord = ['blabla']
         N_levels = ['blabla']
         N_RWG = ['blabla']
-        T = ['blabla']
         C = ['blabla']
-    del target_mesh
     big_cube_lower_coord = MPI.COMM_WORLD.bcast(big_cube_lower_coord)
     big_cube_center_coord = MPI.COMM_WORLD.bcast(big_cube_center_coord)
-    IS_CLOSED_SURFACE = MPI.COMM_WORLD.bcast(IS_CLOSED_SURFACE)
     N_levels = MPI.COMM_WORLD.bcast(N_levels)
     N_RWG = MPI.COMM_WORLD.bcast(N_RWG)
     C = MPI.COMM_WORLD.bcast(C)
-    T = MPI.COMM_WORLD.bcast(T)
 
     w = 2. * pi * params_simu.f
     k = w * sqrt(eps_0*params_simu.eps_r*mu_0*params_simu.mu_r) + 1.j * 0.
