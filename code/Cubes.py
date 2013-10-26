@@ -78,7 +78,7 @@ def cubeIndex_RWGNumbers_computation(RWGNumber_cubeNumber, RWGNumber_cubeCentroi
         startIndex += length
     return cubes_edges_numbers, cubes_lists_edges_numbers, cube_N_RWGs.astype('i'), (array(cubes_centroids)).astype('d')
 
-def findCubeNeighbors(max_N_cubes_1D, big_cube_lower_coord, cubes_centroids, a, N_levels):
+def findCubeNeighbors(max_N_cubes_1D, big_cube_lower_coord, cubes_centroids, a):
     """for each cubes finds its neighbors.
     We use a code similar to Level::searchCubesNeighborsIndexes() from octtree.cpp """
     C = cubes_centroids.shape[0]
