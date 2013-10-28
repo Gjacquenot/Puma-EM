@@ -17,6 +17,7 @@ code/MoM/scatter_mesh_per_cube
 code/MoM/compute_Z_near
 code/MoM/compute_SAI_precond
 code/MoM/mesh_functions_seb
+code/MoM/mesh_cubes
 code/MoM/testMPI
 diff.out
 result/

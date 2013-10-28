@@ -13,7 +13,7 @@ int main(int argc, char *argv[]) {
   
   int V, T;
   const string READING_PATH = argv[1];
-  cout << READING_PATH << endl;
+  cout << "mesh_functions_seb.cpp: reading in " << READING_PATH << endl;
   string filename;
 
   readIntFromASCIIFile(READING_PATH + "T.txt", T);

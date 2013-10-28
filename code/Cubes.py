@@ -30,7 +30,7 @@ def RWGNumber_cubeNumber_computation(a, max_N_cubes_1D, cube_lower_coord, RWGNum
     RWGNumber_cube = floor((RWGNumber_edgeCentroidCoord - cube_lower_coord)/a).astype('i')
     RWGNumber_cubeNumber = RWGNumber_cube[:, 0] * max_N_cubes_1D**2 + RWGNumber_cube[:, 1] * max_N_cubes_1D + RWGNumber_cube[:, 2]
     RWGNumber_cubeCentroidCoord = cube_lower_coord + a * RWGNumber_cube + ones(3, 'd') * a/2.0
-    return RWGNumber_cube.astype('i'), RWGNumber_cubeNumber.astype('i'), RWGNumber_cubeCentroidCoord.astype('d')
+    return RWGNumber_cubeNumber.astype('i'), RWGNumber_cubeCentroidCoord.astype('d')
 
 def cubeIndex_RWGNumbers_computation(RWGNumber_cubeNumber, RWGNumber_cubeCentroidCoord):
     """each finest-level cube must somehow know which edges it contains.

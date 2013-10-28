@@ -35,6 +35,9 @@ distribute_Z_cubes: distribute_Z_cubes.o $(OBJECTS_LIBMLFMA)
 mesh_functions_seb: mesh_functions_seb.o mesh.o
 	$(MPICC) $(INCLUDE_PATH) mesh_functions_seb.o mesh.o readWriteBlitzArrayFromFile.o $(LIB_SEARCH_PATH) -lblitz -lm -o mesh_functions_seb
 
+mesh_cubes: mesh_cubes.o
+	$(MPICC) $(INCLUDE_PATH) mesh_cubes.o readWriteBlitzArrayFromFile.o $(LIB_SEARCH_PATH) -lblitz -lm -o mesh_cubes
+
 libs: libMoM libMLFMA libAMOS libITERATIVE libLAPACK
 
 libMoM: $(OBJECTS_LIBMOM)
@@ -70,6 +73,8 @@ distribute_Z_cubes.o: distribute_Z_cubes.cpp octtree.h octtree.cpp level.h level
 	$(MPICC) $(INCLUDE_PATH) $(CFLAGS) distribute_Z_cubes.cpp
 mesh_functions_seb.o: mesh_functions_seb.cpp mesh.cpp mesh.h readWriteBlitzArrayFromFile.cpp readWriteBlitzArrayFromFile.h
 	$(MPICC) $(INCLUDE_PATH) $(CFLAGS) mesh_functions_seb.cpp
+mesh_cubes.o: mesh_cubes.cpp readWriteBlitzArrayFromFile.cpp readWriteBlitzArrayFromFile.h
+	$(MPICC) $(INCLUDE_PATH) $(CFLAGS) mesh_cubes.cpp
 octtree.o: octtree.cpp interpolation.h level.h level.cpp mesh.h octtree.h alpha_computation.h readWriteBlitzArrayFromFile.h
 	$(MPICC) $(INCLUDE_PATH) $(CFLAGS) octtree.cpp
 level.o: level.cpp interpolation.h level.h dictionary.h cube.h cube.cpp readWriteBlitzArrayFromFile.h alpha_computation.h
@@ -102,7 +107,7 @@ GL.o: GL.cpp
 
 
 clean: 
-	rm -f *.o *.a *.txt *~ *.pyc octtree mpi_mlfma testMPI communicateZnearBlocks mesh_functions_seb distribute_Z_cubes RWGs_renumbering compute_Z_near compute_SAI_precond; 
+	rm -f *.o *.a *.txt *~ *.pyc octtree mpi_mlfma testMPI communicateZnearBlocks mesh_functions_seb mesh_cubes distribute_Z_cubes RWGs_renumbering compute_Z_near compute_SAI_precond; 
 	cd $(LIBAMOS_ZBESH_PATH); make clean; 
 	cd $(LIBLAPACK_PATH); make clean; 
 	cd $(LIBITERATIVE_PATH); make clean;

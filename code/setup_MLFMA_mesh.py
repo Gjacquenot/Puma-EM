@@ -60,6 +60,7 @@ def setup_MLFMA(params_simu, simuDirName):
 
         writeScalarToDisk(T, os.path.join(meshPath, "T.txt"))
         writeScalarToDisk(V, os.path.join(meshPath, "V.txt"))
+        writeScalarToDisk(a, os.path.join(meshPath, "a.txt"))
         writeBlitzArrayToDisk(vertexes_coord, os.path.join(meshPath, 'vertexes_coord.txt'))
         writeBlitzArrayToDisk(triangle_vertexes, os.path.join(meshPath, 'triangle_vertexes.txt'))
 
@@ -89,10 +90,16 @@ def setup_MLFMA(params_simu, simuDirName):
         if params_simu.VERBOSE==1:
             print "average RWG length =", average_RWG_length, "m = lambda /", (c/params_simu.f)/average_RWG_length
         # cubes computation
+        #print commands.getoutput("./code/MoM/mesh_cubes " + meshPath + "/")
+
         max_N_cubes_1D, N_levels, big_cube_lower_coord, big_cube_center_coord = cube_lower_coord_computation(a, vertexes_coord)
         N_levels = max(N_levels, 2)
+        #print "N_levels = ", N_levels
+        #print "max_N_cubes_1D = ", max_N_cubes_1D
+        #print "big_cube_center_coord = ", big_cube_center_coord
+        #print "big_cube_lower_coord = ", big_cube_lower_coord
         RWGNumber_edgeCentroidCoord = compute_RWGNumber_edgeCentroidCoord(vertexes_coord, RWGNumber_edgeVertexes)
-        RWGNumber_cube, RWGNumber_cubeNumber, RWGNumber_cubeCentroidCoord = RWGNumber_cubeNumber_computation(a, max_N_cubes_1D, big_cube_lower_coord, RWGNumber_edgeCentroidCoord)
+        RWGNumber_cubeNumber, RWGNumber_cubeCentroidCoord = RWGNumber_cubeNumber_computation(a, max_N_cubes_1D, big_cube_lower_coord, RWGNumber_edgeCentroidCoord)
         cubes_RWGsNumbers, cubes_lists_RWGsNumbers, cube_N_RWGs, cubes_centroids = cubeIndex_RWGNumbers_computation(RWGNumber_cubeNumber, RWGNumber_cubeCentroidCoord)
         C = cubes_centroids.shape[0]
         cubes_lists_NeighborsIndexes, cubes_neighborsIndexes, cube_N_neighbors = findCubeNeighbors(max_N_cubes_1D, big_cube_lower_coord, cubes_centroids, a)
