@@ -9,6 +9,7 @@ using namespace std;
 
 #include "GetMemUsage.h"
 #include "readWriteBlitzArrayFromFile.h"
+#include "dictionary.h"
 
 void cube_lower_coord_computation(int & N_levels,
                                   int & max_N_cubes_1D,
@@ -61,8 +62,9 @@ void compute_RWGNumber_edgeCentroidCoord(blitz::Array<double, 2>& edgeCentroidCo
   }
 }
 
-void RWGNumber_cubeNumber_computation(blitz::Array<int, 1>& RWGNumber_cubeNumber,
-                                      blitz::Array<double, 2>& RWGNumber_cubeCentroidCoord,
+void RWGNumber_cubeNumber_computation(blitz::Array<int, 1>& cubes_RWGsNumbers,
+                                      blitz::Array<int, 1>& cube_N_RWGs,
+                                      blitz::Array<double, 2>& cubeCentroidCoord,
                                       const double a,
                                       const int max_N_cubes_1D, 
                                       const std::vector<double> & cube_lower_coord, 
@@ -71,17 +73,52 @@ void RWGNumber_cubeNumber_computation(blitz::Array<int, 1>& RWGNumber_cubeNumber
 {
   // This function finds for each edge the cube to which it belongs.
   // a is the length of the side of a cube
-  RWGNumber_cubeNumber.resize(N_RWG);
-  RWGNumber_cubeCentroidCoord.resize(N_RWG, 3);
+  std::vector< Dictionary<int, int> > CubeNumber_RWGnumber;
+  CubeNumber_RWGnumber.reserve(N_RWG);
   for (int i=0; i<N_RWG; i++) {
     const int RWGNumber_cube0 = static_cast<int>(floor((RWGNumber_edgeCentroidCoord(i, 0) - cube_lower_coord[0])/a));
     const int RWGNumber_cube1 = static_cast<int>(floor((RWGNumber_edgeCentroidCoord(i, 1) - cube_lower_coord[1])/a));
     const int RWGNumber_cube2 = static_cast<int>(floor((RWGNumber_edgeCentroidCoord(i, 2) - cube_lower_coord[2])/a));    
-    RWGNumber_cubeNumber(i) = RWGNumber_cube0 * max_N_cubes_1D*max_N_cubes_1D;
-    RWGNumber_cubeNumber(i) += RWGNumber_cube1 * max_N_cubes_1D + RWGNumber_cube2;
-    RWGNumber_cubeCentroidCoord(i, 0) = cube_lower_coord[0] + a * RWGNumber_cube0 + a/2.0;
-    RWGNumber_cubeCentroidCoord(i, 1) = cube_lower_coord[1] + a * RWGNumber_cube1 + a/2.0;
-    RWGNumber_cubeCentroidCoord(i, 2) = cube_lower_coord[2] + a * RWGNumber_cube2 + a/2.0;
+    int cubeNumber = RWGNumber_cube0 * max_N_cubes_1D*max_N_cubes_1D;
+    cubeNumber += RWGNumber_cube1 * max_N_cubes_1D + RWGNumber_cube2;
+    CubeNumber_RWGnumber.push_back(Dictionary<int, int>(cubeNumber, i));
+  }
+  sort(CubeNumber_RWGnumber.begin(), CubeNumber_RWGnumber.end());
+  int index = 0;
+  std::vector< std::vector<int> > cubes_lists_RWGsNumbers;
+  cubes_lists_RWGsNumbers.push_back(std::vector<int>());
+  cubes_lists_RWGsNumbers[index].push_back(CubeNumber_RWGnumber[0].getVal());
+  for (int i=1; i<N_RWG; i++) {
+    if (CubeNumber_RWGnumber[i].getKey() != CubeNumber_RWGnumber[i-1].getKey())
+    {
+      index++;
+      cubes_lists_RWGsNumbers.push_back(std::vector<int>());
+    }
+    cubes_lists_RWGsNumbers[index].push_back(CubeNumber_RWGnumber[i].getVal());
+  }
+  const int C = cubes_lists_RWGsNumbers.size();
+  for (int i=0; i<C; i++) sort(cubes_lists_RWGsNumbers[i].begin(), cubes_lists_RWGsNumbers[i].end());
+
+  cubeCentroidCoord.resize(C, 3);
+  for (int i=0; i<C; i++) {
+    const int RWG = cubes_lists_RWGsNumbers[i][0];
+    const int RWGNumber_cube0 = static_cast<int>(floor((RWGNumber_edgeCentroidCoord(RWG, 0) - cube_lower_coord[0])/a));
+    const int RWGNumber_cube1 = static_cast<int>(floor((RWGNumber_edgeCentroidCoord(RWG, 1) - cube_lower_coord[1])/a));
+    const int RWGNumber_cube2 = static_cast<int>(floor((RWGNumber_edgeCentroidCoord(RWG, 2) - cube_lower_coord[2])/a));    
+    cubeCentroidCoord(i, 0) = cube_lower_coord[0] + a * RWGNumber_cube0 + a/2.0;
+    cubeCentroidCoord(i, 1) = cube_lower_coord[1] + a * RWGNumber_cube1 + a/2.0;
+    cubeCentroidCoord(i, 2) = cube_lower_coord[2] + a * RWGNumber_cube2 + a/2.0;
+  }
+  
+  cubes_RWGsNumbers.resize(N_RWG); 
+  cube_N_RWGs.resize(C);
+  index = 0;
+  for (int i=0; i<C; i++) {
+    cube_N_RWGs(i) = cubes_lists_RWGsNumbers[i].size();
+    for (int j=0; j<cube_N_RWGs(i); j++) {
+      cubes_RWGsNumbers(index) = cubes_lists_RWGsNumbers[i][j];
+      index++;
+    }
   }
 }
 
@@ -102,24 +139,36 @@ int main(int argc, char *argv[]) {
   readDoubleBlitzArray2DFromBinaryFile(READING_PATH + "vertexes_coord.txt", vertexes_coord);
 
   int N_levels, max_N_cubes_1D;
-  std::vector<double> big_cube_center_coord, big_cube_lower_coord;
-  cube_lower_coord_computation(N_levels, max_N_cubes_1D, big_cube_center_coord, big_cube_lower_coord, a, vertexes_coord, V);
-  
-  cout << "mesh_cubes.cpp: N_levels  = " << N_levels << endl;
-  cout << "mesh_cubes.cpp: max_N_cubes_1D = " << max_N_cubes_1D << endl;
-  cout << "mesh_cubes.cpp: big_cube_center_coord = " << big_cube_center_coord[0] << ", " << big_cube_center_coord[1] << ", " << big_cube_center_coord[2] << endl;
-  cout << "mesh_cubes.cpp: big_cube_lower_coord = " << big_cube_lower_coord[0] << ", " << big_cube_lower_coord[1] << ", " << big_cube_lower_coord[2] << endl;
-  
+  std::vector<double> big_cube_center_coord_tmp, big_cube_lower_coord_tmp;
+  cube_lower_coord_computation(N_levels, max_N_cubes_1D, big_cube_center_coord_tmp, big_cube_lower_coord_tmp, a, vertexes_coord, V);
+
+  blitz::Array<double, 1> big_cube_center_coord(3), big_cube_lower_coord(3);
+  for (int i=0; i<3; i++) {
+    big_cube_center_coord(i) = big_cube_center_coord_tmp[i];
+    big_cube_lower_coord(i) = big_cube_lower_coord_tmp[i];
+  }
+    
   blitz::Array<int, 2> RWGNumber_edgeVertexes(N_RWG, 2);
   readIntBlitzArray2DFromBinaryFile(READING_PATH + "RWGNumber_edgeVertexes.txt", RWGNumber_edgeVertexes);
 
   blitz::Array<double, 2> RWGNumber_edgeCentroidCoord(N_RWG, 3);
   compute_RWGNumber_edgeCentroidCoord(RWGNumber_edgeCentroidCoord, vertexes_coord, RWGNumber_edgeVertexes, N_RWG);
   
-  blitz::Array<int, 1> RWGNumber_cubeNumber(N_RWG);
-  blitz::Array<double, 2> RWGNumber_cubeCentroidCoord(N_RWG, 3);
-  RWGNumber_cubeNumber_computation(RWGNumber_cubeNumber, RWGNumber_cubeCentroidCoord, a, max_N_cubes_1D, big_cube_lower_coord, RWGNumber_edgeCentroidCoord, N_RWG);
+  blitz::Array<int, 1> cubes_RWGsNumbers, cube_N_RWGs;
+  blitz::Array<double, 2> cubes_centroids;
+  RWGNumber_cubeNumber_computation(cubes_RWGsNumbers, cube_N_RWGs, cubes_centroids, a, max_N_cubes_1D, big_cube_lower_coord_tmp, RWGNumber_edgeCentroidCoord, N_RWG);
+  const int C = cube_N_RWGs.size();
+  std::cout << "mesh_cubes.cpp: the number of cubes is " << C << std::endl;
 
+  // writing of the arrays
+  writeIntToASCIIFile(READING_PATH + "N_levels.txt", N_levels);
+  writeIntToASCIIFile(READING_PATH + "C.txt", C);
+  writeIntToASCIIFile(READING_PATH + "max_N_cubes_1D.txt", max_N_cubes_1D);
+  writeDoubleBlitzArray1DToBinaryFile(READING_PATH + "big_cube_center_coord.txt", big_cube_center_coord);
+  writeDoubleBlitzArray1DToBinaryFile(READING_PATH + "big_cube_lower_coord.txt", big_cube_lower_coord);
+  writeIntBlitzArray1DToBinaryFile(READING_PATH + "cubes_RWGsNumbers.txt", cubes_RWGsNumbers);
+  writeIntBlitzArray1DToBinaryFile(READING_PATH + "cube_N_RWGs.txt", cube_N_RWGs);
+  writeDoubleBlitzArray2DToBinaryFile(READING_PATH + "cubes_centroids.txt", cubes_centroids);
   // Get peak memory usage of each rank
   long memusage_local = MemoryUsageGetPeak();
   std::cout << "MEMINFO " << argv[0] << " mem=" << memusage_local/(1024*1024) << " MB" << std::endl;

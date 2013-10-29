@@ -1,7 +1,7 @@
 import sys, os, argparse, time, pickle, cPickle, commands
 from mpi4py import MPI
-from scipy import array, sqrt, take, sum, mean
-from ReadWriteBlitzArray import writeScalarToDisk, writeASCIIBlitzArrayToDisk, writeBlitzArrayToDisk
+from scipy import array, sqrt, take, sum, mean, zeros
+from ReadWriteBlitzArray import writeScalarToDisk, writeASCIIBlitzArrayToDisk, writeBlitzArrayToDisk, read1DBlitzArrayFromDisk
 from ReadWriteBlitzArray import readIntFromDisk, readASCIIBlitzIntArray1DFromDisk, readBlitzArrayFromDisk
 from MLFMA import computeTreeParameters
 from read_mesh import read_mesh_GMSH_1, read_mesh_GMSH_2, read_mesh_GiD, read_mesh_ANSYS
@@ -90,20 +90,44 @@ def setup_MLFMA(params_simu, simuDirName):
         if params_simu.VERBOSE==1:
             print "average RWG length =", average_RWG_length, "m = lambda /", (c/params_simu.f)/average_RWG_length
         # cubes computation
-        #print commands.getoutput("./code/MoM/mesh_cubes " + meshPath + "/")
 
         max_N_cubes_1D, N_levels, big_cube_lower_coord, big_cube_center_coord = cube_lower_coord_computation(a, vertexes_coord)
         N_levels = max(N_levels, 2)
+        print "N_levels = ", N_levels
+        print "max_N_cubes_1D = ", max_N_cubes_1D
+        print "big_cube_center_coord = ", big_cube_center_coord
+        print "big_cube_lower_coord = ", big_cube_lower_coord
+        RWGNumber_edgeCentroidCoord = compute_RWGNumber_edgeCentroidCoord(vertexes_coord, RWGNumber_edgeVertexes)
+        RWGNumber_cubeNumber, RWGNumber_cubeCentroidCoord = RWGNumber_cubeNumber_computation(a, max_N_cubes_1D, big_cube_lower_coord, RWGNumber_edgeCentroidCoord)
+        cubes_RWGsNumbers, cubes_lists_RWGsNumbers, cube_N_RWGs, cubes_centroids = cubeIndex_RWGNumbers_computation(RWGNumber_cubeNumber, RWGNumber_cubeCentroidCoord)
+        print "Average number of RWGs per cube:", mean(cube_N_RWGs)
+        C = cubes_centroids.shape[0]
+        cubes_lists_NeighborsIndexes, cubes_neighborsIndexes, cube_N_neighbors = findCubeNeighbors(max_N_cubes_1D, big_cube_lower_coord, cubes_centroids, a)
+
+        #print commands.getoutput("./code/MoM/mesh_cubes " + meshPath + "/")
+        #N_levels = readIntFromDisk(os.path.join(meshPath,'N_levels.txt'))
+        #max_N_cubes_1D = readIntFromDisk(os.path.join(meshPath,'max_N_cubes_1D.txt'))
+        #C = readIntFromDisk(os.path.join(meshPath,'C.txt'))
+        #big_cube_center_coord = read1DBlitzArrayFromDisk(os.path.join(meshPath, "big_cube_center_coord.txt"), 'd')
+        #big_cube_lower_coord = read1DBlitzArrayFromDisk(os.path.join(meshPath, "big_cube_lower_coord.txt"), 'd')
         #print "N_levels = ", N_levels
         #print "max_N_cubes_1D = ", max_N_cubes_1D
         #print "big_cube_center_coord = ", big_cube_center_coord
         #print "big_cube_lower_coord = ", big_cube_lower_coord
-        RWGNumber_edgeCentroidCoord = compute_RWGNumber_edgeCentroidCoord(vertexes_coord, RWGNumber_edgeVertexes)
-        RWGNumber_cubeNumber, RWGNumber_cubeCentroidCoord = RWGNumber_cubeNumber_computation(a, max_N_cubes_1D, big_cube_lower_coord, RWGNumber_edgeCentroidCoord)
-        cubes_RWGsNumbers, cubes_lists_RWGsNumbers, cube_N_RWGs, cubes_centroids = cubeIndex_RWGNumbers_computation(RWGNumber_cubeNumber, RWGNumber_cubeCentroidCoord)
-        C = cubes_centroids.shape[0]
-        cubes_lists_NeighborsIndexes, cubes_neighborsIndexes, cube_N_neighbors = findCubeNeighbors(max_N_cubes_1D, big_cube_lower_coord, cubes_centroids, a)
-        print "Average number of RWGs per cube:", mean(cube_N_RWGs)
+        #cubes_centroids = readBlitzArrayFromDisk(os.path.join(meshPath, "cubes_centroids.txt"), C, 3, 'd')
+        #cubes_RWGsNumbers = read1DBlitzArrayFromDisk(os.path.join(meshPath, "cubes_RWGsNumbers.txt"), 'i')
+        #cube_N_RWGs = read1DBlitzArrayFromDisk(os.path.join(meshPath, "cube_N_RWGs.txt"), 'i')
+        #print "Average number of RWGs per cube:", mean(cube_N_RWGs)
+
+        #cubes_lists_RWGsNumbers = {}
+        #index = 0
+        #for i in range(C):
+            #array_tmp = zeros(cube_N_RWGs[i], 'i')
+            #for j in range(cube_N_RWGs[i]):
+                #array_tmp[j] = cubes_RWGsNumbers[index]
+                #index += 1
+            #cubes_lists_RWGsNumbers[i] = array_tmp
+        #cubes_lists_NeighborsIndexes, cubes_neighborsIndexes, cube_N_neighbors = findCubeNeighbors(max_N_cubes_1D, big_cube_lower_coord, cubes_centroids, a)
 
         writeScalarToDisk(C, os.path.join(meshPath, "C.txt"))
         writeBlitzArrayToDisk(cubes_centroids, os.path.join(meshPath, 'cubes_centroids') + '.txt')

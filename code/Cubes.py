@@ -46,14 +46,11 @@ def cubeIndex_RWGNumbers_computation(RWGNumber_cubeNumber, RWGNumber_cubeCentroi
     cubes_lists_edges_numbers = {} # the desired dictionary, renewed for each cube
     cube_list_edges_numbers_tmp = [sorted_edges_numbers[0]] # the temporary list, renewed for each cube
     cubes_centroids = [sorted_edges_numbers_cubes_centroids[0]]
-    maxlength = 0 # the maximum number of RWGs contained within a cube
     cubeIndex = 0
     for j in range(E-1): # we cannot go up to (E-1), since (j+1) will then be equal to E (out of bound index)
         if sorted_cubes_numbers[j+1] == sorted_cubes_numbers[j]: # if the next cube number is the same as the current one
             cube_list_edges_numbers_tmp.append(sorted_edges_numbers[j+1]) # add the next element to the temporary list
         else: # if not, we then add the temporary "per-cube" list to the complete list
-            if len(cube_list_edges_numbers_tmp) > maxlength:
-                maxlength = len(cube_list_edges_numbers_tmp)
             cubes_lists_edges_numbers[cubeIndex] = array(cube_list_edges_numbers_tmp)
             cubes_centroids.append(sorted_edges_numbers_cubes_centroids[j+1])
             cube_list_edges_numbers_tmp = [sorted_edges_numbers[j+1]] # init of the temporary list for the next cube
@@ -63,8 +60,6 @@ def cubeIndex_RWGNumbers_computation(RWGNumber_cubeNumber, RWGNumber_cubeCentroi
         cubes_lists_edges_numbers[cubeIndex+1] = array(cube_list_edges_numbers_tmp)
     else:
         cubes_lists_edges_numbers[cubeIndex] = array(cube_list_edges_numbers_tmp)
-    if len(cube_list_edges_numbers_tmp) > maxlength:
-        maxlength = len(cube_list_edges_numbers_tmp)
 
     # we transform the "cubes_lists_edges_numbers" in a linear array, useful for the C++ code
     C = len(cubes_lists_edges_numbers)

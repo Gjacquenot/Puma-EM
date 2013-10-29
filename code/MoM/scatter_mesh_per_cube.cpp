@@ -108,7 +108,7 @@ void compute_cube_arrays_from_mesh(blitz::Array<int, 1>& cubeIntArrays,
 
   // we now count the number of different nodes
   int N_nodes = 1;
-  for (int i=0; i<N_RWG_src * 4; i++) {
+  for (int i=1; i<N_RWG_src * 4; i++) {
     if (oldNodeNumber_to_index[i].getKey() != oldNodeNumber_to_index[i-1].getKey()) N_nodes += 1;
   }
 
