@@ -127,7 +127,29 @@ def setup_MLFMA(params_simu, simuDirName):
                 #array_tmp[j] = cubes_RWGsNumbers[index]
                 #index += 1
             #cubes_lists_RWGsNumbers[i] = array_tmp
-        #cubes_lists_NeighborsIndexes, cubes_neighborsIndexes, cube_N_neighbors = findCubeNeighbors(max_N_cubes_1D, big_cube_lower_coord, cubes_centroids, a)
+
+        #cubesNeighborsIndexesTmp2 = readBlitzArrayFromDisk(os.path.join(meshPath, "cubesNeighborsIndexesTmp2.txt"), C, 28, 'i')
+        #cubes_lists_NeighborsIndexes = {}
+        #N_total_neighbors = 0
+        #for i in range(C):
+            #cubes_lists_NeighborsIndexes[i] = []
+        #for i in range(C):
+            #listTmp = []
+            #j = 0
+            #while cubesNeighborsIndexesTmp2[i, j] > -1:
+                #listTmp.append(cubesNeighborsIndexesTmp2[i, j])
+                #j += 1
+            #cubes_lists_NeighborsIndexes[i] = listTmp
+            #N_total_neighbors += len(listTmp)
+        ## we also have to save the cubesNeighborsIndexes under a form easily readable by C++ code
+        #cubes_neighborsIndexes = zeros(N_total_neighbors, 'i')
+        #cube_N_neighbors = zeros(C, 'i')
+        #startIndex = 0
+        #for j in range(C):
+            #length = len(cubes_lists_NeighborsIndexes[j])
+            #cube_N_neighbors[j] = length
+            #cubes_neighborsIndexes[startIndex:startIndex + length] = cubes_lists_NeighborsIndexes[j]
+            #startIndex += length
 
         writeScalarToDisk(C, os.path.join(meshPath, "C.txt"))
         writeBlitzArrayToDisk(cubes_centroids, os.path.join(meshPath, 'cubes_centroids') + '.txt')

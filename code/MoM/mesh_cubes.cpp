@@ -122,7 +122,8 @@ void cubeIndex_RWGNumbers_computation(blitz::Array<int, 1>& cubes_RWGsNumbers,
   }
 }
 
-void findCubeNeighbors(const int max_N_cubes_1D, 
+void findCubeNeighbors(blitz::Array<int, 2>& cubesNeighborsIndexesTmp2,
+                       const int max_N_cubes_1D,
                        const blitz::Array<double, 1>& big_cube_lower_coord, 
                        const blitz::Array<double, 2>& cubes_centroids, 
                        const double a,
@@ -147,7 +148,7 @@ void findCubeNeighbors(const int max_N_cubes_1D,
     CubesSortedNumbersToIndexes(i, 0) = CubeNumber_CubeIndex[i].getKey();
     CubesSortedNumbersToIndexes(i, 1) = CubeNumber_CubeIndex[i].getVal();
   }
-  blitz::Array<int, 2> cubesNeighborsIndexesTmp2(C, 28);
+  cubesNeighborsIndexesTmp2.resize(C, 28);
   cubesNeighborsIndexesTmp2 = -1;
   int counter;
   for (int i=0 ; i<C ; ++i) {
@@ -230,7 +231,8 @@ int main(int argc, char *argv[]) {
   const int C = cube_N_RWGs.size();
   std::cout << "mesh_cubes.cpp: the number of cubes is " << C << std::endl;
 
-  findCubeNeighbors(max_N_cubes_1D, big_cube_lower_coord, cubes_centroids, a, C);
+  blitz::Array<int, 2> cubesNeighborsIndexesTmp2;
+  findCubeNeighbors(cubesNeighborsIndexesTmp2, max_N_cubes_1D, big_cube_lower_coord, cubes_centroids, a, C);
 
   // writing of the arrays
   writeIntToASCIIFile(READING_PATH + "N_levels.txt", N_levels);
@@ -241,6 +243,7 @@ int main(int argc, char *argv[]) {
   writeIntBlitzArray1DToBinaryFile(READING_PATH + "cubes_RWGsNumbers.txt", cubes_RWGsNumbers);
   writeIntBlitzArray1DToBinaryFile(READING_PATH + "cube_N_RWGs.txt", cube_N_RWGs);
   writeDoubleBlitzArray2DToBinaryFile(READING_PATH + "cubes_centroids.txt", cubes_centroids);
+  writeIntBlitzArray2DToBinaryFile(READING_PATH + "cubesNeighborsIndexesTmp2.txt", cubesNeighborsIndexesTmp2);
   // Get peak memory usage of each rank
   long memusage_local = MemoryUsageGetPeak();
   std::cout << "MEMINFO " << argv[0] << " mem=" << memusage_local/(1024*1024) << " MB" << std::endl;
