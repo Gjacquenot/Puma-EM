@@ -62,7 +62,7 @@ void compute_RWGNumber_edgeCentroidCoord(blitz::Array<double, 2>& edgeCentroidCo
   }
 }
 
-void RWGNumber_cubeNumber_computation(blitz::Array<int, 1>& cubes_RWGsNumbers,
+void cubeIndex_RWGNumbers_computation(blitz::Array<int, 1>& cubes_RWGsNumbers,
                                       blitz::Array<int, 1>& cube_N_RWGs,
                                       blitz::Array<double, 2>& cubeCentroidCoord,
                                       const double a,
@@ -122,6 +122,76 @@ void RWGNumber_cubeNumber_computation(blitz::Array<int, 1>& cubes_RWGsNumbers,
   }
 }
 
+void findCubeNeighbors(const int max_N_cubes_1D, 
+                       const blitz::Array<double, 1>& big_cube_lower_coord, 
+                       const blitz::Array<double, 2>& cubes_centroids, 
+                       const double a,
+                       const int C)
+{
+  // for each cubes finds its neighbors.
+  // We use a code similar to Level::searchCubesNeighborsIndexes() from octtree.cpp
+  std::vector< Dictionary<int, int> > CubeNumber_CubeIndex;
+  CubeNumber_CubeIndex.reserve(C);
+  blitz::Array<double, 2> absoluteCartesianCoord(C, 3);
+  for (int i=0; i<C; i++) {
+    absoluteCartesianCoord(i, 0) = floor( (cubes_centroids(i, 0) - big_cube_lower_coord(0))/a );
+    absoluteCartesianCoord(i, 1) = floor( (cubes_centroids(i, 1) - big_cube_lower_coord(1))/a );
+    absoluteCartesianCoord(i, 2) = floor( (cubes_centroids(i, 2) - big_cube_lower_coord(2))/a );
+    int cubeNumber = absoluteCartesianCoord(i, 0) * max_N_cubes_1D * max_N_cubes_1D;
+    cubeNumber += absoluteCartesianCoord(i, 1) * max_N_cubes_1D + absoluteCartesianCoord(i, 2);
+    CubeNumber_CubeIndex.push_back(Dictionary<int, int>(cubeNumber, i));
+  }
+  sort(CubeNumber_CubeIndex.begin(), CubeNumber_CubeIndex.end());
+  blitz::Array<int, 2> CubesSortedNumbersToIndexes(C, 2);
+  for (int i=0; i<C; i++) {
+    CubesSortedNumbersToIndexes(i, 0) = CubeNumber_CubeIndex[i].getKey();
+    CubesSortedNumbersToIndexes(i, 1) = CubeNumber_CubeIndex[i].getVal();
+  }
+  blitz::Array<int, 2> cubesNeighborsIndexesTmp2(C, 28);
+  cubesNeighborsIndexesTmp2 = -1;
+  int counter;
+  for (int i=0 ; i<C ; ++i) {
+    blitz::Array<double, 1> absCartCoord(3);
+    absCartCoord = absoluteCartesianCoord(i, 0), absoluteCartesianCoord(i, 1), absoluteCartesianCoord(i, 2);
+    counter = 1;
+    cubesNeighborsIndexesTmp2(i, 0) = i; // we first consider the cube itself
+    // we find the neighbors
+    for (int x=-1 ; x<2 ; ++x) {
+      for (int y=-1 ; y<2 ; ++y) {
+        for (int z=-1 ; z<2 ; ++z) {
+          int index = -1;
+          blitz::Array<double, 1> CandidateAbsCartCoord(3);
+          CandidateAbsCartCoord = absCartCoord(0) + x, absCartCoord(1) + y, absCartCoord(2) + z;
+          /// no component of (absoluteCartesianCoord(i) + p) -- where i=0,1,2 and p = x,y,z -- can be:
+          /// (1) negative or (2) greater than MaxNumberCubes1D.
+          int condition = 1;
+          for (int j=0 ; j<3 ; ++j) condition *= ( (CandidateAbsCartCoord(j) >= 0) && (CandidateAbsCartCoord(j) < max_N_cubes_1D) );
+          // we also do not want to consider the cube itself
+          condition *= !((x==0) && (y==0) && (z==0));
+          if (condition>0) {
+            double candidate_number = (CandidateAbsCartCoord(0) * max_N_cubes_1D)*max_N_cubes_1D + CandidateAbsCartCoord(1) * max_N_cubes_1D + CandidateAbsCartCoord(2);
+            { // index search
+              if ( (candidate_number < CubesSortedNumbersToIndexes(0, 0)) || (candidate_number > CubesSortedNumbersToIndexes(C-1, 0)) ) index = -1;
+              else {
+                int ind_inf = 0, ind_sup = C-1, ind_mid;
+                while(ind_sup-ind_inf > 1) {
+                  ind_mid = (ind_sup+ind_inf)/2;
+                  if (candidate_number > CubesSortedNumbersToIndexes(ind_mid, 0)) ind_inf = ind_mid;
+                  else ind_sup = ind_mid;
+                }
+                if (candidate_number == CubesSortedNumbersToIndexes(ind_inf, 0)) index = CubesSortedNumbersToIndexes(ind_inf, 1);
+                else if (candidate_number == CubesSortedNumbersToIndexes(ind_sup, 0)) index = CubesSortedNumbersToIndexes(ind_sup, 1);
+                else index = -1;
+              }
+            } // end of index search
+          }
+          if (index>-1) {cubesNeighborsIndexesTmp2(i, counter) = index; counter++;}
+        } // z
+      } // y
+    } // x
+  }
+}
+
 int main(int argc, char *argv[]) {
   
   int V, T, N_RWG;
@@ -156,9 +226,11 @@ int main(int argc, char *argv[]) {
   
   blitz::Array<int, 1> cubes_RWGsNumbers, cube_N_RWGs;
   blitz::Array<double, 2> cubes_centroids;
-  RWGNumber_cubeNumber_computation(cubes_RWGsNumbers, cube_N_RWGs, cubes_centroids, a, max_N_cubes_1D, big_cube_lower_coord_tmp, RWGNumber_edgeCentroidCoord, N_RWG);
+  cubeIndex_RWGNumbers_computation(cubes_RWGsNumbers, cube_N_RWGs, cubes_centroids, a, max_N_cubes_1D, big_cube_lower_coord_tmp, RWGNumber_edgeCentroidCoord, N_RWG);
   const int C = cube_N_RWGs.size();
   std::cout << "mesh_cubes.cpp: the number of cubes is " << C << std::endl;
+
+  findCubeNeighbors(max_N_cubes_1D, big_cube_lower_coord, cubes_centroids, a, C);
 
   // writing of the arrays
   writeIntToASCIIFile(READING_PATH + "N_levels.txt", N_levels);
