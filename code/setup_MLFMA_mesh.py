@@ -5,7 +5,7 @@ from ReadWriteBlitzArray import writeScalarToDisk, writeASCIIBlitzArrayToDisk, w
 from ReadWriteBlitzArray import readIntFromDisk, readASCIIBlitzIntArray1DFromDisk, readBlitzArrayFromDisk
 from MLFMA import computeTreeParameters
 from read_mesh import read_mesh_GMSH_1, read_mesh_GMSH_2, read_mesh_GiD, read_mesh_ANSYS
-from mesh_functions_seb import compute_RWG_meanEdgeLength, compute_RWGNumber_edgeCentroidCoord
+from mesh_functions_seb import compute_RWG_meanEdgeLength
 
 def readMesh(path, name, params_simu):
     if params_simu.meshFormat == 'GMSH':
@@ -31,8 +31,8 @@ def compute_RWG_CFIE_OK(triangles_surfaces, RWGNumber_signedTriangles, IS_CLOSED
     RWGNumber_M_CURRENT_OK = ((sum(RWGNumber_CFIE_OK_tmp2, axis=1)>1) * 1).astype('i')
     return RWGNumber_CFIE_OK, RWGNumber_M_CURRENT_OK
 
-def setup_MLFMA(params_simu, simuDirName):
-    """Sets up the MLFMA parameters.
+def setup_mesh(params_simu, simuDirName):
+    """Sets up the mesh.
        params_simu is a class instance that contains the parameters for the simulation.
     """
     num_procs = MPI.COMM_WORLD.Get_size()
@@ -88,18 +88,15 @@ def setup_MLFMA(params_simu, simuDirName):
         writeScalarToDisk(average_RWG_length, os.path.join(meshPath,'average_RWG_length.txt'))
         if params_simu.VERBOSE==1:
             print "average RWG length =", average_RWG_length, "m = lambda /", (c/params_simu.f)/average_RWG_length
-        # cubes computation
 
+        # cubes computation
         WEAVE = 0
         if WEAVE != 0:
             print "Using good old weave!"
             from Cubes import cube_lower_coord_computation, RWGNumber_cubeNumber_computation, cubeIndex_RWGNumbers_computation, findCubeNeighbors
+            from mesh_functions_seb import compute_RWGNumber_edgeCentroidCoord
             max_N_cubes_1D, N_levels, big_cube_lower_coord, big_cube_center_coord = cube_lower_coord_computation(a, vertexes_coord)
             N_levels = max(N_levels, 2)
-            print "N_levels = ", N_levels
-            print "max_N_cubes_1D = ", max_N_cubes_1D
-            print "big_cube_center_coord = ", big_cube_center_coord
-            print "big_cube_lower_coord = ", big_cube_lower_coord
             RWGNumber_edgeCentroidCoord = compute_RWGNumber_edgeCentroidCoord(vertexes_coord, RWGNumber_edgeVertexes)
             RWGNumber_cubeNumber, RWGNumber_cubeCentroidCoord = RWGNumber_cubeNumber_computation(a, max_N_cubes_1D, big_cube_lower_coord, RWGNumber_edgeCentroidCoord)
             cubes_RWGsNumbers, cubes_lists_RWGsNumbers, cube_N_RWGs, cubes_centroids = cubeIndex_RWGNumbers_computation(RWGNumber_cubeNumber, RWGNumber_cubeCentroidCoord)
@@ -112,16 +109,7 @@ def setup_MLFMA(params_simu, simuDirName):
             writeBlitzArrayToDisk(cube_N_RWGs, os.path.join(meshPath, 'cube_N_RWGs') + '.txt')
             writeBlitzArrayToDisk(cubes_neighborsIndexes, os.path.join(meshPath, 'cubes_neighborsIndexes') + '.txt')
             writeBlitzArrayToDisk(cube_N_neighbors, os.path.join(meshPath, 'cube_N_neighbors') + '.txt')
-            file = open(os.path.join(meshPath, 'cubes_lists_RWGsNumbers.txt'), 'w')
-            cPickle.dump(cubes_lists_RWGsNumbers, file)
-            file.close()
-            file = open(os.path.join(meshPath, 'cubes_lists_NeighborsIndexes.txt'), 'w')
-            cPickle.dump(cubes_lists_NeighborsIndexes, file)
-            file.close()
-            writeScalarToDisk(S, os.path.join(meshPath, "S.txt"))
             writeScalarToDisk(N_levels, os.path.join(meshPath, "N_levels.txt"))
-            writeBlitzArrayToDisk(RWGNumber_CFIE_OK, os.path.join(meshPath, 'RWGNumber_CFIE_OK') + '.txt')
-            writeBlitzArrayToDisk(RWGNumber_M_CURRENT_OK, os.path.join(meshPath, 'RWGNumber_M_CURRENT_OK') + '.txt')
         else:
             print "Using new mesh_cubes.cpp code"
             print commands.getoutput("./code/MoM/mesh_cubes " + meshPath + "/")
@@ -130,15 +118,10 @@ def setup_MLFMA(params_simu, simuDirName):
             C = readIntFromDisk(os.path.join(meshPath,'C.txt'))
             big_cube_center_coord = read1DBlitzArrayFromDisk(os.path.join(meshPath, "big_cube_center_coord.txt"), 'd')
             big_cube_lower_coord = read1DBlitzArrayFromDisk(os.path.join(meshPath, "big_cube_lower_coord.txt"), 'd')
-            print "N_levels = ", N_levels
-            print "max_N_cubes_1D = ", max_N_cubes_1D
-            print "big_cube_center_coord = ", big_cube_center_coord
-            print "big_cube_lower_coord = ", big_cube_lower_coord
-            cubes_centroids = readBlitzArrayFromDisk(os.path.join(meshPath, "cubes_centroids.txt"), C, 3, 'd')
+            # making of cubes_lists_RWGsNumbers
             cubes_RWGsNumbers = read1DBlitzArrayFromDisk(os.path.join(meshPath, "cubes_RWGsNumbers.txt"), 'i')
             cube_N_RWGs = read1DBlitzArrayFromDisk(os.path.join(meshPath, "cube_N_RWGs.txt"), 'i')
             print "Average number of RWGs per cube:", mean(cube_N_RWGs)
-
             cubes_lists_RWGsNumbers = {}
             index = 0
             for i in range(C):
@@ -147,41 +130,26 @@ def setup_MLFMA(params_simu, simuDirName):
                     array_tmp[j] = cubes_RWGsNumbers[index]
                     index += 1
                 cubes_lists_RWGsNumbers[i] = array_tmp
-
+            # making of cubes_lists_NeighborsIndexes
             cubesNeighborsIndexesTmp2 = readBlitzArrayFromDisk(os.path.join(meshPath, "cubesNeighborsIndexesTmp2.txt"), C, 28, 'i')
             cubes_lists_NeighborsIndexes = {}
-            N_total_neighbors = 0
             for i in range(C):
-                cubes_lists_NeighborsIndexes[i] = []
-            for i in range(C):
-                listTmp = []
-                j = 0
-                while cubesNeighborsIndexesTmp2[i, j] > -1:
-                    listTmp.append(cubesNeighborsIndexesTmp2[i, j])
-                    j += 1
-                cubes_lists_NeighborsIndexes[i] = listTmp
-                N_total_neighbors += len(listTmp)
-            # we also have to save the cubesNeighborsIndexes under a form easily readable by C++ code
-            cubes_neighborsIndexes = zeros(N_total_neighbors, 'i')
-            cube_N_neighbors = zeros(C, 'i')
-            startIndex = 0
-            for j in range(C):
-                length = len(cubes_lists_NeighborsIndexes[j])
-                cube_N_neighbors[j] = length
-                cubes_neighborsIndexes[startIndex:startIndex + length] = cubes_lists_NeighborsIndexes[j]
-                startIndex += length
+                cubes_lists_NeighborsIndexes[i] = [elem for elem in cubesNeighborsIndexesTmp2[i] if elem>-1]
 
-            writeBlitzArrayToDisk(cubes_neighborsIndexes, os.path.join(meshPath, 'cubes_neighborsIndexes') + '.txt')
-            writeBlitzArrayToDisk(cube_N_neighbors, os.path.join(meshPath, 'cube_N_neighbors') + '.txt')
-            file = open(os.path.join(meshPath, 'cubes_lists_RWGsNumbers.txt'), 'w')
-            cPickle.dump(cubes_lists_RWGsNumbers, file)
-            file.close()
-            file = open(os.path.join(meshPath, 'cubes_lists_NeighborsIndexes.txt'), 'w')
-            cPickle.dump(cubes_lists_NeighborsIndexes, file)
-            file.close()
-            writeScalarToDisk(S, os.path.join(meshPath, "S.txt"))
-            writeBlitzArrayToDisk(RWGNumber_CFIE_OK, os.path.join(meshPath, 'RWGNumber_CFIE_OK') + '.txt')
-            writeBlitzArrayToDisk(RWGNumber_M_CURRENT_OK, os.path.join(meshPath, 'RWGNumber_M_CURRENT_OK') + '.txt')
+        # writing some data
+        print "N_levels = ", N_levels
+        print "max_N_cubes_1D = ", max_N_cubes_1D
+        print "big_cube_center_coord = ", big_cube_center_coord
+        print "big_cube_lower_coord = ", big_cube_lower_coord
+        file = open(os.path.join(meshPath, 'cubes_lists_RWGsNumbers.txt'), 'w')
+        cPickle.dump(cubes_lists_RWGsNumbers, file)
+        file.close()
+        file = open(os.path.join(meshPath, 'cubes_lists_NeighborsIndexes.txt'), 'w')
+        cPickle.dump(cubes_lists_NeighborsIndexes, file)
+        file.close()
+        writeScalarToDisk(S, os.path.join(meshPath, "S.txt"))
+        writeBlitzArrayToDisk(RWGNumber_CFIE_OK, os.path.join(meshPath, 'RWGNumber_CFIE_OK') + '.txt')
+        writeBlitzArrayToDisk(RWGNumber_M_CURRENT_OK, os.path.join(meshPath, 'RWGNumber_M_CURRENT_OK') + '.txt')
 
     else:
         big_cube_lower_coord = ['blabla']
@@ -275,7 +243,7 @@ if __name__=='__main__':
     sys.path.append(os.path.abspath('.'))
     exec 'from ' + simuParams + ' import *'
     if (params_simu.MONOSTATIC_RCS==1) or (params_simu.MONOSTATIC_SAR==1) or (params_simu.BISTATIC==1):
-        setup_MLFMA(params_simu, simuDirName)
+        setup_mesh(params_simu, simuDirName)
     else:
         print "you should select monostatic RCS or monostatic SAR or bistatic computation, or a combination of these computations. Check the simulation settings."
         sys.exit(1)
