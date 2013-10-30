@@ -36,7 +36,7 @@ elif [ $DISTRIB_TYPE = "2" ]; then
     echo "What is the version of your Ubuntu distribution?"
     echo "  (1) Ubuntu 12.04"
     echo "  (2) Ubuntu 12.10"
-    echo "  (3) Ubuntu 13.04"
+    echo "  (3) Ubuntu 13.10"
     echo " "
     echo "Enter the correct number here: "
     read DISTRIB
@@ -54,10 +54,10 @@ elif [ $DISTRIB_TYPE = "2" ]; then
         ./UBUNTU_12.10_INSTALL.sh
         cd ..
     elif [ $DISTRIB = "3" ]; then
-        echo " OK, running install script for Ubuntu 13.04: $DIR_INSTALL_SCRIPTS/UBUNTU_13.04_INSTALL.sh"
+        echo " OK, running install script for Ubuntu 13.10: $DIR_INSTALL_SCRIPTS/UBUNTU_13.10_INSTALL.sh"
         echo " read the file if you want more info about what will be installed..."
         cd $DIR_INSTALL_SCRIPTS
-        ./UBUNTU_13.04_INSTALL.sh
+        ./UBUNTU_13.10_INSTALL.sh
         cd ..
     fi
 

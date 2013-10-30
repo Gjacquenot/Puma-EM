@@ -1,6 +1,6 @@
 #!/bin/bash
 ###############################################################
-# script for Ubuntu 13.04 to compile puma-em MoM simulator.   #
+# script for Ubuntu 13.10 to compile puma-em MoM simulator.   #
 ###############################################################
 
 echo " "
@@ -11,7 +11,6 @@ echo " BEWARE: Some parts of this script need to be run as sudo... "
 echo " "
 echo " press enter to continue, ctrl-C to stop"
 read
-rm -rf ~/.python*_compile
 echo " You will be asked for your root password so that the machine can install some programs as root"
 # installing the main dependencies...
 echo " sudo password for installing main dependencies... "
@@ -32,15 +31,13 @@ autoreconf -vif
 ./configure
 make
 sudo make install
-# scipy-weave uses the old blitz++, so we need to replace them
-sudo cp -r ./blitz /usr/lib/python2.7/dist-packages/scipy/weave/blitz/
 cd $PUMA_EM_DIR/installScripts
 sudo make clean
 # actual Puma-em installation
 cd $PUMA_EM_DIR
 echo " "
 echo " "
-make install_open-mpi
+make libs
 echo " "
 echo "=========================================================================="
 echo "                         INSTALLATION COMPLETE! "
