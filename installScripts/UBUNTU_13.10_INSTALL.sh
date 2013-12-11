@@ -15,22 +15,22 @@ echo " You will be asked for your root password so that the machine can install 
 # installing the main dependencies...
 echo " sudo password for installing main dependencies... "
 sudo apt-get update
-sudo apt-get install g++ gfortran gmsh autoconf libtool python-dev python-scipy python-matplotlib python-mpi4py python-tk openmpi-bin libopenmpi-dev dvipng cvs automake
+sudo apt-get install g++ gfortran gmsh autoconf libtool python-dev python-scipy python-matplotlib python-mpi4py python-tk openmpi-bin libopenmpi-dev dvipng cvs automake libblitz0-dev libblitz0ldbl
 # create makefile.inc
 cd ..
 PUMA_EM_DIR=$PWD
 cp $PUMA_EM_DIR/installScripts/gfortran_makefile.inc $PUMA_EM_DIR/makefile.inc
 # installing blitz++
 cd $PUMA_EM_DIR/installScripts
-export CVSROOT=:pserver:anonymous@blitz.cvs.sourceforge.net:/cvsroot/blitz
-echo " next password is empty. Just press ENTER to continue"
-cvs login
-cvs -z3 checkout blitz
-cd blitz
-autoreconf -vif
-./configure
-make
-sudo make install
+#export CVSROOT=:pserver:anonymous@blitz.cvs.sourceforge.net:/cvsroot/blitz
+#echo " next password is empty. Just press ENTER to continue"
+#cvs login
+#cvs -z3 checkout blitz
+#cd blitz
+#autoreconf -vif
+#./configure
+#make
+#sudo make install
 cd $PUMA_EM_DIR/installScripts
 sudo make clean
 # actual Puma-em installation
