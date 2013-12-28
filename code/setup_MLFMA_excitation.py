@@ -2,7 +2,7 @@ import sys, os, argparse
 from mpi4py import MPI
 from scipy import zeros, array
 from ReadWriteBlitzArray import writeScalarToDisk, writeASCIIBlitzArrayToDisk
-from read_dipole_excitation import read_dipole_excitation, read_observation_points
+from read_dipole_excitation import read_dipole_excitation, read_observation_points, read_input_angles
 
 def setup_excitation(params_simu, simuDirName):
     num_proc = MPI.COMM_WORLD.Get_size()
@@ -119,6 +119,18 @@ def setup_excitation(params_simu, simuDirName):
         if (my_id==0):
             print "incorrect excitation choice. You have to choose dipole and/or plane wave excitation."
         sys.exit(1)
+
+    if (params_simu.MONOSTATIC_RCS == 1) and (params_simu.ANGLES_FROM_FILE == 1) and (params_simu.ANGLES_FILENAME != ""):
+        if (my_id==0): # this file is only on processor 0
+            angles = read_input_angles(params_simu.ANGLES_FILENAME)
+        else:
+            angles = zeros((1, 2), 'd')
+        angles = MPI.COMM_WORLD.bcast(angles)
+        writeASCIIBlitzArrayToDisk(angles, os.path.join(tmpDirName,'V_CFIE/monostatic_angles.txt'))
+        writeScalarToDisk(1, os.path.join(tmpDirName,'V_CFIE/ANGLES_FROM_FILE.txt'))
+    elif (params_simu.MONOSTATIC_RCS == 1) and ((params_simu.ANGLES_FROM_FILE == 0) or (params_simu.ANGLES_FILENAME == "")):
+        writeScalarToDisk(0, os.path.join(tmpDirName,'V_CFIE/ANGLES_FROM_FILE.txt'))
+
     if params_simu.MONOSTATIC_SAR==1:
         writeASCIIBlitzArrayToDisk(array(params_simu.SAR_local_x_hat, 'd'), os.path.join(tmpDirName,'V_CFIE/SAR_local_x_hat.txt'))
         writeASCIIBlitzArrayToDisk(array(params_simu.SAR_local_y_hat, 'd'), os.path.join(tmpDirName,'V_CFIE/SAR_local_y_hat.txt'))

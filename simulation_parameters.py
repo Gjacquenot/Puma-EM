@@ -160,6 +160,18 @@ params_simu.START_PHI = 0.0
 params_simu.STOP_PHI = 2.0 * pi
 params_simu.AUTOMATIC_PHIS = True
 params_simu.USER_DEFINED_NB_PHI = 200
++# monostatic angles can be defined from a file. 
+# They will take precedence over the previous definition.
+params_simu.ANGLES_FROM_FILE = 0
+if params_simu.ANGLES_FROM_FILE == 1:
+    # the name (with path) of the user-supplied r_obs file. Set to "" if empty
+    params_simu.ANGLES_FILENAME = "./angles.txt"
+    # the structure of the angles file MUST BE AS FOLLOWS:
+    # 1 line per point, as many lines as there are points
+    # each line has 2 columns that must be arranged as follows:
+    #
+    # theta phi
+
 # for the monostatic SAR settings
 if params_simu.MONOSTATIC_SAR==1:
     # dipole antenna will "fly" in a plane defined by local x and y axis

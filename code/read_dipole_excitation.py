@@ -43,4 +43,24 @@ def read_observation_points(filename):
     else:
         r_obs = array(r_tmp, 'd')
     return r_obs
-    
+
+def read_input_angles(filename):
+    # the structure of the input_angles file MUST BE AS FOLLOWS:
+    # 1 line per angle, as many lines as there are points
+    # each line has 2 columns that must be arranged as follows:
+    #
+    # theta phi
+
+    angles_tmp = []
+    observation_file = open(filename, 'r')
+    for line in observation_file:
+        elems = line.split()
+        if (len(elems)==2) and (elems!=[]):
+            angles_tmp.append(map(float, elems[0:]))
+    observation_file.close()
+    if angles_tmp == []:
+        angles = zeros((0, 0), 'd')
+    else:
+        angles = array(angles_tmp, 'd')
+    return angles
+

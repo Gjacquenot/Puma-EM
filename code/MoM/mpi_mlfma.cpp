@@ -602,61 +602,51 @@ void computeMonostaticRCS(Octtree & octtree,
     PrecondFunctor< std::complex<float>, PsolveAMLFMA > psolve(&psolveAMLFMA, &PsolveAMLFMA::psolve);
   }
   else PrecondFunctor< std::complex<float>, LeftFrobPsolveMLFMA > psolve(&leftFrobPsolveMLFMA, &LeftFrobPsolveMLFMA::psolve);
-  // getting the angles at which monostatic RCS must be computed
-  blitz::Array<float, 1> octtreeXthetas_coarsest, octtreeXphis_coarsest;
-  readFloatBlitzArray1DFromASCIIFile(OCTTREE_DATA_PATH + "octtreeXphis_coarsest.txt", octtreeXphis_coarsest);
-  readFloatBlitzArray1DFromASCIIFile(OCTTREE_DATA_PATH + "octtreeXthetas_coarsest.txt", octtreeXthetas_coarsest);
-  const int N_theta(octtreeXthetas_coarsest.size()), N_phi(octtreeXphis_coarsest.size());
-  blitz::Array<float, 2> RCS_VV(N_theta, N_phi), RCS_HH(N_theta, N_phi), RCS_HV(N_theta, N_phi), RCS_VH(N_theta, N_phi);
-  RCS_VV = 1.0;
-  RCS_HH = 1.0;
-  RCS_HV = 1.0;
-  RCS_VH = 1.0;
+  // what do we compute?
   int COMPUTE_RCS_HH, COMPUTE_RCS_HV, COMPUTE_RCS_VH, COMPUTE_RCS_VV;
   readIntFromASCIIFile(TMP + "/COMPUTE_RCS_HH.txt", COMPUTE_RCS_HH);
   readIntFromASCIIFile(TMP + "/COMPUTE_RCS_HV.txt", COMPUTE_RCS_HV);
   readIntFromASCIIFile(TMP + "/COMPUTE_RCS_VH.txt", COMPUTE_RCS_VH);
   readIntFromASCIIFile(TMP + "/COMPUTE_RCS_VV.txt", COMPUTE_RCS_VV);
-  // r_ref
+  // r_ref for where the plane wave is evaluated
   blitz::Array<double, 1> r_ref(3);
   for (int i=0 ; i<3 ; ++i) r_ref(i) = octtree.big_cube_center_coord[i];
-  // we now make the calculations of the parameters for the MONOSTATIC_BY_BISTATIC_APPROX
-  // see pages 94-96 of Chew 2001, "Fast and Efficient Methods in Computational EM"
-  const double big_cube_side_length = 2.0 * (octtree.big_cube_center_coord[0] - octtree.big_cube_lower_coord[0]);
-  const double LL = big_cube_side_length * sqrt(2.0);
-  const double Delta_Phi = octtreeXphis_coarsest(1) - octtreeXphis_coarsest(0);
-  double Beta = sqrt(4.0 * c * MAX_DELTA_PHASE / (LL * octtree.w));
-  // number of phi points encompassed by Beta: number of points for which I can approximate
-  // monostatic RCS by bistatic RCS
-  const int BetaPoints = static_cast<int>(floor(Beta/Delta_Phi)) + 1;
-  Beta = (BetaPoints-1) * Delta_Phi;
-  if (my_id==master) cout << "number of BetaPoints for monostatic-bistatic approximation = " << BetaPoints << endl;
-  // loop for monostatic sigma computation
-  for (int excitation=0 ; excitation<2 ; ++excitation) { // 0 for H, 1 for V
-    const bool HH = ((excitation==0) && (COMPUTE_RCS_HH==1));
-    const bool HV = ((excitation==0) && (COMPUTE_RCS_HV==1));
-    const bool VH = ((excitation==1) && (COMPUTE_RCS_VH==1));
-    const bool VV = ((excitation==1) && (COMPUTE_RCS_VV==1));
-    const bool cond = (HH || HV || VH || VV);
-    if (cond) {
-      for (int t=0 ; t<N_theta ; ++t) {
-        blitz::Array<std::complex<float>, 1> ZI(N_local_RWG);
-        ZI = 0.0;
-        const float theta = octtreeXthetas_coarsest(t);
-        float phi_inc = octtreeXphis_coarsest(0) + Beta/2.0;
-        int startIndexPhi = 0;
-        while (startIndexPhi<N_phi) {
+  // getting the angles at which monostatic RCS must be computed
+  int ANGLES_FROM_FILE;
+  readIntFromASCIIFile(V_CFIE_DATA_PATH + "ANGLES_FROM_FILE.txt", ANGLES_FROM_FILE);
+  if (ANGLES_FROM_FILE==1) {
+    blitz::Array<float, 2> angles;
+    readFloatBlitzArray2DFromASCIIFile(V_CFIE_DATA_PATH + "monostatic_angles.txt", angles);
+    const int N_angles = angles.size()/2;
+    blitz::Array<float, 1> RCS_VV(N_angles), RCS_HH(N_angles), RCS_HV(N_angles), RCS_VH(N_angles);
+    RCS_VV = 1.0;
+    RCS_HH = 1.0;
+    RCS_HV = 1.0;
+    RCS_VH = 1.0;
+    // loop for monostatic sigma computation
+    for (int excitation=0 ; excitation<2 ; ++excitation) { // 0 for H, 1 for V
+      const bool HH = ((excitation==0) && (COMPUTE_RCS_HH==1));
+      const bool HV = ((excitation==0) && (COMPUTE_RCS_HV==1));
+      const bool VH = ((excitation==1) && (COMPUTE_RCS_VH==1));
+      const bool VV = ((excitation==1) && (COMPUTE_RCS_VV==1));
+      const bool cond = (HH || HV || VH || VV);
+      if (cond) {
+        for (int i=0 ; i<N_angles ; i++) {
+          blitz::Array<std::complex<float>, 1> ZI(N_local_RWG);
+          ZI = 0.0;
+          const float theta = angles(i, 0);
+          const float phi = angles(i, 1);
           octtree.resizeSdownLevelsToZero();
           if (my_id==master) {
-            if (HH || HV) cout << "\nHH and HV, theta = "<< theta * 180.0/M_PI << ", phi = " << phi_inc * 180.0/M_PI << endl;
-            else cout << "\nVV and VH, theta = "<< theta * 180.0/M_PI << ", phi = " << phi_inc * 180.0/M_PI << endl;
+            if (HH || HV) cout << "\nHH and HV, theta = "<< theta * 180.0/M_PI << ", phi = " << phi * 180.0/M_PI << endl;
+            else cout << "\nVV and VH, theta = "<< theta * 180.0/M_PI << ", phi = " << phi * 180.0/M_PI << endl;
             flush(cout);
           }
           // local coordinate system
           blitz::Array<double, 1> r_hat(3), theta_hat(3), phi_hat(3);
-          r_hat = sin(theta)*cos(phi_inc), sin(theta)*sin(phi_inc), cos(theta);
-          theta_hat = cos(theta)*cos(phi_inc), cos(theta)*sin(phi_inc), -sin(theta);
-          phi_hat = -sin(phi_inc), cos(phi_inc), 0.0;
+          r_hat = sin(theta)*cos(phi), sin(theta)*sin(phi), cos(theta);
+          theta_hat = cos(theta)*cos(phi), cos(theta)*sin(phi), -sin(theta);
+          phi_hat = -sin(phi), cos(phi), 0.0;
           blitz::Array<double, 1> k_hat(-1.0 * r_hat);
 
           // excitation field
@@ -679,58 +669,156 @@ void computeMonostaticRCS(Octtree & octtree,
           }
           // far field computation
           blitz::Array<std::complex<float>, 2> e_theta_far, e_phi_far;
-          blitz::Array<float, 1> thetas(1), phis(BetaPoints);
+          blitz::Array<float, 1> thetas(1), phis(1);
           thetas(0) = theta;
-          if ((BetaPoints%2)!=0) { // if BetaPoints is odd and greater than 2
-            const float space = 2.0*Delta_Phi;
-            for (int j=0 ; j<BetaPoints ; ++j) phis(j) = phi_inc - Beta + j * space;
-          }
-          else {
-            const float space = Delta_Phi;
-            for (int j=0 ; j<BetaPoints/2 ; ++j) {
-              phis(j) = phi_inc - Beta + j * space;
-              phis(BetaPoints-1-j) = phi_inc + Beta - j * space;
-            }
-          }
+          phis(0) = phi;
           octtree.computeFarField(e_theta_far, e_phi_far, thetas, phis, ZI, OCTTREE_DATA_PATH);
           // filling of the RCS Arrays
           if (HH || HV) {
-            for (int j=0 ; j<BetaPoints ; ++j) {
-              RCS_HH(t, startIndexPhi + j) = real(e_phi_far(0, j) * conj(e_phi_far(0, j)))/real(sum(E_0 * conj(E_0)) * 4.0*M_PI);
-              RCS_HV(t, startIndexPhi + j) = real(e_theta_far(0, j) * conj(e_theta_far(0, j)))/real(sum(E_0 * conj(E_0)) * 4.0*M_PI);
-            }
+            RCS_HH(i) = real(e_phi_far(0, 0) * conj(e_phi_far(0, 0)))/real(sum(E_0 * conj(E_0)) * 4.0*M_PI);
+            RCS_HV(i) = real(e_theta_far(0, 0) * conj(e_theta_far(0, 0)))/real(sum(E_0 * conj(E_0)) * 4.0*M_PI);
           }
           else {
-            for (int j=0 ; j<BetaPoints ; ++j) {
-              RCS_VV(t, startIndexPhi + j) = real(e_theta_far(0, j) * conj(e_theta_far(0, j)))/real(sum(E_0 * conj(E_0)) * 4.0*M_PI);
-              RCS_VH(t, startIndexPhi + j) = real(e_phi_far(0, j) * conj(e_phi_far(0, j)))/real(sum(E_0 * conj(E_0)) * 4.0*M_PI);
-            }
-          }
-          // phi update
-          startIndexPhi += BetaPoints;
-          phi_inc += BetaPoints * Delta_Phi; // += Beta;
-          if (my_id==master) {
-            writeFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "RCS_HH_ASCII.txt", RCS_HH);
-            writeFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "RCS_HV_ASCII.txt", RCS_HV);
-            writeFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "RCS_VV_ASCII.txt", RCS_VV);
-            writeFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "RCS_VH_ASCII.txt", RCS_VH);
+            RCS_VV(i) = real(e_theta_far(0, 0) * conj(e_theta_far(0, 0)))/real(sum(E_0 * conj(E_0)) * 4.0*M_PI);
+            RCS_VH(i) = real(e_phi_far(0, 0) * conj(e_phi_far(0, 0)))/real(sum(E_0 * conj(E_0)) * 4.0*M_PI);
           }
         }
       }
     }
+    if (my_id==master) {
+      writeFloatBlitzArray1DToASCIIFile(RESULT_DATA_PATH + "RCS_HH_ASCII.txt", RCS_HH);
+      writeFloatBlitzArray1DToASCIIFile(RESULT_DATA_PATH + "RCS_HV_ASCII.txt", RCS_HV);
+      writeFloatBlitzArray1DToASCIIFile(RESULT_DATA_PATH + "RCS_VH_ASCII.txt", RCS_VH);
+      writeFloatBlitzArray1DToASCIIFile(RESULT_DATA_PATH + "RCS_VV_ASCII.txt", RCS_VV);
+      // thetas, phis
+      writeFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "monostatic_angles_ASCII.txt", angles);
+      // final writes
+      writeIntToASCIIFile(ITERATIVE_DATA_PATH + "numberOfMatvecs.txt", octtree.getNumberOfUpdates());
+      writeIntToASCIIFile(ITERATIVE_DATA_PATH + "iter.txt", iter);
+    }
   }
-  if (my_id==master) {
-    writeFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "RCS_HH_ASCII.txt", RCS_HH);
-    writeFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "RCS_HV_ASCII.txt", RCS_HV);
-    writeFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "RCS_VH_ASCII.txt", RCS_VH);
-    writeFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "RCS_VV_ASCII.txt", RCS_VV);
-    // thetas, phis
-    writeFloatBlitzArray1DToASCIIFile(RESULT_DATA_PATH + "phis_far_field_ASCII.txt", octtreeXphis_coarsest);
-    writeFloatBlitzArray1DToASCIIFile(RESULT_DATA_PATH + "thetas_far_field_ASCII.txt", octtreeXthetas_coarsest);
-    // final writes
-    writeIntToASCIIFile(ITERATIVE_DATA_PATH + "numberOfMatvecs.txt", octtree.getNumberOfUpdates());
-    writeIntToASCIIFile(ITERATIVE_DATA_PATH + "iter.txt", iter);
-  }
+  else {
+    blitz::Array<float, 1> octtreeXthetas_coarsest, octtreeXphis_coarsest;
+    readFloatBlitzArray1DFromASCIIFile(OCTTREE_DATA_PATH + "octtreeXphis_coarsest.txt", octtreeXphis_coarsest);
+    readFloatBlitzArray1DFromASCIIFile(OCTTREE_DATA_PATH + "octtreeXthetas_coarsest.txt", octtreeXthetas_coarsest);
+    const int N_theta(octtreeXthetas_coarsest.size()), N_phi(octtreeXphis_coarsest.size());
+    blitz::Array<float, 2> RCS_VV(N_theta, N_phi), RCS_HH(N_theta, N_phi), RCS_HV(N_theta, N_phi), RCS_VH(N_theta, N_phi);
+    RCS_VV = 1.0;
+    RCS_HH = 1.0;
+    RCS_HV = 1.0;
+    RCS_VH = 1.0;
+    // we now make the calculations of the parameters for the MONOSTATIC_BY_BISTATIC_APPROX
+    // see pages 94-96 of Chew 2001, "Fast and Efficient Methods in Computational EM"
+    const double big_cube_side_length = 2.0 * (octtree.big_cube_center_coord[0] - octtree.big_cube_lower_coord[0]);
+    const double LL = big_cube_side_length * sqrt(2.0);
+    const double Delta_Phi = octtreeXphis_coarsest(1) - octtreeXphis_coarsest(0);
+    double Beta = sqrt(4.0 * c * MAX_DELTA_PHASE / (LL * octtree.w));
+    // number of phi points encompassed by Beta: number of points for which I can approximate
+    // monostatic RCS by bistatic RCS
+    const int BetaPoints = static_cast<int>(floor(Beta/Delta_Phi)) + 1;
+    Beta = (BetaPoints-1) * Delta_Phi;
+    if (my_id==master) cout << "number of BetaPoints for monostatic-bistatic approximation = " << BetaPoints << endl;
+    // loop for monostatic sigma computation
+    for (int excitation=0 ; excitation<2 ; ++excitation) { // 0 for H, 1 for V
+      const bool HH = ((excitation==0) && (COMPUTE_RCS_HH==1));
+      const bool HV = ((excitation==0) && (COMPUTE_RCS_HV==1));
+      const bool VH = ((excitation==1) && (COMPUTE_RCS_VH==1));
+      const bool VV = ((excitation==1) && (COMPUTE_RCS_VV==1));
+      const bool cond = (HH || HV || VH || VV);
+      if (cond) {
+        for (int t=0 ; t<N_theta ; ++t) {
+          blitz::Array<std::complex<float>, 1> ZI(N_local_RWG);
+          ZI = 0.0;
+          const float theta = octtreeXthetas_coarsest(t);
+          float phi_inc = octtreeXphis_coarsest(0) + Beta/2.0;
+          int startIndexPhi = 0;
+          while (startIndexPhi<N_phi) {
+            octtree.resizeSdownLevelsToZero();
+            if (my_id==master) {
+              if (HH || HV) cout << "\nHH and HV, theta = "<< theta * 180.0/M_PI << ", phi = " << phi_inc * 180.0/M_PI << endl;
+              else cout << "\nVV and VH, theta = "<< theta * 180.0/M_PI << ", phi = " << phi_inc * 180.0/M_PI << endl;
+              flush(cout);
+            }
+            // local coordinate system
+            blitz::Array<double, 1> r_hat(3), theta_hat(3), phi_hat(3);
+            r_hat = sin(theta)*cos(phi_inc), sin(theta)*sin(phi_inc), cos(theta);
+            theta_hat = cos(theta)*cos(phi_inc), cos(theta)*sin(phi_inc), -sin(theta);
+            phi_hat = -sin(phi_inc), cos(phi_inc), 0.0;
+            blitz::Array<double, 1> k_hat(-1.0 * r_hat);
+
+            // excitation field
+            blitz::Array<std::complex<double>, 1> E_0(3);
+            if (HH || HV) E_0 = 100.0 * (phi_hat + I * 0.0);
+            else E_0 = -100.0 * (theta_hat + I * 0.0);
+            blitz::Array<std::complex<float>, 1> V_CFIE;
+            local_target_mesh.setLocalMeshFromFile(MESH_DATA_PATH);
+            local_V_CFIE_plane (V_CFIE, E_0, k_hat, r_ref, local_target_mesh, octtree.w, octtree.eps_r, octtree.mu_r, octtree.CFIE, V_FULL_PRECISION);
+            local_target_mesh.resizeToZero();
+            // solving
+            octtree.setNumberOfUpdates(0);
+            if (USE_PREVIOUS_SOLUTION != 1) ZI = 0.0;
+            if (SOLVER=="BICGSTAB") bicgstab(ZI, error, iter, flag, matvec, psolve, V_CFIE, TOL, MAXITER, my_id, num_procs, ITERATIVE_DATA_PATH + "/convergence.txt");
+            else if (SOLVER=="GMRES") gmres(ZI, error, iter, flag, matvec, psolve, V_CFIE, TOL, RESTART, MAXITER, my_id, num_procs, ITERATIVE_DATA_PATH + "/convergence.txt");
+            else if ((SOLVER=="RGMRES") || (SOLVER=="FGMRES")) fgmres(ZI, error, iter, flag, matvec, psolve, V_CFIE, TOL, RESTART, MAXITER, my_id, num_procs, ITERATIVE_DATA_PATH + "/convergence.txt");
+            else {
+              cout << "Bad solver choice!! Solver is BICGSTAB or (F)GMRES, and you chose " << SOLVER << endl;
+              exit(1);
+            }
+            // far field computation
+            blitz::Array<std::complex<float>, 2> e_theta_far, e_phi_far;
+            blitz::Array<float, 1> thetas(1), phis(BetaPoints);
+            thetas(0) = theta;
+            if ((BetaPoints%2)!=0) { // if BetaPoints is odd and greater than 2
+              const float space = 2.0*Delta_Phi;
+              for (int j=0 ; j<BetaPoints ; ++j) phis(j) = phi_inc - Beta + j * space;
+            }
+            else {
+              const float space = Delta_Phi;
+              for (int j=0 ; j<BetaPoints/2 ; ++j) {
+                phis(j) = phi_inc - Beta + j * space;
+                phis(BetaPoints-1-j) = phi_inc + Beta - j * space;
+              }
+            }
+            octtree.computeFarField(e_theta_far, e_phi_far, thetas, phis, ZI, OCTTREE_DATA_PATH);
+            // filling of the RCS Arrays
+            if (HH || HV) {
+              for (int j=0 ; j<BetaPoints ; ++j) {
+                RCS_HH(t, startIndexPhi + j) = real(e_phi_far(0, j) * conj(e_phi_far(0, j)))/real(sum(E_0 * conj(E_0)) * 4.0*M_PI);
+                RCS_HV(t, startIndexPhi + j) = real(e_theta_far(0, j) * conj(e_theta_far(0, j)))/real(sum(E_0 * conj(E_0)) * 4.0*M_PI);
+              }
+            }
+            else {
+              for (int j=0 ; j<BetaPoints ; ++j) {
+                RCS_VV(t, startIndexPhi + j) = real(e_theta_far(0, j) * conj(e_theta_far(0, j)))/real(sum(E_0 * conj(E_0)) * 4.0*M_PI);
+                RCS_VH(t, startIndexPhi + j) = real(e_phi_far(0, j) * conj(e_phi_far(0, j)))/real(sum(E_0 * conj(E_0)) * 4.0*M_PI);
+              }
+            }
+            // phi update
+            startIndexPhi += BetaPoints;
+            phi_inc += BetaPoints * Delta_Phi; // += Beta;
+            if (my_id==master) {
+              writeFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "RCS_HH_ASCII.txt", RCS_HH);
+              writeFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "RCS_HV_ASCII.txt", RCS_HV);
+              writeFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "RCS_VV_ASCII.txt", RCS_VV);
+              writeFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "RCS_VH_ASCII.txt", RCS_VH);
+            }
+          }
+        }
+      }
+    }
+    if (my_id==master) {
+      writeFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "RCS_HH_ASCII.txt", RCS_HH);
+      writeFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "RCS_HV_ASCII.txt", RCS_HV);
+      writeFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "RCS_VH_ASCII.txt", RCS_VH);
+      writeFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "RCS_VV_ASCII.txt", RCS_VV);
+      // thetas, phis
+      writeFloatBlitzArray1DToASCIIFile(RESULT_DATA_PATH + "phis_far_field_ASCII.txt", octtreeXphis_coarsest);
+      writeFloatBlitzArray1DToASCIIFile(RESULT_DATA_PATH + "thetas_far_field_ASCII.txt", octtreeXthetas_coarsest);
+      // final writes
+      writeIntToASCIIFile(ITERATIVE_DATA_PATH + "numberOfMatvecs.txt", octtree.getNumberOfUpdates());
+      writeIntToASCIIFile(ITERATIVE_DATA_PATH + "iter.txt", iter);
+    }
+  } // end if (ANGLES_FROM_FILE==1) else 
 }
 
 void computeMonostaticSAR(Octtree & octtree,

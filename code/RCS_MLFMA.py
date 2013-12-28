@@ -77,38 +77,43 @@ if __name__=='__main__':
         print "you should select monostatic RCS or monostatic SAR or bistatic computation, or a combination of these computations. Check the simulation settings."
         sys.exit(1)
     if params_simu.MONOSTATIC_RCS==1:
-        RCS_HH, RCS_VV, RCS_HV, RCS_VH, thetas_far_field, phis_far_field = monostatic_RCS(params_simu, simuDirName)
-        nameOfFileToSaveTo = os.path.join(simuDirName, 'result', "simulation_parameters.txt") 
-        params_simu.saveTo(nameOfFileToSaveTo)
-        from pylab import rc, plot, show, xlabel, ylabel, xticks, yticks, grid, legend, title
-        #rc('text', usetex=True)
-        FontSize=18
-        LineWidth=2
-        LEGEND = []
-        if (params_simu.COMPUTE_RCS_HH==1):
-            plot(phis_far_field, 10 * log10(RCS_HH[0]), 'bo-', linewidth = LineWidth)
-            LEGEND.append(r'RCS$_{HH}$')
-        if (params_simu.COMPUTE_RCS_VV==1):
-            plot(phis_far_field, 10 * log10(RCS_VV[0]), 'rs-', linewidth = LineWidth)
-            LEGEND.append(r'RCS$_{VV}$')
-        if (params_simu.COMPUTE_RCS_HV==1):
-            plot(phis_far_field, 10 * log10(RCS_HV[0]), 'gv-', linewidth = LineWidth)
-            LEGEND.append(r'RCS$_{HV}$')
-        if (params_simu.COMPUTE_RCS_VH==1):
-            plot(phis_far_field, 10 * log10(RCS_VH[0]), 'gv-', linewidth = LineWidth)
-            LEGEND.append(r'RCS$_{VH}$')
-        figureTitle = ""
-        for elem in params_simu.targetName.split("_"):
-            figureTitle += elem + " "
-        figureTitle += ", f = " + str(params_simu.f/1.e9) + " GHz"
-        title(figureTitle,fontsize=FontSize+2)
-        xlabel(r'azimuthal angle $\phi$',fontsize=FontSize+2)
-        ylabel(r'$\sigma = 4 \pi R^2  P_s/P_i$ [dB]',fontsize=FontSize+2)
-        legend(LEGEND)
-        xticks(fontsize=FontSize)
-        yticks(fontsize=FontSize)
-        grid(True)
-        show()
+        if params_simu.ANGLES_FROM_FILE == 1:
+            monostatic_angles = 180./pi * readASCIIBlitzFloatArray2DFromDisk(os.path.join(simuDirName, 'result/monostatic_angles_ASCII.txt'))
+            print "monostatic angles (degrees) ="
+            print monostatic_angles
+        else:
+            RCS_HH, RCS_VV, RCS_HV, RCS_VH, thetas_far_field, phis_far_field = monostatic_RCS(params_simu, simuDirName)
+            nameOfFileToSaveTo = os.path.join(simuDirName, 'result', "simulation_parameters.txt") 
+            params_simu.saveTo(nameOfFileToSaveTo)
+            from pylab import rc, plot, show, xlabel, ylabel, xticks, yticks, grid, legend, title
+            #rc('text', usetex=True)
+            FontSize=18
+            LineWidth=2
+            LEGEND = []
+            if (params_simu.COMPUTE_RCS_HH==1):
+                plot(phis_far_field, 10 * log10(RCS_HH[0]), 'bo-', linewidth = LineWidth)
+                LEGEND.append(r'RCS$_{HH}$')
+            if (params_simu.COMPUTE_RCS_VV==1):
+                plot(phis_far_field, 10 * log10(RCS_VV[0]), 'rs-', linewidth = LineWidth)
+                LEGEND.append(r'RCS$_{VV}$')
+            if (params_simu.COMPUTE_RCS_HV==1):
+                plot(phis_far_field, 10 * log10(RCS_HV[0]), 'gv-', linewidth = LineWidth)
+                LEGEND.append(r'RCS$_{HV}$')
+            if (params_simu.COMPUTE_RCS_VH==1):
+                plot(phis_far_field, 10 * log10(RCS_VH[0]), 'gv-', linewidth = LineWidth)
+                LEGEND.append(r'RCS$_{VH}$')
+            figureTitle = ""
+            for elem in params_simu.targetName.split("_"):
+                figureTitle += elem + " "
+            figureTitle += ", f = " + str(params_simu.f/1.e9) + " GHz"
+            title(figureTitle,fontsize=FontSize+2)
+            xlabel(r'azimuthal angle $\phi$',fontsize=FontSize+2)
+            ylabel(r'$\sigma = 4 \pi R^2  P_s/P_i$ [dB]',fontsize=FontSize+2)
+            legend(LEGEND)
+            xticks(fontsize=FontSize)
+            yticks(fontsize=FontSize)
+            grid(True)
+            show()
     if params_simu.BISTATIC==1:
         params_simu.VERBOSE = 1
         sigma_theta, sigma_phi, thetas_far_field, phis_far_field = bistatic_RCS(params_simu, simuDirName)
