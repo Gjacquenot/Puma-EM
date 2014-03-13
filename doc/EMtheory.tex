@@ -1,0 +1,255 @@
+\documentclass[a4paper,10pt]{book}
+\usepackage{t1enc}
+\usepackage[english]{babel}
+\usepackage{calc}
+\usepackage{amsmath,amssymb}
+\usepackage{epsfig}
+\usepackage{fourier}
+%\usepackage{utopia}
+%\usepackage{times}
+\usepackage[T1]{fontenc}
+\usepackage{a4wide}
+\usepackage{url}
+\usepackage{fancyhdr}
+\usepackage{array,longtable}
+\usepackage{color}
+\usepackage{listings}
+
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
+
+\definecolor{orange}{rgb}{1,0.5,0}
+\definecolor{blue}{rgb}{0.3,0.3,0.9}
+
+\newcommand{\file}[1] {\textcolor{blue}{\textsf{#1}}}
+\newcommand{\parameter}[1] {\textcolor{orange}{\textsf{#1}}}
+
+\newcommand{\field}[1]{\mathbf{#1}}
+\newcommand{\current}[1]{\mathbf{#1}}
+\newcommand{\vect}[1]{\mathbf{#1}}
+\newcommand{\operator}[1]{\mathbf{#1}}
+
+\title{Electromagnetic Theory}
+\author{Idesbald van den Bosch}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\bibliographystyle{plain}
+
+\chapter{The integral equations and their combinations}
+%
+\par
+We are going to derive the integral equations for a dielectric body immersed in a homogeneous medium. We have the following parameters:
+\begin{description}
+\item [$c = 2.99792458e8$] speed of light in vacuum
+\item [$\mu_0 = 4.0e-7 \pi$] permeability of vacuum
+\item [$\mu_{r, i}$] relative permeability of medium $i$
+\item [$\mu_i = \mu_0\mu_{r, i}$] permeability of medium $i$
+\item [$\varepsilon_0 = 1.0/(c^2 \mu_0)$] permittivity of vacuum
+\item [$\varepsilon_{r, i}$] relative permittivity of medium $i$
+\item [$\varepsilon_i = \varepsilon_0\varepsilon_{r, i}$] permittivity of medium $i$
+\item [$k_i = \omega \sqrt{\mu_i \varepsilon_i}$] wavenumber of medium $i$ 
+\item [$\omega = 2 \pi f$] where $f$ is the frequency.
+\end{description}
+
+\section{Integral equations outside of inhomogeneity}
+%
+\par
+According to \cite{Harrington2001} (Eqs. 1-41, 1-45, 1-47 and 1-48) and to \cite{Orfanidis2002} (Eqs. 1.9.2 and 1.9.3), the time-harmonic Maxwell's equations can be written as (an $e^{j \omega t}$ time dependence is assumed and suppressed):
+\begin{align}
+\field{H} &= \current{J} +  j\omega \epsilon \field{E} \label{eqn:Maxwell-H} \\
+\field{E} &= -\current{M} -  j\omega \mu \field{H}. \label{eqn:Maxwell-E}
+\end{align}
+Based on these equations, and according to \cite{Ides2006}, the Electric field outside of an inhomogeneity bounded by a surface $S$ as in figure \ref{fig:inhomogeneity} can be written as:
+\begin{equation}\label{eqn:electricFieldInt}
+\field{E}_1\left(\vect{r}\right) = \field{E}^\text{inc}\left(\vect{r}\right) + \frac{\nabla \nabla \cdot + k_1^2}{j \omega \epsilon_1} \int_S G_1(\vect{r}, \vect{r}') \left(\vect{\hat{n}} \times \field{H}_1\left(\vect{r}'\right) \right) d\vect{r}' - \nabla \times \int_S G_1(\vect{r}, \vect{r}') \left( \field{E}_1\left(\vect{r}'\right) \times \vect{\hat{n}} \right) d\vect{r}'
+\end{equation}
+where $\vect{\hat{n}}$ is the outward normal to the surface $S$, and with the free space Green's function:
+\begin{equation*}
+G_1(\vect{r}, \vect{r}') = \frac{e^{-jk_1 \left|\vect{r} - \vect{r}'  \right|}}{4 \pi \left|\vect{r} - \vect{r}'  \right|}.
+\end{equation*}
+\begin{figure}
+\setlength{\unitlength}{1cm}
+\centering
+\begin{picture}(3,3)
+%\put(0,0){\dashbox{0.2}(3,3)}
+\put(1,1){\circle{2.5}}
+\put(1,1){\text{2}}
+\put(1.7,1.7){\text{1}}
+\put(1,2){\vector(0,1){1}}
+\put(1.1,2.1){\text{$\vect{\hat{n}}$}}
+\end{picture}
+\caption{Inhomogeneity with random surface}
+\label{fig:inhomogeneity}
+\end{figure}
+%
+\par
+Applying duality (by using (\ref{eqn:Maxwell-H}) and (\ref{eqn:Maxwell-E}): $\field{E} \rightarrow \field{H}$, $\field{H} \rightarrow -\field{E}$, $\epsilon \rightarrow \mu$, $\current{J} \rightarrow \current{M}$, $\current{M} \rightarrow -\current{J}$) to (\ref{eqn:electricFieldInt}), we obtain the Magnetic-field integral equation:
+\begin{equation}\label{eqn:magneticFieldInt}
+\field{H}_1\left(\vect{r}\right) = \field{H}^\text{inc}\left(\vect{r}\right) + \frac{\nabla \nabla \cdot + k_1^2}{j \omega \mu_1} \int_S G_1(\vect{r}, \vect{r}') \left(\field{E}_1\left(\vect{r}'\right) \times \vect{\hat{n}}\right) d\vect{r}' + \nabla \times \int_S G_1(\vect{r}, \vect{r}') \left(  \vect{\hat{n}} \times \field{H}_1\left(\vect{r}'\right) \right) d\vect{r}'.
+\end{equation}
+%
+\par
+Defining the equivalent currents:
+\begin{align}
+\current{J}_{S,1} &\triangleq \vect{\hat{n}} \times \field{H}_1 \\
+\current{M}_{S,1} &\triangleq \field{E}_1 \times \vect{\hat{n}} 
+\end{align}
+we can rewrite (\ref{eqn:electricFieldInt}) and (\ref{eqn:magneticFieldInt}) as follows:
+\begin{align}
+\field{E}_1\left(\vect{r}\right) &= \field{E}^\text{inc}\left(\vect{r}\right) + \frac{\nabla \nabla \cdot + k_1^2}{j \omega \epsilon_1} \int_S G_1(\vect{r}, \vect{r}') \current{J}_{S,1}\left(\vect{r}'\right) d\vect{r}' - \int_S \nabla G_1(\vect{r}, \vect{r}') \times \current{M}_{S,1}\left(\vect{r}'\right) d\vect{r}' \label{eqn:electricFieldInt-2} \\
+\field{H}_1\left(\vect{r}\right) &= \field{H}^\text{inc}\left(\vect{r}\right) + \frac{\nabla \nabla \cdot + k_1^2}{j \omega \mu_1} \int_S G_1(\vect{r}, \vect{r}') \current{M}_{S,1}\left(\vect{r}'\right) d\vect{r}' + \int_S \nabla G_1(\vect{r}, \vect{r}') \times \current{J}_{S,1}\left(\vect{r}'\right) d\vect{r}' \label{eqn:magneticFieldInt-2}
+\end{align}
+where the vector calculus identity $\nabla \times \left( G(\vect{r}, \vect{r}') \current{J}\left(\vect{r}'\right)\right) = \nabla G(\vect{r}, \vect{r}') \times \current{J}\left(\vect{r}'\right)$ has been used.
+%
+\par
+Evaluating (\ref{eqn:magneticFieldInt-2}) at a point $\vect{r}$ on the surface $S$, and taking the Cauchy principal value \cite{Arnoldus2011} yields:
+\begin{equation}\label{eqn:magneticFieldInt-3}
+\field{H}_1\left(\vect{r}\right) = \field{H}^\text{inc}\left(\vect{r}\right) + \frac{\nabla \nabla \cdot + k_1^2}{j \omega \mu_1} \int_S G_1(\vect{r}, \vect{r}') \current{M}_{S,1}\left(\vect{r}'\right) d\vect{r}' -\frac{1}{2} \vect{\hat{n}} \times \current{J}_{S,1}\left(\vect{r}\right) + \int_S \nabla G_1(\vect{r}, \vect{r}') \times \current{J}_{S,1}\left(\vect{r}'\right) d\vect{r}'.
+\end{equation}
+But, since $\current{J}_{S,1} \triangleq \vect{\hat{n}} \times \field{H}_1$, we have that $\field{H}_1 = -\vect{\hat{n}} \times \current{J}_{S,1}$, and (\ref{eqn:magneticFieldInt-3}) is rewritten as:
+\begin{equation}\label{eqn:MFIE-O}
+\boxed{
+\field{H}^\text{inc}\left(\vect{r}\right) =  - \frac{\nabla \nabla \cdot + k_1^2}{j \omega \mu_1} \int_S G_1(\vect{r}, \vect{r}') \current{M}_{S,1}\left(\vect{r}'\right) d\vect{r}' - \frac{1}{2} \vect{\hat{n}} \times \current{J}_{S,1}\left(\vect{r}\right) - \int_S \nabla G_1(\vect{r}, \vect{r}') \times \current{J}_{S,1}\left(\vect{r}'\right) d\vect{r}'}
+\end{equation}
+which is known as the outside magnetic field integral equation. The outside electric field integral equation is obtained by duality:
+\begin{equation}\label{eqn:EFIE-O}
+\boxed{
+\field{E}^\text{inc}\left(\vect{r}\right) =  -\frac{\nabla \nabla \cdot + k_1^2}{j \omega \epsilon_1} \int_S G_1(\vect{r}, \vect{r}') \current{J}_{S,1}\left(\vect{r}'\right) d\vect{r}' + \frac{1}{2} \vect{\hat{n}} \times \current{M}_{S,1}\left(\vect{r}\right) + \int_S \nabla G_1(\vect{r}, \vect{r}') \times \current{M}_{S,1}\left(\vect{r}'\right) d\vect{r}'}.
+\end{equation}
+
+
+\section{Integral equations inside of inhomogeneity}
+%
+\par
+As for the interior integral representation (\ref{eqn:elecFieldInt}), the electric field inside the inhomogeneity can be written as
+\begin{equation}
+\field{E}_2 = \operator{D}_{\varepsilon, 2}\left(\current{J}_{S,2}\right) - \operator{K}_{2}\left(\current{M}_{S,2}\right)
+\end{equation}
+where the incoming field is zero, and where by definition (remember that $\vect{\hat{n}}$ points outwards)
+\begin{align}
+\current{J}_{S,2} &\triangleq (-\vect{\hat{n}}) \times \field{H}_2 \\
+\current{M}_{S,2} &\triangleq \field{E}_2 \times (-\vect{\hat{n}}) 
+\end{align}
+%
+\par
+Again, taking the cross product with $\vect{\hat{n}}$ and evaluating on the surface $S$ yields, calculating the Cauchy principal value for $\operator{K}_2$
+\begin{equation}
+\vect{\hat{n}} \times \field{E}_2 = \vect{\hat{n}} \times \operator{D}_{\varepsilon, 2}\left(\current{J}_{S,2}\right) - \vect{\hat{n}} \times \left[\operator{K}_{2}\left(\current{M}_{S,2}\right)+ \frac{1}{2}\vect{\hat{n}} \times \current{M}_{S,2} \right]
+\end{equation}
+which can be further written as
+\begin{equation}
+\current{M}_{S,2} = \vect{\hat{n}} \times \operator{D}_{\varepsilon, 2}\left(\current{J}_{S,2}\right) - \vect{\hat{n}} \times \operator{K}_{2}\left(\current{M}_{S,2}\right)+ \frac{1}{2} \current{M}_{S,2}.
+\end{equation}
+%
+\par
+Since the boundary conditions impose that $\field{E}_1 = \field{E}_2$ and $\field{H}_1 = \field{H}_2$, it follows from the equivalent current definitions that $\current{M}_{S,2} = -\current{M}_{S,1}$ and $\current{J}_{S,2} = -\current{J}_{S,1}$. Hence the last equation can be rewritten as follows:
+\begin{equation}
+-\current{M}_{S,1} = -\vect{\hat{n}} \times \operator{D}_{\varepsilon, 2}\left(\current{J}_{S,1}\right) + \vect{\hat{n}} \times \operator{K}_{2}\left(\current{M}_{S,1}\right)- \frac{1}{2} \current{M}_{S,1}.
+\end{equation}
+Or, to write it like for the external problem:
+\begin{equation}
+0 = \frac{1}{2} \current{M}_{S,1} -\vect{\hat{n}} \times \operator{D}_{\varepsilon, 2}\left(\current{J}_{S,1}\right) + \vect{\hat{n}} \times \operator{K}_{2}\left(\current{M}_{S,1}\right).
+\end{equation}
+Again, taking the cross product with the normal $\vect{\hat{n}}$ yields
+\begin{equation}\label{eqn:EFIE_2}
+\boxed{
+\left[ 0 =  \frac{1}{2}\vect{\hat{n}}\times \current{M}_{S,1} + \operator{D}_{\varepsilon, 2}\left(\current{J}_{S,1}\right) - \operator{K}_{2}\left(\current{M}_{S,1}\right) \right]_\text{tan} }.
+\end{equation}
+
+\section{Magnetic field integral equation}
+%
+\par 
+These integral equations can be obtained by calculation or by duality from the EFIEs, \textit{i.e.} by doing the following replacements: $\mu \rightarrow \varepsilon$, $\varepsilon \rightarrow \mu$, $\field{E} \rightarrow \field{H}$, $\current{J} \rightarrow \current{M}$, $\current{M} \rightarrow -\current{J}$.
+
+\subsection{Outside of inhomogeneity}
+%
+\par
+By duality:
+\begin{equation}\label{eqn:HFIE_1}
+\boxed{
+\left[\field{H}^\text{inc} =  -\frac{1}{2}\vect{\hat{n}}\times \current{J}_{S,1} - \operator{D}_{\mu, 1}\left(\current{M}_{S,1}\right) - \operator{K}_{1}\left(\current{J}_{S,1}\right) \right]_\text{tan} }.
+\end{equation}
+
+\subsection{Inside of inhomogeneity}
+%
+\par
+By duality:
+\begin{equation}\label{eqn:HFIE_2}
+\boxed{
+\left[ 0 =  -\frac{1}{2}\vect{\hat{n}}\times \current{J}_{S,1} + \operator{D}_{\mu, 2}\left(\current{M}_{S,1}\right) + \operator{K}_{2}\left(\current{J}_{S,1}\right) \right]_\text{tan} }.
+\end{equation}
+
+\section{Combining the integral equations}
+
+\subsection{PMCHWT}
+%
+\par
+For this formulation we combine the outside and inside on a per-field basis: EFIE-1 (\ref{eqn:EFIE_1}) with EFIE-2 (\ref{eqn:EFIE_2}), and HFIE-1 (\ref{eqn:HFIE_1}) with HFIE-2 (\ref{eqn:HFIE_2}).
+\begin{eqnarray}
+EFIE: & \boxed{
+\left[\field{E}^\text{inc} =  - \operator{D}_{\varepsilon, 1}\left(\current{J}_{S,1}\right) - \operator{D}_{\varepsilon, 2}\left(\current{J}_{S,1}\right) + \operator{K}_{1}\left(\current{M}_{S,1}\right) + \operator{K}_{2}\left(\current{M}_{S,1}\right) \right]_\text{tan} } \\
+HFIE: & \boxed{
+\left[\field{H}^\text{inc} = - \operator{K}_{1}\left(\current{J}_{S,1}\right) - \operator{K}_{2}\left(\current{J}_{S,1}\right) - \operator{D}_{\mu, 1}\left(\current{M}_{S,1}\right) - \operator{D}_{\mu, 2}\left(\current{M}_{S,1}\right)  \right]_\text{tan} }.
+\end{eqnarray}
+In matrix form, we have that
+\begin{equation}
+\left[
+\begin{matrix}
+  - \left(\operator{D}_{\varepsilon, 1} + \operator{D}_{\varepsilon, 2} \right) & \operator{K}_{1} + \operator{K}_{2} \\
+  -\left(\operator{K}_{1} + \operator{K}_{2} \right) & - \left(\operator{D}_{\mu, 1} + \operator{D}_{\mu, 2}\right)
+\end{matrix}
+\right]
+\cdot 
+\left[
+\begin{matrix}
+  \current{J}_{S,1} \\
+  \current{M}_{S,1}  
+\end{matrix}
+\right]
+=
+\left[
+\begin{matrix}
+  \field{E}^\text{inc} \\
+  \field{H}^\text{inc}
+\end{matrix}
+\right].
+\end{equation}
+
+\subsection{CFIE}
+%
+\par
+For this formulation we combine the fields on an outside and inside basis: EFIE-1 (\ref{eqn:EFIE_1}) with HFIE-1 (\ref{eqn:HFIE_1}), and EFIE-2 (\ref{eqn:EFIE_2}) with HFIE-2 (\ref{eqn:HFIE_2}).
+\begin{eqnarray}
+CFIE-1: & \boxed{
+\left[\alpha \field{E}^\text{inc} + \left(1-\alpha \right) \frac{1}{\eta}\field{H}^\text{inc} =  - \alpha \left(\operator{D}_{\varepsilon, 1}\left(\current{J}_{S,1}\right) - \operator{K}_{1}\left(\current{J}_{S,1}\right) \right) + \operator{K}_{1}\left(\current{M}_{S,1}\right) + \operator{D}_{\mu, 1}\left(\current{M}_{S,1}\right) \right]_\text{tan} } \\
+CFIE-2: & \boxed{
+\left[\field{H}^\text{inc} = - \operator{K}_{1}\left(\current{J}_{S,1}\right) - \operator{K}_{2}\left(\current{J}_{S,1}\right) - \operator{D}_{\mu, 1}\left(\current{M}_{S,1}\right) - \operator{D}_{\mu, 2}\left(\current{M}_{S,1}\right)  \right]_\text{tan} }.
+\end{eqnarray}
+In matrix form, we have that
+\begin{equation}
+\left[
+\begin{matrix}
+  - \left(\operator{D}_{\varepsilon, 1} + \operator{D}_{\varepsilon, 2} \right) & \operator{K}_{1} + \operator{K}_{2} \\
+  -\left(\operator{K}_{1} + \operator{K}_{2} \right) & - \left(\operator{D}_{\mu, 1} + \operator{D}_{\mu, 2}\right)
+\end{matrix}
+\right]
+\cdot 
+\left[
+\begin{matrix}
+  \current{J}_{S,1} \\
+  \current{M}_{S,1}  
+\end{matrix}
+\right]
+=
+\left[
+\begin{matrix}
+  \field{E}^\text{inc} \\
+  \field{H}^\text{inc}
+\end{matrix}
+\right].
+\end{equation}
+
+\bibliography{references}
+\end{document}
