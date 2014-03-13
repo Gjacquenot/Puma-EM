@@ -110,7 +110,7 @@ Evaluating (\ref{eqn:magneticFieldInt-2}) at a point $\vect{r}$ on the surface $
 But, since $\current{J}_{S,1} \triangleq \vect{\hat{n}} \times \field{H}_1$, we have that $\field{H}_1 = -\vect{\hat{n}} \times \current{J}_{S,1}$, and (\ref{eqn:magneticFieldInt-3}) is rewritten as:
 \begin{equation}\label{eqn:magneticFieldInt-4}
 \boxed{
-\field{H}^\text{inc}\left(\vect{r}\right) =  - \frac{\nabla \nabla \cdot + k_1^2}{j \omega \mu_1} \int_S G_1(\vect{r}, \vect{r}') \current{M}_{S,1}\left(\vect{r}'\right) d\vect{r}' - \frac{1}{2} \vect{\hat{n}} \times \current{J}_{S,1}\left(\vect{r}\right) - \int_S \nabla G_1(\vect{r}, \vect{r}') \times \current{J}_{S,1}\left(\vect{r}'\right) d\vect{r}'}
+\field{H}^\text{inc}\left(\vect{r}\right) = - \frac{1}{2} \vect{\hat{n}} \times \current{J}_{S,1}\left(\vect{r}\right) - \frac{\nabla \nabla \cdot + k_1^2}{j \omega \mu_1} \int_S G_1(\vect{r}, \vect{r}') \current{M}_{S,1}\left(\vect{r}'\right) d\vect{r}'  - \int_S \nabla G_1(\vect{r}, \vect{r}') \times \current{J}_{S,1}\left(\vect{r}'\right) d\vect{r}'}
 \end{equation}
 which is known as the outside magnetic field integral equation. It can be conveniently rewritten in a more compact form as follows:
 \begin{equation}\label{eqn:MFIE-O}
@@ -118,7 +118,7 @@ which is known as the outside magnetic field integral equation. It can be conven
 \field{H}^\text{inc} = - \frac{1}{2} \vect{\hat{n}} \times \current{J}_{S,1} - \frac{1}{j \omega \mu_1} D_1 \left( \current{M}_{S,1}\right) - K_1 \left(\current{J}_{S,1}\right)
 } \qquad MFIE-O
 \end{equation}
-The outside electric field integral equation is obtained by duality:
+The outside electric field integral equation is then simply obtained by duality:
 \begin{equation}\label{eqn:EFIE-O}
 \boxed{
 \field{E}^\text{inc} =  \frac{1}{2} \vect{\hat{n}} \times \current{M}_{S,1} - \frac{1}{j \omega \epsilon_1} D_1 \left( \current{J}_{S,1}\right) + K_1 \left(\current{M}_{S,1}\right)
@@ -174,6 +174,35 @@ and the EFIE-I is obtained by duality:
 \end{equation}
 
 \section{Combining the integral equations}
+%
+\par
+Let's first recall the integral equations:
+\begin{equation*}
+\boxed{
+\field{H}^\text{inc} = - \frac{1}{2} \vect{\hat{n}} \times \current{J}_{S,1} - \frac{1}{j \omega \mu_1} D_1 \left( \current{M}_{S,1}\right) - K_1 \left(\current{J}_{S,1}\right)
+} \qquad MFIE-O \tag{\ref{eqn:MFIE-O} recalled}
+\end{equation*}
+\begin{equation*}
+\boxed{
+\field{E}^\text{inc} =  \frac{1}{2} \vect{\hat{n}} \times \current{M}_{S,1} - \frac{1}{j \omega \epsilon_1} D_1 \left( \current{J}_{S,1}\right) + K_1 \left(\current{M}_{S,1}\right)
+} \qquad EFIE-O \tag{\ref{eqn:EFIE-O} recalled}
+\end{equation*}
+\begin{equation*}
+\boxed{
+0 = - \frac{1}{2} \vect{\hat{n}} \times \current{J}_{S,1} + \frac{1}{j \omega \mu_2} D_2\left(\current{M}_{S,1}\right) +  K_2\left( \current{J}_{S,1}\right)
+} \qquad MFIE-I \tag{\ref{eqn:MFIE-I} recalled}
+\end{equation*}
+\begin{equation*}
+\boxed{
+0 = \frac{1}{2} \vect{\hat{n}} \times \current{M}_{S,1} + \frac{1}{j \omega \epsilon_2} D_2\left(\current{J}_{S,1}\right) -  K_2\left( \current{M}_{S,1}\right)
+} \qquad EFIE-I \tag{\ref{eqn:EFIE-I} recalled}
+\end{equation*}
+with
+\begin{align*}
+D_i\left(\current{X}\right) &= \left(\nabla \nabla \cdot + k_i^2\right) \int_{S} G_i\left(\vect{r}, \vect{r}'\right) \current{X}\left(\vect{r}'\right) d\vect{r}' \\
+K_i\left(\current{X}\right) &= \int_S \nabla G_i\left(\vect{r}, \vect{r}'\right) \times \current{X}\left(\vect{r}'\right) d\vect{r}'.
+\end{align*}
+
 
 \subsection{PMCHWT}
 %
@@ -181,9 +210,9 @@ and the EFIE-I is obtained by duality:
 For this formulation we combine the outside and inside on a per-field basis: EFIE-O (\ref{eqn:EFIE-O}) with EFIE-I (\ref{eqn:EFIE-I}), and MFIE-O (\ref{eqn:MFIE-O}) with MFIE-I (\ref{eqn:MFIE-I}).
 \begin{eqnarray}
 EFIE: & \boxed{
-\left[\field{E}^\text{inc} =  - \operator{D}_{\varepsilon, 1}\left(\current{J}_{S,1}\right) - \operator{D}_{\varepsilon, 2}\left(\current{J}_{S,1}\right) + \operator{K}_{1}\left(\current{M}_{S,1}\right) + \operator{K}_{2}\left(\current{M}_{S,1}\right) \right]_\text{tan} } \\
+\left[\field{E}^\text{inc} =  -\frac{1}{j \omega \epsilon_1} \operator{D}_{1}\left(\current{J}_{S,1}\right) - \frac{1}{j \omega \epsilon_2} \operator{D}_{2}\left(\current{J}_{S,1}\right) + \operator{K}_{1}\left(\current{M}_{S,1}\right) + \operator{K}_{2}\left(\current{M}_{S,1}\right) \right]_\text{tan} } \\
 HFIE: & \boxed{
-\left[\field{H}^\text{inc} = - \operator{K}_{1}\left(\current{J}_{S,1}\right) - \operator{K}_{2}\left(\current{J}_{S,1}\right) - \operator{D}_{\mu, 1}\left(\current{M}_{S,1}\right) - \operator{D}_{\mu, 2}\left(\current{M}_{S,1}\right)  \right]_\text{tan} }.
+\left[\field{H}^\text{inc} = - \operator{K}_{1}\left(\current{J}_{S,1}\right) - \operator{K}_{2}\left(\current{J}_{S,1}\right) - \frac{1}{j \omega \mu_1}\operator{D}_{1}\left(\current{M}_{S,1}\right) - \frac{1}{j \omega \mu_2}\operator{D}_{2}\left(\current{M}_{S,1}\right)  \right]_\text{tan} }.
 \end{eqnarray}
 In matrix form, we have that
 \begin{equation}
