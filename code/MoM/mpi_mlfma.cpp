@@ -425,10 +425,6 @@ void computeForOneExcitation(Octtree & octtree,
     if (J_DIPOLES_EXCITATION==1) {
       readComplexDoubleBlitzArray2DFromASCIIFile( V_CFIE_DATA_PATH + "J_dip.txt", J_dip);
       readDoubleBlitzArray2DFromASCIIFile( V_CFIE_DATA_PATH + "r_J_dip.txt", r_J_dip);
-      if (my_id==0) {
-        //cout << "J_dip.txt = " << J_dip << endl;
-        //cout << "r_J_dip.txt = " << r_J_dip << endl;
-      }
       blitz::Array<std::complex<float>, 1> V_CFIE_tmp;
       const char CURRENT_TYPE = 'J';
       local_V_CFIE_dipole_array (V_CFIE_tmp, J_dip, r_J_dip, local_target_mesh, w, eps_r, mu_r, octtree.CFIE, CURRENT_TYPE, V_FULL_PRECISION);
@@ -439,10 +435,10 @@ void computeForOneExcitation(Octtree & octtree,
     if (M_DIPOLES_EXCITATION==1) {
       readComplexDoubleBlitzArray2DFromASCIIFile( V_CFIE_DATA_PATH + "M_dip.txt", M_dip);
       readDoubleBlitzArray2DFromASCIIFile( V_CFIE_DATA_PATH + "r_M_dip.txt", r_M_dip);
-      if (my_id==0) {
+      //if (my_id==0) {
         //cout << "M_dip.txt = " << M_dip << endl;
         //cout << "r_M_dip.txt = " << r_M_dip << endl;
-      }
+      //}
       blitz::Array<std::complex<float>, 1> V_CFIE_tmp;
       const char CURRENT_TYPE = 'M';
       local_V_CFIE_dipole_array (V_CFIE_tmp, J_dip, r_J_dip, local_target_mesh, w, eps_r, mu_r, octtree.CFIE, CURRENT_TYPE, V_FULL_PRECISION);
