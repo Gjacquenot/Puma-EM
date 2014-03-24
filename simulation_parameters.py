@@ -74,8 +74,6 @@ if (params_simu.COMPUTE_RCS_HH==0) and (params_simu.COMPUTE_RCS_VV==0):
 params_simu.BISTATIC_EXCITATION_DIPOLES = 1
 params_simu.BISTATIC_EXCITATION_PLANE_WAVE = 0
 # now the details of each excitation
-# do we receive our excitation from a user-supplied file?
-params_simu.BISTATIC_EXCITATION_DIPOLES_FROM_FILE = 1
 # the name (with path) of the user-supplied excitation file. Set to "" if empty
 params_simu.BISTATIC_EXCITATION_J_DIPOLES_FILENAME = "./input_parameters/J_dipoles.txt"
 params_simu.BISTATIC_EXCITATION_M_DIPOLES_FILENAME = ""

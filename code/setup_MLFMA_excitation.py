@@ -23,7 +23,7 @@ def setup_excitation(params_simu, simuDirName):
     writeScalarToDisk(params_simu.BISTATIC_EXCITATION_PLANE_WAVE, os.path.join(tmpDirName,'V_CFIE/PLANE_WAVE_EXCITATION.txt'))
     writeScalarToDisk(params_simu.V_FULL_PRECISION*1, os.path.join(tmpDirName, 'V_CFIE/V_FULL_PRECISION.txt') )
     # if we have dipoles excitation AND definition of the excitation in a user-supplied file
-    if (params_simu.BISTATIC_EXCITATION_DIPOLES == 1) and (params_simu.BISTATIC_EXCITATION_DIPOLES_FROM_FILE == 1):
+    if (params_simu.BISTATIC_EXCITATION_DIPOLES == 1):
         if params_simu.BISTATIC_EXCITATION_J_DIPOLES_FILENAME != "":
             if (my_id==0): # this file is only on processor 0
                 J_src, r_J_src = read_dipole_excitation(params_simu.BISTATIC_EXCITATION_J_DIPOLES_FILENAME)
