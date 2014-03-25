@@ -416,6 +416,7 @@ void computeForOneExcitation(Octtree & octtree,
   readIntFromASCIIFile(V_CFIE_DATA_PATH + "DIPOLES_EXCITATION.txt", DIPOLES_EXCITATION);
   readIntFromASCIIFile(V_CFIE_DATA_PATH + "PLANE_WAVE_EXCITATION.txt", PLANE_WAVE_EXCITATION);
   readIntFromASCIIFile(V_CFIE_DATA_PATH + "V_FULL_PRECISION.txt", V_FULL_PRECISION);
+
   if (DIPOLES_EXCITATION==1) {
     blitz::Array<std::complex<double>, 2> J_dip, M_dip;
     blitz::Array<double, 2> r_J_dip, r_M_dip;
@@ -503,15 +504,39 @@ void computeForOneExcitation(Octtree & octtree,
   }
   octtree.resizeSdownLevelsToZero();
 
-  // now computing the E_field at the r_obs
-  blitz::Array<double, 2> r_obs;
-  readDoubleBlitzArray2DFromASCIIFile( V_CFIE_DATA_PATH + "r_obs.txt", r_obs);
-  blitz::Array<std::complex<double>, 2> E_obs;
-  local_target_mesh.setLocalMeshFromFile(MESH_DATA_PATH);
-  computeE_obs(E_obs, r_obs, local_target_mesh, ZI, eps_r, mu_r, w);
-  local_target_mesh.resizeToZero();
-  if (my_id==master) writeComplexDoubleBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "E_obs.txt", E_obs);
-  if (my_id==master) writeDoubleBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "r_obs.txt", r_obs);
+  // now computing the E_field at the user-supplied r_obs
+  int BISTATIC_R_OBS;
+  readIntFromASCIIFile(V_CFIE_DATA_PATH + "BISTATIC_R_OBS.txt", BISTATIC_R_OBS);
+  if (BISTATIC_R_OBS==1) {
+    blitz::Array<double, 2> r_obs;
+    readDoubleBlitzArray2DFromASCIIFile( V_CFIE_DATA_PATH + "r_obs.txt", r_obs);
+    blitz::Array<std::complex<double>, 2> E_obs;
+    local_target_mesh.setLocalMeshFromFile(MESH_DATA_PATH);
+    computeE_obs(E_obs, r_obs, local_target_mesh, ZI, eps_r, mu_r, w);
+    local_target_mesh.resizeToZero();
+    if (my_id==master) writeComplexDoubleBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "E_obs.txt", E_obs);
+    if (my_id==master) writeDoubleBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "r_obs.txt", r_obs);
+  }
+
+  // now computing the far fields at the user-supplied angles
+  int BISTATIC_ANGLES_OBS;
+  readIntFromASCIIFile(V_CFIE_DATA_PATH + "BISTATIC_ANGLES_OBS.txt", BISTATIC_ANGLES_OBS);
+  if (BISTATIC_ANGLES_OBS==1) {
+    blitz::Array<float, 2> angles;
+    readFloatBlitzArray2DFromASCIIFile(V_CFIE_DATA_PATH + "bistatic_angles_obs.txt", angles);
+    // transformation in radians
+    angles *= M_PI/180.0;
+    const int N_angles = angles.size()/2;
+    blitz::Array<float, 1> sigma_theta(N_angles), sigma_phi(N_angles), thetas(N_angles), phis(N_angles);
+    for (int i=0; i<N_angles; i++) {
+      thetas(i) = angles(i, 0);
+      phis(i) = angles(i, 1);
+    }
+    blitz::Array<std::complex<float>, 2> e_theta_far, e_phi_far;
+    octtree.computeFarField(e_theta_far, e_phi_far, thetas, phis, ZI, OCTTREE_DATA_PATH);
+    if (my_id==master) writeFloatBlitzArray1DToASCIIFile(RESULT_DATA_PATH + "bistatic_thetas_obs_ASCII.txt", thetas);
+    if (my_id==master) writeFloatBlitzArray1DToASCIIFile(RESULT_DATA_PATH + "bistatic_phis_obs_ASCII.txt", phis);
+  }
 
   // calculating the far fields
   blitz::Array<float, 1> octtreeXthetas_coarsest, octtreeXphis_coarsest;
@@ -613,6 +638,8 @@ void computeMonostaticRCS(Octtree & octtree,
   if (ANGLES_FROM_FILE==1) {
     blitz::Array<float, 2> angles;
     readFloatBlitzArray2DFromASCIIFile(V_CFIE_DATA_PATH + "monostatic_angles.txt", angles);
+    // transformation in radians
+    angles *= M_PI/180.0;
     const int N_angles = angles.size()/2;
     blitz::Array<float, 1> RCS_VV(N_angles), RCS_HH(N_angles), RCS_HV(N_angles), RCS_VH(N_angles);
     RCS_VV = 1.0;

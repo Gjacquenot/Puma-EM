@@ -64,6 +64,8 @@ if (params_simu.COMPUTE_RCS_HH==0) and (params_simu.COMPUTE_RCS_VV==0):
     params_simu.COMPUTE_RCS_VV = 1
 
 # Bistatic computation settings
+# 1. EXCITATION
+###############
 # type, strenght and phase and direction, origin of the source.
 # It will not be used in case of monostatic_RCS computation
 # we have 2 types of excitation: 
@@ -91,16 +93,30 @@ if params_simu.BISTATIC_EXCITATION_PLANE_WAVE == 1:
     params_simu.phi_inc = pi/2.0
     params_simu.E_inc_theta = 1.0+0.j # the theta component
     params_simu.E_inc_phi = 0.0+0.j # the phi component
+
+# 2. OBSERVATION
+################
 # sampling points: sampling of the resulting field at user-specified points in space.
 # It will be used only for BISTATIC
-params_simu.r_obs_FROM_FILE = 1
+params_simu.BISTATIC_R_OBS = 1
 # the name (with path) of the user-supplied r_obs file. Set to "" if empty
-params_simu.r_obs_FILENAME = "./input_parameters/r_obs.txt"
+params_simu.BISTATIC_R_OBS_FILENAME = "./input_parameters/r_obs.txt"
 # the structure of the r_obs file MUST BE AS FOLLOWS:
 # 1 line per observation point, as many lines as there are points
 # each line has 3 columns that must be arranged as follows:
 #
 # r_obs_x r_obs_y r_obs_z
+
+# we can also have sampling angles from a user-input file
+params_simu.BISTATIC_ANGLES_OBS = 1
+# the name (with path) of the user-supplied r_obs file. Set to "" if empty
+params_simu.BISTATIC_ANGLES_OBS_FILENAME = "./input_parameters/bistatic_angles_obs.txt"
+# the structure of the bistatic _angles_obs file MUST BE AS FOLLOWS:
+# 1 line per observation angle, as many lines as there are angles
+# each line has 2 columns which are the angles in degrees (easier for human reading):
+#
+# theta_obs phi_obs
+
 
 # the angles for the monostatic RCS or the bistatic far-field data.
 # Normally the code provides "best angles of observation", best
@@ -126,8 +142,8 @@ if params_simu.ANGLES_FROM_FILE == 1:
     # the name (with path) of the user-supplied r_obs file. Set to "" if empty
     params_simu.ANGLES_FILENAME = "./input_parameters/monostatic_RCS_angles.txt"
     # the structure of the angles file MUST BE AS FOLLOWS:
-    # 1 line per point, as many lines as there are points
-    # each line has 2 columns that must be arranged as follows:
+    # 1 line per angle, as many lines as there are angles
+    # each line has 2 columns  which are the angles in degrees (easier for human reading):
     #
     # theta phi
 

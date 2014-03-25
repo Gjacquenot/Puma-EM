@@ -4,7 +4,7 @@ from scipy import cos, sin, conj, log10, real, sum, dot, pi, sqrt, exp
 from scipy import array, arange, zeros, ones
 from V_EH import G_EJ_G_HJ
 from EM_constants import *
-from ReadWriteBlitzArray import readASCIIBlitzFloatArray1DFromDisk, readBlitzArrayFromDisk, readASCIIBlitzFloatArray2DFromDisk
+from ReadWriteBlitzArray import *
 from read_dipole_excitation import read_dipole_excitation
 
 def monostatic_SAR(params_simu, simuDirName):
@@ -113,17 +113,18 @@ if __name__=='__main__':
     if params_simu.BISTATIC==1:
         params_simu.VERBOSE = 1
         sigma_theta, sigma_phi, thetas_far_field, phis_far_field = bistatic_RCS(params_simu, simuDirName)
-        E_field = getField(os.path.join(simuDirName, "result", "E_obs.txt"))
-        r_obs = readASCIIBlitzFloatArray2DFromDisk(os.path.join(simuDirName, "result", "r_obs.txt"))
-        print
-        print "MLFMA E_field ="
-        print E_field
-        print
-        print "at observation points r_obs ="
-        print r_obs
-        print
-        print "See 'E_obs.txt' and 'r_obs.txt' in './result' directory for the results of the computation, where you will also find the far field values."
-        print
+        if params_simu.BISTATIC_R_OBS==1:
+            E_field = getField(os.path.join(simuDirName, "result", "E_obs.txt"))
+            r_obs = readASCIIBlitzFloatArray2DFromDisk(os.path.join(simuDirName, "result", "r_obs.txt"))
+            print
+            print "MLFMA E_field ="
+            print E_field
+            print
+            print "at observation points r_obs ="
+            print r_obs
+            print
+            print "See 'E_obs.txt' and 'r_obs.txt' in './result' directory for the results of the computation, where you will also find the far field values."
+            print
         nameOfFileToSaveTo = os.path.join(simuDirName, 'result', "simulation_parameters.txt") 
         params_simu.saveTo(nameOfFileToSaveTo)
         if params_simu.SHOW_FIGURE:
