@@ -527,15 +527,21 @@ void computeForOneExcitation(Octtree & octtree,
     // transformation in radians
     angles *= M_PI/180.0;
     const int N_angles = angles.size()/2;
-    blitz::Array<float, 1> sigma_theta(N_angles), sigma_phi(N_angles), thetas(N_angles), phis(N_angles);
+    blitz::Array<float, 1> thetas(N_angles), phis(N_angles);
     for (int i=0; i<N_angles; i++) {
       thetas(i) = angles(i, 0);
       phis(i) = angles(i, 1);
     }
-    blitz::Array<std::complex<float>, 2> e_theta_far, e_phi_far;
-    octtree.computeFarField(e_theta_far, e_phi_far, thetas, phis, ZI, OCTTREE_DATA_PATH);
-    if (my_id==master) writeFloatBlitzArray1DToASCIIFile(RESULT_DATA_PATH + "bistatic_thetas_obs_ASCII.txt", thetas);
-    if (my_id==master) writeFloatBlitzArray1DToASCIIFile(RESULT_DATA_PATH + "bistatic_phis_obs_ASCII.txt", phis);
+    blitz::Array<std::complex<float>, 2> e_obs_theta, e_obs_phi;
+    octtree.computeFarField(e_obs_theta, e_obs_phi, thetas, phis, ZI, OCTTREE_DATA_PATH);
+    if (my_id==master) {
+      writeFloatBlitzArray1DToASCIIFile(RESULT_DATA_PATH + "bistatic_thetas_obs_ASCII.txt", thetas);
+      writeFloatBlitzArray1DToASCIIFile(RESULT_DATA_PATH + "bistatic_phis_obs_ASCII.txt", phis);
+      writeComplexFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "bistatic_e_obs_theta_ASCII.txt", e_obs_theta);
+      writeComplexFloatBlitzArray2DToBinaryFile(RESULT_DATA_PATH + "bistatic_e_obs_theta_Binary.txt", e_obs_theta);
+      writeComplexFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "bistatic_e_obs_phi_ASCII.txt", e_obs_phi);
+      writeComplexFloatBlitzArray2DToBinaryFile(RESULT_DATA_PATH + "bistatic_e_obs_phi_Binary.txt", e_obs_phi);
+    }
   }
 
   // calculating the far fields
