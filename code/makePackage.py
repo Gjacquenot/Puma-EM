@@ -69,7 +69,7 @@ def copySources(SHORT_LICENCE, COPYRIGHT, CONTACT, pathToCopyFrom, pathToCopyTo)
 
                 COPY = True
 
-            elif '.f' in sourceFileName or '.sh' in sourceFileName or 'COPYING' in sourceFileName or 'REFERENCES' in sourceFileName or 'GUIDE' in sourceFileName or 'hostfile' in sourceFileName or 'repo' in sourceFileName or '.tex' in sourceFileName:
+            elif '.f' in sourceFileName or '.sh' in sourceFileName or 'COPYING' in sourceFileName or 'REFERENCES' in sourceFileName or 'GUIDE' in sourceFileName or 'hostfile' in sourceFileName or 'repo' in sourceFileName or '.tex' in sourceFileName or '.txt' in sourceFileName:
                 COPY = True
 
             elif 'Doxyfile' in sourceFileName or 'README' in sourceFileName or 'EXAMPLES' in sourceFileName:
