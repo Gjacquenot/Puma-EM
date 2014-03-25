@@ -514,7 +514,24 @@ In the default \file{r\_obs.txt} file, the field is sampled at $\mathbf{r_1} = [
 \par
 The file \file{r\_obs.txt} can be constructed by a simple program, allowing to visualize the field along lines, curves, planes, volumes, etc. 
 
-\subsubsection{Far-field sampling of E-field}
+\subsubsection{User-defined far-field sampling of E-field}
+%
+\par
+The following parameter allows one to sample the scattered electric far field in arbitrary, angle-defined positions. It is to be defined through a file whose construction is then done by the user.
+\begin{verbatim}
+# we can also have sampling angles from a user-input file
+params_simu.BISTATIC_ANGLES_OBS = 1
+# the name (with path) of the user-supplied r_obs file. Set to "" if empty
+params_simu.BISTATIC_ANGLES_OBS_FILENAME = "./input_parameters/bistatic_angles_obs.txt"
+# the structure of the bistatic _angles_obs file MUST BE AS FOLLOWS:
+# 1 line per observation angle, as many lines as there are angles
+# each line has 2 columns which are the angles in degrees (easier for human reading):
+#
+# theta_obs phi_obs
+\end{verbatim}
+
+
+\subsubsection{Automatic far-field grid sampling of E-field}
 %
 \par
 This is controlled by the following lines:

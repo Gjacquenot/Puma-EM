@@ -24,11 +24,17 @@ def monostatic_RCS(params_simu, simuDirName):
     RCS_VV = readASCIIBlitzFloatArray2DFromDisk(os.path.join(simuDirName, 'result/RCS_VV_ASCII.txt'))
     return RCS_HH, RCS_VV, RCS_HV, RCS_VH, thetas_far_field, phis_far_field
 
-def bistatic_RCS(params_simu, simuDirName):
-    phis_far_field = 180./pi * readASCIIBlitzFloatArray1DFromDisk(os.path.join(simuDirName, 'result/phis_far_field_ASCII.txt'))
-    thetas_far_field = 180./pi * readASCIIBlitzFloatArray1DFromDisk(os.path.join(simuDirName, 'result/thetas_far_field_ASCII.txt'))
-    e_phi = readBlitzArrayFromDisk(os.path.join(simuDirName, 'result/e_phi_far_Binary.txt'), thetas_far_field.shape[0], phis_far_field.shape[0], 'F')
-    e_theta = readBlitzArrayFromDisk(os.path.join(simuDirName, 'result/e_theta_far_Binary.txt'), thetas_far_field.shape[0], phis_far_field.shape[0], 'F')
+def bistatic_RCS(params_simu, simuDirName, USER_OBS_ANGLES):
+    if USER_OBS_ANGLES==0:
+        phis_far_field = 180./pi * readASCIIBlitzFloatArray1DFromDisk(os.path.join(simuDirName, 'result/phis_far_field_ASCII.txt'))
+        thetas_far_field = 180./pi * readASCIIBlitzFloatArray1DFromDisk(os.path.join(simuDirName, 'result/thetas_far_field_ASCII.txt'))
+        e_phi = readBlitzArrayFromDisk(os.path.join(simuDirName, 'result/e_phi_far_Binary.txt'), thetas_far_field.shape[0], phis_far_field.shape[0], 'F')
+        e_theta = readBlitzArrayFromDisk(os.path.join(simuDirName, 'result/e_theta_far_Binary.txt'), thetas_far_field.shape[0], phis_far_field.shape[0], 'F')
+    else:
+        phis_far_field = 180./pi * readASCIIBlitzFloatArray1DFromDisk(os.path.join(simuDirName, 'result/bistatic_phis_obs_ASCII.txt'))
+        thetas_far_field = 180./pi * readASCIIBlitzFloatArray1DFromDisk(os.path.join(simuDirName, 'result/bistatic_thetas_obs_ASCII.txt'))
+        e_phi = read1DBlitzArrayFromDisk(os.path.join(simuDirName, 'result/bistatic_e_obs_phi_Binary.txt'), 'F')
+        e_theta = read1DBlitzArrayFromDisk(os.path.join(simuDirName, 'result/bistatic_e_obs_theta_Binary.txt'), 'F')
     p_scatt_theta = real(e_theta * conj(e_theta))
     p_scatt_phi = real(e_phi*conj(e_phi))
     R_cube_center = readASCIIBlitzFloatArray1DFromDisk(os.path.join(simuDirName, 'tmp' + str(0) +  '/octtree_data/big_cube_center_coord.txt'))
@@ -51,7 +57,6 @@ def bistatic_RCS(params_simu, simuDirName):
     sigma_phi = p_scatt_phi/(P_inc * 4.0 * pi)
     sigma_theta = p_scatt_theta/(P_inc * 4.0 * pi)
     return sigma_theta, sigma_phi, thetas_far_field, phis_far_field
-
 
 if __name__=='__main__':
     sys.path.append(os.path.abspath('.'))
@@ -112,7 +117,7 @@ if __name__=='__main__':
             show()
     if params_simu.BISTATIC==1:
         params_simu.VERBOSE = 1
-        sigma_theta, sigma_phi, thetas_far_field, phis_far_field = bistatic_RCS(params_simu, simuDirName)
+        # user supplied R_OBS
         if params_simu.BISTATIC_R_OBS==1:
             E_field = getField(os.path.join(simuDirName, "result", "E_obs.txt"))
             r_obs = readASCIIBlitzFloatArray2DFromDisk(os.path.join(simuDirName, "result", "r_obs.txt"))
@@ -127,6 +132,15 @@ if __name__=='__main__':
             print
         nameOfFileToSaveTo = os.path.join(simuDirName, 'result', "simulation_parameters.txt") 
         params_simu.saveTo(nameOfFileToSaveTo)
+
+        # user supplied observation angles
+        if params_simu.BISTATIC_ANGLES_OBS==1:
+            sigma_theta_obs, sigma_phi_obs, thetas_obs, phis_obs = bistatic_RCS(params_simu, simuDirName, params_simu.BISTATIC_ANGLES_OBS)
+            #print sigma_theta_obs, sigma_phi_obs, thetas_obs, phis_obs
+
+
+        # automatic far field computations
+        sigma_theta, sigma_phi, thetas_far_field, phis_far_field = bistatic_RCS(params_simu, simuDirName, 0)
         if params_simu.SHOW_FIGURE:
             from pylab import rc, plot, show, xlabel, ylabel, xticks, yticks, grid, legend, title
             #rc('text', usetex=True)
