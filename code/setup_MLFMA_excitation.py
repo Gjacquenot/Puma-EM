@@ -71,7 +71,7 @@ def setup_excitation(params_simu, simuDirName):
         writeASCIIBlitzArrayToDisk(E_inc, os.path.join(tmpDirName,'V_CFIE/E_inc.txt'))
     if (params_simu.BISTATIC_EXCITATION_DIPOLES != 1) and (params_simu.BISTATIC_EXCITATION_PLANE_WAVE != 1):
         if (my_id==0):
-            print "incorrect excitation choice. You have to choose dipole and/or plane wave excitation."
+            print("incorrect excitation choice. You have to choose dipole and/or plane wave excitation.")
         sys.exit(1)
 
     if (params_simu.MONOSTATIC_RCS == 1) and (params_simu.ANGLES_FROM_FILE == 1) and (params_simu.ANGLES_FILENAME != ""):
@@ -112,13 +112,13 @@ if __name__=='__main__':
 
     # the simulation itself
     sys.path.append(os.path.abspath('.'))
-    exec 'from ' + simuParams + ' import *'
+    exec('from ' + simuParams + ' import *')
     if (my_id==0):
         params_simu.display()
     if (params_simu.MONOSTATIC_RCS==1) or (params_simu.MONOSTATIC_SAR==1) or (params_simu.BISTATIC==1):
         setup_excitation(params_simu, simuDirName)
     else:
-        print "you should select monostatic RCS or monostatic SAR or bistatic computation, or a combination of these computations. Check the simulation settings."
+        print("you should select monostatic RCS or monostatic SAR or bistatic computation, or a combination of these computations. Check the simulation settings.")
         sys.exit(1)
     #MPI.Finalize()
 

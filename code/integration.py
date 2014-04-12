@@ -39,7 +39,7 @@ def mlegzo(n):
     """I found this function on the Internet (search for MLEGZO)"""
     n0 = (n+1)/2
     x, w = zeros(n), zeros(n)
-    for nr in range(1, n0+1):
+    for nr in range(1, int(n0+1)):
         z = cos(pi * (nr-0.25)/n)
         z0 = 0
         while (abs(z-z0) > abs(z) * 1.0e-15) and (z!=0):
@@ -84,11 +84,11 @@ if __name__=="__main__":
     n = 268
     X1, W1 = largeXGLWGL(n)
     X2, W2 = mlegzo(n)
-    print max(abs(X1 - X2))
-    print max(abs(W1 - W2))
+    print(max(abs(X1 - X2)))
+    print(max(abs(W1 - W2)))
     n = n-1
     X1, W1 = largeXGLWGL(n)
     X2, W2 = mlegzo(n)
-    print max(abs(X1 - X2))
-    print max(abs(W1 - W2))
+    print(max(abs(X1 - X2)))
+    print(max(abs(W1 - W2)))
 

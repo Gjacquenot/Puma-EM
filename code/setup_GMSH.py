@@ -18,7 +18,7 @@ if __name__=='__main__':
     geoDirName = os.path.join(simuDirName, 'geo')
 
     sys.path.append(os.path.abspath('.'))
-    exec 'from ' + simuParams + ' import *'
+    exec('from ' + simuParams + ' import *')
     filename = 'GMSHcommand.sh'
     if params_simu.meshToMake:
         os.system("cp " + os.path.join(params_simu.pathToTarget, params_simu.targetName + '.geo') + ' ' + geoDirName)

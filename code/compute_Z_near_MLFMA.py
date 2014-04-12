@@ -1,4 +1,8 @@
-import sys, os, cPickle, time, argparse
+import sys, os, time, argparse
+try:
+    import cPickle
+except ImportError:
+    import pickle as cPickle
 from mpi4py import MPI
 from scipy import array, ones, compress
 from ReadWriteBlitzArray import writeASCIIBlitzArrayToDisk, writeScalarToDisk
@@ -73,7 +77,7 @@ def Mg_listsOfZnearBlocks_ToTransmitAndReceive(ZnearChunkNumber_to_cubesNumbers,
     NBytes = 8
     if Z_TMP_ELEM_TYPE=='D':
         NBytes = 16
-        print "16 Bytes not supported yet in data transfer in communicateZnearBlocks. Exiting...."
+        print("16 Bytes not supported yet in data transfer in communicateZnearBlocks. Exiting....")
         sys.exit(1)
     writeScalarToDisk(NBytes, os.path.join(pathToReadFrom, "itemsize.txt"))
     MPI.COMM_WORLD.Barrier()
@@ -84,7 +88,7 @@ def compute_Z_near(params_simu, simuDirName):
     ELEM_TYPE = 'F'
     Z_TMP_ELEM_TYPE = 'F'
     tmpDirName = os.path.join(simuDirName, 'tmp' + str(my_id))
-    file = open(os.path.join(tmpDirName, 'pickle', 'variables.txt'), 'r')
+    file = open(os.path.join(tmpDirName, 'pickle', 'variables.txt'), 'rb')
     variables = cPickle.load(file)
     file.close()
     Wall_t0 = time.time()
@@ -100,7 +104,7 @@ def compute_Z_near(params_simu, simuDirName):
     Wall_time_Z_near_computation = time.time() - Wall_t0
     variables['Wall_time_Z_near_computation'] = Wall_time_Z_near_computation
     variables['CPU_time_Z_near_computation'] = CPU_time_Z_near_computation
-    file = open(os.path.join(tmpDirName, 'pickle', 'variables.txt'), 'w')
+    file = open(os.path.join(tmpDirName, 'pickle', 'variables.txt'), 'wb')
     cPickle.dump(variables, file)
     file.close()
 
@@ -119,11 +123,11 @@ if __name__=='__main__':
     if simuParams==None:
         simuParams = 'simulation_parameters'
     # the simulation itself
-    exec 'from ' + simuParams + ' import *'
+    exec('from ' + simuParams + ' import *')
     if (params_simu.MONOSTATIC_RCS==1) or (params_simu.MONOSTATIC_SAR==1) or (params_simu.BISTATIC==1):
         compute_Z_near(params_simu, simuDirName)
     else:
-        print "you should select monostatic RCS or monostatic SAR or bistatic computation, or a combination of these computations. Check the simulation settings."
+        print("you should select monostatic RCS or monostatic SAR or bistatic computation, or a combination of these computations. Check the simulation settings.")
         sys.exit(1)
     #MPI.Finalize()
 

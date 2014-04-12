@@ -23,7 +23,7 @@ def edges_computation(triangle_vertexes, vertexes_coord):
     # 1 is a physical border, 2 is a normal RWG, and 3 or more is a junction
 
     t0 = time.clock()
-    print "    construction of edges_vertexes...",
+    print("    construction of edges_vertexes...")
     sys.stdout.flush()
     # we first construct a flattened view of edges_vertexes, such that
     # all edges corresponding to 1 triangle are on the same line of the array view
@@ -55,17 +55,17 @@ def edges_computation(triangle_vertexes, vertexes_coord):
     col_sorted_e_v = sort(edges_vertexes[:, :2], 1, kind='mergesort')
     #edges_opp_vertexes = edges_vertexes[:, 2]
     del edges_vertexes
-    print "time =", time.clock() - t0
+    print("time = " + str(time.clock() - t0))
 
     t0 = time.clock()
-    print "    construction of edgeNumber_triangles..."
+    print("    construction of edgeNumber_triangles...")
     sys.stdout.flush()
     edgeNumber_triangles, edgeNumber_vertexes = compute_edgeNumber_triangles(col_sorted_e_v)
-    print "    cumulated time =", time.clock() - t0
+    print("    cumulated time = ", str(time.clock() - t0))
     # construction of triangle_adjacentTriangles matrix
     t0 = time.clock()
     triangle_adjacentTriangles, is_triangle_adjacentTriangles_via_junction = compute_triangle_adjacentTriangles(T, edgeNumber_triangles)
-    print "time =", time.clock() - t0
+    print("time = " + str(time.clock() - t0))
     return edgeNumber_vertexes.astype('i'), edgeNumber_triangles, triangle_adjacentTriangles, is_triangle_adjacentTriangles_via_junction
 
 def compute_edgeNumber_triangles(col_sorted_e_v):
@@ -87,7 +87,7 @@ def compute_edgeNumber_triangles(col_sorted_e_v):
     indexesEqualPreceding = compress(diff==0.0,arange(len(diff)),axis=0)
     del diff, decimal_e_v, sorted_decimal_e_v
     t0 = time.clock()
-    print "        research of the same edges...",
+    print("        research of the same edges...")
     sys.stdout.flush()
     indexesEqualEdges = {}
     j = 0
@@ -103,36 +103,36 @@ def compute_edgeNumber_triangles(col_sorted_e_v):
                 j += 1
         else:
             j += 1
-    print "time =", time.clock() - t0
+    print("time = " + str(time.clock() - t0))
 
     # edge numbering
     t0 = time.clock()
-    print "        numbering of the edges...",
+    print("        numbering of the edges...")
     sys.stdout.flush()
     edgeNumber_vertexes = ones((len(indexesEqualEdges), 2), 'i') * -1
     number = 0
-    for key, value in indexesEqualEdges.iteritems():
+    for key, value in indexesEqualEdges.items():
         # All occurrences of an "edge" receive the same "edge_number".
         #for i in value:
         #    edges_new_numbers[i] = number
         edgeNumber_vertexes[number] = col_sorted_e_v[value[0]]
         number += 1
     max_edges_numbers = number
-    print "time =", time.clock() - t0
+    print("time = " + str(time.clock() - t0))
 
     # construction of edgeNumber_triangles
     t0 = time.clock()
-    print "        construction of edgeNumber_triangles...",
+    print("        construction of edgeNumber_triangles...")
     sys.stdout.flush()
     edgeNumber_triangles = indexesEqualEdges
-    for key, value in edgeNumber_triangles.iteritems():
+    for key, value in edgeNumber_triangles.items():
         value_mod_3 = [int(x/3) for x in value]
         edgeNumber_triangles[key] = value_mod_3
-    print "time =", time.clock() - t0
+    print("time = " + str(time.clock() - t0))
     return edgeNumber_triangles, edgeNumber_vertexes
 
 def compute_triangle_adjacentTriangles(T, edgeNumber_triangles):
-    print "    construction of triangle_adjacentTriangles...",
+    print("    construction of triangle_adjacentTriangles...")
     sys.stdout.flush()
     triangle_adjacentTriangles, is_triangle_adjacentTriangles_via_junction = {}, {}
     # initialisation of the dictionaries
@@ -146,7 +146,7 @@ def compute_triangle_adjacentTriangles(T, edgeNumber_triangles):
             listToAdd = [tj for tj in adjacent_triangles if tj!=tn]
             triangle_adjacentTriangles[tn] += listToAdd
             if IS_JUNCTION:
-                if is_triangle_adjacentTriangles_via_junction.has_key(tn):
+                if tn in is_triangle_adjacentTriangles_via_junction:
                     is_triangle_adjacentTriangles_via_junction[tn] += listToAdd #[IS_JUNCTION] * (N_adj_triangles-1)
                 else:
                     is_triangle_adjacentTriangles_via_junction[tn] = listToAdd
@@ -155,7 +155,7 @@ def compute_triangle_adjacentTriangles(T, edgeNumber_triangles):
 def RWGNumber_signedTriangles_computation(edgeNumber_triangles, edgeNumber_vertexes, triangles_surfaces, is_closed_surface, triangle_vertexes, vertexes_coord):
     # we now want to "intelligently" get rid of the junctions, that means, create new RWGs when needed.
     # The following is correct for metal-metal junctions
-    print "    computation of RWG to triangles relations...", 
+    print("    computation of RWG to triangles relations...")
     sys.stdout.flush()
     t5 = time.clock()
     N_edges = len(edgeNumber_triangles)
@@ -227,11 +227,11 @@ def RWGNumber_signedTriangles_computation(edgeNumber_triangles, edgeNumber_verte
     RWGNumber_signedTriangles = zeros((N_RWG, 2), 'i')
     RWGNumber_signedTriangles[:N_edges, :] = RWGNumber_signedTrianglesTmp_1
     index = N_edges
-    for key, value in RWGNumber_signedTrianglesTmp_2.iteritems():
+    for key, value in RWGNumber_signedTrianglesTmp_2.items():
         RWGNumber_signedTriangles[index] = array(RWGNumber_signedTrianglesTmp_2[key], 'i')
         index += 1
     if not (index==N_RWG):
-        print "Error at the end of RWGNumber_signedTriangles_computation. Exiting"
+        print("Error at the end of RWGNumber_signedTriangles_computation. Exiting")
         sys.exit(1)
     # computation of RWGNumber_edgeVertexes
     #RWGNumber_edgeVertexes = (take(edgeNumber_vertexes, array(RWGNumber_edgeNumber, 'i'), axis=0)).astype('i')
@@ -255,11 +255,11 @@ def RWGNumber_signedTriangles_computation(edgeNumber_triangles, edgeNumber_verte
         else:
             RWGNumber_edgeVertexes[i, 0] = e1
             RWGNumber_edgeVertexes[i, 1] = e0
-    print "   time =", time.clock() - t5
+    print("   time = " + str(time.clock() - t5))
     return RWGNumber_signedTriangles.astype('i'), RWGNumber_edgeVertexes.astype('i'), N_edges, N_RWG
 
 def RWGNumber_oppVertexes_computation(RWGNumber_signedTriangles, RWGNumber_edgeVertexes, triangle_vertexes):
-    print "    computation of RWG opposite vertexes...", 
+    print("    computation of RWG opposite vertexes...")
     sys.stdout.flush()
     t5 = time.clock()
     N_RWG = RWGNumber_signedTriangles.shape[0]
@@ -278,7 +278,7 @@ def RWGNumber_oppVertexes_computation(RWGNumber_signedTriangles, RWGNumber_edgeV
             if (i!=edgeVertexes[0]) and (i!=edgeVertexes[1]):
                 break
         RWGNumber_oppVertexes[j, 1] = i
-    print "   time =", time.clock() - t5
+    print("   time = " + str(time.clock() - t5))
     return RWGNumber_oppVertexes.astype('i')
 
 def compute_RWGNumber_edgeCentroidCoord(vertexes_coord, RWGNumber_edgeVertexes):
@@ -347,7 +347,7 @@ def reorder_triangle_vertexes(triangle_adjacentTriangles, is_triangle_adjacentTr
     
     This function also returns triangles_surfaces"""
 
-    print "      reordering triangles for normals coherency..."
+    print("      reordering triangles for normals coherency...")
     sys.stdout.flush()
     T = len(triangle_adjacentTriangles)
     is_triangle_reordered = [0] * T # create a list of length "T" that tells if the triangle has been reordered
@@ -362,7 +362,7 @@ def reorder_triangle_vertexes(triangle_adjacentTriangles, is_triangle_adjacentTr
         list_t_to_reorder = []
         for tn in triangle_adjacentTriangles[t_start]:
             is_triangle_not_adjacent_via_junction = True
-            if is_triangle_adjacentTriangles_via_junction.has_key(t_start):
+            if t_start in is_triangle_adjacentTriangles_via_junction:
                 if tn in is_triangle_adjacentTriangles_via_junction[t_start]:
                     is_triangle_not_adjacent_via_junction = False
             if (is_triangle_reordered[int(tn)]==0) and (is_triangle_not_adjacent_via_junction):
@@ -381,7 +381,7 @@ def reorder_triangle_vertexes(triangle_adjacentTriangles, is_triangle_adjacentTr
             t_adjacent_triangles = []
             for tn in triangle_adjacentTriangles[t]:
                 is_triangle_not_adjacent_via_junction = True
-                if is_triangle_adjacentTriangles_via_junction.has_key(t):
+                if t in is_triangle_adjacentTriangles_via_junction:
                     if tn in is_triangle_adjacentTriangles_via_junction[t]:
                         is_triangle_not_adjacent_via_junction = False
                 if (is_triangle_reordered[int(tn)]==0) and (is_triangle_not_adjacent_via_junction):
@@ -392,7 +392,7 @@ def reorder_triangle_vertexes(triangle_adjacentTriangles, is_triangle_adjacentTr
             # we extend the list of "calling" triangles with t
             list_calling_t.extend([int(t)] * len(t_adjacent_triangles))  
     # we loop on the surfaces, because all normals are coherent but maybe not directed outwards closed surfaces...
-    print "      redirecting the normals outward..."
+    print("      redirecting the normals outward...")
     sys.stdout.flush()
     S = surf_number
     triangles_centroids_z = triangles_centroids_computation(vertexes_coord, triangle_vertexes)[:,2]
@@ -434,7 +434,7 @@ def is_surface_closed(triangles_surfaces, edgeNumber_triangles):
     # can it be counted as an inner edge, which will then be 
     # counted in NUMBER_EDGES_IN_SURFACE
     NUMBER_EDGES_IN_SURFACE = zeros(S, 'i')
-    for edge_number, triangles_tmp in edgeNumber_triangles.iteritems():
+    for edge_number, triangles_tmp in edgeNumber_triangles.items():
         surfaces_appeared_already = zeros(S, 'i')
         if len(triangles_tmp)>2: # we have a junction here
             for t in triangles_tmp:
@@ -446,7 +446,7 @@ def is_surface_closed(triangles_surfaces, edgeNumber_triangles):
             surfaces_present = compress(surfaces_appeared_already>0, arange(S))
             if len(surfaces_present)==2:
                 s0, s1 = min(surfaces_present), max(surfaces_present)
-                if connected_surfaces.has_key((s0, s1)):
+                if (s0, s1) in connected_surfaces:
                     connected_surfaces[(s0, s1)].append(edge_number)
                 else:
                     connected_surfaces[(s1, s0)] = [edge_number]
@@ -455,7 +455,7 @@ def is_surface_closed(triangles_surfaces, edgeNumber_triangles):
                     for index2 in arange(index1+1, len(surfaces_present)):
                         s1 = min(surfaces_present[index1], surfaces_present[index2])
                         s2 = max(surfaces_present[index1], surfaces_present[index2])
-                        if connected_surfaces.has_key((s1, s2)):
+                        if (s1, s2) in connected_surfaces:
                             connected_surfaces[(s1, s2)].append(edge_number)
                         else:
                             connected_surfaces[(s1, s2)] = [edge_number]
@@ -467,7 +467,7 @@ def is_surface_closed(triangles_surfaces, edgeNumber_triangles):
     # we now check for potential closed surfaces: surfaces which can be closed
     # and on which we can therefore apply the CFIE
     potential_closed_surfaces = {}
-    for key, item in connected_surfaces.iteritems():
+    for key, item in connected_surfaces.items():
         s0, s1 = key[0], key[1]
         numberEdges0, numberEdges1 = NUMBER_EDGES_IN_SURFACE[s0], NUMBER_EDGES_IN_SURFACE[s1]
         numberTriangles0, numberTriangles1 = NUMBER_TRIANGLES_IN_SURFACE[s0], NUMBER_TRIANGLES_IN_SURFACE[s1]
@@ -548,30 +548,20 @@ if __name__=="__main__":
     t0 = time.clock()
     triangles_surfaces = reorder_triangle_vertexes(triangle_adjacentTriangles, is_triangle_adjacentTriangles_via_junction, triangle_vertexes, vertexes_coord)
 
-    print "    checking open and closed surfaces...",
+    print("    checking open and closed surfaces...")
     is_closed_surface, connected_surfaces, potential_closed_surfaces = is_surface_closed(triangles_surfaces, edgeNumber_triangles)
-    print "is_closed_surface = ", is_closed_surface * 1
-    print "    connected surfaces = ", connected_surfaces
-    print "    potential closed surfaces = ", potential_closed_surfaces
-    
+    print("is_closed_surface = " + str(is_closed_surface * 1))
+    print("    connected surfaces = " + str(connected_surfaces))
+    print("    potential closed surfaces = " + str(potential_closed_surfaces))
+
     time_reordering_normals = time.clock()-t0
-    print "time =", time_reordering_normals, "seconds"
+    print("time = " + str(time_reordering_normals) + " seconds")
     #triangles_centroids = triangles_centroids_computation(vertexes_coord, triangle_vertexes)
     #triangles_areas, triangles_normals = triangles_areas_normals_computation(vertexes_coord, triangle_vertexes, triangles_surfaces)
     #write_normals(os.path.join(path, "normals.pos"), triangles_centroids, triangles_normals, triangles_surfaces, -1)
     
     RWGNumber_signedTriangles, RWGNumber_edgeVertexes, N_edges, N_RWG = RWGNumber_signedTriangles_computation(edgeNumber_triangles, edgeNumber_vertexes, triangles_surfaces, is_closed_surface, triangle_vertexes, vertexes_coord)
     RWGNumber_oppVertexes = RWGNumber_oppVertexes_computation(RWGNumber_signedTriangles, RWGNumber_edgeVertexes, triangle_vertexes)
-    print "    Number of edges =", N_edges
-    print "    Number of RWG =", N_RWG
-    
-    
-    #indexes_of_triangles = edgeNumber_triangles_indexes(arange(N_RWG).astype('i'), RWGNumber_signedTriangles)
-    
-#    print "RWGNumber_signedTriangles ="
-#    print RWGNumber_signedTriangles
-#    print "RWGNumber_edgeVertexes ="
-#    print RWGNumber_edgeVertexes
-    
-    
+    print("    Number of edges = " + str(N_edges))
+    print("    Number of RWG = " + str(N_RWG))
 

@@ -1,4 +1,12 @@
-import sys, os, argparse, time, pickle, cPickle, commands
+import sys, os, argparse, time
+try:
+    import commands
+except ImportError:
+    import subprocess as commands
+try:
+    import cPickle
+except ImportError:
+    import pickle as cPickle
 from mpi4py import MPI
 from scipy import array, sqrt, take, sum, mean, zeros
 from ReadWriteBlitzArray import writeScalarToDisk, writeASCIIBlitzArrayToDisk, writeBlitzArrayToDisk, read1DBlitzArrayFromDisk
@@ -16,7 +24,7 @@ def readMesh(path, name, params_simu):
     elif params_simu.meshFormat == 'ANSYS':
         vertexes_coord, triangle_vertexes, triangles_physicalSurface = read_mesh_ANSYS(path, name, params_simu.targetDimensions_scaling_factor, params_simu.z_offset)
     else:
-        print "setup_MLFMA_mesh.py : error on the mesh format. Enter a correct one please."
+        print("setup_MLFMA_mesh.py : error on the mesh format. Enter a correct one please.")
     return vertexes_coord, triangle_vertexes, triangles_physicalSurface
 
 def compute_RWG_CFIE_OK(triangles_surfaces, RWGNumber_signedTriangles, IS_CLOSED_SURFACE):
@@ -46,15 +54,15 @@ def setup_mesh(params_simu, simuDirName):
         # reading the mesh
         path, name = geoDirName, params_simu.targetName + params_simu.meshFileTermination
         meshPath = os.path.join(tmpDirName, "mesh")
-        print "  reading", os.path.join(path, name), "...",
+        print("  reading" + os.path.join(path, name) + "...")
         t0 = time.clock()
         vertexes_coord, triangle_vertexes, triangles_physicalSurface = readMesh(path, name, params_simu)
         time_reading = time.clock()-t0
-        print "reading mesh time =", time_reading, "seconds"
+        print("reading mesh time = " + str(time_reading) + " seconds")
         T = triangle_vertexes.shape[0]
         V = vertexes_coord.shape[0]
-        print "  number of triangles =", T
-        print "  edges classification..."
+        print("  number of triangles = " + str(T))
+        print("  edges classification...")
         sys.stdout.flush()
 
         writeScalarToDisk(T, os.path.join(meshPath, "T.txt"))
@@ -64,16 +72,16 @@ def setup_mesh(params_simu, simuDirName):
         writeBlitzArrayToDisk(triangle_vertexes, os.path.join(meshPath, 'triangle_vertexes.txt'))
 
         t10 = time.clock()
-        print commands.getoutput("./code/MoM/mesh_functions_seb " + meshPath + "/")
-        print "time C++ execution =", time.clock() - t10
-        print "edgeNumber_triangles construction cumulated time =", time.clock() - t10
+        print(commands.getoutput("./code/MoM/mesh_functions_seb " + meshPath + "/"))
+        print("time C++ execution = " + str(time.clock() - t10))
+        print("edgeNumber_triangles construction cumulated time = " + str(time.clock() - t10))
 
         is_closed_surface = readASCIIBlitzIntArray1DFromDisk(os.path.join(meshPath, "is_closed_surface.txt"))
         S = len(is_closed_surface)
-        print "test of the closed surfaces :", is_closed_surface
+        print("test of the closed surfaces : " + str(is_closed_surface))
 
         N_RWG = readIntFromDisk(os.path.join(meshPath, "N_RWG.txt"))
-        print "Number of RWG =", N_RWG
+        print("Number of RWG = " + str(N_RWG))
         sys.stdout.flush()
 
         triangles_surfaces = readASCIIBlitzIntArray1DFromDisk(os.path.join(meshPath, "triangles_surfaces.txt"))
@@ -87,12 +95,12 @@ def setup_mesh(params_simu, simuDirName):
         average_RWG_length = compute_RWG_meanEdgeLength(vertexes_coord, RWGNumber_edgeVertexes, stride)
         writeScalarToDisk(average_RWG_length, os.path.join(meshPath,'average_RWG_length.txt'))
         if params_simu.VERBOSE==1:
-            print "average RWG length =", average_RWG_length, "m = lambda /", (c/params_simu.f)/average_RWG_length
+            print("average RWG length = " + str(average_RWG_length) + "m = lambda /" + str((c/params_simu.f)/average_RWG_length))
 
         # cubes computation
         WEAVE = 0
         if WEAVE != 0:
-            print "Using good old weave!"
+            print("Using good old weave!")
             from Cubes import cube_lower_coord_computation, RWGNumber_cubeNumber_computation, cubeIndex_RWGNumbers_computation, findCubeNeighbors
             from mesh_functions_seb import compute_RWGNumber_edgeCentroidCoord
             max_N_cubes_1D, N_levels, big_cube_lower_coord, big_cube_center_coord = cube_lower_coord_computation(a, vertexes_coord)
@@ -100,7 +108,7 @@ def setup_mesh(params_simu, simuDirName):
             RWGNumber_edgeCentroidCoord = compute_RWGNumber_edgeCentroidCoord(vertexes_coord, RWGNumber_edgeVertexes)
             RWGNumber_cubeNumber, RWGNumber_cubeCentroidCoord = RWGNumber_cubeNumber_computation(a, max_N_cubes_1D, big_cube_lower_coord, RWGNumber_edgeCentroidCoord)
             cubes_RWGsNumbers, cubes_lists_RWGsNumbers, cube_N_RWGs, cubes_centroids = cubeIndex_RWGNumbers_computation(RWGNumber_cubeNumber, RWGNumber_cubeCentroidCoord)
-            print "Average number of RWGs per cube:", mean(cube_N_RWGs)
+            print("Average number of RWGs per cube: " + str(mean(cube_N_RWGs)))
             C = cubes_centroids.shape[0]
             cubes_lists_NeighborsIndexes, cubes_neighborsIndexes, cube_N_neighbors = findCubeNeighbors(max_N_cubes_1D, big_cube_lower_coord, cubes_centroids, a)
             writeScalarToDisk(C, os.path.join(meshPath, "C.txt"))
@@ -111,8 +119,8 @@ def setup_mesh(params_simu, simuDirName):
             writeBlitzArrayToDisk(cube_N_neighbors, os.path.join(meshPath, 'cube_N_neighbors') + '.txt')
             writeScalarToDisk(N_levels, os.path.join(meshPath, "N_levels.txt"))
         else:
-            print "Using new mesh_cubes.cpp code"
-            print commands.getoutput("./code/MoM/mesh_cubes " + meshPath + "/")
+            print("Using new mesh_cubes.cpp code")
+            print(commands.getoutput("./code/MoM/mesh_cubes " + meshPath + "/"))
             N_levels = readIntFromDisk(os.path.join(meshPath,'N_levels.txt'))
             max_N_cubes_1D = readIntFromDisk(os.path.join(meshPath,'max_N_cubes_1D.txt'))
             C = readIntFromDisk(os.path.join(meshPath,'C.txt'))
@@ -121,7 +129,7 @@ def setup_mesh(params_simu, simuDirName):
             # making of cubes_lists_RWGsNumbers
             cubes_RWGsNumbers = read1DBlitzArrayFromDisk(os.path.join(meshPath, "cubes_RWGsNumbers.txt"), 'i')
             cube_N_RWGs = read1DBlitzArrayFromDisk(os.path.join(meshPath, "cube_N_RWGs.txt"), 'i')
-            print "Average number of RWGs per cube:", mean(cube_N_RWGs)
+            print("Average number of RWGs per cube: " + str(mean(cube_N_RWGs)))
             cubes_lists_RWGsNumbers = {}
             index = 0
             for i in range(C):
@@ -137,14 +145,14 @@ def setup_mesh(params_simu, simuDirName):
                 cubes_lists_NeighborsIndexes[i] = [elem for elem in cubesNeighborsIndexesTmp2[i] if elem>-1]
 
         # writing some data
-        print "N_levels = ", N_levels
-        print "max_N_cubes_1D = ", max_N_cubes_1D
-        print "big_cube_center_coord = ", big_cube_center_coord
-        print "big_cube_lower_coord = ", big_cube_lower_coord
-        file = open(os.path.join(meshPath, 'cubes_lists_RWGsNumbers.txt'), 'w')
+        print("N_levels = " + str(N_levels))
+        print("max_N_cubes_1D = " + str(max_N_cubes_1D))
+        print("big_cube_center_coord = " + str(big_cube_center_coord))
+        print("big_cube_lower_coord = " + str(big_cube_lower_coord))
+        file = open(os.path.join(meshPath, 'cubes_lists_RWGsNumbers.txt'), 'wb')
         cPickle.dump(cubes_lists_RWGsNumbers, file)
         file.close()
-        file = open(os.path.join(meshPath, 'cubes_lists_NeighborsIndexes.txt'), 'w')
+        file = open(os.path.join(meshPath, 'cubes_lists_NeighborsIndexes.txt'), 'wb')
         cPickle.dump(cubes_lists_NeighborsIndexes, file)
         file.close()
         writeScalarToDisk(S, os.path.join(meshPath, "S.txt"))
@@ -221,7 +229,7 @@ def setup_mesh(params_simu, simuDirName):
     variables['N_RWG'] = N_RWG
     variables['N_levels'] = N_levels
     variables['CFIE'] = CFIE
-    file = open(os.path.join(tmpDirName, 'pickle', 'variables.txt'), 'w')
+    file = open(os.path.join(tmpDirName, 'pickle', 'variables.txt'), 'wb')
     cPickle.dump(variables, file)
     file.close()    
 
@@ -241,11 +249,11 @@ if __name__=='__main__':
 
     # the simulation itself
     sys.path.append(os.path.abspath('.'))
-    exec 'from ' + simuParams + ' import *'
+    exec('from ' + simuParams + ' import *')
     if (params_simu.MONOSTATIC_RCS==1) or (params_simu.MONOSTATIC_SAR==1) or (params_simu.BISTATIC==1):
         setup_mesh(params_simu, simuDirName)
     else:
-        print "you should select monostatic RCS or monostatic SAR or bistatic computation, or a combination of these computations. Check the simulation settings."
+        print("you should select monostatic RCS or monostatic SAR or bistatic computation, or a combination of these computations. Check the simulation settings.")
         sys.exit(1)
     #MPI.Finalize()
 

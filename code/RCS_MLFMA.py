@@ -53,7 +53,7 @@ def bistatic_RCS(params_simu, simuDirName, USER_OBS_ANGLES):
         E_inc = array([params_simu.E_inc_theta, params_simu.E_inc_phi], 'D')
         P_inc += real(dot(E_inc, conj(E_inc)))            
     if (params_simu.BISTATIC_EXCITATION_DIPOLES == 1) and (params_simu.BISTATIC_EXCITATION_PLANE_WAVE == 1):
-        print "WARNING: you have dipole and plane wave excitation simultaneously. Is it what you intended??"
+        print("WARNING: you have dipole and plane wave excitation simultaneously. Is it what you intended??")
     sigma_phi = p_scatt_phi/(P_inc * 4.0 * pi)
     sigma_theta = p_scatt_theta/(P_inc * 4.0 * pi)
     return sigma_theta, sigma_phi, thetas_far_field, phis_far_field
@@ -71,17 +71,17 @@ if __name__=='__main__':
     if simuParams==None:
         simuParams = 'simulation_parameters'
     # the simulation itself
-    exec 'from ' + simuParams + ' import *'
+    exec('from ' + simuParams + ' import *')
     if (params_simu.MONOSTATIC_RCS==1) or (params_simu.MONOSTATIC_SAR==1) or (params_simu.BISTATIC==1):
         print_times(params_simu, simuDirName)
     else:
-        print "you should select monostatic RCS or monostatic SAR or bistatic computation, or a combination of these computations. Check the simulation settings."
+        print("you should select monostatic RCS or monostatic SAR or bistatic computation, or a combination of these computations. Check the simulation settings.")
         sys.exit(1)
     if params_simu.MONOSTATIC_RCS==1:
         if params_simu.ANGLES_FROM_FILE == 1:
             monostatic_angles = 180./pi * readASCIIBlitzFloatArray2DFromDisk(os.path.join(simuDirName, 'result/monostatic_angles_ASCII.txt'))
-            print "monostatic angles (degrees) ="
-            print monostatic_angles
+            print("monostatic angles (degrees) = ")
+            print(monostatic_angles)
         else:
             RCS_HH, RCS_VV, RCS_HV, RCS_VH, thetas_far_field, phis_far_field = monostatic_RCS(params_simu, simuDirName)
             nameOfFileToSaveTo = os.path.join(simuDirName, 'result', "simulation_parameters.txt") 
@@ -121,15 +121,15 @@ if __name__=='__main__':
         if params_simu.BISTATIC_R_OBS==1:
             E_field = getField(os.path.join(simuDirName, "result", "E_obs.txt"))
             r_obs = readASCIIBlitzFloatArray2DFromDisk(os.path.join(simuDirName, "result", "r_obs.txt"))
-            print
-            print "MLFMA E_field ="
-            print E_field
-            print
-            print "at observation points r_obs ="
-            print r_obs
-            print
-            print "See 'E_obs.txt' and 'r_obs.txt' in './result' directory for the results of the computation, where you will also find the far field values."
-            print
+            print('\r')
+            print("MLFMA E_field = ") 
+            print(E_field)
+            print('\r')
+            print("at observation points r_obs = ")
+            print(r_obs)
+            print('\r')
+            print("See 'E_obs.txt' and 'r_obs.txt' in './result' directory for the results of the computation, where you will also find the far field values.")
+            print('\r')
         nameOfFileToSaveTo = os.path.join(simuDirName, 'result', "simulation_parameters.txt") 
         params_simu.saveTo(nameOfFileToSaveTo)
 

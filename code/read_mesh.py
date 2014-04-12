@@ -1,15 +1,15 @@
 import os, sys, time
 from scipy import zeros, size, compress, sort, take, put, array
 from PyGmsh import executeGmsh, write_geo
-from scipy import weave
-from scipy.weave import converters
+#from scipy import weave
+#from scipy.weave import converters
 
 def preRead_mesh_GMSH_1(name):
     file = open(name, 'r')
     content = {}
     for line in file:
         if line[0]=='$' and 'End' not in line and 'END' not in line:
-            if not content.has_key(line.split('\n')[0]):
+            if line.split('\n')[0] not in content:
                 newFieldTmp = line.split('\n')[0]
                 newField = newFieldTmp.split('$')[1]
                 content[newField] = []
@@ -28,12 +28,12 @@ def read_mesh_GMSH_1(name, targetDimensions_scaling_factor, z_offset):
        This function is to be erased in a near future.
     """
     content = preRead_mesh_GMSH_1(name)
-    if content.has_key('Nodes'):
+    if 'Nodes' in content:
         vertexes_key = 'Nodes'
-    elif content.has_key('NOD'):
+    elif 'NOD' in content:
         vertexes_key = 'NOD'
     else:
-        print "read_mesh.py: Error in the GMSH file format: not supported!!"
+        print("read_mesh.py: Error in the GMSH file format: not supported!!")
         sys.exit(1)
     V = int(content[vertexes_key][0]) # we get the number of vertexes
     vertexes_numbers = zeros(V, 'i')
@@ -43,7 +43,7 @@ def read_mesh_GMSH_1(name, targetDimensions_scaling_factor, z_offset):
     for tmp in content[vertexes_key][1:]:
         tmp2 = tmp.split()
         vertexes_numbers[index] = int(tmp2[0])
-        vertexes_coord[index, :] = map(float, tmp2[1:])
+        vertexes_coord[index, :] = list(map(float, tmp2[1:]))
         index += 1
     if not (targetDimensions_scaling_factor==1.0):
         vertexes_coord *= targetDimensions_scaling_factor
@@ -52,7 +52,7 @@ def read_mesh_GMSH_1(name, targetDimensions_scaling_factor, z_offset):
     # we check whether we have a source
     SOURCE = False
     PhysicalSurfaceNumberToName = {}
-    if content.has_key('PhysicalNames'):
+    if 'PhysicalNames' in content:
         keyPhysicalNames = 'PhysicalNames'
         NumberPhysicalNames = int(content[keyPhysicalNames][0])
         for elem in content[keyPhysicalNames][1:]:
@@ -63,12 +63,12 @@ def read_mesh_GMSH_1(name, targetDimensions_scaling_factor, z_offset):
                 SOURCE = True
     
     # we now extract the triangles and write them to a file
-    if content.has_key('Elements'):
+    if 'Elements' in content:
         elements_key = 'Elements'
-    elif content.has_key('ELM'):
+    elif 'ELM' in content:
         elements_key = 'ELM'
     else:
-        print "read_mesh.py: Error in the GMSH file format: not supported!!"
+        print("read_mesh.py: Error in the GMSH file format: not supported!!")
         sys.exit(1)
     N_elems = int(content[elements_key][0]) # N is the number of "elements" (border edges, facets,...)
     g = open(name + ".triangles", "w")
@@ -76,11 +76,11 @@ def read_mesh_GMSH_1(name, targetDimensions_scaling_factor, z_offset):
     T, T_src = 0, 0
     for elementTmp in content[elements_key][1:]:
         elementTmp2 = elementTmp.split()
-        element = map(int, elementTmp2)
+        element = list(map(int, elementTmp2))
         if element[1]==2: # type 'planar triangle' has number 2
             listTmp = [element[3]]
             listTmp += element[-3:]
-            if SOURCE and PhysicalSurfaceNumberToName.has_key(listTmp[0]):
+            if SOURCE and (listTmp[0] in PhysicalSurfaceNumberToName):
                 T_src += 1
                 for elem in listTmp:
                     #g2.write(str(elem) + " ")
@@ -101,7 +101,7 @@ def read_mesh_GMSH_1(name, targetDimensions_scaling_factor, z_offset):
     triangles_nodes = zeros( (T + T_src, 3), 'i')
     triangles_physicalSurface = zeros(T + T_src, 'i')
     for k in range(T + T_src):
-        tmp = map (int, g.readline().split())
+        tmp = list(map(int, g.readline().split()))
         triangles_nodes[k, :] = tmp[1:]
         triangles_physicalSurface[k] = tmp[0]
     g.close()
@@ -149,7 +149,7 @@ def preRead_mesh_GMSH_2(meshFile_name):
     for line in file:
         # here we encounter a new entity, or field
         if line[0]=='$' and not ('End' in line or 'END' in line):
-            if not content.has_key(line.split('\n')[0]):
+            if line.split('\n')[0] not in content:
                 newFieldTmp = line.split('\n')[0]
                 # we actualise newField
                 newField = newFieldTmp.split('$')[1]
@@ -180,13 +180,13 @@ def preRead_mesh_GMSH_2(meshFile_name):
 def read_mesh_GMSH_2(name, targetDimensions_scaling_factor, z_offset):
     """function that reads the mesh and puts it into nice arrays"""
     content = preRead_mesh_GMSH_2(name)
-    print content
-    if content.has_key('Nodes'):
+    print(content)
+    if 'Nodes' in content:
         vertexes_key = 'Nodes'
-    elif content.has_key('NOD'):
+    elif 'NOD' in content:
         vertexes_key = 'NOD'
     else:
-        print "read_mesh.py: Error in the GMSH file format: not supported!!"
+        print("read_mesh.py: Error in the GMSH file format: not supported!!")
         sys.exit(1)
     V = int(content[vertexes_key][0]) # we get the number of vertexes
     vertexes_numbers = zeros(V, 'i')
@@ -197,7 +197,7 @@ def read_mesh_GMSH_2(name, targetDimensions_scaling_factor, z_offset):
     for line in file:
         tmp = line.split()
         vertexes_numbers[index] = int(tmp[0])
-        vertexes_coord[index, :] = map(float, tmp[1:])
+        vertexes_coord[index, :] = list(map(float, tmp[1:]))
         index += 1
     if not (targetDimensions_scaling_factor==1.0):
         vertexes_coord *= targetDimensions_scaling_factor
@@ -207,7 +207,7 @@ def read_mesh_GMSH_2(name, targetDimensions_scaling_factor, z_offset):
     # we check whether we have a source
     SOURCE = False
     PhysicalSurfaceNumberToName = {}
-    if content.has_key('PhysicalNames'):
+    if 'PhysicalNames' in content:
         keyPhysicalNames = 'PhysicalNames'
         NumberPhysicalNames = content[keyPhysicalNames][0]
         file = open(name + '.' + keyPhysicalNames, 'r')
@@ -220,12 +220,12 @@ def read_mesh_GMSH_2(name, targetDimensions_scaling_factor, z_offset):
         file.close()
 
     # we now extract the triangles and write them to a file
-    if content.has_key('Elements'):
+    if 'Elements' in content:
         elements_key = 'Elements'
-    elif content.has_key('ELM'):
+    elif 'ELM' in content:
         elements_key = 'ELM'
     else:
-        print "read_mesh.py: Error in the GMSH file format: not supported!!"
+        print("read_mesh.py: Error in the GMSH file format: not supported!!")
         sys.exit(1)
     T = content[elements_key][0] # N is the number of triangles
     del content
@@ -235,7 +235,7 @@ def read_mesh_GMSH_2(name, targetDimensions_scaling_factor, z_offset):
     triangles_physicalSurface = zeros(T, 'i')
     index = 0
     for line in g:
-        tmp = map(int, line.split())
+        tmp = list(map(int, line.split()))
         triangles_nodes[index, :] = tmp[-3:]
         triangles_physicalSurface[index] = tmp[3]
         index += 1
@@ -324,7 +324,7 @@ def preRead_mesh_GiD(meshFile_name):
 def read_mesh_GiD(name, targetDimensions_scaling_factor, z_offset):
     """function that reads the mesh and puts it into nice arrays"""
     content = preRead_mesh_GiD(name)
-    print content
+    print(content)
     vertexes_key = 'Nodes'
 
     V = int(content[vertexes_key][0]) # we get the number of vertexes
@@ -336,7 +336,7 @@ def read_mesh_GiD(name, targetDimensions_scaling_factor, z_offset):
     for line in file:
         tmp = line.split()
         vertexes_numbers[index] = int(tmp[0])
-        vertexes_coord[index, :] = map(float, tmp[1:])
+        vertexes_coord[index, :] = list(map(float, tmp[1:]))
         index += 1
     if not (targetDimensions_scaling_factor==1.0):
         vertexes_coord *= targetDimensions_scaling_factor
@@ -344,10 +344,10 @@ def read_mesh_GiD(name, targetDimensions_scaling_factor, z_offset):
     file.close()
 
     # we now extract the triangles and write them to a file
-    if content.has_key('Elements'):
+    if 'Elements' in content:
         elements_key = 'Elements'
     else:
-        print "read_mesh.py: Error in the GiD file format: not supported!!"
+        print("read_mesh.py: Error in the GiD file format: not supported!!")
         sys.exit(1)
     T = content[elements_key][0] # N is the number of triangles
     del content
@@ -357,7 +357,7 @@ def read_mesh_GiD(name, targetDimensions_scaling_factor, z_offset):
     triangles_physicalSurface = zeros(T, 'i')
     index = 0
     for line in g:
-        tmp = map(int, line.split())
+        tmp = list(map(int, line.split()))
         triangles_nodes[index, :] = tmp[-3:]
         #triangles_physicalSurface[index] = tmp[3]
         triangles_physicalSurface[index] = 0 # not like GMSH here: GMSH triangles have a physical surface number
@@ -456,7 +456,7 @@ def preRead_mesh_ANSYS(meshFile_path):
 def read_mesh_ANSYS(path, name, targetDimensions_scaling_factor, z_offset):
     """function that reads the mesh and puts it into nice arrays"""
     content = preRead_mesh_ANSYS(path) # name doesnt count here, since ANSYS has default names
-    print content
+    print(content)
     vertexes_key = 'Nodes'
 
     V = int(content[vertexes_key][0]) # we get the number of vertexes
@@ -468,7 +468,7 @@ def read_mesh_ANSYS(path, name, targetDimensions_scaling_factor, z_offset):
     for line in fileToRead:
         tmp = line.split()
         vertexes_numbers[index] = int(tmp[0])
-        vertexes_coord[index, :] = map(float, tmp[1:])
+        vertexes_coord[index, :] = list(map(float, tmp[1:]))
         index += 1
     if not (targetDimensions_scaling_factor==1.0):
         vertexes_coord *= targetDimensions_scaling_factor
@@ -476,10 +476,10 @@ def read_mesh_ANSYS(path, name, targetDimensions_scaling_factor, z_offset):
     fileToRead.close()
 
     # we now extract the triangles and write them to a file
-    if content.has_key('Elements'):
+    if 'Elements' in content:
         elements_key = 'Elements'
     else:
-        print "read_mesh.py: Error in the ANSYS file format: not supported!!"
+        print("read_mesh.py: Error in the ANSYS file format: not supported!!")
         sys.exit(1)
     T = content[elements_key][0] # N is the number of triangles
     del content
@@ -489,7 +489,7 @@ def read_mesh_ANSYS(path, name, targetDimensions_scaling_factor, z_offset):
     triangles_physicalSurface = zeros(T, 'i')
     index = 0
     for line in g:
-        tmp = map(int, line.split())
+        tmp = list(map(int, line.split()))
         triangles_nodes[index, :] = tmp[-3:]
         #triangles_physicalSurface[index] = tmp[3]
         triangles_physicalSurface[index] = 0 # not like GMSH here: GMSH triangles have a physical surface number
@@ -547,20 +547,20 @@ if __name__=="__main__":
     targetDimensions_scaling_factor = 1.0
     t0 = time.time()
     vertexes_coord_1, triangles_vertexes_1, triangles_physicalSurface_1 = read_mesh_GMSH_1(os.path.join(path, targetName) + '.msh', targetDimensions_scaling_factor, z_offset)
-    print "time for classical *.msh file reading =", time.time() - t0
+    print("time for classical *.msh file reading = " + str(time.time() - t0))
     t0 = time.time()
     vertexes_coord_2, triangles_vertexes_2, triangles_physicalSurface_2 = read_mesh_GMSH_2(os.path.join(path, targetName) + '.msh', targetDimensions_scaling_factor, z_offset)
-    print "time for new *.msh file reading =", time.time() - t0
+    print("time for new *.msh file reading = " + str(time.time() - t0))
     
     print
-    print "difference between python and C++ code. If results different than 0, there is a problem."
-    print sum(abs(vertexes_coord_1 - vertexes_coord_2))
-    print sum(abs(triangles_vertexes_1 - triangles_vertexes_2))
-    print sum(abs(triangles_physicalSurface_1 - triangles_physicalSurface_2))
+    print("difference between python and C++ code. If results different than 0, there is a problem.")
+    print(str(sum(abs(vertexes_coord_1 - vertexes_coord_2))))
+    print(str(sum(abs(triangles_vertexes_1 - triangles_vertexes_2))))
+    print(str(sum(abs(triangles_physicalSurface_1 - triangles_physicalSurface_2))))
     
     vertexes_coord_GiD, triangles_vertexes_GiD, triangles_physicalSurface_GiD = read_mesh_GiD(os.path.join(path, 'aaa1') + '.msh', targetDimensions_scaling_factor, z_offset)
 
     content = preRead_mesh_ANSYS('./geo')
     vertexes_coord, triangles_vertexes, triangles_physicalSurface = read_mesh_ANSYS(path, "whatever", targetDimensions_scaling_factor, z_offset)
-    print vertexes_coord.shape, triangles_vertexes.shape, triangles_physicalSurface.shape
+    print(vertexes_coord.shape, triangles_vertexes.shape, triangles_physicalSurface.shape)
 

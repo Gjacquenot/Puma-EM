@@ -1,7 +1,8 @@
 import os.path
 from scipy import zeros, ones, arange, reshape, take, put, array, arccos, arcsin, sqrt, dot, sum, real, imag, exp
-from scipy import weave, sin, cos, pi
-from scipy.weave import converters
+from scipy import sin, cos, pi
+#from scipy import weave
+#from scipy.weave import converters
 from mesh_functions_seb import edgeNumber_triangles_indexes
 from meshClass import MeshClass
 from EM_constants import *
@@ -208,7 +209,7 @@ def computeV_EH(target_mesh, J_dip, r_dip, w, eps_r, mu_r, list_of_edges_numbers
         V_EH = V_EH_plane(J_dip, r_dip, list_of_edges_numbers, target_mesh.RWGNumber_CFIE_OK, target_mesh.RWGNumber_signedTriangles, target_mesh.RWGNumber_edgeVertexes, target_mesh.RWGNumber_oppVertexes, target_mesh.vertexes_coord, w, eps_r, mu_r).astype(ELEM_TYPE)
         return V_EH
     elif EXCITATION=='delta_gap':
-        print "WARNING!! You asked for delta gap excitation. This is not ready yet. Passing on to plane wave excitation."
+        print("WARNING!! You asked for delta gap excitation. This is not ready yet. Passing on to plane wave excitation.")
         V_EH = V_EH_plane(J_dip, r_dip, list_of_edges_numbers, target_mesh.RWGNumber_CFIE_OK, target_mesh.RWGNumber_signedTriangles, target_mesh.RWGNumber_edgeVertexes, target_mesh.RWGNumber_oppVertexes, target_mesh.vertexes_coord, w, eps_r, mu_r).astype(ELEM_TYPE)
         return V_EH
         #if target_mesh.DELTA_GAP:
@@ -218,7 +219,7 @@ def computeV_EH(target_mesh, J_dip, r_dip, w, eps_r, mu_r, list_of_edges_numbers
             #print "ERROR!! You asked for delta gap excitation, but none is defined in the file", target_mesh.geoName
             #sys.exit(1)
     else:
-        print "ERROR: Wrong excitation setting. Exiting"
+        print("ERROR: Wrong excitation setting. Exiting")
         sys.exit(1)
         
         
@@ -265,7 +266,7 @@ if __name__=="__main__":
     G_EJ_cpp, G_HJ_cpp = G_EJ_G_HJ_cpp(r_dip, r_obs, eps_r, mu_r, k)
     G_EJ, G_HJ = G_EJ_G_HJ(r_dip, r_obs, eps_r, mu_r, k)
 
-    print G_EJ-G_EJ_cpp
-    print G_HJ_cpp-G_HJ
+    print(G_EJ-G_EJ_cpp)
+    print(G_HJ_cpp-G_HJ)
 
 

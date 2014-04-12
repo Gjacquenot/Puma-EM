@@ -23,7 +23,7 @@ def chunk_of_Z_nearCRS_Computation(CFIE, cubesNumbers, w, eps_r, mu_r, ELEM_TYPE
     by chunk_of_Z_nearCRS_Assembling and MgPrecondition"""
     pathToReadCubeFrom = pathToSaveTo
     list_cubes = compute_list_cubes(cubesNumbers, pathToReadCubeFrom)
-    for cubeNumber, cube in list_cubes.iteritems():
+    for cubeNumber, cube in list_cubes.items():
         Z_CFIE_near_tmp = Z_nearPerCube(pathToSaveTo, cube, CFIE, cubeNumber, w, eps_r, mu_r, ELEM_TYPE, Z_TMP_ELEM_TYPE, TDS_APPROX, Z_s, MOM_FULL_PRECISION)
 
 def Z_nearCRS_Computation(my_id, processNumber_to_ChunksNumbers, chunkNumber_to_cubesNumbers, CFIE, MAX_BLOCK_SIZE, w, eps_r, mu_r, ELEM_TYPE, Z_TMP_ELEM_TYPE, TDS_APPROX, Z_s, MOM_FULL_PRECISION, pathToSaveTo):

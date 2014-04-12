@@ -1,7 +1,8 @@
 import os.path, sys
 from scipy import array, take, argsort, ceil, floor, ones, arange, zeros
-from scipy import log2, weave, sqrt
-from scipy.weave import converters
+from scipy import log2, sqrt
+#from scipy import weave
+#from scipy.weave import converters
 
 def cube_lower_coord_computation(a, vertexes_coord):
     """This function computes the coordinates of the 1st cube,
@@ -56,7 +57,7 @@ def cubeIndex_RWGNumbers_computation(RWGNumber_cubeNumber, RWGNumber_cubeCentroi
             cube_list_edges_numbers_tmp = [sorted_edges_numbers[j+1]] # init of the temporary list for the next cube
             cubeIndex += 1
     # we must append the last temporary list
-    if cubes_lists_edges_numbers.has_key(cubeIndex):
+    if cubeIndex in cubes_lists_edges_numbers:
         cubes_lists_edges_numbers[cubeIndex+1] = array(cube_list_edges_numbers_tmp)
     else:
         cubes_lists_edges_numbers[cubeIndex] = array(cube_list_edges_numbers_tmp)

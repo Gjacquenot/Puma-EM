@@ -26,7 +26,7 @@ def computePreconditionerColumnsPerCube(list_cubes, cubeNumber_to_chunkNumber):
     """this function computes the number of columns per cube for the Frobenius preconditioner"""
     NumberOfColumnsPerCube = zeros(len(list_cubes), 'i')
     i = 0
-    for cubeNumber, cube in list_cubes.iteritems():
+    for cubeNumber, cube in list_cubes.items():
         NumberOfColumnsPerCube[i] = sum(cube.isEdgeInCartesianRadius)
         i += 1
     return NumberOfColumnsPerCube
@@ -36,7 +36,7 @@ def numberOfElemsInPrecond(list_cubes, cubeNumber_to_chunkNumber):
     preconditionerColumnsPerCube = computePreconditionerColumnsPerCube(list_cubes, cubeNumber_to_chunkNumber)
     N_precond = 0
     i = 0
-    for cubeNumber, cube in list_cubes.iteritems():
+    for cubeNumber, cube in list_cubes.items():
         N_precond += preconditionerColumnsPerCube[i] * cube.N_RWG_test
         i += 1
     return N_precond, preconditionerColumnsPerCube
@@ -67,7 +67,7 @@ def MgPreconditionerComputationPerCube(cube, list_cubes_with_neighbors, list_Z_t
     ## construction of the local matrix to be inverted
     for i in range(cube.N_neighbors):
         neighborCubeNumber = cube.cubeNeighborsIndexes[int(i)]
-        if not list_cubes_with_neighbors.has_key(neighborCubeNumber):
+        if neighborCubeNumber not in list_cubes_with_neighbors:
             chunkNumber = cubeNumber_to_chunkNumber[neighborCubeNumber]
             pathToReadFromChunk = os.path.join( pathToReadFrom, "chunk" + str(chunkNumber) )
             neighborCube = CubeClass()
@@ -127,7 +127,7 @@ def chunk_of_Mg_CSR(cubesNumbers, chunkNumber, ELEM_TYPE, Z_TMP_ELEM_TYPE, LIB_G
     list_cubes, list_Z_tmp = compute_list_cubes(cubesNumbers, pathToReadChunkFrom, Z_TMP_ELEM_TYPE)
     list_cubes_with_neighbors = copy.copy(list_cubes)
     N_RWG = 0
-    for cubeNumber, cube in list_cubes.iteritems():
+    for cubeNumber, cube in list_cubes.items():
         Nl, Nc = cube.N_RWG_test, cube.N_RWG_src
         N_RWG += Nl
     test_RWG_numbers = zeros(N_RWG, 'i')
@@ -140,7 +140,7 @@ def chunk_of_Mg_CSR(cubesNumbers, chunkNumber, ELEM_TYPE, Z_TMP_ELEM_TYPE, LIB_G
     rowIndexToColumnIndexes = zeros((N_RWG, 2), 'i') # start and end indexes
     startIndex, startIndexInRWGNumbers, startIndexInQArray = 0, 0, 0
     indexN_ColumnsPerCube, index_in_rowIndexToColumnIndexes = 0, 0
-    for cubeNumber, cube in list_cubes.iteritems():
+    for cubeNumber, cube in list_cubes.items():
         # finding the RWGs numbers
         test_RWG_numbers[startIndexInRWGNumbers:startIndexInRWGNumbers + cube.N_RWG_test] = cube.testSrc_RWGsNumbers[:cube.N_RWG_test]
         startIndexInRWGNumbers += cube.N_RWG_test

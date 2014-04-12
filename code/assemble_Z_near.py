@@ -1,4 +1,12 @@
-import sys, os, cPickle, time, argparse, commands
+import sys, os, time, argparse
+try:
+    import commands
+except ImportError:
+    import subprocess as commands
+try:
+    import cPickle
+except ImportError:
+    import pickle as cPickle
 from mpi4py import MPI
 from scipy import array, zeros
 from ReadWriteBlitzArray import readBlitzArrayFromDisk, writeBlitzArrayToDisk, writeScalarToDisk, writeASCIIBlitzArrayToDisk
@@ -34,7 +42,7 @@ def chunk_of_Z_nearCRS_Assembling(cubesNumbers, ELEM_TYPE, Z_TMP_ELEM_TYPE, path
     scheme is called the Compressed Block Scheme, or CBS."""
     list_cubes = compute_list_cubes(cubesNumbers, pathToReadFrom)
     N_RWG, N_near, N_srcFromNeighbors = 0, 0, 0
-    for key, val in list_cubes.iteritems():
+    for key, val in list_cubes.items():
         Nl, Nc = val.N_RWG_test, val.N_RWG_src
         N_RWG += Nl
         N_near += Nl * Nc
@@ -49,7 +57,7 @@ def chunk_of_Z_nearCRS_Assembling(cubesNumbers, ELEM_TYPE, Z_TMP_ELEM_TYPE, path
     rowIndexToColumnIndexes = zeros((N_RWG, 2), 'i') # start and end indexes
     startIndex, startIndexInTestRWGNumbers, startIndexInSrcRWGNumbers = 0, 0, 0
     index_in_rowIndexToColumnIndexes = 0
-    for cubeNumber, cube in list_cubes.iteritems():
+    for cubeNumber, cube in list_cubes.items():
         # reading the sparse matrix
         Z_CFIE_near_tmp1 = read_Z_perCube_fromFile(pathToReadFrom, cubeNumber, cube, Z_TMP_ELEM_TYPE)
         Z_CFIE_near_tmp = array(Z_CFIE_near_tmp1.astype(ELEM_TYPE).flat)
@@ -74,14 +82,14 @@ def Z_nearCRS_Assembling(processNumber_to_ChunksNumbers, chunkNumber_to_cubesNum
     The maximum size of a block is given by the variable MAX_BLOCK_SIZE in MegaBytes"""
     # test on MAX_BLOCK_SIZE
     if ( (MAX_BLOCK_SIZE<0.1) | (MAX_BLOCK_SIZE>10000.) ):
-        print "Error: MAX_BLOCK_SIZE too big or too small"
+        print("Error: MAX_BLOCK_SIZE too big or too small")
         sys.exit(1)
     num_procs = MPI.COMM_WORLD.Get_size()
     my_id = MPI.COMM_WORLD.Get_rank()
     NAME = "Z_CFIE_near"
     if (my_id==0):
-        print "Number of leaf cubes =", C
-        print "assembling Z_CFIE_near chunks..."
+        print("Number of leaf cubes = " + str(C))
+        print("assembling Z_CFIE_near chunks...")
     chunkNumbers = processNumber_to_ChunksNumbers[my_id]
     for chunkNumber in chunkNumbers:
         cubesNumbers = chunkNumber_to_cubesNumbers[chunkNumber]
@@ -112,7 +120,7 @@ def writeToDisk_chunk_of_Z_sparse(path, name, Z, src_RWG_numbers, rowIndexToColu
 def assemble_Z_near(params_simu, simuDirName):
     my_id = MPI.COMM_WORLD.Get_rank()
     tmpDirName = os.path.join(simuDirName, 'tmp' + str(my_id))
-    file = open(os.path.join(tmpDirName, 'pickle', 'variables.txt'), 'r')
+    file = open(os.path.join(tmpDirName, 'pickle', 'variables.txt'), 'rb')
     variables = cPickle.load(file)
     file.close()
     ELEM_TYPE, Z_TMP_ELEM_TYPE = 'F', 'F'
@@ -136,10 +144,10 @@ if __name__=='__main__':
     if simuParams==None:
         simuParams = 'simulation_parameters'
     # the simulation itself
-    exec 'from ' + simuParams + ' import *'
+    exec('from ' + simuParams + ' import *')
     if (params_simu.MONOSTATIC_RCS==1) or (params_simu.MONOSTATIC_SAR==1) or (params_simu.BISTATIC==1):
         assemble_Z_near(params_simu, simuDirName)
     else:
-        print "you should select monostatic RCS or monostatic SAR or bistatic computation, or a combination of these computations. Check the simulation settings."
+        print("you should select monostatic RCS or monostatic SAR or bistatic computation, or a combination of these computations. Check the simulation settings.")
         sys.exit(1)
-    #MPI.Finalize()
+

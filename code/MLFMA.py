@@ -1,5 +1,9 @@
 from mpi4py import *
-import sys, time, copy, commands, pickle, cPickle
+import sys, time, copy
+try:
+    import cPickle
+except ImportError:
+    import pickle as cPickle
 from numpy import round, ceil
 from scipy import rand, prod, mean, arccos, dot, product, log, log10, ceil, floor, where, real, sqrt
 from meshClass import MeshClass, CubeClass
@@ -56,7 +60,7 @@ def octtreeXWN_computation(boundary_inf, boundary_sup, L, N_levels, int_method, 
             octtreeX[i,:octtreeN[i]], octtreeW[i,:octtreeN[i]] = octtreeXTmp, octtreeWTmp
             octtreeX[i,:octtreeN[i]] -= (octtreeX[i,1] - octtreeX[i,0])/2.
         else:
-            print "Error: integration method must be GAUSSL, TRAP or PONCELET."
+            print("Error: integration method must be GAUSSL, TRAP or PONCELET.")
     return octtreeX, octtreeW, octtreeN
 
 def computeTreeParameters(my_id, tmpDirName, a, k, N_levels, params_simu):
@@ -66,7 +70,7 @@ def computeTreeParameters(my_id, tmpDirName, a, k, N_levels, params_simu):
     for i in range(L.shape[0]):
         L[i]  = L_computation(k, a*(2**i), NB_DIGITS)
     if (my_id==0) and (params_simu.VERBOSE == 1):
-        print "L =", L
+        print("L = " + str(L))
     # integration and interpolation data
     octtreeXcosThetas, octtreeWthetas, octtreeNthetas = octtreeXWN_computation(-1.0, 1.0, L, N_levels, params_simu.int_method_theta, params_simu.INCLUDE_BOUNDARIES)
     octtreeXthetas = zeros(octtreeXcosThetas.shape, 'd')
@@ -143,7 +147,7 @@ def computeTreeParameters(my_id, tmpDirName, a, k, N_levels, params_simu):
     else:
         octtreeXphis_coarsest[0] = params_simu.START_PHI
     if (my_id==0) and (params_simu.VERBOSE == 1):
-        print "L for coarsest level =", L_coarsest
+        print("L for coarsest level = " + str(L_coarsest))
     writeASCIIBlitzArrayToDisk(octtreeXthetas_coarsest, os.path.join(tmpDirName, 'octtree_data/octtreeXthetas_coarsest.txt') )
     writeASCIIBlitzArrayToDisk(octtreeXphis_coarsest, os.path.join(tmpDirName, 'octtree_data/octtreeXphis_coarsest.txt') )
     MPI.COMM_WORLD.Barrier()
@@ -154,7 +158,7 @@ def print_times(params_simu, simuDirName):
     tmpDirName = os.path.join(simuDirName, 'tmp' + str(my_id))
     if (my_id == 0):
         # final moves
-        file = open(os.path.join(tmpDirName, 'pickle', 'variables.txt'), 'r')
+        file = open(os.path.join(tmpDirName, 'pickle', 'variables.txt'), 'rb')
         variables = cPickle.load(file)
         file.close()
         numberOfMatvecs = readIntFromDisk(os.path.join(tmpDirName,'iterative_data/numberOfMatvecs.txt'))
@@ -217,24 +221,24 @@ def print_times(params_simu, simuDirName):
             if 'real' in line:
                 CPU_time_MLFMA = float(line.split()[1])
         if (params_simu.VERBOSE == 1):
-            print "N RWG =", variables['N_RWG']
+            print("N RWG = " + str(variables['N_RWG']))
             sys.stdout.write("average RWG length = %.5s" %str(average_RWG_length) + " m = lambda / %.9s" %str((c/params_simu.f)/average_RWG_length) + " \n")
-            print CPU_time_GMSH, "CPU time (seconds) for GMSH meshing"
-            print CPU_time_distribute_Z_cubes, "CPU time (seconds) for distribute_Z_cubes"
-            print CPU_time_compute_Z_near, "CPU time (seconds) for compute_Z_near (C++)"
-            print variables['CPU_time_Z_near_computation'], "CPU time (seconds) for constructing Z_CFIE_near"
-            print variables['Wall_time_Z_near_computation'], "Wall time (seconds) for constructing Z_CFIE_near"
-            print CPU_time_communicateZnearBlocks, "CPU time (seconds) for communicateZnearBlocks"
-            print CPU_time_compute_SAI_precond, "CPU time (seconds) for computing SAI precond (C++)"
-            print variables['CPU_time_Mg_computation'], "CPU time (seconds) for constructing SAI precond"
-            print variables['Wall_time_Mg_computation'], "Wall time (seconds) for constructing SAI precond"
-            print CPU_time_RWGs_renumbering, "CPU time (seconds) for RWGs_renumbering"
-            print CPU_time_MLFMA, "CPU time (seconds) for MLFMA iterations and solution. Iterations =", NIterMLFMA
+            print(str(CPU_time_GMSH) + " CPU time (seconds) for GMSH meshing")
+            print(str(CPU_time_distribute_Z_cubes) + " CPU time (seconds) for distribute_Z_cubes")
+            print(str(CPU_time_compute_Z_near) + " CPU time (seconds) for compute_Z_near (C++)")
+            print(str(variables['CPU_time_Z_near_computation']) + " CPU time (seconds) for constructing Z_CFIE_near")
+            print(str(variables['Wall_time_Z_near_computation']) + " Wall time (seconds) for constructing Z_CFIE_near")
+            print(str(CPU_time_communicateZnearBlocks) + " CPU time (seconds) for communicateZnearBlocks")
+            print(str(CPU_time_compute_SAI_precond) + " CPU time (seconds) for computing SAI precond (C++)")
+            print(str(variables['CPU_time_Mg_computation']) + " CPU time (seconds) for constructing SAI precond")
+            print(str(variables['Wall_time_Mg_computation']) + " Wall time (seconds) for constructing SAI precond")
+            print(str(CPU_time_RWGs_renumbering) + " CPU time (seconds) for RWGs_renumbering")
+            print(str(CPU_time_MLFMA) + " CPU time (seconds) for MLFMA iterations and solution. Iterations = " + str(NIterMLFMA))
             #print target_MLFMA.Wall_time_Target_MLFMA_resolution, "Wall time (seconds) for MLFMA iterations and solution. Iterations =", target_MLFMA.NIterMLFMA
             if numberOfMatvecs>0:
-                print CPU_time_MLFMA/numberOfMatvecs, "CPU time (seconds) per MLFMA matvec"
+                print(str(CPU_time_MLFMA/numberOfMatvecs) + " CPU time (seconds) per MLFMA matvec")
                 #print target_MLFMA.Wall_time_Target_MLFMA_resolution/target_MLFMA.numberOfMatvecs, "Wall time (seconds) per MLFMA matvec"
-            print CPU_time_GMSH + CPU_time_distribute_Z_cubes + CPU_time_compute_Z_near + variables['CPU_time_Z_near_computation'] + CPU_time_communicateZnearBlocks + variables['CPU_time_Mg_computation'] + CPU_time_compute_SAI_precond + CPU_time_RWGs_renumbering + CPU_time_MLFMA, "CPU time (seconds) for complete MLFMA solution"
+            print(str(CPU_time_GMSH + CPU_time_distribute_Z_cubes + CPU_time_compute_Z_near + variables['CPU_time_Z_near_computation'] + CPU_time_communicateZnearBlocks + variables['CPU_time_Mg_computation'] + CPU_time_compute_SAI_precond + CPU_time_RWGs_renumbering + CPU_time_MLFMA) + " CPU time (seconds) for complete MLFMA solution")
             #print Wall_time_Z_near_computation + Wall_time_Mg_computation + target_MLFMA.Wall_time_Target_MLFMA_resolution, "Wall time (seconds) for complete MLFMA solution"
         if params_simu.CURRENTS_VISUALIZATION:
             computeCurrentsVisualization(params_simu, variables, simuDirName)
@@ -252,7 +256,7 @@ def computeCurrentsVisualization(params_simu, variables, simuDirName):
         N_RWG = readIntFromDisk(os.path.join(tmpDirName, "mesh", "N_RWG.txt"))
         CURRENTS_VISUALIZATION = params_simu.CURRENTS_VISUALIZATION and (N_RWG<2e6) and (params_simu.BISTATIC == 1)
         if CURRENTS_VISUALIZATION:
-            print "............Constructing visualisation of currents"
+            print("............Constructing visualisation of currents")
             if (N_RWG<1e4):
                 nbTimeSteps = 48
             else:
@@ -262,7 +266,7 @@ def computeCurrentsVisualization(params_simu, variables, simuDirName):
             norm_J_centroids_triangles = normJMCentroidsTriangles(J_centroids_triangles, variables['w'], nbTimeSteps)
             write_VectorFieldTrianglesCentroidsGMSH(os.path.join(geoDirName, params_simu.targetName) + '.J_centroids_triangles.pos', real(J_centroids_triangles), target_mesh)
             write_ScalarFieldTrianglesCentroidsGMSH(os.path.join(geoDirName, params_simu.targetName) + '.norm_J_centroids_triangles.pos', norm_J_centroids_triangles, target_mesh)
-            print "............end of currents visualisation construction."
+            print("............end of currents visualisation construction.")
         else:
             "Error in the computeCurrentsVisualization routine. Probably you required currents visualization computation for a mesh too big"
             sys.exit(1)
@@ -277,12 +281,12 @@ def saveCurrentsCentroids(params_simu, simuDirName):
         target_mesh.constructFromSavedArrays(os.path.join(tmpDirName, "mesh"))
         SAVE_CURRENTS_CENTROIDS = (params_simu.SAVE_CURRENTS_CENTROIDS and (params_simu.BISTATIC == 1))
         if SAVE_CURRENTS_CENTROIDS:
-            print "............saving currents at centroids of triangles"
+            print("............saving currents at centroids of triangles")
             nbTimeSteps = 1
             I_coeff = read1DBlitzArrayFromDisk(os.path.join(tmpDirName, 'ZI/ZI.txt'), 'F')
             J_centroids_triangles = JMCentroidsTriangles(I_coeff, target_mesh)
             write_VectorFieldTrianglesCentroids(os.path.join(simuDirName, 'result', 'J_centroids_triangles.txt'), J_centroids_triangles, target_mesh)
-            print "............end of saving of currents."
+            print("............end of saving of currents.")
 
 def getField(filename):
     my_id = MPI.COMM_WORLD.Get_rank()

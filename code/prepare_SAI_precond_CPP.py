@@ -1,4 +1,8 @@
-import sys, os, cPickle, time, argparse
+import sys, os, time, argparse
+try:
+    import cPickle
+except ImportError:
+    import pickle as cPickle
 from mpi4py import MPI
 from ReadWriteBlitzArray import writeASCIIBlitzArrayToDisk
 from scipy import array
@@ -6,7 +10,7 @@ from scipy import array
 def prepare_SAI(params_simu, simuDirName):
     my_id = MPI.COMM_WORLD.Get_rank()
     tmpDirName = os.path.join(simuDirName, 'tmp' + str(my_id))
-    file = open(os.path.join(tmpDirName, 'pickle', 'variables.txt'), 'r')
+    file = open(os.path.join(tmpDirName, 'pickle', 'variables.txt'), 'rb')
     variables = cPickle.load(file)
     file.close()
     # writing the chunk numbers (per process)
@@ -19,7 +23,7 @@ def prepare_SAI(params_simu, simuDirName):
     writeASCIIBlitzArrayToDisk(array(variables['cubeNumber_to_chunkNumber']).astype('i'), os.path.join(tmpDirName, 'Mg_LeftFrob', 'cubeNumber_to_chunkNumber.txt')) 
     variables['Wall_time_Mg_computation'] = 0.0
     variables['CPU_time_Mg_computation'] = 0.0
-    file = open(os.path.join(tmpDirName, 'pickle', 'variables.txt'), 'w')
+    file = open(os.path.join(tmpDirName, 'pickle', 'variables.txt'), 'wb')
     cPickle.dump(variables, file)
     file.close()
 
@@ -38,10 +42,10 @@ if __name__=='__main__':
     if simuParams==None:
         simuParams = 'simulation_parameters'
     # the simulation itself
-    exec 'from ' + simuParams + ' import *'
+    exec('from ' + simuParams + ' import *')
     if (params_simu.MONOSTATIC_RCS==1) or (params_simu.MONOSTATIC_SAR==1) or (params_simu.BISTATIC==1):
         prepare_SAI(params_simu, simuDirName)
     else:
-        print "you should select monostatic RCS or monostatic SAR or bistatic computation, or a combination of these computations. Check the simulation settings."
+        print("you should select monostatic RCS or monostatic SAR or bistatic computation, or a combination of these computations. Check the simulation settings.")
         sys.exit(1)
-    #MPI.Finalize()
+

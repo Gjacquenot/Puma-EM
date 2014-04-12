@@ -27,34 +27,34 @@ echo " "
 . ./config_mpi.sh
 # custom command following mpi configuration
 MPI_CMD="mpirun --hostfile $MPI_HOSTFILE -np $N_PROCESSES "
-
+PYTHON_CMD="python"
 # first the mesh setup and generation. Only on one process
-python code/setup_GMSH.py --simudir ${SIMU_DIR} --simuparams ${SIMU_PARAMS}
+${PYTHON_CMD} code/setup_GMSH.py --simudir ${SIMU_DIR} --simuparams ${SIMU_PARAMS}
 { time -p ./GMSHcommand.sh; } 2> ${SIMU_DIR}/result/CPU_time_GMSH.txt
 
 # setup of the MLFMA simulation
-${MPI_CMD} python code/setup_MLFMA_folders.py --simudir ${SIMU_DIR}
-${MPI_CMD} python code/setup_MLFMA_excitation.py --simudir ${SIMU_DIR} --simuparams ${SIMU_PARAMS}
-${MPI_CMD} python code/setup_MLFMA_mesh.py --simudir ${SIMU_DIR} --simuparams ${SIMU_PARAMS}
+${MPI_CMD} ${PYTHON_CMD} code/setup_MLFMA_folders.py --simudir ${SIMU_DIR}
+${MPI_CMD} ${PYTHON_CMD} code/setup_MLFMA_excitation.py --simudir ${SIMU_DIR} --simuparams ${SIMU_PARAMS}
+${MPI_CMD} ${PYTHON_CMD} code/setup_MLFMA_mesh.py --simudir ${SIMU_DIR} --simuparams ${SIMU_PARAMS}
 
 # distribution of data across processes
 { time -p ${MPI_CMD} ./code/MoM/distribute_Z_cubes --simudir ${SIMU_DIR}; } 2> ${SIMU_DIR}/result/CPU_time_distribute_Z_cubes.txt
-${MPI_CMD} python code/distribute_ZChunks_and_cubes.py --simudir ${SIMU_DIR} --simuparams ${SIMU_PARAMS}
+${MPI_CMD} ${PYTHON_CMD} code/distribute_ZChunks_and_cubes.py --simudir ${SIMU_DIR} --simuparams ${SIMU_PARAMS}
 
 # computation of the Z_near blocks
 { time -p ${MPI_CMD} ./code/MoM/compute_Z_near --simudir ${SIMU_DIR}; } 2> ${SIMU_DIR}/result/CPU_time_compute_Z_near.txt
-${MPI_CMD} python code/compute_Z_near_MLFMA.py --simudir ${SIMU_DIR} --simuparams ${SIMU_PARAMS}
+${MPI_CMD} ${PYTHON_CMD} code/compute_Z_near_MLFMA.py --simudir ${SIMU_DIR} --simuparams ${SIMU_PARAMS}
 
 # hereafter we exchange the Z_near blocks for SAI computation
 { time -p ${MPI_CMD} ./code/MoM/communicateZnearBlocks --simudir ${SIMU_DIR}; } 2> ${SIMU_DIR}/result/CPU_time_communicateZnearBlocks.txt
 
 # now computation of the SAI preconditioner
 # ${MPI_CMD} python code/compute_SAI_precond_MLFMA.py --simudir ${SIMU_DIR} --simuparams ${SIMU_PARAMS}
-${MPI_CMD} python code/prepare_SAI_precond_CPP.py --simudir ${SIMU_DIR} --simuparams ${SIMU_PARAMS}
+${MPI_CMD} ${PYTHON_CMD} code/prepare_SAI_precond_CPP.py --simudir ${SIMU_DIR} --simuparams ${SIMU_PARAMS}
 { time -p ${MPI_CMD} ./code/MoM/compute_SAI_precond --simudir ${SIMU_DIR}; } 2> ${SIMU_DIR}/result/CPU_time_compute_SAI_precond.txt
 
 # assembling the near field interactions blocks
-${MPI_CMD} python code/assemble_Z_near.py --simudir ${SIMU_DIR} --simuparams ${SIMU_PARAMS}
+${MPI_CMD} ${PYTHON_CMD} code/assemble_Z_near.py --simudir ${SIMU_DIR} --simuparams ${SIMU_PARAMS}
 
 # now renumbering of the RWGs for Znear and preconditioner multiplications
 { time -p ${MPI_CMD} ./code/MoM/RWGs_renumbering --simudir ${SIMU_DIR}; } 2> ${SIMU_DIR}/result/CPU_time_RWGs_renumbering.txt
@@ -63,7 +63,7 @@ ${MPI_CMD} python code/assemble_Z_near.py --simudir ${SIMU_DIR} --simuparams ${S
 { time -p ${MPI_CMD} ./code/MoM/mpi_mlfma --simudir ${SIMU_DIR}; } 2> ${SIMU_DIR}/result/CPU_time_MLFMA.txt
 
 # and now the visualisation of the results
-python code/RCS_MLFMA.py --simudir ${SIMU_DIR} --simuparams ${SIMU_PARAMS}
+${PYTHON_CMD} code/RCS_MLFMA.py --simudir ${SIMU_DIR} --simuparams ${SIMU_PARAMS}
 
 # copying the result in the puma-em directory
 [ ! -e "${RESULT_DIR}" ] && mkdir -p ${RESULT_DIR}

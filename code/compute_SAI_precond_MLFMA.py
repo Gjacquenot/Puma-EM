@@ -1,4 +1,8 @@
-import sys, os, cPickle, time, argparse
+import sys, os, time, argparse
+try:
+    import cPickle
+except ImportError:
+    import pickle as cPickle
 from mpi4py import MPI
 from FMM_precond import Mg_CSR
 from assemble_Z_near import Z_nearCRS_Assembling
@@ -46,7 +50,7 @@ def compute_SAI(params_simu, simuDirName):
     pathToSaveTo = os.path.join(tmpDirName, 'Mg_LeftFrob')
     if params_simu.COMPUTE_Z_NEAR==1:
         pass
-    file = open(os.path.join(tmpDirName, 'pickle', 'variables.txt'), 'r')
+    file = open(os.path.join(tmpDirName, 'pickle', 'variables.txt'), 'rb')
     variables = cPickle.load(file)
     file.close()
     #if my_id==0:
@@ -69,7 +73,7 @@ def compute_SAI(params_simu, simuDirName):
         print variables['Wall_time_Z_near_computation'], "Wall time (seconds) for constructing Z_CFIE_near"
         print variables['CPU_time_Mg_computation'], "CPU time (seconds) for constructing SAI precond"
         print variables['Wall_time_Mg_computation'], "Wall time (seconds) for constructing SAI precond"
-    file = open(os.path.join(tmpDirName, 'pickle', 'variables.txt'), 'w')
+    file = open(os.path.join(tmpDirName, 'pickle', 'variables.txt'), 'wb')
     cPickle.dump(variables, file)
     file.close()
 

@@ -1,4 +1,8 @@
-import os.path, sys, time, pickle, cPickle
+import os.path, sys, time
+try:
+    import cPickle
+except ImportError:
+    import pickle as cPickle
 from scipy import zeros, ones, arange, array, take, reshape, sort, argsort, put, sum, compress, nonzero, prod
 from scipy import mean, sqrt
 from read_mesh import read_mesh_GMSH_1, read_mesh_GMSH_2, read_mesh_GiD, read_mesh_ANSYS
@@ -13,7 +17,7 @@ import copy
 class MeshClass:
     def __init__(self, path, targetName, targetDimensions_scaling_factor, z_offset, languageForMeshConstruction, meshFormat, meshFileTermination):
 	
-	self.path, self.name, self.geoName = path, targetName + meshFileTermination, targetName + '.geo'
+        self.path, self.name, self.geoName = path, targetName + meshFileTermination, targetName + '.geo'
         self.targetName = targetName
         self.z_offset = z_offset
         self.targetDimensions_scaling_factor = targetDimensions_scaling_factor
@@ -30,15 +34,15 @@ class MeshClass:
                 ## '// delta_gap' written aside the Line we want to be the delta gap
                 self.delta_gap = [ORIGIN_POINT, END_POINT]
                 self.delta_gap_indexes = [ORIGIN_POINT-1, END_POINT-1]
-                print "There is a delta gap in file", self.geoName
-                print "The extremities of the delta gap are points", self.delta_gap
+                print("There is a delta gap in file " + str(self.geoName))
+                print("The extremities of the delta gap are points " + str(self.delta_gap))
         else:
             # else we don't look for a delta gap in the file
             pass
-        print "  Python construction of the Mesh object"
+        print("  Python construction of the Mesh object")
         sys.stdout.flush()
 
-        print "  reading",  os.path.join(self.path, self.name), "...",
+        print("  reading " +  os.path.join(self.path, self.name) + "...")
         t0 = time.clock()
         if self.meshFormat == 'GMSH':
             #self.vertexes_coord, self.triangle_vertexes, self.triangles_physicalSurface = read_mesh_GMSH_1(os.path.join(self.path, self.name), self.targetDimensions_scaling_factor, self.z_offset)
@@ -48,12 +52,12 @@ class MeshClass:
         elif self.meshFormat == 'ANSYS':
             self.vertexes_coord, self.triangle_vertexes, self.triangles_physicalSurface = read_mesh_ANSYS(self.path, self.name, self.targetDimensions_scaling_factor, self.z_offset)
         else:
-            print "meshClass.py : error on the mesh format. Enter a correct one please."
+            print("meshClass.py : error on the mesh format. Enter a correct one please.")
         self.time_reading = time.clock()-t0
-        print "reading mesh time =", self.time_reading, "seconds"
+        print("reading mesh time = " + str(self.time_reading) + " seconds")
         self.T = self.triangle_vertexes.shape[0]
-        print "  number of triangles =", self.T
-        print "  edges classification..."
+        print("  number of triangles = " + str(self.T))
+        print("  edges classification...")
         sys.stdout.flush()
         
         if self.languageForMeshConstruction=="C" or self.languageForMeshConstruction=="C++":
@@ -62,7 +66,7 @@ class MeshClass:
             self.triangles_surfaces, self.IS_CLOSED_SURFACE, self.RWGNumber_signedTriangles, self.RWGNumber_edgeVertexes, self.RWGNumber_oppVertexes, self.triangle_vertexes = edges_computation_C(self.triangle_vertexes, self.vertexes_coord, self.path)
             self.N_RWG = self.RWGNumber_edgeVertexes.shape[0]
             self.S = len(self.IS_CLOSED_SURFACE)
-            print "  test of the closed surfaces :", self.IS_CLOSED_SURFACE
+            print("  test of the closed surfaces : " + str(self.IS_CLOSED_SURFACE))
             if self.meshFormat == 'GMSH':
                 if self.DELTA_GAP:
                     # here we must create a C++ function that calculates the mid point of each RWG and sees 
@@ -70,33 +74,33 @@ class MeshClass:
                     # self.RWGNumber_edgeVertexes as inputs.
                     pass
             self.time_edges_classification = time.clock()-t0
-            print "  edges classification cumulated time =", self.time_edges_classification, "seconds"
+            print("  edges classification cumulated time = " + str(self.time_edges_classification) + " seconds")
             self.time_effective_RWG_functions_computation = self.time_edges_classification
-            print "    Number of RWG =", self.N_RWG
+            print("    Number of RWG = " + str(self.N_RWG))
 
         else:
             t0 = time.clock()
             edgeNumber_vertexes, edgeNumber_triangles, triangle_adjacentTriangles, is_triangle_adjacentTriangles_via_junction = edges_computation(self.triangle_vertexes, self.vertexes_coord)
             self.time_edges_classification = time.clock()-t0
-            print "  edges classification cumulated time =", self.time_edges_classification, "seconds"
+            print("  edges classification cumulated time = " + str(self.time_edges_classification) + " seconds")
 
-            print "  reordering triangles for normals coherency..."
+            print("  reordering triangles for normals coherency...")
             sys.stdout.flush()
             t0 = time.clock()
             self.triangles_surfaces = reorder_triangle_vertexes(triangle_adjacentTriangles, is_triangle_adjacentTriangles_via_junction, self.triangle_vertexes, self.vertexes_coord)
             self.S = max(self.triangles_surfaces)+1
             self.time_reordering_normals = time.clock()-t0
-            print "  cumulated time =", self.time_reordering_normals, "seconds"
-    
-            print "  checking the closed and open surfaces...",
+            print("  cumulated time = " + str(self.time_reordering_normals) + " seconds")
+
+            print("  checking the closed and open surfaces...")
             sys.stdout.flush()
             t0 = time.clock()
             self.IS_CLOSED_SURFACE, self.connected_surfaces, self.potential_closed_surfaces = is_surface_closed(self.triangles_surfaces, edgeNumber_triangles)
-            print "  test of the closed surfaces :", self.IS_CLOSED_SURFACE
-            print "  connected surfaces : ", self.connected_surfaces
-            print "  potential closed surfaces : ", self.potential_closed_surfaces
-        
-            print "  computing the effective RWG functions and their opposite vertexes..."
+            print("  test of the closed surfaces : " + str(self.IS_CLOSED_SURFACE))
+            print("  connected surfaces : " + str(self.connected_surfaces))
+            print("  potential closed surfaces : " + str(self.potential_closed_surfaces))
+
+            print("  computing the effective RWG functions and their opposite vertexes...")
             sys.stdout.flush()
             t0 = time.clock()
             self.RWGNumber_signedTriangles, self.RWGNumber_edgeVertexes, self.N_edges, self.N_RWG = RWGNumber_signedTriangles_computation(edgeNumber_triangles, edgeNumber_vertexes, self.triangles_surfaces, self.IS_CLOSED_SURFACE, self.triangle_vertexes, self.vertexes_coord)
@@ -104,9 +108,9 @@ class MeshClass:
             self.RWGNumber_oppVertexes = RWGNumber_oppVertexes_computation(self.RWGNumber_signedTriangles, self.RWGNumber_edgeVertexes, self.triangle_vertexes)
             # memory-economic way for computing average_RWG_length
             self.time_effective_RWG_functions_computation =  time.clock() - t0
-            print "  effective RWG functions computation cumulated time =", self.time_effective_RWG_functions_computation
-            print "  Number of edges =", self.N_edges
-            print "  Number of RWG =", self.N_RWG
+            print("  effective RWG functions computation cumulated time = " + str(self.time_effective_RWG_functions_computation))
+            print("  Number of edges = " + str(self.N_edges))
+            print("  Number of RWG = " + str(self.N_RWG))
             sys.stdout.flush()
         
         self.compute_RWG_CFIE_OK()
@@ -135,14 +139,14 @@ class MeshClass:
         self.RWGNumber_M_CURRENT_OK = ((sum(RWGNumber_CFIE_OK_tmp2, axis=1)>1) * 1).astype('i')
     
     def write_normals(self):
-        print "writing normals to a file"
+        print("writing normals to a file")
         name = 'normals.pos'
-        print "triangles_areas and triangles_normals computation...",
+        print("triangles_areas and triangles_normals computation...")
         t0 = time.clock()
         triangles_centroids = triangles_centroids_computation(self.vertexes_coord, self.triangle_vertexes)
         triangles_areas, triangles_normals = triangles_areas_normals_computation(self.vertexes_coord, self.triangle_vertexes, self.triangles_surfaces)
         self.time_triangles_normals_comp = time.clock()-t0
-        print "time =", self.time_triangles_normals_comp, "seconds"
+        print("time = " + str(self.time_triangles_normals_comp) + " seconds")
         write_normals(os.path.join(self.path, name), triangles_centroids, triangles_normals, self.triangles_surfaces, -1)
 
     def cubes_data_computation(self, a):
@@ -156,7 +160,7 @@ class MeshClass:
         self.cubes_RWGsNumbers, self.cubes_lists_RWGsNumbers, self.cube_N_RWGs, self.cubes_centroids = cubeIndex_RWGNumbers_computation(RWGNumber_cubeNumber, RWGNumber_cubeCentroidCoord)
         self.C = self.cubes_centroids.shape[0]
         self.cubes_lists_NeighborsIndexes, self.cubes_neighborsIndexes, self.cube_N_neighbors = findCubeNeighbors(self.max_N_cubes_1D, self.big_cube_lower_coord, self.cubes_centroids, self.a)
-        print "Average number of RWGs per cube:", mean(self.cube_N_RWGs)
+        print("Average number of RWGs per cube : " + str(mean(self.cube_N_RWGs)))
         #print "Exiting cubes_data_computation.............."
 
     def saveToDisk(self, path):
@@ -166,10 +170,10 @@ class MeshClass:
         writeBlitzArrayToDisk(self.cube_N_RWGs, os.path.join(path, 'cube_N_RWGs') + '.txt')
         writeBlitzArrayToDisk(self.cubes_neighborsIndexes, os.path.join(path, 'cubes_neighborsIndexes') + '.txt')
         writeBlitzArrayToDisk(self.cube_N_neighbors, os.path.join(path, 'cube_N_neighbors') + '.txt')
-        file = open(os.path.join(path, 'cubes_lists_RWGsNumbers.txt'), 'w')
+        file = open(os.path.join(path, 'cubes_lists_RWGsNumbers.txt'), 'wb')
         cPickle.dump(self.cubes_lists_RWGsNumbers, file)
         file.close()
-        file = open(os.path.join(path, 'cubes_lists_NeighborsIndexes.txt'), 'w')
+        file = open(os.path.join(path, 'cubes_lists_NeighborsIndexes.txt'), 'wb')
         cPickle.dump(self.cubes_lists_NeighborsIndexes, file)
         file.close()
         writeBlitzArrayToDisk(self.vertexes_coord, os.path.join(path, 'vertexes_coord') + '.txt')
@@ -201,10 +205,10 @@ class MeshClass:
         self.N_RWG = self.E
         # now the arrays
         self.cubes_centroids = readBlitzArrayFromDisk(os.path.join(path, "cubes_centroids.txt"), self.C, 3, 'd')
-        file = open(os.path.join(path, 'cubes_lists_RWGsNumbers.txt'), 'r')
+        file = open(os.path.join(path, 'cubes_lists_RWGsNumbers.txt'), 'rb')
         self.cubes_lists_RWGsNumbers = cPickle.load(file)
         file.close()
-        file = open(os.path.join(path, 'cubes_lists_NeighborsIndexes.txt'), 'r')
+        file = open(os.path.join(path, 'cubes_lists_NeighborsIndexes.txt'), 'rb')
         self.cubes_lists_NeighborsIndexes = cPickle.load(file)
         file.close()
         self.vertexes_coord = readBlitzArrayFromDisk(os.path.join(path, "vertexes_coord.txt"), self.V, 3, 'd')

@@ -1,5 +1,8 @@
 import os, sys
-import commands
+try:
+    import commands
+except ImportError:
+    import subprocess as commands
 
 def findDeltaGap(path, targetName):
     """This function looks for a delta gap defined in the GMSH geo file. 
@@ -56,7 +59,7 @@ def findParameterValue(path, targetName, parameter):
         paramValueTmp = contents[indexParameter].split()[2].split(';')[0]
         return float(paramValueTmp)
     else:
-        "findParameterValue(): ERROR!! Trying to find the value of nonexistent parameter", parameter, "in file", os.path.join(path, targetName + '.geo')
+        print("findParameterValue(): ERROR!! Trying to find the value of nonexistent parameter", parameter, "in file", os.path.join(path, targetName + '.geo'))
         sys.exit()
 
 def write_geo(path, targetName, parameter, value):
@@ -74,7 +77,7 @@ def write_geo(path, targetName, parameter, value):
             f.write(line)
         f.close()
     else:
-        print "WARNING!! Parameter", parameter, "is not in file", os.path.join(path, targetName + '.geo')
+        print("WARNING!! Parameter", parameter, "is not in file", os.path.join(path, targetName + '.geo'))
 
 def isGeoFileThere(path, targetName):
     listOfFiles = os.listdir(path)
@@ -82,15 +85,15 @@ def isGeoFileThere(path, targetName):
     for machin in listOfFiles:
         if geoFile in machin:
             return 
-    print "PyGmsh: your target name", geoFile, "does not exist in", path
-    print "Exiting."
+    print("PyGmsh: your target name", geoFile, "does not exist in", path)
+    print("Exiting.")
     sys.exit()
 
 def executeGmsh(path, targetName, ViewMesh):
     isGeoFileThere(path, targetName)
     #CommandString = 'gmsh -2 ' + os.path.join(path, targetName) + '.geo'
     CommandString = 'gmsh -2 -algo del2d ' + os.path.join(path, targetName) + '.geo' + ' -string "General.ExpertMode=1;"'
-    print "  Meshing. Command: ", CommandString
+    print("  Meshing. Command: ", CommandString)
     commands.getoutput(CommandString)
     if ViewMesh == 1:
         ViewString = 'gmsh '+ os.path.join(path, targetName) + '.msh'
@@ -101,3 +104,4 @@ if __name__=="__main__":
     targetName = 'cylinder'
     TOLERANCE = True
     paramValue = findParameterValue(path, targetName, 'delta_gap', TOLERANCE)
+

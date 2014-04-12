@@ -97,18 +97,18 @@ def readASCIIBlitzIntArray2DFromDisk(filename):
     A = zeros((Nl, Nc), 'i')
     if Nl==1:
         data = f.readline()
-        A[0] = map(int, data.split()[1:-1])
+        A[0] = list(map(int, data.split()[1:-1]))
     else:
         for i in range(Nl):
             data = f.readline()
             if i==0:
                 # we need to jump over the '[' character
-                A[0] = map(int, data.split()[1:])
+                A[0] = list(map(int, data.split()[1:]))
             elif i<Nl-1:
-                A[i] = map(int, data.split())
+                A[i] = list(map(int, data.split()))
             else:
                 # we need to ignore the last ']' character
-                A[Nl-1] = map(int, data.split()[:-1])
+                A[Nl-1] = list(map(int, data.split()[:-1]))
     f.close()
     return A
 
@@ -153,17 +153,17 @@ def readASCIIBlitzFloatArray2DFromDisk(filename):
     A = zeros((Nl, Nc), 'f')
     if Nl==1:
         data = f.readline()
-        A[0] = array(map(float, data.split()[1:-1]))
+        A[0] = array(list(map(float, data.split()[1:-1])))
     else:
         for i in range(Nl):
             data = f.readline()
             if i==0:
                 # we need to jump over the '[' character
-                A[0] = map(float, data.split()[1:])
+                A[0] = list(map(float, data.split()[1:]))
             elif i<Nl-1:
-                A[i] = map(float, data.split())
+                A[i] = list(map(float, data.split()))
             else:
-                A[Nl-1] = map(float, data.split()[:-1])
+                A[Nl-1] = list(map(float, data.split()[:-1]))
     f.close()
     return A
 
@@ -171,7 +171,7 @@ def readASCIIBlitzFloatArray1DFromDisk(filename):
     f = open(filename, 'r')
     data = f.readline() # we skip the dimensions
     data = f.readline()
-    A = array(map(float, data.split()[1:-1]))
+    A = array(list(map(float, data.split()[1:-1])))
     f.close()
     return A
 
@@ -179,7 +179,7 @@ def readASCIIBlitzIntArray1DFromDisk(filename):
     f = open(filename, 'r')
     data = f.readline() # we skip the dimensions
     data = f.readline()
-    A = array(map(int, data.split()[1:-1]))
+    A = array(list(map(int, data.split()[1:-1])))
     f.close()
     return A
 

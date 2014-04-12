@@ -10,17 +10,16 @@ class Params_Simu:
 
         attributes = dir(self)
         MAX_LENGTH = 0
-        for att in range(0,len(attributes)):
+        for att in list(range(0,len(attributes))):
             this_at = attributes[att]
             if this_at[0] != '_' and this_at != 'create_attribute' and this_at != 'display' and this_at != 'saveTo':
                 if len(this_at) > MAX_LENGTH:
                     MAX_LENGTH = len(this_at)
-        for att in range(0,len(attributes)):
+        for att in list(range(0,len(attributes))):
             this_at = attributes[att]
             if this_at[0] != '_' and this_at != 'create_attribute' and this_at != 'display' and this_at != 'saveTo':
-                print string.rjust(this_at, MAX_LENGTH), " = ", 
-                st = 'print self.'+this_at
-                exec st
+                baba = this_at.rjust(MAX_LENGTH) + " = " + str(getattr(self, this_at))
+                print(baba)
 
     def saveTo(self, filename):
         """
@@ -31,10 +30,10 @@ class Params_Simu:
         fileToSaveTo = open(filename, 'w')
         fileToSaveTo.write("# parameters of the simulation\n")
         attributes = dir(self)
-        for att in range(0,len(attributes)):
+        for att in list(range(0,len(attributes))):
             this_at = attributes[att]
             if this_at[0] != '_' and this_at != 'create_attribute' and this_at != 'display' and this_at != 'saveTo':
-                exec ('this_at_value = self.' + this_at)
-                fileToSaveTo.write(this_at + " = " + str(this_at_value) + '\n')
+                this_at_value = str(getattr(self, this_at))
+                fileToSaveTo.write(this_at + " = " + this_at_value + '\n')
         fileToSaveTo.close()
 
