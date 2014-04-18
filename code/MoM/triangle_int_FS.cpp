@@ -659,7 +659,7 @@ void V_EH_ITo_free (std::complex<double>& ITo_G,
       rprime_r[0] = rprime[0]-r[0];
       rprime_r[1] = rprime[1]-r[1];
       rprime_r[2] = rprime[2]-r[2];
-      R = sqrt(dot3D(rprime_r, rprime_r));
+      R = sqrt(rprime_r[0]*rprime_r[0] + rprime_r[1]*rprime_r[1] + rprime_r[2]*rprime_r[2]);
       I_k_R = I*k*R;
       exp_minus_I_k_R = exp(-I_k_R);
       G_j = exp_minus_I_k_R/R * weigths[j];
@@ -694,20 +694,23 @@ void V_EH_ITo_free (std::complex<double>& ITo_G,
       rprime_r[0] = rprime[0]-r[0];
       rprime_r[1] = rprime[1]-r[1];
       rprime_r[2] = rprime[2]-r[2];
-      R = sqrt(dot3D(rprime_r, rprime_r));
-      I_k_R = I*k*R;
-      exp_minus_I_k_R = exp(-I_k_R);
-      G_j = (R>rsmall) ? (exp_minus_I_k_R - 1.0)/R * weigths[j] : -I * k * weigths[j];
-      ITo_G += G_j;
-      ITo_G_rprime_r[0] += G_j * rprime_r[0];
-      ITo_G_rprime_r[1] += G_j * rprime_r[1];
-      ITo_G_rprime_r[2] += G_j * rprime_r[2];
+      R = sqrt(rprime_r[0]*rprime_r[0] + rprime_r[1]*rprime_r[1] + rprime_r[2]*rprime_r[2]);
       if (R>rsmall) {
+        I_k_R = I*k*R;
+        exp_minus_I_k_R = exp(-I_k_R);
+        G_j = (exp_minus_I_k_R - 1.0)/R * weigths[j];
         const std::complex<double> temp( -(-exp_minus_I_k_R*(1.0+I_k_R) + 1.0)/(R*R*R) * weigths[j] );
         ITo_grad_G[0] += temp * rprime_r[0];
         ITo_grad_G[1] += temp * rprime_r[1];
         ITo_grad_G[2] += temp * rprime_r[2];
       }
+      else {
+        G_j = -I * k * weigths[j];
+      }
+      ITo_G += G_j;
+      ITo_G_rprime_r[0] += G_j * rprime_r[0];
+      ITo_G_rprime_r[1] += G_j * rprime_r[1];
+      ITo_G_rprime_r[2] += G_j * rprime_r[2];
       n_hat_X_rprime[0] = To.n_hat[1]*rprime[2]-To.n_hat[2]*rprime[1];
       n_hat_X_rprime[1] = To.n_hat[2]*rprime[0]-To.n_hat[0]*rprime[2];
       n_hat_X_rprime[2] = To.n_hat[0]*rprime[1]-To.n_hat[1]*rprime[0];
@@ -733,20 +736,23 @@ void V_EH_ITo_free (std::complex<double>& ITo_G,
       rprime_r[0] = rprime[0]-r[0];
       rprime_r[1] = rprime[1]-r[1];
       rprime_r[2] = rprime[2]-r[2];
-      R = sqrt(dot3D(rprime_r, rprime_r));
-      I_k_R = I*k*R;
-      exp_minus_I_k_R = exp(-I_k_R);
-      G_j = (R>rsmall) ? ( (exp_minus_I_k_R - 1.0)/R + k_square/2.0 * R ) * weigths[j] : -I * k * weigths[j];
-      ITo_G += G_j;
-      ITo_G_rprime_r[0] += G_j * rprime_r[0];
-      ITo_G_rprime_r[1] += G_j * rprime_r[1];
-      ITo_G_rprime_r[2] += G_j * rprime_r[2];
+      R = sqrt(rprime_r[0]*rprime_r[0] + rprime_r[1]*rprime_r[1] + rprime_r[2]*rprime_r[2]);
       if (R>rsmall) {
+        I_k_R = I*k*R;
+        exp_minus_I_k_R = exp(-I_k_R);
+        G_j = ( (exp_minus_I_k_R - 1.0)/R + k_square/2.0 * R ) * weigths[j];
         const std::complex<double> temp( -(-exp_minus_I_k_R*(1.0+I_k_R) + 1.0 + k_square/2.0 * R*R)/(R*R*R) * weigths[j] );
         ITo_grad_G[0] += temp * rprime_r[0];
         ITo_grad_G[1] += temp * rprime_r[1];
         ITo_grad_G[2] += temp * rprime_r[2];
       }
+      else {
+        G_j = -I * k * weigths[j];
+      }
+      ITo_G += G_j;
+      ITo_G_rprime_r[0] += G_j * rprime_r[0];
+      ITo_G_rprime_r[1] += G_j * rprime_r[1];
+      ITo_G_rprime_r[2] += G_j * rprime_r[2];
       n_hat_X_rprime[0] = To.n_hat[1]*rprime[2]-To.n_hat[2]*rprime[1];
       n_hat_X_rprime[1] = To.n_hat[2]*rprime[0]-To.n_hat[0]*rprime[2];
       n_hat_X_rprime[2] = To.n_hat[0]*rprime[1]-To.n_hat[1]*rprime[0];
