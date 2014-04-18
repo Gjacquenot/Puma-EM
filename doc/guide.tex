@@ -525,11 +525,21 @@ params_simu.BISTATIC_ANGLES_OBS = 1
 params_simu.BISTATIC_ANGLES_OBS_FILENAME = "./input_parameters/bistatic_angles_obs.txt"
 # the structure of the bistatic _angles_obs file MUST BE AS FOLLOWS:
 # 1 line per observation angle, as many lines as there are angles
-# each line has 2 columns which are the angles in degrees (easier for human reading):
+# each line has 2 columns which are the angles in degrees (easier for human reading).
+# We must have: 0 <= theta <= 180 degrees (0 is the z axis, 180 is -z).
+# likewise, 0 <= phi <= 360 degrees. For theta = 90 degrees, phi = 0 is the x axis, 
+# 180 is -x, 360 is x.
 #
 # theta_obs phi_obs
 \end{verbatim}
-
+%
+\par
+To be sure that you use the same spherical system as in the code, please bear in mind that:
+\begin{itemize}
+\item $x$-axis corresponds to $\theta = 90, \phi = 0$
+\item $y$-axis corresponds to $\theta = 90, \phi = 90$
+\item $z$-axis corresponds to $\theta = 0$.
+\end{itemize}
 
 \subsubsection{Automatic far-field grid sampling of E-field}
 %

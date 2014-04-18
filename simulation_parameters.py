@@ -113,7 +113,10 @@ params_simu.BISTATIC_ANGLES_OBS = 0
 params_simu.BISTATIC_ANGLES_OBS_FILENAME = "./input_parameters/bistatic_angles_obs.txt"
 # the structure of the bistatic _angles_obs file MUST BE AS FOLLOWS:
 # 1 line per observation angle, as many lines as there are angles
-# each line has 2 columns which are the angles in degrees (easier for human reading):
+# each line has 2 columns which are the angles in degrees (easier for human reading).
+# We must have: 0 <= theta <= 180 degrees (0 is the z axis, 180 is -z).
+# likewise, 0 <= phi <= 360 degrees. For theta = 90 degrees, phi = 0 is the x axis, 
+# 180 is -x, 360 is x.
 #
 # theta_obs phi_obs
 
