@@ -64,11 +64,11 @@ Triangle::Triangle(const double r0[],
     r_grav_r2[i] = r_grav[i] - r_nodes_1[i];
     r_grav_r3[i] = r_grav[i] - r_nodes_2[i];
   }
-  double R1 = sqrt( r_grav_r1[0] * r_grav_r1[0] + r_grav_r1[1] * r_grav_r1[1] + r_grav_r1[2] * r_grav_r1[2] );
-  double R2 = sqrt( r_grav_r2[0] * r_grav_r2[0] + r_grav_r2[1] * r_grav_r2[1] + r_grav_r2[2] * r_grav_r2[2] );
-  double R3 = sqrt( r_grav_r3[0] * r_grav_r3[0] + r_grav_r3[1] * r_grav_r3[1] + r_grav_r3[2] * r_grav_r3[2] );
+  double R1 = r_grav_r1[0] * r_grav_r1[0] + r_grav_r1[1] * r_grav_r1[1] + r_grav_r1[2] * r_grav_r1[2];
+  double R2 = r_grav_r2[0] * r_grav_r2[0] + r_grav_r2[1] * r_grav_r2[1] + r_grav_r2[2] * r_grav_r2[2];
+  double R3 = r_grav_r3[0] * r_grav_r3[0] + r_grav_r3[1] * r_grav_r3[1] + r_grav_r3[2] * r_grav_r3[2];
   R_max = ( R1 > R2 ) ? R1 : R2;
-  R_max = ( R_max > R3) ? R_max : R3;
+  R_max = ( R_max > R3) ? sqrt(R_max) : sqrt(R3);
 }
 
 void Triangle::copyTriangle (const Triangle& triangleToCopy) // copy member function
@@ -359,7 +359,7 @@ void ITs_free (std::complex<double>& ITs_G,
       rprime_r[0] = r0_r2[0] * xi[j] + r1_r2[0] * eta[j] + r2_r[0];
       rprime_r[1] = r0_r2[1] * xi[j] + r1_r2[1] * eta[j] + r2_r[1];
       rprime_r[2] = r0_r2[2] * xi[j] + r1_r2[2] * eta[j] + r2_r[2];
-      R_square = dot3D(rprime_r, rprime_r);
+      R_square = rprime_r[0]*rprime_r[0] + rprime_r[1]*rprime_r[1] + rprime_r[2]*rprime_r[2];
       R = sqrt(R_square);
       minus_I_k_R = minus_I_k*R;
       G_j = exp(minus_I_k_R) * (weights[j]/R); // exp(-(a + ib)) = exp(-a) * (cos(b) - i*sin(b))
@@ -386,21 +386,24 @@ void ITs_free (std::complex<double>& ITs_G,
       rprime_r[0] = r0_r2[0] * xi[j] + r1_r2[0] * eta[j] + r2_r[0];
       rprime_r[1] = r0_r2[1] * xi[j] + r1_r2[1] * eta[j] + r2_r[1];
       rprime_r[2] = r0_r2[2] * xi[j] + r1_r2[2] * eta[j] + r2_r[2];
-      R_square = dot3D(rprime_r, rprime_r);
+      R_square = rprime_r[0]*rprime_r[0] + rprime_r[1]*rprime_r[1] + rprime_r[2]*rprime_r[2];
       R = sqrt(R_square);
-      minus_I_k_R = minus_I_k*R;
-      exp_minus_I_k_R = exp(minus_I_k_R);  // exp(-(a + ib)) = exp(-a) * (cos(b) - i*sin(b))
-      G_j = (R>rsmall) ? (exp_minus_I_k_R - 1.0) * (weights[j]/R) : minus_I_k * weights[j];
-      ITs_G += G_j;
-      ITs_G_rprime_r[0] += G_j * rprime_r[0];
-      ITs_G_rprime_r[1] += G_j * rprime_r[1];
-      ITs_G_rprime_r[2] += G_j * rprime_r[2];
       if (R>rsmall) {
+        minus_I_k_R = minus_I_k*R;
+        exp_minus_I_k_R = exp(minus_I_k_R);
+        G_j = (exp_minus_I_k_R - 1.0) * (weights[j]/R);
         const std::complex<double> temp((exp_minus_I_k_R*(1.0-minus_I_k_R) - 1.0) * (weights[j]/(R*R_square)) );
         ITs_grad_G[0] += temp * rprime_r[0];
         ITs_grad_G[1] += temp * rprime_r[1];
         ITs_grad_G[2] += temp * rprime_r[2];
       }
+      else {
+        G_j = minus_I_k * weights[j];
+      }
+      ITs_G += G_j;
+      ITs_G_rprime_r[0] += G_j * rprime_r[0];
+      ITs_G_rprime_r[1] += G_j * rprime_r[1];
+      ITs_G_rprime_r[2] += G_j * rprime_r[2];
     }
     IT_singularities (IT_1_R, IT_R, IT_1_R_rprime_r, IT_R_rprime_r, IT_grad_1_R, r, Ts);
     ITs_G = ITs_G * norm_factor + IT_1_R;
@@ -418,21 +421,24 @@ void ITs_free (std::complex<double>& ITs_G,
       rprime_r[0] = r0_r2[0] * xi[j] + r1_r2[0] * eta[j] + r2_r[0];
       rprime_r[1] = r0_r2[1] * xi[j] + r1_r2[1] * eta[j] + r2_r[1];
       rprime_r[2] = r0_r2[2] * xi[j] + r1_r2[2] * eta[j] + r2_r[2];
-      R_square = dot3D(rprime_r, rprime_r);
+      R_square = rprime_r[0]*rprime_r[0] + rprime_r[1]*rprime_r[1] + rprime_r[2]*rprime_r[2];
       R = sqrt(R_square);
-      minus_I_k_R = minus_I_k*R;
-      exp_minus_I_k_R = exp(minus_I_k_R);  // exp(-(a + ib)) = exp(-a) * (cos(b) - i*sin(b))
-      G_j = (R>rsmall) ? ( (exp_minus_I_k_R - 1.0)/R + k_square * (R*0.5) ) * weights[j] : minus_I_k * weights[j];
-      ITs_G += G_j;
-      ITs_G_rprime_r[0] += G_j * rprime_r[0];
-      ITs_G_rprime_r[1] += G_j * rprime_r[1];
-      ITs_G_rprime_r[2] += G_j * rprime_r[2];
       if (R>rsmall) {
+        minus_I_k_R = minus_I_k*R;
+        exp_minus_I_k_R = exp(minus_I_k_R);  // exp(-(a + ib)) = exp(-a) * (cos(b) - i*sin(b))
+        G_j = ( (exp_minus_I_k_R - 1.0)/R + k_square * (R*0.5) ) * weights[j];
         const std::complex<double> temp( (exp_minus_I_k_R*(1.0-minus_I_k_R) - 1.0 - k_square * (0.5*R_square)) * (weights[j]/(R*R_square)) );
         ITs_grad_G[0] += temp * rprime_r[0];
         ITs_grad_G[1] += temp * rprime_r[1];
         ITs_grad_G[2] += temp * rprime_r[2];
       }
+      else {
+        G_j = minus_I_k * weights[j];
+      }
+      ITs_G += G_j;
+      ITs_G_rprime_r[0] += G_j * rprime_r[0];
+      ITs_G_rprime_r[1] += G_j * rprime_r[1];
+      ITs_G_rprime_r[2] += G_j * rprime_r[2];
     }
     IT_singularities (IT_1_R, IT_R, IT_1_R_rprime_r, IT_R_rprime_r, IT_grad_1_R, r, Ts);
     const std::complex<double> k_square_2(k_square*0.5);
