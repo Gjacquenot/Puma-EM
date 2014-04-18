@@ -136,7 +136,15 @@ if __name__=='__main__':
         # user supplied observation angles
         if params_simu.BISTATIC_ANGLES_OBS==1:
             sigma_theta_obs, sigma_phi_obs, thetas_obs, phis_obs = bistatic_RCS(params_simu, simuDirName, params_simu.BISTATIC_ANGLES_OBS)
-            #print sigma_theta_obs, sigma_phi_obs, thetas_obs, phis_obs
+            # the regular far field grid
+            sigma_theta, sigma_phi, thetas_far_field, phis_far_field = bistatic_RCS(params_simu, simuDirName, 0)
+            import scipy.interpolate
+            print(phis_far_field.shape)
+            print(thetas_far_field.shape)
+            print(sigma_theta.shape)
+            ides = scipy.interpolate.RectBivariateSpline(thetas_far_field, phis_far_field, sigma_theta)
+            print(ides.ev(thetas_obs, phis_obs))
+            print(sigma_theta_obs)
 
 
         # automatic far field computations
