@@ -152,18 +152,24 @@ if __name__=='__main__':
                 FontSize=18
                 LineWidth=2
                 LEGEND = []
+                angles_far_field = thetas_far_field
+                if (len(thetas_far_field)==1):
+                    angles_far_field = phis_far_field
                 if (params_simu.COMPUTE_RCS_HH==1):
-                    plot(phis_far_field, 10 * log10(sigma_phi[0]), 'bo-', linewidth = LineWidth)
+                    plot(angles_far_field, 10 * log10(sigma_phi[0]), 'bo-', linewidth = LineWidth)
                     LEGEND.append(r'$\sigma_{\phi}$')
                 if (params_simu.COMPUTE_RCS_VV==1):
-                    plot(phis_far_field, 10 * log10(sigma_theta[0]), 'rs-', linewidth = LineWidth)
+                    plot(angles_far_field, 10 * log10(sigma_theta[0]), 'rs-', linewidth = LineWidth)
                     LEGEND.append(r'$\sigma_{\theta}$')
                 figureTitle = ""
                 for elem in params_simu.targetName.split("_"):
                     figureTitle += elem + " "
                 figureTitle += ", f = " + str(params_simu.f/1.e9) + " GHz"
                 title(figureTitle,fontsize=FontSize+2)
-                xlabel(r'azimuthal angle $\phi$',fontsize=FontSize+2)
+                if (len(thetas_far_field)==1):
+                    xlabel(r'azimuthal angle $\phi$',fontsize=FontSize+2)
+                else:
+                    xlabel(r'elevation angle $\theta$',fontsize=FontSize+2)
                 ylabel(r'$\sigma = 4 \pi R^2  P_s/P_i$ [dB]',fontsize=FontSize+2)
                 legend(LEGEND)
                 xticks(fontsize=FontSize)
@@ -176,20 +182,15 @@ if __name__=='__main__':
                 from matplotlib.ticker import LinearLocator, FormatStrFormatter
                 import matplotlib.pyplot as plt
                 import numpy as np
-
                 fig = plt.figure()
                 ax = fig.gca(projection='3d')
                 X = phis_far_field
                 Y = thetas_far_field
                 X, Y = np.meshgrid(X, Y)
-                surf = ax.plot_surface(X, Y, sigma_theta, rstride=1, cstride=1, cmap=cm.coolwarm,
-                linewidth=0, antialiased=False)
-
+                surf = ax.plot_surface(X, Y, sigma_theta, rstride=1, cstride=1, cmap=cm.coolwarm, linewidth=0, antialiased=False)
                 ax.zaxis.set_major_locator(LinearLocator(10))
                 ax.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
-
                 fig.colorbar(surf, shrink=0.5, aspect=5)
-
                 plt.show()
 
     if params_simu.MONOSTATIC_SAR==1:
