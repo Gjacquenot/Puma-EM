@@ -23,7 +23,7 @@ def L_computation(k, a, NB_DIGITS):
         #print "L_tmp1 =", L_tmp1, ", L_tmp2 =", L_tmp2, ", L_tmp3 =", L_tmp3, ", L_tmp4 =", L_tmp4
     L2 = where(L_tmp2<5., 5, int(ceil( L_tmp2 )))
     #return L2
-    return int(floor( L_tmp2 ))
+    return int(floor( L_tmp4 ))
 
 def octtreeXWN_computation(boundary_inf, boundary_sup, L, N_levels, int_method, INCLUDE_BOUNDARIES):
     """This function computes the abscissas and weights for all the levels.
