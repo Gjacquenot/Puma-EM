@@ -36,7 +36,7 @@ mesh_cubes:
 documentation:
 	cd doc; make documentation;
 clean: 
-	rm -f *~ *.pyc *.txt *.out *.tar *.gz *.tgz MPIcommand.sh GMSHcommand.sh;
+	rm -rf *~ *.pyc *.txt *.out *.tar *.gz *.tgz MPIcommand.sh GMSHcommand.sh __pycache__;
 	cd $(PROGR_DIR_PATH); make clean; 
 	cd geo; make clean;
 	cd installScripts; make clean;

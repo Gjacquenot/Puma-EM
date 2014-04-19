@@ -1,3 +1,3 @@
 clean: 
-	rm -f *~ *.pyc *.txt *.out *.tar *.gz *.tgz *.sh; 
+	rm -rf *~ *.pyc *.txt *.out *.tar *.gz *.tgz *.sh __pycache__;
 	cd MoM; make clean; 
