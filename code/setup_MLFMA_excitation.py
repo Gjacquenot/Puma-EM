@@ -2,13 +2,13 @@ import sys, os, argparse
 from mpi4py import MPI
 from scipy import zeros, array
 from ReadWriteBlitzArray import writeScalarToDisk, writeASCIIBlitzArrayToDisk
-from read_dipole_excitation import read_dipole_excitation, read_observation_points, read_input_angles
+from read_dipole_excitation import read_dipole_excitation, read_observation_points
 
 def setup_excitation(params_simu, simuDirName):
     num_proc = MPI.COMM_WORLD.Get_size()
     my_id = MPI.COMM_WORLD.Get_rank()
 
-	# observation points
+    # observation points
     tmpDirName = os.path.join(simuDirName, 'tmp' + str(my_id))
     if (params_simu.BISTATIC_R_OBS == 1) and (params_simu.BISTATIC_R_OBS_FILENAME != ""):
         if (my_id==0): # this file is only on processor 0
@@ -21,14 +21,8 @@ def setup_excitation(params_simu, simuDirName):
     else:
         writeScalarToDisk(0, os.path.join(tmpDirName,'V_CFIE/BISTATIC_R_OBS.txt'))
 
-	# bistatic observation angles
+    # bistatic observation angles
     if (params_simu.BISTATIC == 1) and (params_simu.BISTATIC_ANGLES_OBS == 1) and (params_simu.BISTATIC_ANGLES_OBS_FILENAME != ""):
-        if (my_id==0): # this file is only on processor 0
-            bistatic_angles_obs = read_input_angles(params_simu.BISTATIC_ANGLES_OBS_FILENAME)
-        else:
-            bistatic_angles_obs = zeros((1, 2), 'd')
-        bistatic_angles_obs = MPI.COMM_WORLD.bcast(bistatic_angles_obs)
-        writeASCIIBlitzArrayToDisk(bistatic_angles_obs, os.path.join(tmpDirName,'V_CFIE/bistatic_angles_obs.txt'))
         writeScalarToDisk(1, os.path.join(tmpDirName,'V_CFIE/BISTATIC_ANGLES_OBS.txt'))
     else:
         writeScalarToDisk(0, os.path.join(tmpDirName,'V_CFIE/BISTATIC_ANGLES_OBS.txt'))

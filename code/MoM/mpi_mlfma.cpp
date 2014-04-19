@@ -521,36 +521,7 @@ void computeForOneExcitation(Octtree & octtree,
   // now computing the far fields at the user-supplied angles
   int BISTATIC_ANGLES_OBS;
   readIntFromASCIIFile(V_CFIE_DATA_PATH + "BISTATIC_ANGLES_OBS.txt", BISTATIC_ANGLES_OBS);
-  if (BISTATIC_ANGLES_OBS==1) {
-    // the input, bistatic_angles_obs.txt, has 1 column for theta and one for phi. 
-    // There are as many lines as observation angles.
-    // So 8 lines make for 8 observation angles, to be imagined in a 3D space.
-    blitz::Array<float, 2> angles;
-    readFloatBlitzArray2DFromASCIIFile(V_CFIE_DATA_PATH + "bistatic_angles_obs.txt", angles);
-    // transformation in radians
-    angles *= M_PI/180.0;
-    const int N_angles = angles.size()/2;
-    blitz::Array<float, 1> thetas(N_angles), phis(N_angles);
-    for (int i=0; i<N_angles; i++) {
-      thetas(i) = angles(i, 0);
-      phis(i) = angles(i, 1);
-    }
-    blitz::Array<std::complex<float>, 2> e_obs_theta_tmp, e_obs_phi_tmp;
-    octtree.computeFarField(e_obs_theta_tmp, e_obs_phi_tmp, thetas, phis, ZI, OCTTREE_DATA_PATH);
-    blitz::Array<std::complex<float>, 1> e_obs_theta(N_angles), e_obs_phi(N_angles);
-    for (int i=0; i<N_angles; i++) {
-      e_obs_theta(i) = e_obs_theta_tmp(i, i);
-      e_obs_phi(i) = e_obs_phi_tmp(i, i);
-    }
-    if (my_id==master) {
-      writeFloatBlitzArray1DToASCIIFile(RESULT_DATA_PATH + "bistatic_thetas_obs_ASCII.txt", thetas);
-      writeFloatBlitzArray1DToASCIIFile(RESULT_DATA_PATH + "bistatic_phis_obs_ASCII.txt", phis);
-      writeComplexFloatBlitzArray1DToASCIIFile(RESULT_DATA_PATH + "bistatic_e_obs_theta_ASCII.txt", e_obs_theta);
-      writeComplexFloatBlitzArray1DToBinaryFile(RESULT_DATA_PATH + "bistatic_e_obs_theta_Binary.txt", e_obs_theta);
-      writeComplexFloatBlitzArray1DToASCIIFile(RESULT_DATA_PATH + "bistatic_e_obs_phi_ASCII.txt", e_obs_phi);
-      writeComplexFloatBlitzArray1DToBinaryFile(RESULT_DATA_PATH + "bistatic_e_obs_phi_Binary.txt", e_obs_phi);
-    }
-  }
+  // if (BISTATIC_ANGLES_OBS==1) { maybe do something, like increase far-field number of samples }
 
   // calculating the far fields
   blitz::Array<float, 1> octtreeXthetas_coarsest, octtreeXphis_coarsest;
