@@ -139,6 +139,10 @@ if __name__=='__main__':
             spline_sigma_phi = scipy.interpolate.RectBivariateSpline(thetas_far_field, phis_far_field, sigma_phi)
             sigma_theta_obs = spline_sigma_theta.ev(thetas_obs, phis_obs)
             sigma_phi_obs = spline_sigma_phi.ev(thetas_obs, phis_obs)
+            writeASCIIBlitzArrayToDisk(sigma_theta_obs, os.path.join(simuDirName, 'result', "sigma_theta_obs.txt"))
+            writeASCIIBlitzArrayToDisk(sigma_phi_obs, os.path.join(simuDirName, 'result', "sigma_phi_obs.txt"))
+            writeASCIIBlitzArrayToDisk(thetas_obs, os.path.join(simuDirName, 'result', "thetas_obs.txt"))
+            writeASCIIBlitzArrayToDisk(phis_obs, os.path.join(simuDirName, 'result', "phis_obs.txt"))
 
         # automatic far field computations
         sigma_theta, sigma_phi, thetas_far_field, phis_far_field = bistatic_RCS(params_simu, simuDirName)

@@ -12,7 +12,7 @@ params_simu.targetName = 'cubi'
 params_simu.f = 2.12e9
 # the lc (characteristic length) factor -- it will multiply lambda (the wavelength)
 # to obtain the average edge length (lc) of the mesh. Usually: lc ~= lambda/10.
-params_simu.lc_factor = 1.0/10.0
+params_simu.lc_factor = 1.0/9.5
 # the dimensions of the target (if applicable)
 params_simu.lx = .2
 params_simu.ly = .2
@@ -108,7 +108,7 @@ params_simu.BISTATIC_R_OBS_FILENAME = "./input_parameters/r_obs.txt"
 # r_obs_x r_obs_y r_obs_z
 
 # we can also have sampling angles from a user-input file
-params_simu.BISTATIC_ANGLES_OBS = 0
+params_simu.BISTATIC_ANGLES_OBS = 1
 # the name (with path) of the user-supplied r_obs file. Set to "" if empty
 params_simu.BISTATIC_ANGLES_OBS_FILENAME = "./input_parameters/bistatic_angles_obs.txt"
 # the structure of the bistatic _angles_obs file MUST BE AS FOLLOWS:
@@ -173,7 +173,7 @@ params_simu.TOL = 1.e-3
 # iterative solver: BICGSTAB, GMRES, RGMRES or FGMRES
 SOLVERS = ["BICGSTAB", "GMRES", "RGMRES", "FGMRES"]
 params_simu.SOLVER = SOLVERS[0]
-params_simu.MAXITER = 150
+params_simu.MAXITER = 300
 # RESTART is only for (F)GMRES
 params_simu.RESTART = 30
 # inner solver characteristics. will be used only if FGMRES is used
