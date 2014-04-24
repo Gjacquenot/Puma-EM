@@ -263,7 +263,7 @@ void compute_indexesEqualEdges(std::vector<std::vector<int> >& indexesEqualEdges
 {
   indexesEqualEdges.reserve(indexesEqualPreceding.size());
   int index = 0;
-  for (int i=0 ; i<indexesEqualPreceding.size() ; i++) {
+  for (unsigned int i=0 ; i<indexesEqualPreceding.size() ; i++) {
     const int indexEqualPreceding = indexesEqualPreceding(i);
     std::vector<int> tmp;
     tmp.resize(2);
@@ -281,7 +281,7 @@ void compute_indexesEqualEdges(std::vector<std::vector<int> >& indexesEqualEdges
       index += 1;
     }
   }
-  for (int i=0 ; i<indexesEqualEdges.size() ; i++) std::vector<int> (indexesEqualEdges[i]).swap(indexesEqualEdges[i]);
+  for (unsigned int i=0 ; i<indexesEqualEdges.size() ; i++) std::vector<int> (indexesEqualEdges[i]).swap(indexesEqualEdges[i]);
 }
 
 void compute_edgeNumber_vertexes(blitz::Array<int, 2>& edgeNumber_vertexes,
@@ -299,14 +299,14 @@ void compute_edgeNumber_vertexes(blitz::Array<int, 2>& edgeNumber_vertexes,
 void compute_edgeNumber_triangles(blitz::Array<int, 2>& edgeNumber_triangles,
                                   const std::vector<std::vector<int> >& indexesEqualEdges)
 {
-  int N_columns = indexesEqualEdges[0].size();
-  for (int i=1 ; i<indexesEqualEdges.size() ; i++) {
+  unsigned int N_columns = indexesEqualEdges[0].size();
+  for (unsigned int i=1 ; i<indexesEqualEdges.size() ; i++) {
     if (indexesEqualEdges[i].size() > N_columns) N_columns = indexesEqualEdges[i].size();
   }
   edgeNumber_triangles.resize(indexesEqualEdges.size(), N_columns);
   edgeNumber_triangles = -1;
-  for (int i=0 ; i<indexesEqualEdges.size() ; i++) {
-    for (int j=0 ; j<indexesEqualEdges[i].size() ; j++) edgeNumber_triangles(i, j) = indexesEqualEdges[i][j]/3;
+  for (unsigned int i=0 ; i<indexesEqualEdges.size() ; i++) {
+    for (unsigned int j=0 ; j<indexesEqualEdges[i].size() ; j++) edgeNumber_triangles(int(i), int(j)) = indexesEqualEdges[i][j]/3;
   }
 }
 
@@ -406,7 +406,7 @@ void compute_list_t_to_reorder(std::vector<int>& list_t_to_reorder,
 {
   std::vector<int> calling_t_adjacentTriangles = triangle_adjacentTriangles[calling_t];
   // we fill in list_t_to_reorder
-  for (int i=0 ; i<calling_t_adjacentTriangles.size() ; i++) {
+  for (unsigned int i=0 ; i<calling_t_adjacentTriangles.size() ; i++) {
     int tn = calling_t_adjacentTriangles[i];
     bool is_triangle_not_adjacent_via_junction = true;
     if (tn < 0) { // then the two triangles are adjacent via junction
@@ -420,7 +420,7 @@ void compute_list_t_to_reorder(std::vector<int>& list_t_to_reorder,
   }
   // creation of the list_calling_t
   list_calling_t_to_reorder.resize(list_t_to_reorder.size());
-  for (int i=0 ; i<list_calling_t_to_reorder.size() ; i++) list_calling_t_to_reorder[i] = calling_t;
+  for (unsigned int i=0 ; i<list_calling_t_to_reorder.size() ; i++) list_calling_t_to_reorder[i] = calling_t;
 }
 
 void reorder_triangle_vertexes(blitz::Array<int, 2>& triangle_vertexes,
@@ -460,7 +460,7 @@ void reorder_triangle_vertexes(blitz::Array<int, 2>& triangle_vertexes,
       // we now augment list_t_to_reorder and list_calling_t
       std::vector<int> list_t_to_reorderTmp, list_calling_tTmp;
       compute_list_t_to_reorder(list_t_to_reorderTmp, list_calling_tTmp, t, triangle_adjacentTriangles, is_triangle_reordered, is_triangle_in_list);
-      for (int i=0 ; i<list_t_to_reorderTmp.size() ; i++) {
+      for (unsigned int i=0 ; i<list_t_to_reorderTmp.size() ; i++) {
         list_t_to_reorder.push_back(list_t_to_reorderTmp[i]);
         list_calling_t.push_back(list_calling_tTmp[i]);
       }
@@ -489,7 +489,7 @@ void reorder_triangle_vertexes(blitz::Array<int, 2>& triangle_vertexes,
     // now we want the index of the one that has highest centroid
     double max_height_centroids_s = triangles_centroids_z(ind_t_on_s[0]);
     int index_max_height_centroids_s = ind_t_on_s[0];
-    for (int j=1 ; j<ind_t_on_s.size() ; j++) {
+    for (unsigned int j=1 ; j<ind_t_on_s.size() ; j++) {
       if (triangles_centroids_z(ind_t_on_s[j])>max_height_centroids_s) {
         max_height_centroids_s = triangles_centroids_z(ind_t_on_s[j]);
         index_max_height_centroids_s = ind_t_on_s[j];
@@ -505,7 +505,7 @@ void reorder_triangle_vertexes(blitz::Array<int, 2>& triangle_vertexes,
     const double triangle_normal_z = r1_r0(0) * r2_r0(1) - r1_r0(1) * r2_r0(0);
     // if (triangle_normal_z<0) we have to swap the columns of triangle_vertexes
     if (triangle_normal_z<0) {
-      for (int j=0 ; j<ind_t_on_s.size() ; j++) {
+      for (unsigned int j=0 ; j<ind_t_on_s.size() ; j++) {
         const int index = ind_t_on_s[j];
         const int v1 = triangle_vertexes(index, 1), v2 = triangle_vertexes(index, 2);
         triangle_vertexes(index, 1) = v2;
@@ -555,19 +555,19 @@ void is_surface_closed(blitz::Array<int, 1>& is_closed_surface,
     }
     // if (triangles_tmp.size()>2) we have a junction
     if (triangles_tmp.size()>2) {
-      for (int j=0 ; j<triangles_tmp.size() ; j++) {
+      for (unsigned int j=0 ; j<triangles_tmp.size() ; j++) {
         const int t = triangles_tmp[j];
         const int surface = triangles_surfaces(t);
         if (surfaces_appeared_already(surface)==0) surfaces_appeared_already(surface) = 1;
         else NUMBER_EDGES_IN_SURFACE(surface) += 1;
       }
       std::vector<int> surfaces_present;
-      for (int j=0 ; j<surfaces_appeared_already.size() ; j++) {
+      for (unsigned int j=0 ; j<surfaces_appeared_already.size() ; j++) {
         if (surfaces_appeared_already(j)>0) surfaces_present.push_back(j);
       }
       // filling of connected_surfaces
-      for (int index1=0 ; index1<surfaces_present.size() ; index1++) {
-        for (int index2=index1+1 ; index2<surfaces_present.size() ; index2++) {
+      for (unsigned int index1=0 ; index1<surfaces_present.size() ; index1++) {
+        for (unsigned int index2=index1+1 ; index2<surfaces_present.size() ; index2++) {
           const int s1 = min(surfaces_present[index1], surfaces_present[index2]);
           const int s2 = max(surfaces_present[index1], surfaces_present[index2]);
           connected_surfaces(s1, s2).push_back(i);
@@ -652,7 +652,7 @@ void RWGNumber_signedTriangles_computation(blitz::Array<int, 2>& RWGNumber_signe
         const int tr = triangles[j];
         const blitz::Array<int, 1> tr_nodes(triangle_vertexes(tr, all));
         // for each triangle we find the corner opposite to the edge
-        for (int n2=0 ; n2<tr_nodes.size() ; n2++) {
+        for (unsigned int n2=0 ; n2<tr_nodes.size() ; n2++) {
           if ( (tr_nodes(n2)!=n0) && (tr_nodes(n2)!=n1) ) {
             r2 = vertexes_coord(tr_nodes(n2), all);
           }
@@ -711,7 +711,7 @@ void RWGNumber_signedTriangles_computation(blitz::Array<int, 2>& RWGNumber_signe
         }
       }
 
-      for (int j=1 ; j<possibleTrianglesPairsForRWGs.size() ; j++) {
+      for (unsigned int j=1 ; j<possibleTrianglesPairsForRWGs.size() ; j++) {
         RWGNumber_signedTrianglesTmp_1.push_back(possibleTrianglesPairsForRWGs[j]);
         RWGNumber_edgeNumber.push_back(i);
       }

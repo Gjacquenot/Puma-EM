@@ -108,7 +108,6 @@ void decimate_2D (blitz::Array<std::complex<double>, 2> Y,
                   const blitz::Array<double, 1>& X2_i, // the abscissas following 2nd dimension
                   const int n) 
 {
-  blitz::Range all = blitz::Range::all();
   int N_X1_i = Y_i.extent(0), N_X2_i = Y_i.extent(1);
   if ( (N_X1_i != X1_i.size()) || (N_X2_i != X2_i.size()) ) {
     cout << "decimate_2D() : (N_X1_i != X1_i.size()) || (N_X2_i != X2_i.size())" << endl;

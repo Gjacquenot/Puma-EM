@@ -30,7 +30,6 @@ void Z_CFIE_J_computation (blitz::Array<std::complex<double>, 2>& Z_CFIE_J,
                            const std::complex<double>& Z_s, // surface impedance
                            const int FULL_PRECISION)
 {
-  blitz::Range all = blitz::Range::all();
   const int N_RWG_src = numbers_RWG_src.size(), N_RWG_test = numbers_RWG_test.size();
   // half RWGs construction
   std::vector<RWG> src_RWGs, test_RWGs;
@@ -75,11 +74,11 @@ void Z_CFIE_J_computation (blitz::Array<std::complex<double>, 2>& Z_CFIE_J,
   // triangles
   std::vector< Dictionary<int, int> > srcTriangleToRWG, testTriangleToRWG;
   srcTriangleToRWG.reserve(N_RWG_src*2), testTriangleToRWG.reserve(N_RWG_test*2);
-  for (int i=0 ; i<src_RWGs.size() ; ++i) {
+  for (unsigned int i=0 ; i<src_RWGs.size() ; ++i) {
     srcTriangleToRWG.push_back(Dictionary<int, int> (src_RWGs[i].triangleNumbers[0], src_RWGs[i].number));
     srcTriangleToRWG.push_back(Dictionary<int, int> (src_RWGs[i].triangleNumbers[1], src_RWGs[i].number));
   }
-  for (int i=0 ; i<test_RWGs.size() ; ++i) {
+  for (unsigned int i=0 ; i<test_RWGs.size() ; ++i) {
     testTriangleToRWG.push_back(Dictionary<int, int> (test_RWGs[i].triangleNumbers[0], test_RWGs[i].number));
     testTriangleToRWG.push_back(Dictionary<int, int> (test_RWGs[i].triangleNumbers[1], test_RWGs[i].number));
   }
@@ -98,10 +97,10 @@ void Z_CFIE_J_computation (blitz::Array<std::complex<double>, 2>& Z_CFIE_J,
   std::complex<double> mu = mu_0 * mu_r, eps = eps_0 * eps_r, k = w * sqrt(eps*mu);
 
   // declaration of all the geometrical vectors
-  double r_oc[3], r_sc[3];
+  //double r_oc[3], r_sc[3];
 
   // declaration of the scalars and vectors needed in the integrations
-  double IT_r_square, n_hat_X_r_p_dot_IT_r;
+  double IT_r_square; // n_hat_X_r_p_dot_IT_r;
   double IT_r[3], IT_n_hat_X_r[3];
 
   std::complex<double> ITo_ITs_G, ITo_r_dot_ITs_G_rprime, p_dot_ITo_ITs_G_rprime, ITo_n_hat_X_r_dot_ITs_G_rprime, n_hat_X_r_p_dot_ITo_ITs_G_rprime, IDTo_l_hat_dot_r_ITs_G;
@@ -112,7 +111,7 @@ void Z_CFIE_J_computation (blitz::Array<std::complex<double>, 2>& Z_CFIE_J,
   std::complex<double> ITo_ITs_grad_G[3], ITo_r_X_ITs_grad_G[3], ITo_n_hat_X_r_X_ITs_grad_G[3], r_p_X_ITo_ITs_grad_G[3], n_hat_X_r_p_X_ITo_ITs_grad_G[3];
 
   Z_CFIE_J = 0.0;
-  for (int r=0 ; r<triangles_test.size() ; ++r) { // loop on the observation RWGs
+  for (unsigned int r=0 ; r<triangles_test.size() ; ++r) { // loop on the observation RWGs
     // computation of the triangle-to-triangle terms
     double *n_hat;
     n_hat = triangles_test[r].n_hat;
@@ -123,7 +122,7 @@ void Z_CFIE_J_computation (blitz::Array<std::complex<double>, 2>& Z_CFIE_J,
     std::vector<int> triangleTest_indexesInRWGs(triangles_test[r].indexesInRWGs);
     std::vector<double> triangleTest_signsInRWGs(triangles_test[r].signInRWG);
     // we now start the loop on the src triangles
-    for (int s=0 ; s<triangles_src.size() ; ++s) { // loop on the source RWGs
+    for (unsigned int s=0 ; s<triangles_src.size() ; ++s) { // loop on the source RWGs
       // the RWGs concerned by the source triangle
       std::vector<int> RWGsIndexes_src(triangles_src[s].RWGIndexes);
       std::vector<int> triangleSrc_indexesInRWGs(triangles_src[s].indexesInRWGs);
@@ -163,7 +162,7 @@ void Z_CFIE_J_computation (blitz::Array<std::complex<double>, 2>& Z_CFIE_J,
 
       if ((IS_TOUCH) && (nE_tmp || nH_tmp)) IDTo_ITs_free(IDTo_l_hat_dot_r_ITs_G, IDTo_l_hat_ITs_G, triangles_test[r], triangles_src[s], k, 3, N_points_s, EXTRACT_1_R, EXTRACT_R);
 
-      for (int p=0 ; p<RWGsIndexes_test.size() ; ++p) {
+      for (unsigned int p=0 ; p<RWGsIndexes_test.size() ; ++p) {
         const int index_p = RWGsIndexes_test[p];
         const int local_number_edge_p = test_RWGs[index_p].number;
         const double l_p = test_RWGs[index_p].length;
@@ -183,7 +182,7 @@ void Z_CFIE_J_computation (blitz::Array<std::complex<double>, 2>& Z_CFIE_J,
         n_hat_X_r_p_dot_ITo_ITs_G_rprime = n_hat_X_r_p[0]*ITo_ITs_G_rprime[0] + n_hat_X_r_p[1]*ITo_ITs_G_rprime[1] + n_hat_X_r_p[2]*ITo_ITs_G_rprime[2];
 
         // temporary elements for Z_tH_J
-        n_hat_X_r_p_dot_IT_r = n_hat_X_r_p[0]*IT_r[0] + n_hat_X_r_p[1]*IT_r[1] + n_hat_X_r_p[2]*IT_r[2];
+        //n_hat_X_r_p_dot_IT_r = n_hat_X_r_p[0]*IT_r[0] + n_hat_X_r_p[1]*IT_r[1] + n_hat_X_r_p[2]*IT_r[2];
         r_p_X_ITo_ITs_grad_G[0] = r_p[1]*ITo_ITs_grad_G[2] - r_p[2]*ITo_ITs_grad_G[1];
         r_p_X_ITo_ITs_grad_G[1] = r_p[2]*ITo_ITs_grad_G[0] - r_p[0]*ITo_ITs_grad_G[2];
         r_p_X_ITo_ITs_grad_G[2] = r_p[0]*ITo_ITs_grad_G[1] - r_p[1]*ITo_ITs_grad_G[0];
@@ -194,7 +193,7 @@ void Z_CFIE_J_computation (blitz::Array<std::complex<double>, 2>& Z_CFIE_J,
         n_hat_X_r_p_X_ITo_ITs_grad_G[2] = n_hat_X_r_p[0]*ITo_ITs_grad_G[1] - n_hat_X_r_p[1]*ITo_ITs_grad_G[0];
         n_hat_X_r_p_dot_ITo_r_X_ITs_grad_G = n_hat_X_r_p[0]*ITo_r_X_ITs_grad_G[0] + n_hat_X_r_p[1]*ITo_r_X_ITs_grad_G[1] + n_hat_X_r_p[2]*ITo_r_X_ITs_grad_G[2];
 
-        for (int q=0 ; q<RWGsIndexes_src.size() ; ++q) {
+        for (unsigned int q=0 ; q<RWGsIndexes_src.size() ; ++q) {
           const int index_q = RWGsIndexes_src[q];
           const int local_number_edge_q = src_RWGs[index_q].number;
           const double l_q = src_RWGs[index_q].length;

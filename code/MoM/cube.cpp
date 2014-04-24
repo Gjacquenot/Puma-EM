@@ -103,8 +103,8 @@ void Cube::computeGaussLocatedArguments(const blitz::Array<int, 1>& local_RWG_nu
   }
   sort(DictTriangleToRWG.begin(), DictTriangleToRWG.end());
   // we count the number of triangles
-  int T = 1;
-  for (int j=1; j<DictTriangleToRWG.size(); j++) {
+  unsigned int T = 1;
+  for (unsigned int j=1; j<DictTriangleToRWG.size(); j++) {
     if (DictTriangleToRWG[j].getKey() != DictTriangleToRWG[j-1].getKey()) T++;
   }
   // we now construct a matrix linking triangles and RWGs
@@ -119,7 +119,7 @@ void Cube::computeGaussLocatedArguments(const blitz::Array<int, 1>& local_RWG_nu
   index_tmp.push_back(DictTriangleToRWG[0].getVal1());
   sign_tmp.push_back(DictTriangleToRWG[0].getVal2());
   // loop
-  for (int j=1; j<DictTriangleToRWG.size(); j++) {
+  for (unsigned int j=1; j<DictTriangleToRWG.size(); j++) {
     if (DictTriangleToRWG[j].getKey() != DictTriangleToRWG[j-1].getKey()) {
       std::vector<int>(index_tmp).swap(index_tmp);
       std::vector<float>(sign_tmp).swap(sign_tmp);
@@ -147,10 +147,10 @@ void Cube::computeGaussLocatedArguments(const blitz::Array<int, 1>& local_RWG_nu
   // construction of triangle_GaussCoord
   triangle_GaussCoord.resize(T, N_Gauss*3);
   triangle_nHat.resize(T, 3);
-  for (int j=0; j<T; j++) {
+  for (unsigned int j=0; j<T; j++) {
     const int RWG_index = TriangleToRWGindexTmp[j][0];
     const float sign = TriangleToRWGweightTmp[j][0];
-    double r[3], r0[3], r1[3], r2[3], n_hat[3], r1_r0[3], r2_r0[3], r2_r1[3];
+    double r[3], r0[3], r1[3], r2[3], n_hat[3], r1_r0[3], r2_r0[3];
     if (sign>0.0) {
       for (int i=0; i<3; i++) {
         r0[i] = local_RWGNumbers_trianglesCoord(startIndex_in_localArrays + RWG_index, i);
@@ -158,7 +158,6 @@ void Cube::computeGaussLocatedArguments(const blitz::Array<int, 1>& local_RWG_nu
         r2[i] = local_RWGNumbers_trianglesCoord(startIndex_in_localArrays + RWG_index, i+6);
         r1_r0[i] = r1[i] - r0[i];
         r2_r0[i] = r2[i] - r0[i];
-        r2_r1[i] = r2[i] - r1[i];
       }
     }
     else {
@@ -168,7 +167,6 @@ void Cube::computeGaussLocatedArguments(const blitz::Array<int, 1>& local_RWG_nu
         r2[i] = local_RWGNumbers_trianglesCoord(startIndex_in_localArrays + RWG_index, i+3);
         r1_r0[i] = r1[i] - r0[i];
         r2_r0[i] = r2[i] - r0[i];
-        r2_r1[i] = r2[i] - r1[i];
       }
     }
     // triangle normal computation
@@ -176,22 +174,22 @@ void Cube::computeGaussLocatedArguments(const blitz::Array<int, 1>& local_RWG_nu
     n_hat[1] = r1_r0[2]*r2_r0[0] - r1_r0[0]*r2_r0[2];
     n_hat[2] = r1_r0[0]*r2_r0[1] - r1_r0[1]*r2_r0[0];
     const double Area = 0.5*sqrt(n_hat[0]*n_hat[0] + n_hat[1]*n_hat[1] + n_hat[2]*n_hat[2]);
-    for (int i=0; i<3; i++) triangle_nHat(j, i) = n_hat[i] * 1.0/(2.0*Area);
+    for (int i=0; i<3; i++) triangle_nHat(int(j), i) = n_hat[i] * 1.0/(2.0*Area);
     // Gauss coord in triangles computation
     for (int i=0 ; i<N_Gauss ; ++i) {
       r[0] = r0[0] * xi[i] + r1[0] * eta[i] + r2[0] * (1.0-xi[i]-eta[i]);
       r[1] = r0[1] * xi[i] + r1[1] * eta[i] + r2[1] * (1.0-xi[i]-eta[i]);
       r[2] = r0[2] * xi[i] + r1[2] * eta[i] + r2[2] * (1.0-xi[i]-eta[i]);
-      triangle_GaussCoord(j, i*3) = r[0];
-      triangle_GaussCoord(j, i*3+1) = r[1];
-      triangle_GaussCoord(j, i*3+2) = r[2];
+      triangle_GaussCoord(int(j), i*3) = r[0];
+      triangle_GaussCoord(int(j), i*3+1) = r[1];
+      triangle_GaussCoord(int(j), i*3+2) = r[2];
     }
   }
 
   // computation of the weights and opposite vector for each RWG
   Triangle_numberOfRWGs.resize(T);
   int N_total_RWG = 0;
-  for (int j=0; j<T; j++) {
+  for (unsigned int j=0; j<T; j++) {
     const int n_rwg = TriangleToRWGindexTmp[j].size();
     Triangle_numberOfRWGs[j] = n_rwg;
     N_total_RWG += n_rwg;
@@ -228,7 +226,7 @@ void Cube::computeGaussLocatedArguments(const blitz::Array<int, 1>& local_RWG_nu
   TriangleToRWGindex.reserve(N_total_RWG);
   TriangleToRWGweight.reserve(N_total_RWG); 
   TriangleToRWG_ropp.reserve(N_total_RWG*3);
-  for (int j=0; j<T; j++) {
+  for (unsigned int j=0; j<T; j++) {
     const int n_rwg = Triangle_numberOfRWGs[j];
     for (int p=0; p<n_rwg; p++) {
       TriangleToRWGindex.push_back(TriangleToRWGindexTmp[j][p]);

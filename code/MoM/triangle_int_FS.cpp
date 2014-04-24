@@ -122,7 +122,7 @@ void constructVectorTriangles(std::vector<Triangle>& triangles,
                               const std::vector<Dictionary<int, int> >& TriangleToRWG)
 {
   int index = 0;
-  for (int i=0 ; i<TriangleToRWG.size() ; i++) {
+  for (unsigned int i=0 ; i<TriangleToRWG.size() ; i++) {
     const int tr_number = TriangleToRWG[i].getKey();
     const int RWG_index = TriangleToRWG[i].getVal();
     int indexInRWG = (tr_number == vectorRWGs[RWG_index].triangleNumbers[0]) ? 0 : 1;
@@ -245,8 +245,7 @@ void IT_singularities (double & IT_1_R,
   const double third(1.0/3.0);
   double I_L_minus_1__i, I_L_plus_1__i, I_L_plus_3__i, beta_i, K_1_minus_1__i, K_1_plus_1__i;
   
-  double rho[3] = {r[0] - T.n_hat[0]*w0, r[1] - T.n_hat[1]*w0, r[2] - T.n_hat[2]*w0};
-  double K_2_minus_1__i[3], K_2_plus_1__i[3], K_3_minus_1__i[3], K_3_plus_1__i[3];
+  // double K_2_minus_1__i[3], K_2_plus_1__i[3], K_3_minus_1__i[3], K_3_plus_1__i[3];
 
   IT_1_R = 0.0;
   IT_R = 0.0;
@@ -340,7 +339,7 @@ void ITs_free (std::complex<double>& ITs_G,
 {
   double R, R_square, IT_1_R, IT_R;
   std::complex<double> G_j, minus_I_k(-I*k), minus_I_k_R, exp_minus_I_k_R;
-  double rprime_r[3], IT_1_R_rprime_r[3], IT_R_rprime_r[3], IT_grad_1_R[3], IT_grad_R[3];
+  double rprime_r[3], IT_1_R_rprime_r[3], IT_R_rprime_r[3], IT_grad_1_R[3]; // IT_grad_R[3];
   const double r0_r2[3] = {Ts.r_nodes_0[0]-Ts.r_nodes_2[0], Ts.r_nodes_0[1]-Ts.r_nodes_2[1], Ts.r_nodes_0[2]-Ts.r_nodes_2[2]};
   const double r1_r2[3] = {Ts.r_nodes_1[0]-Ts.r_nodes_2[0], Ts.r_nodes_1[1]-Ts.r_nodes_2[1], Ts.r_nodes_1[2]-Ts.r_nodes_2[2]};
   const double r2_r[3] = {Ts.r_nodes_2[0]-r[0], Ts.r_nodes_2[1]-r[1], Ts.r_nodes_2[2]-r[2]};
@@ -571,7 +570,7 @@ void IDTo_ITs_free (std::complex<double> & IDTo_l_hat_dot_r_ITs_G,
   Gauss_Legendre (XGL, WGL, N_points_o);
 
   double norm_factor, norm_r_hlgth, sum_weights_source;
-  double r[3], r_center[3], n_hat_X_r[3], m_hat[3], r_hlgth[3];
+  double r[3], r_center[3], r_hlgth[3]; // n_hat_X_r[3], m_hat[3]
   const double * l_hat, * r_plus__i, * r_minus__i;
 
   const double *xi_source, *eta_source, *weights_source;
@@ -638,7 +637,7 @@ void V_EH_ITo_free (std::complex<double>& ITo_G,
 {
   double sum_weigths, norm_factor, R, IT_1_R, IT_R;
   std::complex<double> G_j, I_k_R, exp_minus_I_k_R, k_square;
-  double rprime[3], rprime_r[3], IT_1_R_rprime_r[3], IT_R_rprime_r[3], IT_grad_1_R[3], IT_grad_R[3], n_hat_X_rprime[3];
+  double rprime[3], rprime_r[3], IT_1_R_rprime_r[3], IT_R_rprime_r[3], IT_grad_1_R[3], n_hat_X_rprime[3]; // IT_grad_R[3]
   std::complex<double> ITo_grad_G_j[3];
 
   const double *xi, *eta, *weigths;

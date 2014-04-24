@@ -30,7 +30,6 @@ void V_EJ_HJ_plane (blitz::Array<std::complex<double>, 1> V_tE_J,
                     const int FULL_PRECISION)
 {
   // def of k, mu_i, eps_i
-  blitz::Range all = blitz::Range::all();
   int N_RWG_test = numbers_RWG_test.size();
   std::complex<double> mu = mu_0 * mu_r, eps = eps_0 * eps_r, k = w * sqrt(eps*mu);
 
@@ -68,7 +67,7 @@ void V_EJ_HJ_plane (blitz::Array<std::complex<double>, 1> V_tE_J,
   // triangles
   std::vector< Dictionary<int, int> > testTriangleToRWG;
   testTriangleToRWG.reserve(N_RWG_test*2);
-  for (int i=0 ; i<test_RWGs.size() ; ++i) {
+  for (unsigned int i=0 ; i<test_RWGs.size() ; ++i) {
     testTriangleToRWG.push_back(Dictionary<int, int>(test_RWGs[i].triangleNumbers[0], test_RWGs[i].number));
     testTriangleToRWG.push_back(Dictionary<int, int>(test_RWGs[i].triangleNumbers[1], test_RWGs[i].number));
   }
@@ -77,7 +76,7 @@ void V_EJ_HJ_plane (blitz::Array<std::complex<double>, 1> V_tE_J,
   constructVectorTriangles(triangles_test, test_RWGs, testTriangleToRWG);
 
   // geometrical entities
-  const double *r0, *r1, *r2, *rGrav;
+  const double *r0, *r1, *r2;
   std::complex<double> ITo_r_dot_H_inc, ITo_r_dot_E_inc, ITo_n_hat_X_r_dot_H_inc, ITo_n_hat_X_r_dot_E_inc;
   std::complex<double> ITo_H_inc[3], ITo_E_inc[3], E_inc_i[3], H_inc_i[3];
   // computation of H_0
@@ -87,7 +86,7 @@ void V_EJ_HJ_plane (blitz::Array<std::complex<double>, 1> V_tE_J,
   H0[1] = (k_hat(2)*E_0(0)-k_hat(0)*E_0(2)) * sqrt(eps/mu);
   H0[2] = (k_hat(0)*E_0(1)-k_hat(1)*E_0(0)) * sqrt(eps/mu);
 
-  for (int r=0 ; r<triangles_test.size() ; ++r) { // loop on the observation triangles
+  for (unsigned int r=0 ; r<triangles_test.size() ; ++r) { // loop on the observation triangles
       // the RWGs concerned by the test triangle
       std::vector<int> RWGsIndexes_test(triangles_test[r].RWGIndexes);
       std::vector<int> triangleTest_indexesInRWGs(triangles_test[r].indexesInRWGs);
@@ -102,7 +101,6 @@ void V_EJ_HJ_plane (blitz::Array<std::complex<double>, 1> V_tE_J,
       r0 = triangles_test[r].r_nodes_0;
       r1 = triangles_test[r].r_nodes_1;
       r2 = triangles_test[r].r_nodes_2;
-      rGrav = triangles_test[r].r_grav;
 
       // triangle integration
       for (int j=0 ; j<N_points ; ++j) {
@@ -140,7 +138,7 @@ void V_EJ_HJ_plane (blitz::Array<std::complex<double>, 1> V_tE_J,
       ITo_n_hat_X_r_dot_E_inc *= norm_factor;
       ITo_n_hat_X_r_dot_H_inc *= norm_factor;
 
-      for (int p=0 ; p<RWGsIndexes_test.size() ; ++p) {
+      for (unsigned int p=0 ; p<RWGsIndexes_test.size() ; ++p) {
         const int index_p = RWGsIndexes_test[p];
         const int local_number_edge_p = test_RWGs[index_p].number;
         const double l_p = test_RWGs[index_p].length;
@@ -178,7 +176,6 @@ void V_CFIE_plane (blitz::Array<std::complex<float>, 1> V_CFIE,
                    const int FULL_PRECISION)
 {
   // def of k, mu_i, eps_i
-  blitz::Range all = blitz::Range::all();
   int N_RWG_test = numbers_RWG_test.size();
   std::complex<double> mu = mu_0 * mu_r, eps = eps_0 * eps_r, k = w * sqrt(eps*mu);
   const std::complex<double> tE = CFIE(0), nE = CFIE(1), tH = CFIE(2), nH = CFIE(3);

@@ -93,7 +93,7 @@ void V_EJ_HJ_dipole (std::vector<std::complex<double> >& V_tE_J,
     N_points_near = 3;
   }
 
-  for (int i=0; i<V_tE_J.size(); i++) {
+  for (unsigned int i=0; i<V_tE_J.size(); i++) {
     V_tE_J[i] = 0.0; V_tH_J[i] = 0.0;
     V_nE_J[i] = 0.0; V_nH_J[i] = 0.0;
   }
@@ -116,7 +116,7 @@ void V_EJ_HJ_dipole (std::vector<std::complex<double> >& V_tE_J,
   // triangles
   std::vector< Dictionary<int, int> > testTriangleToRWG;
   testTriangleToRWG.reserve(N_RWG_test*2);
-  for (int i=0 ; i<test_RWGs.size() ; ++i) {
+  for (unsigned int i=0 ; i<test_RWGs.size() ; ++i) {
     testTriangleToRWG.push_back(Dictionary<int, int>(test_RWGs[i].triangleNumbers[0], test_RWGs[i].number));
     testTriangleToRWG.push_back(Dictionary<int, int>(test_RWGs[i].triangleNumbers[1], test_RWGs[i].number));
   }
@@ -137,7 +137,7 @@ void V_EJ_HJ_dipole (std::vector<std::complex<double> >& V_tE_J,
   }
 
 
-  for (int r=0 ; r<triangles_test.size() ; ++r) { // loop on the observation triangles
+  for (unsigned int r=0 ; r<triangles_test.size() ; ++r) { // loop on the observation triangles
       // the RWGs concerned by the test triangle
       std::vector<int> RWGsIndexes_test(triangles_test[r].RWGIndexes);
       std::vector<int> triangleTest_indexesInRWGs(triangles_test[r].indexesInRWGs);
@@ -198,7 +198,7 @@ void V_EJ_HJ_dipole (std::vector<std::complex<double> >& V_tE_J,
       ITo_n_hat_X_r_dot_E_inc *= norm_factor;
       ITo_n_hat_X_r_dot_H_inc *= norm_factor;
 
-      for (int p=0 ; p<RWGsIndexes_test.size() ; ++p) {
+      for (unsigned int p=0 ; p<RWGsIndexes_test.size() ; ++p) {
         const int index_p = RWGsIndexes_test[p];
         const int local_number_edge_p = test_RWGs[index_p].number;
         const double l_p = test_RWGs[index_p].length;
@@ -402,7 +402,6 @@ void V_CFIE_dipole_array (blitz::Array<std::complex<float>, 1> V_CFIE,
  */
 {
   // def of k, mu_i, eps_i
-  blitz::Range all = blitz::Range::all();
   int N_RWG_test = numbers_RWG_test.size(), N_dipoles = J_dip.rows();
   if (r_dip.size() != J_dip.size()) {
     cout << "Error in V_CFIE_dipole_array: J_dip and R_dip don't have the same size. Aborting." << endl;

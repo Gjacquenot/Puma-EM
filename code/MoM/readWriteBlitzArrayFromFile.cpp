@@ -99,10 +99,10 @@ void readComplexDoubleFromASCIIFile(const string filename, complex<double> & x) 
 }
 
 /*********************************************
-/*
-/*               1D Arrays
-/*
-/*********************************************/
+ *
+ *               1D Arrays
+ *
+ *********************************************/
 template<typename T>
 void readBlitzArray1DFromASCIIFile(const string filename, blitz::Array<T, 1>& A)
 {
@@ -232,10 +232,10 @@ void readComplexDoubleBlitzArray1DFromBinaryFile(const string filename, blitz::A
 }
 
 /*********************************************
-/*
-/*               2D Arrays
-/*
-/*********************************************/
+ *
+ *               2D Arrays
+ *
+ *********************************************/
 
 // read and write 2-D ASCII blitz Arrays: generic functions
 template<typename T>
