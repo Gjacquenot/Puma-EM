@@ -264,7 +264,7 @@ class Level {
     int getIndexToIndex(const int i) const {return numbersToIndexes[i].getVal();}
     int getIndexOfNumber(const int) const;
     int getLevelSize(void) const {return cubes.size();}
-    int getSizeOfAlphaTransParticipantsIndexes(void) const {int result = 0; for (int i=0; i<cubes.size(); ++i) result += (cubes[i].localAlphaTransParticipantsIndexes.size() + cubes[i].nonLocalAlphaTransParticipantsIndexes.size()); return result;}
+    int getSizeOfAlphaTransParticipantsIndexes(void) const {int result = 0; for (unsigned int i=0; i<cubes.size(); ++i) result += (cubes[i].localAlphaTransParticipantsIndexes.size() + cubes[i].nonLocalAlphaTransParticipantsIndexes.size()); return result;}
     float getSizeMBOfAlphaTransParticipantsIndexes(void) const {return getSizeOfAlphaTransParticipantsIndexes()*4.0/(1024.0*1024.0);}
     blitz::Array<float, 1> getThetas(void) const {return thetas;}
     blitz::Array<float, 1> getPhis(void) const {return phis;}

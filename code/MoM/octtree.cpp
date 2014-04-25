@@ -409,10 +409,10 @@ std::vector<int> Octtree::getNeighborsSonsIndexes(const int index, const int l) 
 {
   std::vector<int> sonsOfNeighbors, sonsOfNeighborsTmp;
   const std::vector<int> neighborsIndexes(getCubeLevel(index, l).getNeighborsIndexes());
-  for (int m=0 ; m<neighborsIndexes.size() ; ++m)
+  for (unsigned int m=0 ; m<neighborsIndexes.size() ; ++m)
   {
     sonsOfNeighborsTmp = getCubeLevel(neighborsIndexes[m], l).getSonsIndexes();
-    for (int n=0 ; n<sonsOfNeighborsTmp.size() ; ++n) sonsOfNeighbors.push_back(sonsOfNeighborsTmp[n]);
+    for (unsigned int n=0 ; n<sonsOfNeighborsTmp.size() ; ++n) sonsOfNeighbors.push_back(sonsOfNeighborsTmp[n]);
   }
   return sonsOfNeighbors;
 }
@@ -466,9 +466,9 @@ void Octtree::findAlphaTransParticipantsIndexes(const int l)
         } // end for
         // we now trim the excess capacity of alphaTransParticipantsIndexes
         levels[l].cubes[indexLocalCube].localAlphaTransParticipantsIndexes.resize(localAlphaTransParticipantsIndexes.size());
-        for (int j=0 ; j<localAlphaTransParticipantsIndexes.size() ; ++j) levels[l].cubes[indexLocalCube].localAlphaTransParticipantsIndexes[j] = localAlphaTransParticipantsIndexes[j];
+        for (unsigned int j=0 ; j<localAlphaTransParticipantsIndexes.size() ; ++j) levels[l].cubes[indexLocalCube].localAlphaTransParticipantsIndexes[j] = localAlphaTransParticipantsIndexes[j];
         levels[l].cubes[indexLocalCube].nonLocalAlphaTransParticipantsIndexes.resize(nonLocalAlphaTransParticipantsIndexes.size());
-        for (int j=0 ; j<nonLocalAlphaTransParticipantsIndexes.size() ; ++j) levels[l].cubes[indexLocalCube].nonLocalAlphaTransParticipantsIndexes[j] = nonLocalAlphaTransParticipantsIndexes[j];
+        for (unsigned int j=0 ; j<nonLocalAlphaTransParticipantsIndexes.size() ; ++j) levels[l].cubes[indexLocalCube].nonLocalAlphaTransParticipantsIndexes[j] = nonLocalAlphaTransParticipantsIndexes[j];
       }
     }
     else { // for the NON-CEILING level
@@ -476,7 +476,7 @@ void Octtree::findAlphaTransParticipantsIndexes(const int l)
         int indexLocalCube = localCubesIndexes[i];
         std::vector<int> localAlphaTransParticipantsIndexes, nonLocalAlphaTransParticipantsIndexes, nonLocalAlphaTransParticipantsProcNumbers;
         const std::vector<int> possibleIndexes(getNeighborsSonsIndexes(levels[l].cubes[indexLocalCube].getFatherIndex(), l+1));
-        for (int j=0; j<possibleIndexes.size(); j++) {// possible indexes of the alpha trans participants
+        for (unsigned int j=0; j<possibleIndexes.size(); j++) {// possible indexes of the alpha trans participants
           const int possibleIndex = possibleIndexes[j];
           const float * diffAbsCartCoord_1(levels[l].cubes[indexLocalCube].absoluteCartesianCoord);
           const float * diffAbsCartCoord_2(levels[l].cubes[possibleIndex].absoluteCartesianCoord);
@@ -499,9 +499,9 @@ void Octtree::findAlphaTransParticipantsIndexes(const int l)
         }
         // we now trim the excess capacity of alphaTransParticipantsIndexes
         levels[l].cubes[indexLocalCube].localAlphaTransParticipantsIndexes.resize(localAlphaTransParticipantsIndexes.size());
-        for (int j=0 ; j<localAlphaTransParticipantsIndexes.size() ; ++j) levels[l].cubes[indexLocalCube].localAlphaTransParticipantsIndexes[j] = localAlphaTransParticipantsIndexes[j];
+        for (unsigned int j=0 ; j<localAlphaTransParticipantsIndexes.size() ; ++j) levels[l].cubes[indexLocalCube].localAlphaTransParticipantsIndexes[j] = localAlphaTransParticipantsIndexes[j];
         levels[l].cubes[indexLocalCube].nonLocalAlphaTransParticipantsIndexes.resize(nonLocalAlphaTransParticipantsIndexes.size());
-        for (int j=0 ; j<nonLocalAlphaTransParticipantsIndexes.size() ; ++j) levels[l].cubes[indexLocalCube].nonLocalAlphaTransParticipantsIndexes[j] = nonLocalAlphaTransParticipantsIndexes[j];
+        for (unsigned int j=0 ; j<nonLocalAlphaTransParticipantsIndexes.size() ; ++j) levels[l].cubes[indexLocalCube].nonLocalAlphaTransParticipantsIndexes[j] = nonLocalAlphaTransParticipantsIndexes[j];
       }
     }
     //if (VERBOSE==1) cout << "on process " << getProcNumber() << ", for level " << levels[l].getLevel() << ", the total number of radiation functions to be sent/received is N_to_send/N_to_receive = " << N_to_send << " / " << N_to_receive << endl;
@@ -516,7 +516,7 @@ void Octtree::findAlphaTransParticipantsIndexes(const int l)
           sort(listOfFcTmp.begin(), listOfFcTmp.end());
           listOfFcToBeReceivedTmp[i].resize(0);
           listOfFcToBeReceivedTmp[i].push_back(listOfFcTmp[0]);
-          for (int j=1 ; j<listOfFcTmp.size() ; ++j) {
+          for (unsigned int j=1 ; j<listOfFcTmp.size() ; ++j) {
             if (listOfFcTmp[j] != listOfFcToBeReceivedTmp[i].back()) listOfFcToBeReceivedTmp[i].push_back(listOfFcTmp[j]);
           }
           std::vector<int>(listOfFcToBeReceivedTmp[i]).swap(listOfFcToBeReceivedTmp[i]);
@@ -533,7 +533,7 @@ void Octtree::findAlphaTransParticipantsIndexes(const int l)
           sort(listOfFcTmp.begin(), listOfFcTmp.end());
           listOfFcToBeSentTmp[i].resize(0);
           listOfFcToBeSentTmp[i].push_back(listOfFcTmp[0]);
-          for (int j=1 ; j<listOfFcTmp.size() ; ++j) {
+          for (unsigned int j=1 ; j<listOfFcTmp.size() ; ++j) {
             if (listOfFcTmp[j] != listOfFcToBeSentTmp[i].back()) listOfFcToBeSentTmp[i].push_back(listOfFcTmp[j]);
           }
           std::vector<int>(listOfFcToBeSentTmp[i]).swap(listOfFcToBeSentTmp[i]);
@@ -793,7 +793,6 @@ void Octtree::updateSup(const blitz::Array<std::complex<float>, 1>& I_PQ) /// co
 }
 
 void Octtree::exchangeSupsIndividually(blitz::Array< blitz::Array<std::complex<float>, 2>, 1>& SupThisLevel, const int l, const std::vector<int> & localCubesIndexes) {
-  blitz::Range all = blitz::Range::all();
   const int N_theta = levels[l].thetas.size(), N_phi = levels[l].phis.size(), N_coord = 2;
   std::vector< std::vector<MPI_Request> > isend_request, irecv_request;
   std::vector< std::vector<MPI_Status> > isend_status, irecv_status;
@@ -833,8 +832,8 @@ void Octtree::exchangeSupsIndividually(blitz::Array< blitz::Array<std::complex<f
   // wait operation
   for (int i=0 ; i<getTotalNumProcs() ; ++i) {
     if (this->getProcNumber()!=i) {
-      for (int j=0 ; j<irecv_request[i].size() ; ++j) ierror = MPI_Wait(&irecv_request[i][j], &irecv_status[i][j]);
-      for (int j=0 ; j<isend_request[i].size() ; ++j) ierror = MPI_Wait(&isend_request[i][j], &isend_status[i][j]);
+      for (unsigned int j=0 ; j<irecv_request[i].size() ; ++j) ierror = MPI_Wait(&irecv_request[i][j], &irecv_status[i][j]);
+      for (unsigned int j=0 ; j<isend_request[i].size() ; ++j) ierror = MPI_Wait(&isend_request[i][j], &isend_status[i][j]);
     }
   }
 }
@@ -932,7 +931,7 @@ void Octtree::ZIFarComputation(blitz::Array<std::complex<float>, 1>& ZI, /// res
 
       std::vector<int> sonsIndexes = levels[thisLevel].cubes[indexLocalCube].sonsIndexes;
       std::vector<int> sonsProcNumbers = levels[thisLevel].cubes[indexLocalCube].sonsProcNumbers;
-      for (int j=0 ; j<sonsIndexes.size() ; ++j) {
+      for (unsigned int j=0 ; j<sonsIndexes.size() ; ++j) {
         // we need to do the following only if the sons are local
         if (my_id==sonsProcNumbers[j]) {
           const int sonIndex = levels[sonLevel].cubesIndexesAfterReduction[sonsIndexes[j]];
@@ -960,7 +959,7 @@ void Octtree::ZIFarComputation(blitz::Array<std::complex<float>, 1>& ZI, /// res
     for (int i=0 ; i<N_local_Cubes ; ++i) {
       int indexLocalCube = levels[thisLevel].cubesIndexesAfterReduction[localCubesIndexes[i]];
       std::vector<int> sonsIndexes = levels[thisLevel].cubes[indexLocalCube].sonsIndexes;
-      for (int j=0 ; j<sonsIndexes.size() ; ++j) {
+      for (unsigned int j=0 ; j<sonsIndexes.size() ; ++j) {
         const int sonIndex = levels[sonLevel].cubesIndexesAfterReduction[sonsIndexes[j]];
         // shifting
         const float * rc_1(levels[sonLevel].cubes[sonIndex].rCenter);

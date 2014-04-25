@@ -61,7 +61,7 @@ class Octtree {
 
     // functions
     int getNumberOfUpdates (void) const {return numberOfUpdates;}
-    const int setNumberOfUpdates (const int n) {numberOfUpdates = n;}
+    void setNumberOfUpdates (const int n) {numberOfUpdates = n;}
     int getL(void) const {return L;}
     void setProcNumber (const int n) {procNumber = n;}
     int getProcNumber (void) const {return procNumber;}
@@ -112,7 +112,7 @@ class Octtree {
                           const blitz::Array<float, 1>& octtreeXphis_coarsest,
                           const blitz::Array<std::complex<float>, 1>& I_PQ,
                           const string octtree_data_path);
-    void resizeSdownLevelsToZero(void) {for (int i=0 ; i<levels.size() ; ++i) levels[i].Sdown.resize(0);}
+    void resizeSdownLevelsToZero(void) {for (unsigned int i=0 ; i<levels.size() ; ++i) levels[i].Sdown.resize(0);}
 };
 
 #endif

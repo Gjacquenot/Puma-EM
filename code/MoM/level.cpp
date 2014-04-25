@@ -136,7 +136,7 @@ void Level::copyLevel(const Level & levelToCopy) // copy constructor
   offsetAlphaIndexZ = levelToCopy.getOffsetAlphaIndexZ();
   k = levelToCopy.getK();
   cubes.resize(levelToCopy.cubes.size());
-  for (int i=0 ; i<levelToCopy.cubes.size() ; ++i) cubes[i] = levelToCopy.cubes[i];
+  for (unsigned int i=0 ; i<levelToCopy.cubes.size() ; ++i) cubes[i] = levelToCopy.cubes[i];
   numbersToIndexes = levelToCopy.getNumbersToIndexes();
   localCubesIndexes = levelToCopy.getLocalCubesIndexes();
   listOfFcToBeReceived.resize(levelToCopy.getListOfFcToBeReceived().size());
@@ -175,7 +175,7 @@ void Level::copyLevel(const Level & levelToCopy) // copy constructor
   weightsPhis = levelToCopy.getWeightsPhis();
   lfi2D.setLfi2D(levelToCopy.getLfi2D());
   Sdown.resize(levelToCopy.Sdown.size());
-  for (int i=0 ; i<Sdown.size() ; ++i) {
+  for (unsigned int i=0 ; i<Sdown.size() ; ++i) {
     Sdown(i).resize(levelToCopy.Sdown(i).extent(0), levelToCopy.Sdown(i).extent(1));
     Sdown(i) = levelToCopy.Sdown(i);
   }
@@ -291,10 +291,10 @@ Level::~Level()
 
 void Level::NCubesXYZComputation(const int VERBOSE)
 {
-  int j, NxMax, NyMax, NzMax, NxMin, NyMin, NzMin, my_id = MPI::COMM_WORLD.Get_rank();
+  int NxMax, NyMax, NzMax, NxMin, NyMin, NzMin, my_id = MPI::COMM_WORLD.Get_rank();
   NxMax = NyMax = NzMax = 0;
   NxMin = NyMin = NzMin = maxNumberCubes1D;
-  for (j=0 ; j<cubes.size() ; ++j) {
+  for (unsigned int j=0 ; j<cubes.size() ; ++j) {
     const float * absoluteCartesianCoordTmp(cubes[j].absoluteCartesianCoord);
     if ( static_cast<int>(absoluteCartesianCoordTmp[0]) > NxMax ) NxMax = static_cast<int>(absoluteCartesianCoordTmp[0]);
     if ( static_cast<int>(absoluteCartesianCoordTmp[1]) > NyMax ) NyMax = static_cast<int>(absoluteCartesianCoordTmp[1]);
@@ -639,7 +639,7 @@ void Level::printCubesSonsIndexes(void)
   for (j=0 ; j<N ; ++j) {
     cout << "Level " << l << " : sons indexes of cube " << j << " = ";
     sonsIndexes = getCube(j).getSonsIndexes();
-    for (int i=0; i<sonsIndexes.size(); ++i) cout << sonsIndexes[i] << " ";
+    for (unsigned int i=0; i<sonsIndexes.size(); ++i) cout << sonsIndexes[i] << " ";
     cout << endl;
   }
 }
@@ -652,10 +652,10 @@ void Level::printCubesRCenters(void)
 
 void Level::printCubesRWG_numbers(void) 
 {
-  int i, j, N = getLevelSize(), l = getLevel();
-  for (j=0 ; j<N ; ++j) {
+  int N = getLevelSize(), l = getLevel();
+  for (int j=0 ; j<N ; ++j) {
     std::cout << "Level " << l << " : RWG of cube " << j << " = ";
-    for (i=0 ; i<cubes[j].RWG_numbers.size() ; ++i) cout << cubes[j].RWG_numbers[i] << ", ";
+    for (unsigned int i=0 ; i<cubes[j].RWG_numbers.size() ; ++i) cout << cubes[j].RWG_numbers[i] << ", ";
     cout << endl;
   }
 }
@@ -670,11 +670,10 @@ void Level::printThetaPhi(void)
 
 void Level::updateFatherIndexes(const Level& fatherLevel)
 {
-  int i, j;
   vector<int> sonsIndexes;
-  for (i=0 ; i<fatherLevel.getLevelSize() ; ++i) {
+  for (int i=0 ; i<fatherLevel.getLevelSize() ; ++i) {
     sonsIndexes = fatherLevel.getCube(i).getSonsIndexes();
-    for (j=0 ; j<sonsIndexes.size() ; ++j) {
+    for (unsigned int j=0 ; j<sonsIndexes.size() ; ++j) {
       if (cubes[sonsIndexes[j]].getFatherNumber() != fatherLevel.getCube(i).getNumber()) {
         cout << "Level::updateFatherIndexes: father number in sons and father do not match!" << endl;
         exit(1);
@@ -711,10 +710,10 @@ void Level::printNumbersToIndexes(void)
 
 void Level::printCubesNeighborsIndexes(void)
 {
-  int i, j, NCubes = getLevelSize(), l = getLevel();
-  for (j=0 ; j<NCubes ; ++j) {
+  int NCubes = getLevelSize(), l = getLevel();
+  for (int j=0 ; j<NCubes ; ++j) {
     std::cout << "Level " << l << " : neighbors indexes of cube " << j << " = ";
-    for (i=0 ; i<getCubeNeighbors(j).size() ; ++i) cout << getCubeNeighbors(j)[i] << ", ";
+    for (unsigned int i=0 ; i<getCubeNeighbors(j).size() ; ++i) cout << getCubeNeighbors(j)[i] << ", ";
     cout << endl;
   }
 }
@@ -749,7 +748,7 @@ void Level::searchCubesNeighborsIndexes(void)
     }
     // we now trim the excess capacity of neighborsIndexes
     cubes[i].neighborsIndexes.resize(neighborsIndexes.size());
-    for (int j=0 ; j<neighborsIndexes.size() ; ++j) cubes[i].neighborsIndexes[j] = neighborsIndexes[j];
+    for (unsigned int j=0 ; j<neighborsIndexes.size() ; ++j) cubes[i].neighborsIndexes[j] = neighborsIndexes[j];
   }
 }
 
@@ -799,11 +798,11 @@ void Level::computeLevelReduction(void) {
   // now fill-in: we create a temporary list containing all the cubes we wanna keep
   vector<int> cubesToKeep;
   // first the really local cubes
-  for (int i=0 ; i<localCubesIndexes.size() ; ++i) cubesToKeep.push_back(localCubesIndexes[i]);
+  for (unsigned int i=0 ; i<localCubesIndexes.size() ; ++i) cubesToKeep.push_back(localCubesIndexes[i]);
   // then those whose Fc's are to be received
-  for (int i=0 ; i<listOfFcToBeReceived.size() ; ++i) {
+  for (unsigned int i=0 ; i<listOfFcToBeReceived.size() ; ++i) {
     vector<int> tmpList = listOfFcToBeReceived[i];
-    for (int j=0 ; j<tmpList.size() ; ++j) {
+    for (unsigned int j=0 ; j<tmpList.size() ; ++j) {
       cubesToKeep.push_back(tmpList[j]);
     }
   }
@@ -813,7 +812,7 @@ void Level::computeLevelReduction(void) {
   vector<Cube> newCubes;
   newCubes.resize(cubesToKeep.size());
   int newIndex = 0;
-  for (int i=0 ; i<cubesToKeep.size() ; ++i) {
+  for (unsigned int i=0 ; i<cubesToKeep.size() ; ++i) {
     int indexToKeep = cubesToKeep[i];
     cubesIndexesAfterReduction[indexToKeep] = newIndex;
     newIndex++;
@@ -973,7 +972,6 @@ void Level::sphericalIntegration(blitz::Array<std::complex<float>, 1>& ZI,
   const double *xi, *eta, *weigths;
   IT_points (xi, eta, weigths, sum_weigths, NGauss);
 
-  float thetaHat[3], phiHat[3];
   blitz::Array< float, 2> kHats(NThetas * NPhis, 3);
   blitz::Array< std::complex<float>, 2> GC3Components(NThetas * NPhis, 3), GC3Exp(NThetas * NPhis, 3);
   std::vector<float> sin_thetas, cos_thetas;
