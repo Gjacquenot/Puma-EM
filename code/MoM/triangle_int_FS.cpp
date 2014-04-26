@@ -353,7 +353,7 @@ void ITs_free (std::complex<double>& ITs_G,
       R_square = rprime_r[0]*rprime_r[0] + rprime_r[1]*rprime_r[1] + rprime_r[2]*rprime_r[2];
       R = sqrt(R_square);
       minus_I_k_R = minus_I_k*R;
-      G_j = exp(minus_I_k_R) * (weights[j]/R); // exp(-(a + ib)) = exp(-a) * (cos(b) - i*sin(b))
+      G_j = (exp(minus_I_k_R.real()) * (weights[j]/R)) * std::complex<double>(cos(minus_I_k_R.imag()), sin(minus_I_k_R.imag())); // exp(-(a + ib)) = exp(-a) * (cos(b) - i*sin(b))
       ITs_G += G_j;
       ITs_G_rprime_r[0] += G_j * rprime_r[0];
       ITs_G_rprime_r[1] += G_j * rprime_r[1];
@@ -381,7 +381,7 @@ void ITs_free (std::complex<double>& ITs_G,
       if (R_square>RSMALL_SQUARE) {
         R = sqrt(R_square);
         minus_I_k_R = minus_I_k*R;
-        exp_minus_I_k_R = exp(minus_I_k_R);
+        exp_minus_I_k_R = exp(minus_I_k_R.real()) * std::complex<double>(cos(minus_I_k_R.imag()), sin(minus_I_k_R.imag()));
         G_j = (exp_minus_I_k_R - 1.0) * (weights[j]/R);
         const std::complex<double> temp((exp_minus_I_k_R*(1.0-minus_I_k_R) - 1.0) * (weights[j]/(R*R_square)) );
         ITs_grad_G[0] += temp * rprime_r[0];
@@ -416,7 +416,7 @@ void ITs_free (std::complex<double>& ITs_G,
       if (R_square>RSMALL_SQUARE) {
         R = sqrt(R_square);
         minus_I_k_R = minus_I_k*R;
-        exp_minus_I_k_R = exp(minus_I_k_R);  // exp(-(a + ib)) = exp(-a) * (cos(b) - i*sin(b))
+        exp_minus_I_k_R = exp(minus_I_k_R.real()) * std::complex<double>(cos(minus_I_k_R.imag()), sin(minus_I_k_R.imag()));
         G_j = ( (exp_minus_I_k_R - 1.0)/R + k_square * (R*0.5) ) * weights[j];
         const std::complex<double> temp( (exp_minus_I_k_R*(1.0-minus_I_k_R) - 1.0 - k_square * (0.5*R_square)) * (weights[j]/(R*R_square)) );
         ITs_grad_G[0] += temp * rprime_r[0];

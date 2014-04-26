@@ -929,7 +929,8 @@ void Level::computeSup(blitz::Array<std::complex<float>, 2> & Sup,
         const int index_1 = q*NThetas, opp_index_1 = NThetas-1 + (q+NPhis/2) * NThetas;
         for (int p=0 ; p<NThetas ; p++) {
           const int index = p + index_1, opp_index = opp_index_1-p;
-          const std::complex<float> Exp = exp( I_k * (expArg[0]*kHats(index, 0) + expArg[1]*kHats(index, 1) + expArg[2]*kHats(index, 2)) );
+          const std::complex<float> a(I_k * (expArg[0]*kHats(index, 0) + expArg[1]*kHats(index, 1) + expArg[2]*kHats(index, 2))); 
+          const std::complex<float> Exp = expf(a.real()) * std::complex<float>(cosf(a.imag()), sinf(a.imag()));
           FC3Components(index, 0) += fj[0] * Exp;
           FC3Components(index, 1) += fj[1] * Exp;
           FC3Components(index, 2) += fj[2] * Exp;
@@ -1012,7 +1013,8 @@ void Level::sphericalIntegration(blitz::Array<std::complex<float>, 1>& ZI,
         const int index_1 = q*NThetas, opp_index_1 = NThetas-1 + (q+NPhis/2) * NThetas;
         for (int p=0 ; p<NThetas ; p++) {
           const int index = p + index_1, opp_index = opp_index_1-p;
-          const std::complex<float> EXP = exp( minus_I_k * (expArg[0]*kHats(index, 0) + expArg[1]*kHats(index, 1) + expArg[2]*kHats(index, 2)) );
+          const std::complex<float> a(minus_I_k * (expArg[0]*kHats(index, 0) + expArg[1]*kHats(index, 1) + expArg[2]*kHats(index, 2))); 
+          const std::complex<float> EXP = expf(a.real()) * std::complex<float>(cosf(a.imag()), sinf(a.imag()));
           GC3Exp(index, 0) = GC3Components(index, 0)*EXP;
           GC3Exp(index, 1) = GC3Components(index, 1)*EXP;
           GC3Exp(index, 2) = GC3Components(index, 2)*EXP;
