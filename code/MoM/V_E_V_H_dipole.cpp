@@ -149,9 +149,9 @@ void V_EJ_HJ_dipole (std::vector<std::complex<double> >& V_tE_J,
       ITo_n_hat_X_r_dot_E_inc = 0.0; // complex<double>
       ITo_n_hat_X_r_dot_H_inc = 0.0; // complex<double>
 
-      r0 = triangles_test[r].r_nodes_0;
-      r1 = triangles_test[r].r_nodes_1;
-      r2 = triangles_test[r].r_nodes_2;
+      r0 = triangles_test[r].r_nodes[0];
+      r1 = triangles_test[r].r_nodes[1];
+      r2 = triangles_test[r].r_nodes[2];
       rGrav = triangles_test[r].r_grav;
 
       // weights and abscissas for triangle integration

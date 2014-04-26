@@ -27,17 +27,11 @@ class Triangle {
     std::vector<int> indexesInRWGs;
     std::vector<double> signInRWG;
     // triangle's nodes
-    double r_nodes_0[3];
-    double r_nodes_1[3];
-    double r_nodes_2[3];
+    double r_nodes[3][3];
     // triangle's normals to edges
-    double m_i_hat_0[3];
-    double m_i_hat_1[3];
-    double m_i_hat_2[3];
+    double m_i_hat[3][3];
     // triangle's edges unit vectors
-    double s_i_hat_0[3];
-    double s_i_hat_1[3];
-    double s_i_hat_2[3];
+    double s_i_hat[3][3];
     // triangle's normal unit vector
     double n_hat[3];
     // triangle's gravity centre
