@@ -1,7 +1,7 @@
 include ../../makefile.inc
 
-LIBLAPACK_PATH = ./lapack/
-LIBLAPACK = ZGELS
+LIBZGELS_PATH = ./lapack/
+LIBZGELS = ZGELS
 LIBAMOS_ZBESH_PATH = ./amos/zbesh/
 LIBITERATIVE_PATH = ./iterative/
 WORKING_DIR_PATH =  $(PWD)
@@ -24,7 +24,7 @@ compute_Z_near: compute_Z_near.o scatter_mesh_per_cube.o $(OBJECTS_LIBMOM)
 	$(MPICC) $(INCLUDE_PATH) compute_Z_near.o scatter_mesh_per_cube.o -L$(WORKING_DIR_PATH) -lMoM $(LIB_SEARCH_PATH) -lblitz -lm -o compute_Z_near
 
 compute_SAI_precond: compute_SAI_precond.o readWriteBlitzArrayFromFile.o
-	$(MPICC) $(INCLUDE_PATH) compute_SAI_precond.o readWriteBlitzArrayFromFile.o -L$(WORKING_DIR_PATH) -lMoM -L$(LIBLAPACK_PATH) -l$(LIBLAPACK) $(LIB_SEARCH_PATH) -lblitz -l$(G2C) -lm -o compute_SAI_precond
+	$(MPICC) $(INCLUDE_PATH) compute_SAI_precond.o readWriteBlitzArrayFromFile.o -L$(WORKING_DIR_PATH) -lMoM -L$(LIBZGELS_PATH) -l$(LIBZGELS) -L$(LIBLAPACK_PATH) -l$(LIBLAPACK) $(LIB_SEARCH_PATH) -lblitz -l$(G2C) -lm -o compute_SAI_precond
 
 mpi_mlfma: mpi_mlfma.o $(OBJECTS_LIBMLFMA)
 #	$(MPICC) $(INCLUDE_PATH) mpi_mlfma.o -L$(WORKING_DIR_PATH) -lMoM -L$(WORKING_DIR_PATH) -lMLFMA -L$(WORKING_DIR_PATH)/amos/zbesh -lAMOS -l$(G2C) -lblitz -lm -o mpi_mlfma
@@ -39,7 +39,7 @@ mesh_functions_seb: mesh_functions_seb.o mesh.o
 mesh_cubes: mesh_cubes.o
 	$(MPICC) $(INCLUDE_PATH) mesh_cubes.o readWriteBlitzArrayFromFile.o $(LIB_SEARCH_PATH) -lblitz -lm -o mesh_cubes
 
-libs: libMoM libMLFMA libAMOS libITERATIVE libLAPACK
+libs: libMoM libMLFMA libAMOS libITERATIVE libZGELS libLOCAL_LAPACK
 
 libMoM: $(OBJECTS_LIBMOM)
 	ar -r libMoM.a $(OBJECTS_LIBMOM)
@@ -53,8 +53,11 @@ libAMOS:
 libITERATIVE:
 	cd $(LIBITERATIVE_PATH); make libITERATIVE
 
-libLAPACK:
-	cd $(LIBLAPACK_PATH); make
+libZGELS:
+	cd $(LIBZGELS_PATH); make libZGELS
+
+libLOCAL_LAPACK:
+	cd $(LIBZGELS_PATH); make libLOCAL_LAPACK
 
 testMPI.o: testMPI.cpp
 	$(MPICC) $(INCLUDE_PATH) $(CFLAGS) testMPI.cpp
@@ -110,6 +113,6 @@ GL.o: GL.cpp
 clean: 
 	rm -f *.o *.a *.txt *~ *.pyc octtree mpi_mlfma testMPI communicateZnearBlocks mesh_functions_seb mesh_cubes distribute_Z_cubes RWGs_renumbering compute_Z_near compute_SAI_precond; 
 	cd $(LIBAMOS_ZBESH_PATH); make clean; 
-	cd $(LIBLAPACK_PATH); make clean; 
+	cd $(LIBZGELS_PATH); make clean; 
 	cd $(LIBITERATIVE_PATH); make clean;
 

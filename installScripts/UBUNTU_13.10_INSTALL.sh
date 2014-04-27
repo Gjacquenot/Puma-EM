@@ -19,9 +19,9 @@ sudo apt-get install g++ gfortran gmsh autoconf libtool python-dev python-scipy 
 # create makefile.inc
 cd ..
 PUMA_EM_DIR=$PWD
-cp $PUMA_EM_DIR/installScripts/gfortran_makefile.inc $PUMA_EM_DIR/makefile.inc
+#cp $PUMA_EM_DIR/installScripts/gfortran_makefile.inc $PUMA_EM_DIR/makefile.inc
 # installing blitz++
-cd $PUMA_EM_DIR/installScripts
+#cd $PUMA_EM_DIR/installScripts
 #export CVSROOT=:pserver:anonymous@blitz.cvs.sourceforge.net:/cvsroot/blitz
 #echo " next password is empty. Just press ENTER to continue"
 #cvs login
