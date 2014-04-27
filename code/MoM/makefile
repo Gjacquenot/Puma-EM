@@ -1,6 +1,7 @@
 include ../../makefile.inc
 
 LIBLAPACK_PATH = ./lapack/
+LIBLAPACK = ZGELS
 LIBAMOS_ZBESH_PATH = ./amos/zbesh/
 LIBITERATIVE_PATH = ./iterative/
 WORKING_DIR_PATH =  $(PWD)
@@ -23,14 +24,14 @@ compute_Z_near: compute_Z_near.o scatter_mesh_per_cube.o $(OBJECTS_LIBMOM)
 	$(MPICC) $(INCLUDE_PATH) compute_Z_near.o scatter_mesh_per_cube.o -L$(WORKING_DIR_PATH) -lMoM $(LIB_SEARCH_PATH) -lblitz -lm -o compute_Z_near
 
 compute_SAI_precond: compute_SAI_precond.o readWriteBlitzArrayFromFile.o
-	$(MPICC) $(INCLUDE_PATH) compute_SAI_precond.o readWriteBlitzArrayFromFile.o -L$(WORKING_DIR_PATH) -lMoM -L$(LIBLAPACK_PATH) -lZGELS $(LIB_SEARCH_PATH) -lblitz -l$(G2C) -lm -o compute_SAI_precond
+	$(MPICC) $(INCLUDE_PATH) compute_SAI_precond.o readWriteBlitzArrayFromFile.o -L$(WORKING_DIR_PATH) -lMoM -L$(LIBLAPACK_PATH) -l$(LIBLAPACK) $(LIB_SEARCH_PATH) -lblitz -l$(G2C) -lm -o compute_SAI_precond
 
 mpi_mlfma: mpi_mlfma.o $(OBJECTS_LIBMLFMA)
 #	$(MPICC) $(INCLUDE_PATH) mpi_mlfma.o -L$(WORKING_DIR_PATH) -lMoM -L$(WORKING_DIR_PATH) -lMLFMA -L$(WORKING_DIR_PATH)/amos/zbesh -lAMOS -l$(G2C) -lblitz -lm -o mpi_mlfma
-	$(MPICC) $(INCLUDE_PATH) mpi_mlfma.o -L$(WORKING_DIR_PATH) -lMLFMA -L$(WORKING_DIR_PATH)/amos/zbesh -lAMOS -L$(WORKING_DIR_PATH)/lapack -lZGELS -l$(G2C) $(LIB_SEARCH_PATH) -lblitz -lm -o mpi_mlfma
+	$(MPICC) $(INCLUDE_PATH) mpi_mlfma.o -L$(WORKING_DIR_PATH) -lMLFMA -L$(WORKING_DIR_PATH)/amos/zbesh -lAMOS -l$(G2C) $(LIB_SEARCH_PATH) -lblitz -lm -o mpi_mlfma
 
 distribute_Z_cubes: distribute_Z_cubes.o $(OBJECTS_LIBMLFMA)
-	$(MPICC) $(INCLUDE_PATH) distribute_Z_cubes.o -L$(WORKING_DIR_PATH) -lMLFMA -L$(WORKING_DIR_PATH)/amos/zbesh -lAMOS -L$(WORKING_DIR_PATH)/lapack -lZGELS -l$(G2C) $(LIB_SEARCH_PATH) -lblitz -lm -o distribute_Z_cubes
+	$(MPICC) $(INCLUDE_PATH) distribute_Z_cubes.o -L$(WORKING_DIR_PATH) -lMLFMA -L$(WORKING_DIR_PATH)/amos/zbesh -lAMOS -l$(G2C) $(LIB_SEARCH_PATH) -lblitz -lm -o distribute_Z_cubes
 
 mesh_functions_seb: mesh_functions_seb.o mesh.o
 	$(MPICC) $(INCLUDE_PATH) mesh_functions_seb.o mesh.o readWriteBlitzArrayFromFile.o $(LIB_SEARCH_PATH) -lblitz -lm -o mesh_functions_seb
