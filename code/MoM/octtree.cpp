@@ -1003,7 +1003,7 @@ void Octtree::computeFarField(blitz::Array<std::complex<float>, 2>& e_theta_far,
     const int N_local_cubes = localCubesIndexes.size();
     const int N_cubes = levels[l].getLevelSize();
     const int N_theta = levels[l].thetas.size(), N_phi = levels[l].phis.size();
-    const int N_directions = (levels[l].DIRECTIONS_PARALLELIZATION!=1) ? N_theta*N_phi :  levels[l].MPI_Scatterv_scounts(my_id);
+    const int N_directions = (levels[l].DIRECTIONS_PARALLELIZATION!=1) ? N_theta*N_phi : levels[l].MPI_Scatterv_scounts(my_id);
     if (levels[l].Sdown.size()==0) levels[l].Sdown.resize(N_cubes);
     // we first compute the Sups of all the cubes at the given level
 
@@ -1109,6 +1109,101 @@ void Octtree::computeFarField(blitz::Array<std::complex<float>, 2>& e_theta_far,
   if (this->getProcNumber()==0) {
     std::cout << "finished!" << std::endl;
     flush(std::cout);
+  }
+}
+
+void Octtree::computeSourceFarField(blitz::Array<std::complex<float>, 2>& e_theta_far,
+                                    blitz::Array<std::complex<float>, 2>& e_phi_far,
+                                    const blitz::Array<float, 1>& octtreeXthetas_coarsest,
+                                    const blitz::Array<float, 1>& octtreeXphis_coarsest,
+                                    const blitz::Array<std::complex<float>, 2>& J_dip,
+                                    const blitz::Array<float, 2>& r_J_dip,
+                                    const string octtree_data_path)
+{
+  if (this->getProcNumber()==0) cout << "\nSource Far field computation" << ": level ";
+  const int N_levels = levels.size(), my_id = this->getProcNumber();
+  const int N_thetas = octtreeXthetas_coarsest.size(), N_phis = octtreeXphis_coarsest.size();
+  int N_dipoles = J_dip.rows(), stoplevel;
+
+  blitz::Array<std::complex<float>, 2> SupTmp(2, N_thetas*N_phis), Sup(2, N_thetas*N_phis);
+  Sup = 0.0;
+  for (int i=0; i<N_dipoles; i++) {
+    const std::complex<float> J[3] = {J_dip(i, 0), J_dip(i, 1), J_dip(i, 2)};
+    const float r_dip[3] = {r_J_dip(i, 0), r_J_dip(i, 1), r_J_dip(i, 2)};
+    const float rCenter[3] = {big_cube_center_coord[0], big_cube_center_coord[1], big_cube_center_coord[2]};
+    computeDipoleSup(SupTmp, J, r_dip, rCenter, octtreeXthetas_coarsest, octtreeXphis_coarsest);
+    Sup += static_cast<std::complex<float> >(-I*mu_0)  * w * mu_r * SupTmp;
+  }
+  e_theta_far.resize(N_thetas, N_phis);
+  e_phi_far.resize(N_thetas, N_phis);
+  for (int m=0 ; m<N_thetas ; ++m) {
+    for (int n=0 ; n<N_phis ; ++n) {
+      e_theta_far(m, n) = Sup(0, m + n*N_thetas);
+      e_phi_far(m, n) = Sup(1, m + n*N_thetas);
+    }
+  }
+  if (this->getProcNumber()==0) {
+    std::cout << "finished!" << std::endl;
+    flush(std::cout);
+  }
+}
+
+void Octtree::computeDipoleSup(blitz::Array<std::complex<float>, 2> & Sup,
+                               const std::complex<float> J_dipole[3],
+                               const float r_dipole[3],
+                               const float rCenter[3],
+                               const blitz::Array<float, 1>& thetas,
+                               const blitz::Array<float, 1>& phis)
+{
+  const int NThetas = thetas.size(), NPhis = phis.size();
+
+  blitz::Array< float, 2> kHats(NThetas * NPhis, 3), thetaHats(NThetas * NPhis, 3), phiHats(NThetas * NPhis, 3);
+  blitz::Array< std::complex<float>, 2> FC3Components(NThetas * NPhis, 3);
+  std::vector<float> sin_thetas, cos_thetas;
+  sin_thetas.resize(NThetas);
+  cos_thetas.resize(NThetas);
+  for (int p=0 ; p<NThetas ; ++p) sincosf(thetas(p), &sin_thetas[p], &cos_thetas[p]);
+  // initialisation of arrays
+  for (int q=0 ; q<NPhis ; ++q) {
+    const float cos_phi = cos(phis(q)), sin_phi = sin(phis(q));
+    for (int p=0 ; p<NThetas ; ++p) {
+      int index = p + q*NThetas;
+      const float sin_theta = sin_thetas[p], cos_theta = cos_thetas[p];
+      kHats(index, 0) = sin_theta*cos_phi;
+      kHats(index, 1) = sin_theta*sin_phi;
+      kHats(index, 2) = cos_theta;
+      thetaHats(index, 0) = cos_theta*cos_phi;
+      thetaHats(index, 1) = cos_theta*sin_phi;
+      thetaHats(index, 2) = -sin_theta;
+      phiHats(index, 0) = -sin_phi;
+      phiHats(index, 1) = cos_phi;
+      phiHats(index, 2) = 0.0;
+      for (int i=0 ; i<3 ; i++) FC3Components(index, i) = 0.0;
+    }
+  }
+  // computation of FC3Components array
+  const std::complex<float> I_k(static_cast<std::complex<float> >(I*this->k));
+  const std::complex<float> fj[3] = {J_dipole[0], J_dipole[1], J_dipole[2]};
+  const float expArg[3] = {r_dipole[0]-rCenter[0], r_dipole[1]-rCenter[1], r_dipole[2]-rCenter[2]};
+  for (int q=0 ; q<NPhis/2 ; q++) {// for phi>pi, kHat = -kHat(pi-theta, phi-pi)
+    const int index_1 = q*NThetas, opp_index_1 = NThetas-1 + (q+NPhis/2) * NThetas;
+    for (int p=0 ; p<NThetas ; p++) {
+      const int index = p + index_1, opp_index = opp_index_1-p;
+      const std::complex<float> a(I_k * (expArg[0]*kHats(index, 0) + expArg[1]*kHats(index, 1) + expArg[2]*kHats(index, 2))); 
+      const std::complex<float> Exp = expf(a.real()) * std::complex<float>(cosf(a.imag()), sinf(a.imag()));
+      FC3Components(index, 0) += fj[0] * Exp;
+      FC3Components(index, 1) += fj[1] * Exp;
+      FC3Components(index, 2) += fj[2] * Exp;
+      const std::complex<float> conjExp(conj(Exp));
+      FC3Components(opp_index, 0) += fj[0] * conjExp;
+      FC3Components(opp_index, 1) += fj[1] * conjExp;
+      FC3Components(opp_index, 2) += fj[2] * conjExp;
+    }
+  } // end q loop
+  // transformation from cartesian to spherical coordinates and assignation to Sup
+  for (int i=0 ; i<Sup.extent(1) ; ++i) {
+    Sup(0, i) = thetaHats(i, 0)*FC3Components(i, 0) + thetaHats(i, 1)*FC3Components(i, 1) + thetaHats(i, 2)*FC3Components(i, 2);
+    Sup(1, i) = phiHats(i, 0)*FC3Components(i, 0) + phiHats(i, 1)*FC3Components(i, 1) + phiHats(i, 2)*FC3Components(i, 2);
   }
 }
 

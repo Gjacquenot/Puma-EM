@@ -27,6 +27,12 @@ def setup_excitation(params_simu, simuDirName):
     else:
         writeScalarToDisk(0, os.path.join(tmpDirName,'V_CFIE/BISTATIC_ANGLES_OBS.txt'))
 
+    # Antenna diagram?
+    if (params_simu.BISTATIC == 1) and (params_simu.ANTENNA_DIAGRAM == 1):
+        writeScalarToDisk(1, os.path.join(tmpDirName,'V_CFIE/ANTENNA_DIAGRAM.txt'))
+    else:
+        writeScalarToDisk(0, os.path.join(tmpDirName,'V_CFIE/ANTENNA_DIAGRAM.txt'))
+
     # now the excitations
     writeScalarToDisk(params_simu.BISTATIC_EXCITATION_DIPOLES, os.path.join(tmpDirName,'V_CFIE/DIPOLES_EXCITATION.txt'))
     writeScalarToDisk(params_simu.BISTATIC_EXCITATION_PLANE_WAVE, os.path.join(tmpDirName,'V_CFIE/PLANE_WAVE_EXCITATION.txt'))

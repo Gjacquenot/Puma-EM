@@ -96,6 +96,8 @@ if params_simu.BISTATIC_EXCITATION_PLANE_WAVE == 1:
 
 # 2. OBSERVATION
 ################
+# is it an antenna diagram?
+params_simu.ANTENNA_DIAGRAM = 0
 # sampling points: sampling of the resulting field at user-specified points in space.
 # It will be used only for BISTATIC
 params_simu.BISTATIC_R_OBS = 1

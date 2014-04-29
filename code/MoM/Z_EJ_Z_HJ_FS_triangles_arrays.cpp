@@ -250,9 +250,3 @@ void Z_CFIE_J_computation (blitz::Array<std::complex<double>, 2>& Z_CFIE_J,
   } // for r
 }
 
-
-
-
-
-
-

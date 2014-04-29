@@ -112,6 +112,19 @@ class Octtree {
                           const blitz::Array<float, 1>& octtreeXphis_coarsest,
                           const blitz::Array<std::complex<float>, 1>& I_PQ,
                           const string octtree_data_path);
+    void computeSourceFarField (blitz::Array<std::complex<float>, 2>& e_theta_far,
+                                blitz::Array<std::complex<float>, 2>& e_phi_far,
+                                const blitz::Array<float, 1>& octtreeXthetas_coarsest,
+                                const blitz::Array<float, 1>& octtreeXphis_coarsest,
+                                const blitz::Array<std::complex<float>, 2>& J_dip,
+                                const blitz::Array<float, 2>& r_J_dip,
+                                const string octtree_data_path);
+    void computeDipoleSup(blitz::Array<std::complex<float>, 2> & Sup,
+                          const std::complex<float> J_dipole[3],
+                          const float r_dipole[3],
+                          const float rCenter[3],
+                          const blitz::Array<float, 1>& thetas,
+                          const blitz::Array<float, 1>& phis);
     void resizeSdownLevelsToZero(void) {for (unsigned int i=0 ; i<levels.size() ; ++i) levels[i].Sdown.resize(0);}
 };
 

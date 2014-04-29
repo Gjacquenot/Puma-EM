@@ -538,6 +538,31 @@ void computeForOneExcitation(Octtree & octtree,
     writeFloatBlitzArray1DToASCIIFile(RESULT_DATA_PATH + "phis_far_field_ASCII.txt", octtreeXphis_coarsest);
     writeFloatBlitzArray1DToASCIIFile(RESULT_DATA_PATH + "thetas_far_field_ASCII.txt", octtreeXthetas_coarsest);
   }
+
+  // Antenna diagram?
+  int ANTENNA_DIAGRAM;
+  readIntFromASCIIFile(V_CFIE_DATA_PATH + "ANTENNA_DIAGRAM.txt", ANTENNA_DIAGRAM);
+  if (ANTENNA_DIAGRAM==1) {
+    blitz::Array<std::complex<float>, 2> J_dip;
+    blitz::Array<float, 2> r_J_dip;
+    int J_DIPOLES_EXCITATION;
+    readIntFromASCIIFile(V_CFIE_DATA_PATH + "J_DIPOLES_EXCITATION.txt", J_DIPOLES_EXCITATION);
+    if (J_DIPOLES_EXCITATION==1) {
+      readComplexFloatBlitzArray2DFromASCIIFile( V_CFIE_DATA_PATH + "J_dip.txt", J_dip);
+      readFloatBlitzArray2DFromASCIIFile( V_CFIE_DATA_PATH + "r_J_dip.txt", r_J_dip);
+      blitz::Array<std::complex<float>, 2> e_theta_far_source, e_phi_far_source;
+      if (my_id==master) {
+        octtree.computeSourceFarField(e_theta_far_source, e_phi_far_source, octtreeXthetas_coarsest, octtreeXphis_coarsest, J_dip, r_J_dip, OCTTREE_DATA_PATH);
+        e_theta_far += e_theta_far_source;
+        e_phi_far += e_phi_far_source;
+        writeComplexFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "total_e_theta_far_ASCII.txt", e_theta_far);
+        writeComplexFloatBlitzArray2DToBinaryFile(RESULT_DATA_PATH + "total_e_theta_far_Binary.txt", e_theta_far);
+        writeComplexFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "total_e_phi_far_ASCII.txt", e_phi_far);
+        writeComplexFloatBlitzArray2DToBinaryFile(RESULT_DATA_PATH + "total_e_phi_far_Binary.txt", e_phi_far);
+      }
+    }
+  }
+
   // we now write the solution to disk...
   blitz::Array<std::complex<float>, 1> ZI_global(N_RWG), recvBuf;
   ZI_global = 0.0;
