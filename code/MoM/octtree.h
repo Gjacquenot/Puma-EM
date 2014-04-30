@@ -117,8 +117,7 @@ class Octtree {
                                 const blitz::Array<float, 1>& octtreeXthetas_coarsest,
                                 const blitz::Array<float, 1>& octtreeXphis_coarsest,
                                 const blitz::Array<std::complex<float>, 2>& J_dip,
-                                const blitz::Array<float, 2>& r_J_dip,
-                                const string octtree_data_path);
+                                const blitz::Array<float, 2>& r_J_dip);
     void computeDipoleSup(blitz::Array<std::complex<float>, 2> & Sup,
                           const std::complex<float> J_dipole[3],
                           const float r_dipole[3],

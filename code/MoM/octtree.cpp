@@ -1117,8 +1117,7 @@ void Octtree::computeSourceFarField(blitz::Array<std::complex<float>, 2>& e_thet
                                     const blitz::Array<float, 1>& octtreeXthetas_coarsest,
                                     const blitz::Array<float, 1>& octtreeXphis_coarsest,
                                     const blitz::Array<std::complex<float>, 2>& J_dip,
-                                    const blitz::Array<float, 2>& r_J_dip,
-                                    const string octtree_data_path)
+                                    const blitz::Array<float, 2>& r_J_dip)
 {
   const int my_id = this->getProcNumber();
   if (my_id==0) cout << "\nSource Far field computation...";

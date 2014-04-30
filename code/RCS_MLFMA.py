@@ -27,8 +27,12 @@ def monostatic_RCS(params_simu, simuDirName):
 def bistatic_RCS(params_simu, simuDirName):
     phis_far_field = 180./pi * readASCIIBlitzFloatArray1DFromDisk(os.path.join(simuDirName, 'result/phis_far_field_ASCII.txt'))
     thetas_far_field = 180./pi * readASCIIBlitzFloatArray1DFromDisk(os.path.join(simuDirName, 'result/thetas_far_field_ASCII.txt'))
-    e_phi = readBlitzArrayFromDisk(os.path.join(simuDirName, 'result/e_phi_far_Binary.txt'), thetas_far_field.shape[0], phis_far_field.shape[0], 'F')
-    e_theta = readBlitzArrayFromDisk(os.path.join(simuDirName, 'result/e_theta_far_Binary.txt'), thetas_far_field.shape[0], phis_far_field.shape[0], 'F')
+    scatt_e_phi = readBlitzArrayFromDisk(os.path.join(simuDirName, 'result/scatt_e_phi_far_Binary.txt'), thetas_far_field.shape[0], phis_far_field.shape[0], 'F')
+    scatt_e_theta = readBlitzArrayFromDisk(os.path.join(simuDirName, 'result/scatt_e_theta_far_Binary.txt'), thetas_far_field.shape[0], phis_far_field.shape[0], 'F')
+    #source_e_phi = readBlitzArrayFromDisk(os.path.join(simuDirName, 'result/source_e_phi_far_Binary.txt'), thetas_far_field.shape[0], phis_far_field.shape[0], 'F')
+    #source_e_theta = readBlitzArrayFromDisk(os.path.join(simuDirName, 'result/source_e_theta_far_Binary.txt'), thetas_far_field.shape[0], phis_far_field.shape[0], 'F')
+    e_theta = scatt_e_theta #+ source_e_theta
+    e_phi = scatt_e_phi #+ source_e_phi
     p_scatt_theta = real(e_theta * conj(e_theta))
     p_scatt_phi = real(e_phi*conj(e_phi))
     R_cube_center = readASCIIBlitzFloatArray1DFromDisk(os.path.join(simuDirName, 'tmp' + str(0) +  '/octtree_data/big_cube_center_coord.txt'))
@@ -188,13 +192,27 @@ if __name__=='__main__':
                 import numpy as np
                 fig = plt.figure()
                 ax = fig.gca(projection='3d')
-                X = phis_far_field
-                Y = thetas_far_field
-                X, Y = np.meshgrid(X, Y)
-                surf = ax.plot_surface(X, Y, sigma_theta, rstride=1, cstride=1, cmap=cm.coolwarm, linewidth=0, antialiased=False)
+                X = phis_far_field*pi/180.
+                Y = thetas_far_field*pi/180.
+                #X, Y = np.meshgrid(X, Y)
+                #surf = ax.plot_surface(X, Y, sigma_theta+sigma_phi, rstride=1, cstride=1, cmap=cm.coolwarm, linewidth=0, antialiased=False)
+                #ax.zaxis.set_major_locator(LinearLocator(10))
+                #ax.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
+                #fig.colorbar(surf, shrink=0.5, aspect=5)
+                #plt.show()
+
+                phis, thetas = np.meshgrid(X, Y)
+                SIGMA = sigma_phi + sigma_theta
+                X = SIGMA * cos(phis) * sin(thetas)
+                Y = SIGMA * sin(phis) * sin(thetas)
+                Z = SIGMA * cos(thetas)
+                surf = ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap=cm.jet)
                 ax.zaxis.set_major_locator(LinearLocator(10))
                 ax.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
                 fig.colorbar(surf, shrink=0.5, aspect=5)
+                ax.set_xlabel('X axis')
+                ax.set_ylabel('Y axis')
+                ax.set_zlabel('Z axis')
                 plt.show()
 
     if params_simu.MONOSTATIC_SAR==1:
