@@ -1120,10 +1120,10 @@ void Octtree::computeSourceFarField(blitz::Array<std::complex<float>, 2>& e_thet
                                     const blitz::Array<float, 2>& r_J_dip,
                                     const string octtree_data_path)
 {
-  if (this->getProcNumber()==0) cout << "\nSource Far field computation" << ": level ";
-  const int N_levels = levels.size(), my_id = this->getProcNumber();
+  const int my_id = this->getProcNumber();
+  if (my_id==0) cout << "\nSource Far field computation...";
   const int N_thetas = octtreeXthetas_coarsest.size(), N_phis = octtreeXphis_coarsest.size();
-  int N_dipoles = J_dip.rows(), stoplevel;
+  int N_dipoles = J_dip.rows();
 
   blitz::Array<std::complex<float>, 2> SupTmp(2, N_thetas*N_phis), Sup(2, N_thetas*N_phis);
   Sup = 0.0;
@@ -1142,7 +1142,7 @@ void Octtree::computeSourceFarField(blitz::Array<std::complex<float>, 2>& e_thet
       e_phi_far(m, n) = Sup(1, m + n*N_thetas);
     }
   }
-  if (this->getProcNumber()==0) {
+  if (my_id==0) {
     std::cout << "finished!" << std::endl;
     flush(std::cout);
   }
@@ -1206,5 +1206,4 @@ void Octtree::computeDipoleSup(blitz::Array<std::complex<float>, 2> & Sup,
     Sup(1, i) = phiHats(i, 0)*FC3Components(i, 0) + phiHats(i, 1)*FC3Components(i, 1) + phiHats(i, 2)*FC3Components(i, 2);
   }
 }
-
 
