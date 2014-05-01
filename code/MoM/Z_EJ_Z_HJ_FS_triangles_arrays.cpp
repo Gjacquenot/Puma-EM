@@ -140,10 +140,10 @@ void Z_CFIE_J_computation (blitz::Array<std::complex<double>, 2>& Z_CFIE_J,
           EXTRACT_1_R = (EXTRACT_R = 1); N_points_o = (N_points_s = 13);
         }
         else if (IS_TOUCH) {
-          EXTRACT_1_R = (EXTRACT_R = 1); N_points_o = (N_points_s = 13);
+          EXTRACT_1_R = (EXTRACT_R = 1); N_points_o = (N_points_s = 9);
         }
         else if (IS_NEAR) {
-          EXTRACT_1_R = (EXTRACT_R = 1); N_points_o = (N_points_s = 9);
+          EXTRACT_1_R = (EXTRACT_R = 1); N_points_o = (N_points_s = 6);
         }
       }
       else {

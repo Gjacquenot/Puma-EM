@@ -356,7 +356,7 @@ void ITs_free (std::complex<double>& ITs_G,
 //      G_j = exp(minus_I_k_R) * (weights[j]/R);
 //      G_j = (exp(minus_I_k_R.real()) * (weights[j]/R)) * std::complex<double>(cos(minus_I_k_R.imag()), sin(minus_I_k_R.imag())); // exp(a + ib) = exp(a) * (cos(b) + i*sin(b))
       double c, s, e;
-      e = (exp(minus_I_k_R.real()) * (weights[j]/R));
+      e = (minus_I_k_R.real() == 0.0) ? 1.0 * (weights[j]/R) : exp(minus_I_k_R.real()) * (weights[j]/R);
       sincos(minus_I_k_R.imag(), &s, &c);
       G_j = e * std::complex<double>(c, s);
       ITs_G += G_j;
@@ -389,7 +389,7 @@ void ITs_free (std::complex<double>& ITs_G,
 //        exp_minus_I_k_R = exp(minus_I_k_R);
 //        exp_minus_I_k_R = exp(minus_I_k_R.real()) * std::complex<double>(cos(minus_I_k_R.imag()), sin(minus_I_k_R.imag()));
         double c, s, e;
-        e = exp(minus_I_k_R.real());
+        e = (minus_I_k_R.real() == 0.0) ? 1.0 : exp(minus_I_k_R.real());
         sincos(minus_I_k_R.imag(), &s, &c);
         exp_minus_I_k_R = e * std::complex<double>(c, s);
         G_j = (exp_minus_I_k_R - 1.0) * (weights[j]/R);
@@ -429,7 +429,7 @@ void ITs_free (std::complex<double>& ITs_G,
 //        exp_minus_I_k_R = exp(minus_I_k_R);
 //        exp_minus_I_k_R = exp(minus_I_k_R.real()) * std::complex<double>(cos(minus_I_k_R.imag()), sin(minus_I_k_R.imag()));
         double c, s, e;
-        e = exp(minus_I_k_R.real());
+        e = (minus_I_k_R.real() == 0.0) ? 1.0 : exp(minus_I_k_R.real());
         sincos(minus_I_k_R.imag(), &s, &c);
         exp_minus_I_k_R = e * std::complex<double>(c, s);
         G_j = ( (exp_minus_I_k_R - 1.0)/R + k_square * (R*0.5) ) * weights[j];
