@@ -937,7 +937,7 @@ void Level::computeSup(blitz::Array<std::complex<float>, 2> & Sup,
           FC3Components(index, 0) += fj[0] * EXP;
           FC3Components(index, 1) += fj[1] * EXP;
           FC3Components(index, 2) += fj[2] * EXP;
-          const std::complex<float> conjEXP(conj(EXP));
+          const std::complex<float> conjEXP((1.0/e) * c, -(1.0/e) * s);
           FC3Components(opp_index, 0) += fj[0] * conjEXP;
           FC3Components(opp_index, 1) += fj[1] * conjEXP;
           FC3Components(opp_index, 2) += fj[2] * conjEXP;
@@ -1024,10 +1024,10 @@ void Level::sphericalIntegration(blitz::Array<std::complex<float>, 1>& ZI,
           GC3Exp(index, 0) = GC3Components(index, 0)*EXP;
           GC3Exp(index, 1) = GC3Components(index, 1)*EXP;
           GC3Exp(index, 2) = GC3Components(index, 2)*EXP;
-          const std::complex<float> conjExp = conj(EXP);
-          GC3Exp(opp_index, 0) = GC3Components(opp_index, 0)*conjExp;
-          GC3Exp(opp_index, 1) = GC3Components(opp_index, 1)*conjExp;
-          GC3Exp(opp_index, 2) = GC3Components(opp_index, 2)*conjExp;
+          const std::complex<float> conjEXP((1.0/e) * c, -(1.0/e) * s);
+          GC3Exp(opp_index, 0) = GC3Components(opp_index, 0)*conjEXP;
+          GC3Exp(opp_index, 1) = GC3Components(opp_index, 1)*conjEXP;
+          GC3Exp(opp_index, 2) = GC3Components(opp_index, 2)*conjEXP;
           EJ[0] += (GC3Exp(index, 0) + GC3Exp(opp_index, 0));
           EJ[1] += (GC3Exp(index, 1) + GC3Exp(opp_index, 1));
           EJ[2] += (GC3Exp(index, 2) + GC3Exp(opp_index, 2));
