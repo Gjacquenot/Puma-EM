@@ -27,12 +27,8 @@ def monostatic_RCS(params_simu, simuDirName):
 def bistatic_RCS(params_simu, simuDirName):
     phis_far_field = 180./pi * readASCIIBlitzFloatArray1DFromDisk(os.path.join(simuDirName, 'result/phis_far_field_ASCII.txt'))
     thetas_far_field = 180./pi * readASCIIBlitzFloatArray1DFromDisk(os.path.join(simuDirName, 'result/thetas_far_field_ASCII.txt'))
-    scatt_e_phi = readBlitzArrayFromDisk(os.path.join(simuDirName, 'result/scatt_e_phi_far_Binary.txt'), thetas_far_field.shape[0], phis_far_field.shape[0], 'F')
-    scatt_e_theta = readBlitzArrayFromDisk(os.path.join(simuDirName, 'result/scatt_e_theta_far_Binary.txt'), thetas_far_field.shape[0], phis_far_field.shape[0], 'F')
-    #source_e_phi = readBlitzArrayFromDisk(os.path.join(simuDirName, 'result/source_e_phi_far_Binary.txt'), thetas_far_field.shape[0], phis_far_field.shape[0], 'F')
-    #source_e_theta = readBlitzArrayFromDisk(os.path.join(simuDirName, 'result/source_e_theta_far_Binary.txt'), thetas_far_field.shape[0], phis_far_field.shape[0], 'F')
-    e_theta = scatt_e_theta #+ source_e_theta
-    e_phi = scatt_e_phi #+ source_e_phi
+    e_phi = readBlitzArrayFromDisk(os.path.join(simuDirName, 'result/scatt_e_phi_far_Binary.txt'), thetas_far_field.shape[0], phis_far_field.shape[0], 'F')
+    e_theta = readBlitzArrayFromDisk(os.path.join(simuDirName, 'result/scatt_e_theta_far_Binary.txt'), thetas_far_field.shape[0], phis_far_field.shape[0], 'F')
     p_scatt_theta = real(e_theta * conj(e_theta))
     p_scatt_phi = real(e_phi*conj(e_phi))
     R_cube_center = readASCIIBlitzFloatArray1DFromDisk(os.path.join(simuDirName, 'tmp' + str(0) +  '/octtree_data/big_cube_center_coord.txt'))
@@ -54,6 +50,17 @@ def bistatic_RCS(params_simu, simuDirName):
         print("WARNING: you have dipole and plane wave excitation simultaneously. Is it what you intended??")
     sigma_phi = p_scatt_phi/(P_inc * 4.0 * pi)
     sigma_theta = p_scatt_theta/(P_inc * 4.0 * pi)
+    return sigma_theta, sigma_phi, thetas_far_field, phis_far_field
+
+def antenna_pattern(params_simu, simuDirName):
+    phis_far_field = 180./pi * readASCIIBlitzFloatArray1DFromDisk(os.path.join(simuDirName, 'result/phis_far_field_ASCII.txt'))
+    thetas_far_field = 180./pi * readASCIIBlitzFloatArray1DFromDisk(os.path.join(simuDirName, 'result/thetas_far_field_ASCII.txt'))
+    scatt_e_phi = readBlitzArrayFromDisk(os.path.join(simuDirName, 'result/scatt_e_phi_far_Binary.txt'), thetas_far_field.shape[0], phis_far_field.shape[0], 'F')
+    scatt_e_theta = readBlitzArrayFromDisk(os.path.join(simuDirName, 'result/scatt_e_theta_far_Binary.txt'), thetas_far_field.shape[0], phis_far_field.shape[0], 'F')
+    source_e_phi = readBlitzArrayFromDisk(os.path.join(simuDirName, 'result/source_e_phi_far_Binary.txt'), thetas_far_field.shape[0], phis_far_field.shape[0], 'F')
+    source_e_theta = readBlitzArrayFromDisk(os.path.join(simuDirName, 'result/source_e_theta_far_Binary.txt'), thetas_far_field.shape[0], phis_far_field.shape[0], 'F')
+    e_theta, e_phi = scatt_e_theta + source_e_theta, scatt_e_phi + source_e_phi
+    sigma_theta, sigma_phi = real(e_theta * conj(e_theta)), real(e_phi*conj(e_phi))
     return sigma_theta, sigma_phi, thetas_far_field, phis_far_field
 
 if __name__=='__main__':
@@ -149,7 +156,10 @@ if __name__=='__main__':
             writeASCIIBlitzArrayToDisk(phis_obs, os.path.join(simuDirName, 'result', "phis_obs.txt"))
 
         # automatic far field computations
-        sigma_theta, sigma_phi, thetas_far_field, phis_far_field = bistatic_RCS(params_simu, simuDirName)
+        if params_simu.ANTENNA_DIAGRAM == 1:
+            sigma_theta, sigma_phi, thetas_far_field, phis_far_field = antenna_pattern(params_simu, simuDirName)
+        else:
+            sigma_theta, sigma_phi, thetas_far_field, phis_far_field = bistatic_RCS(params_simu, simuDirName)
         dimensions = 2
         if (len(thetas_far_field)==1) or (len(phis_far_field)==1):
             dimensions = 1
@@ -206,7 +216,7 @@ if __name__=='__main__':
                 X = SIGMA * cos(phis) * sin(thetas)
                 Y = SIGMA * sin(phis) * sin(thetas)
                 Z = SIGMA * cos(thetas)
-                surf = ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap=cm.jet)
+                surf = ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap=cm.jet, linewidth=0.2)
                 ax.zaxis.set_major_locator(LinearLocator(10))
                 ax.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
                 fig.colorbar(surf, shrink=0.5, aspect=5)
