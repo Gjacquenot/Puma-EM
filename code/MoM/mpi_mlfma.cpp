@@ -557,6 +557,10 @@ void computeForOneExcitation(Octtree & octtree,
         writeComplexFloatBlitzArray2DToBinaryFile(RESULT_DATA_PATH + "source_e_theta_far_Binary.txt", e_theta_far_source);
         writeComplexFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "source_e_phi_far_ASCII.txt", e_phi_far_source);
         writeComplexFloatBlitzArray2DToBinaryFile(RESULT_DATA_PATH + "source_e_phi_far_Binary.txt", e_phi_far_source);
+        e_theta_far += e_theta_far_source;
+        e_phi_far += e_phi_far_source;
+        writeComplexFloatBlitzArray2DToBinaryFile(RESULT_DATA_PATH + "total_e_theta_far_Binary.txt", e_theta_far);
+        writeComplexFloatBlitzArray2DToBinaryFile(RESULT_DATA_PATH + "total_e_phi_far_Binary.txt", e_phi_far);
         blitz::Array<float, 1> rCenter(3);
         for (int i=0; i<3; i++) rCenter(i) = octtree.big_cube_center_coord[i];
         writeFloatBlitzArray1DToASCIIFile(RESULT_DATA_PATH + "big_cube_center_coord_ASCII.txt", rCenter); 
