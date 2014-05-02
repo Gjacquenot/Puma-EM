@@ -6,6 +6,10 @@ LIBAMOS_ZBESH_PATH = ./amos/zbesh/
 LIBITERATIVE_PATH = ./iterative/
 WORKING_DIR_PATH =  $(PWD)
 
+ifndef LIBLAPACK
+  LIBLAPACK:=-lLOCAL_LAPACK
+endif
+
 OBJECTS_LIBMOM = triangle_int_FS.o V_E_V_H_dipole.o V_E_V_H_plane.o integr_1D_X_W.o GL.o Z_EJ_Z_HJ_FS_triangles_arrays.o GK_triangle.o mesh.o readWriteBlitzArrayFromFile.o
 OBJECTS_LIBMLFMA = triangle_int_FS.o V_E_V_H_dipole.o V_E_V_H_plane.o integr_1D_X_W.o GL.o GK_triangle.o mesh.o readWriteBlitzArrayFromFile.o interpolation.o cube.o level.o octtree.o
 
@@ -24,7 +28,7 @@ compute_Z_near: compute_Z_near.o scatter_mesh_per_cube.o $(OBJECTS_LIBMOM)
 	$(MPICC) $(INCLUDE_PATH) compute_Z_near.o scatter_mesh_per_cube.o -L$(WORKING_DIR_PATH) -lMoM $(LIB_SEARCH_PATH) -lblitz -lm -o compute_Z_near
 
 compute_SAI_precond: compute_SAI_precond.o readWriteBlitzArrayFromFile.o
-	$(MPICC) $(INCLUDE_PATH) compute_SAI_precond.o readWriteBlitzArrayFromFile.o -L$(WORKING_DIR_PATH) -lMoM -L$(LIBZGELS_PATH) -l$(LIBZGELS) -L$(LIBLAPACK_PATH) -l$(LIBLAPACK) $(LIB_SEARCH_PATH) -lblitz -l$(G2C) -lm -o compute_SAI_precond
+	$(MPICC) $(INCLUDE_PATH) compute_SAI_precond.o readWriteBlitzArrayFromFile.o -L$(WORKING_DIR_PATH) -lMoM -L$(LIBZGELS_PATH) -l$(LIBZGELS) $(LIBLAPACK) $(LIB_SEARCH_PATH) -lblitz -l$(G2C) -lm -o compute_SAI_precond
 
 mpi_mlfma: mpi_mlfma.o $(OBJECTS_LIBMLFMA)
 #	$(MPICC) $(INCLUDE_PATH) mpi_mlfma.o -L$(WORKING_DIR_PATH) -lMoM -L$(WORKING_DIR_PATH) -lMLFMA -L$(WORKING_DIR_PATH)/amos/zbesh -lAMOS -l$(G2C) -lblitz -lm -o mpi_mlfma
