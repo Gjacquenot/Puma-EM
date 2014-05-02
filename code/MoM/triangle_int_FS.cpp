@@ -339,12 +339,10 @@ void ITs_free (std::complex<double>& ITs_G,
   const double norm_factor = Ts.A/sum_weights;
 
   ITs_G = 0.0; // complex<double>
-  ITs_G_rprime_r[0] = 0.0; // Vector<complex<double>, 3>
-  ITs_G_rprime_r[1] = 0.0; // Vector<complex<double>, 3>
-  ITs_G_rprime_r[2] = 0.0; // Vector<complex<double>, 3>
-  ITs_grad_G[0] = 0.0; // Vector<complex<double>, 3>
-  ITs_grad_G[1] = 0.0; // Vector<complex<double>, 3>
-  ITs_grad_G[2] = 0.0; // Vector<complex<double>, 3>
+  for (int i=0; i<3; i++) {
+    ITs_G_rprime_r[i] = 0.0; // Vector<complex<double>, 3>
+    ITs_grad_G[i] = 0.0; // Vector<complex<double>, 3>
+  }
   if ((EXTRACT_1_R==0) && (EXTRACT_R==0)) { // no singularity extraction
     for (int j=0 ; j<N_points ; j++) {
       rprime_r[0] = r0_r2[0] * xi[j] + r1_r2[0] * eta[j] + r2_r[0];
@@ -369,12 +367,10 @@ void ITs_free (std::complex<double>& ITs_G,
       ITs_grad_G[2] += temp * rprime_r[2];
     }
     ITs_G *= norm_factor;
-    ITs_G_rprime_r[0] *= norm_factor;
-    ITs_G_rprime_r[1] *= norm_factor;
-    ITs_G_rprime_r[2] *= norm_factor;
-    ITs_grad_G[0] *= norm_factor;
-    ITs_grad_G[1] *= norm_factor;
-    ITs_grad_G[2] *= norm_factor;
+    for (int i=0; i<3; i++) {
+      ITs_G_rprime_r[i] *= norm_factor;
+      ITs_grad_G[i] *= norm_factor;
+    }
   }
  
   else if ((EXTRACT_1_R==1) && (EXTRACT_R==0)) { // 1/R singularity extraction
@@ -408,12 +404,10 @@ void ITs_free (std::complex<double>& ITs_G,
     }
     IT_singularities (IT_1_R, IT_R, IT_1_R_rprime_r, IT_R_rprime_r, IT_grad_1_R, r, Ts);
     ITs_G = ITs_G * norm_factor + IT_1_R;
-    ITs_G_rprime_r[0] = ITs_G_rprime_r[0] * norm_factor + IT_1_R_rprime_r[0];
-    ITs_G_rprime_r[1] = ITs_G_rprime_r[1] * norm_factor + IT_1_R_rprime_r[1];
-    ITs_G_rprime_r[2] = ITs_G_rprime_r[2] * norm_factor + IT_1_R_rprime_r[2];
-    ITs_grad_G[0] = ITs_grad_G[0] * norm_factor + IT_grad_1_R[0];
-    ITs_grad_G[1] = ITs_grad_G[1] * norm_factor + IT_grad_1_R[1];
-    ITs_grad_G[2] = ITs_grad_G[2] * norm_factor + IT_grad_1_R[2];
+    for (int i=0; i<3; i++) {
+      ITs_G_rprime_r[i] = ITs_G_rprime_r[i] * norm_factor + IT_1_R_rprime_r[i];
+      ITs_grad_G[i] = ITs_grad_G[i] * norm_factor + IT_grad_1_R[i];
+    }
   }
 
   else if ((EXTRACT_1_R==1) && (EXTRACT_R==1)) { // 1/R and R singularity extraction
@@ -449,13 +443,11 @@ void ITs_free (std::complex<double>& ITs_G,
     IT_singularities (IT_1_R, IT_R, IT_1_R_rprime_r, IT_R_rprime_r, IT_grad_1_R, r, Ts);
     const std::complex<double> k_square_2(k_square*0.5);
     ITs_G = ITs_G * norm_factor + IT_1_R - k_square_2 * IT_R;
-    ITs_G_rprime_r[0] = ITs_G_rprime_r[0] * norm_factor + IT_1_R_rprime_r[0] - k_square_2 * IT_R_rprime_r[0];
-    ITs_G_rprime_r[1] = ITs_G_rprime_r[1] * norm_factor + IT_1_R_rprime_r[1] - k_square_2 * IT_R_rprime_r[1];
-    ITs_G_rprime_r[2] = ITs_G_rprime_r[2] * norm_factor + IT_1_R_rprime_r[2] - k_square_2 * IT_R_rprime_r[2];
-    // IT_grad_R = -IT_1_R_rprime_r
-    ITs_grad_G[0] = ITs_grad_G[0] * norm_factor + IT_grad_1_R[0] + k_square_2 * IT_1_R_rprime_r[0];
-    ITs_grad_G[1] = ITs_grad_G[1] * norm_factor + IT_grad_1_R[1] + k_square_2 * IT_1_R_rprime_r[1];
-    ITs_grad_G[2] = ITs_grad_G[2] * norm_factor + IT_grad_1_R[2] + k_square_2 * IT_1_R_rprime_r[2];
+    for (int i=0; i<3; i++) {
+      ITs_G_rprime_r[i] = ITs_G_rprime_r[i] * norm_factor + IT_1_R_rprime_r[i] - k_square_2 * IT_R_rprime_r[i];
+      // IT_grad_R = -IT_1_R_rprime_r
+      ITs_grad_G[i] = ITs_grad_G[i] * norm_factor + IT_grad_1_R[i] + k_square_2 * IT_1_R_rprime_r[i];
+    }
   }
 }
 

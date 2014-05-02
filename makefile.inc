@@ -1,11 +1,14 @@
 CC:= g++
 MPICC:= mpiCC
-CFLAGS:= -c -O2 -fPIC -ffast-math
-#CFLAGS:= -c -O2 -fPIC -ffast-math -ftree-vectorize -msse2
+# safe flags
+CFLAGS:= -c -O2 -fPIC -ffast-math -mfpmath=both
+# potentially faster flags
+#CFLAGS:= -c -O3 -fPIC -ffast-math -mfpmath=both
+# debug flags
 #CFLAGS:= -c -g -DBZ_DEBUG -Wall -fPIC
 F77:= gfortran
 G2C:= gfortran
-F_FLAGS:= -c -O3 -funroll-loops -fPIC -pthread
+F_FLAGS:= -c -O3 -fPIC -pthread -ffast-math -mfpmath=both
 
 #INCLUDE_PATH= -I/path/to/include
 #LIB_SEARCH_PATH= -L/path/to/lib
