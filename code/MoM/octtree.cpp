@@ -1184,19 +1184,18 @@ void Octtree::computeDipoleSup(blitz::Array<std::complex<float>, 2> & Sup,
   const std::complex<float> I_k(static_cast<std::complex<float> >(I*this->k));
   const std::complex<float> fj[3] = {J_dipole[0], J_dipole[1], J_dipole[2]};
   const float expArg[3] = {r_dipole[0]-rCenter[0], r_dipole[1]-rCenter[1], r_dipole[2]-rCenter[2]};
-  for (int q=0 ; q<NPhis/2 ; q++) {// for phi>pi, kHat = -kHat(pi-theta, phi-pi)
-    const int index_1 = q*NThetas, opp_index_1 = NThetas-1 + (q+NPhis/2) * NThetas;
+  for (int q=0 ; q<NPhis ; q++) {
+    const int index_1 = q*NThetas;
     for (int p=0 ; p<NThetas ; p++) {
-      const int index = p + index_1, opp_index = opp_index_1-p;
-      const std::complex<float> a(I_k * (expArg[0]*kHats(index, 0) + expArg[1]*kHats(index, 1) + expArg[2]*kHats(index, 2))); 
-      const std::complex<float> Exp = expf(a.real()) * std::complex<float>(cosf(a.imag()), sinf(a.imag()));
-      FC3Components(index, 0) += fj[0] * Exp;
-      FC3Components(index, 1) += fj[1] * Exp;
-      FC3Components(index, 2) += fj[2] * Exp;
-      const std::complex<float> conjExp(conj(Exp));
-      FC3Components(opp_index, 0) += fj[0] * conjExp;
-      FC3Components(opp_index, 1) += fj[1] * conjExp;
-      FC3Components(opp_index, 2) += fj[2] * conjExp;
+      const int index = p + index_1;
+      const std::complex<double> a(I_k * (expArg[0]*kHats(index, 0) + expArg[1]*kHats(index, 1) + expArg[2]*kHats(index, 2))); 
+      double c, s, e;
+      e = (a.real() == 0.0) ? 1.0 : exp(a.real());
+      sincos(a.imag(), &s, &c);
+      const std::complex<float> EXP(e * c, e * s);
+      FC3Components(index, 0) += fj[0] * EXP;
+      FC3Components(index, 1) += fj[1] * EXP;
+      FC3Components(index, 2) += fj[2] * EXP;
     }
   } // end q loop
   // transformation from cartesian to spherical coordinates and assignation to Sup
