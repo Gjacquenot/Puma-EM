@@ -1,7 +1,7 @@
 import sys, os, argparse
 from MLFMA import getField, print_times
 from scipy import cos, sin, conj, log10, real, sum, dot, pi, sqrt, exp
-from scipy import array, arange, zeros, ones
+from scipy import array, arange, zeros, ones, amax
 from V_EH import G_EJ_G_HJ
 from EM_constants import *
 from ReadWriteBlitzArray import *
@@ -156,7 +156,7 @@ if __name__=='__main__':
             writeASCIIBlitzArrayToDisk(phis_obs, os.path.join(simuDirName, 'result', "phis_obs.txt"))
 
         # automatic far field computations
-        if params_simu.ANTENNA_DIAGRAM == 1:
+        if params_simu.ANTENNA_PATTERN == 1:
             sigma_theta, sigma_phi, thetas_far_field, phis_far_field = antenna_pattern(params_simu, simuDirName)
         else:
             sigma_theta, sigma_phi, thetas_far_field, phis_far_field = bistatic_RCS(params_simu, simuDirName)
@@ -213,6 +213,7 @@ if __name__=='__main__':
 
                 phis, thetas = np.meshgrid(X, Y)
                 SIGMA = sigma_phi + sigma_theta
+                SIGMA = SIGMA/amax(SIGMA)
                 X = SIGMA * cos(phis) * sin(thetas)
                 Y = SIGMA * sin(phis) * sin(thetas)
                 Z = SIGMA * cos(thetas)

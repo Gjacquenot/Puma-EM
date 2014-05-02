@@ -97,7 +97,7 @@ if params_simu.BISTATIC_EXCITATION_PLANE_WAVE == 1:
 # 2. OBSERVATION
 ################
 # is it an antenna diagram?
-params_simu.ANTENNA_DIAGRAM = 0
+params_simu.ANTENNA_PATTERN = 0
 # sampling points: sampling of the resulting field at user-specified points in space.
 # It will be used only for BISTATIC
 params_simu.BISTATIC_R_OBS = 1
@@ -110,7 +110,7 @@ params_simu.BISTATIC_R_OBS_FILENAME = "./input_parameters/r_obs.txt"
 # r_obs_x r_obs_y r_obs_z
 
 # we can also have sampling angles from a user-input file
-params_simu.BISTATIC_ANGLES_OBS = 1
+params_simu.BISTATIC_ANGLES_OBS = 0
 # the name (with path) of the user-supplied r_obs file. Set to "" if empty
 params_simu.BISTATIC_ANGLES_OBS_FILENAME = "./input_parameters/bistatic_angles_obs.txt"
 # the structure of the bistatic _angles_obs file MUST BE AS FOLLOWS:

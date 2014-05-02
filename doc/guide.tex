@@ -301,6 +301,15 @@ setenv PYTHONPATH
 $HOME/local/lib64/python2.5/site-packages:$HOME/local/lib/python2.5/site-packages
 \end{verbatim}
 
+\subsubsection{Using a vendor-supplied lapack}
+%
+\par
+Puma-EM relies upon an included fortran lapack library for computing the sparse approximate inverse preconditioner. In some cases, the use of a vendor-supplied may yield a faster preconditioner computation. Think of Intel or AMD supplied libraries. To make use of it, you'll have to define the path and library to use in \texttt{makefile.inc}:
+\begin{verbatim}
+#LIBLAPACK:= -L/usr/lib/ -llapack
+\end{verbatim}
+Uncomment this line in \texttt{makefile.inc}, set the correct path and library name, re-link \texttt{./code/MoM/compute\_SAI\_precond} (first erase \texttt{./code/MoM/compute\_SAI\_precond}, and then issue a \texttt{make libs} command), and \textit{voilà}: if no linking error occured, you are now using the vedor-supplied lapack.
+
 \subsubsection{First puma-em run}
 %
 \par
@@ -440,6 +449,7 @@ params_simu.MONOSTATIC_SAR = 0
 In fact, bistatic defines a whole lot of possibilities, but for now we concentrate on the simple one electric dipole source.
 
 \subsection{Bistatic simulation settings: dipoles excitation}
+\label{subsec:dipole_excitation}
 %
 \par
 We define:
@@ -640,8 +650,40 @@ This is self explanatory.
 \section{Antenna radiation pattern}
 %
 \par
-This is in principle possible, although I haven't tried it. An antenna system comprises in general a waveguiding structure and a radiator. It is possible to excite the structure, with one dipole or a plurality of dipoles judiciously placed, and then to evaluate the bistatic scattering of the structure in the far field to obtain its radiation pattern.
-
+Thanks to the help of Jean-Pierre Adam (of IEEA: http://www.ieea.fr/) and a bit of sweat on my part, antenna radiation pattern is now available, with 3D plotting of the power radiated by the antenna. Values are normalized, and presentation in dB units is still to be done, but otherwise it works quite well for horn antennas. Patch antennas have not been tested yet. For it to work, the following parameters must be set:
+\begin{verbatim}
+...
+params_simu.BISTATIC = 1
+...
+params_simu.ANTENNA_DIAGRAM = 1
+...
+# thetas
+params_simu.START_THETA = 0.0
+params_simu.STOP_THETA = pi
+params_simu.AUTOMATIC_THETAS = True
+params_simu.USER_DEFINED_NB_THETA = 1
+# phis
+params_simu.START_PHI = 0.0
+params_simu.STOP_PHI = 2.0 * pi
+params_simu.AUTOMATIC_PHIS = True
+params_simu.USER_DEFINED_NB_PHI = 200
+...
+params_simu.SHOW_FIGURE = 1
+\end{verbatim}
+%
+\par
+An antenna system comprises in general an excitation feed, a waveguiding structure and a radiation part (horn). The excitation source (a dipole) should be located within the structure. Typically, an electric dipole located at $\lambda/4$ of the end of a waveguide will provide a very acceptable model of a dipole feed. I refer you to \ref{subsec:dipole_excitation} for how to excite the structure with a dipole. 
+%
+\par
+The \texttt{params\_simu.SHOW\_FIGURE} can be set to zero, but then no image will be displayed. It is also possible to show only half of the pattern, or even a quarter. For this, set the far angles as follows:
+\begin{verbatim}
+...
+params_simu.START_PHI = 0.0
+params_simu.STOP_PHI = pi/2.0
+...
+params_simu.SHOW_FIGURE = 1
+\end{verbatim}
+and the pattern for $0\leq \theta \leq \pi$, $0\leq \phi \leq \frac{\pi}{2}$ will be displayed. 
 
 \bibliography{references}
 \end{document}

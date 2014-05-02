@@ -539,10 +539,10 @@ void computeForOneExcitation(Octtree & octtree,
     writeFloatBlitzArray1DToASCIIFile(RESULT_DATA_PATH + "thetas_far_field_ASCII.txt", octtreeXthetas_coarsest);
   }
 
-  // Antenna diagram?
-  int ANTENNA_DIAGRAM;
-  readIntFromASCIIFile(V_CFIE_DATA_PATH + "ANTENNA_DIAGRAM.txt", ANTENNA_DIAGRAM);
-  if (ANTENNA_DIAGRAM==1) {
+  // Antenna pattern?
+  int ANTENNA_PATTERN;
+  readIntFromASCIIFile(V_CFIE_DATA_PATH + "ANTENNA_PATTERN.txt", ANTENNA_PATTERN);
+  if (ANTENNA_PATTERN==1) {
     blitz::Array<std::complex<float>, 2> J_dip;
     blitz::Array<float, 2> r_J_dip;
     int J_DIPOLES_EXCITATION;
