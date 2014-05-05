@@ -264,9 +264,9 @@ def computeCurrentsVisualization(params_simu, variables, simuDirName):
             I_coeff = read1DBlitzArrayFromDisk(os.path.join(tmpDirName, 'ZI/ZI.txt'), 'F')
             J_centroids_triangles = JMCentroidsTriangles(I_coeff, target_mesh)
             norm_J_centroids_triangles = normJMCentroidsTriangles(J_centroids_triangles, variables['w'], nbTimeSteps)
-            write_VectorFieldTrianglesCentroidsGMSH(os.path.join(geoDirName, params_simu.targetName) + '.J_centroids_triangles.pos', real(J_centroids_triangles), target_mesh)
-            write_ScalarFieldTrianglesCentroidsGMSH(os.path.join(geoDirName, params_simu.targetName) + '.norm_J_centroids_triangles.pos', norm_J_centroids_triangles, target_mesh)
-            print("............end of currents visualisation construction.")
+            write_VectorFieldTrianglesCentroidsGMSH(os.path.join(simuDirName, 'result', params_simu.targetName) + '.J_centroids_triangles.pos', real(J_centroids_triangles), target_mesh)
+            write_ScalarFieldTrianglesCentroidsGMSH(os.path.join(simuDirName, 'result', params_simu.targetName) + '.norm_J_centroids_triangles.pos', norm_J_centroids_triangles, target_mesh)
+            print("............end of currents visualisation construction. Open with gmsh the *.pos files in result directory.")
         else:
             "Error in the computeCurrentsVisualization routine. Probably you required currents visualization computation for a mesh too big"
             sys.exit(1)
@@ -286,7 +286,7 @@ def saveCurrentsCentroids(params_simu, simuDirName):
             I_coeff = read1DBlitzArrayFromDisk(os.path.join(tmpDirName, 'ZI/ZI.txt'), 'F')
             J_centroids_triangles = JMCentroidsTriangles(I_coeff, target_mesh)
             write_VectorFieldTrianglesCentroids(os.path.join(simuDirName, 'result', 'J_centroids_triangles.txt'), J_centroids_triangles, target_mesh)
-            print("............end of saving of currents.")
+            print("............end of saving of currents. Located in result directory.")
 
 def getField(filename):
     my_id = MPI.COMM_WORLD.Get_rank()

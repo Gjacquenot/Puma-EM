@@ -223,7 +223,7 @@ class MeshClass:
         self.big_cube_center_coord = read1DBlitzArrayFromDisk(os.path.join(path, "big_cube_center_coord.txt"), 'd')
         self.average_RWG_length = mean(compute_RWGNumber_edgeLength(self.vertexes_coord, self.RWGNumber_edgeVertexes))
         # checking the normals
-        self.IS_CLOSED_SURFACE = read1DBlitzArrayFromDisk(os.path.join(path, "isClosedSurface.txt"), 'i')
+        self.IS_CLOSED_SURFACE = read1DBlitzArrayFromDisk(os.path.join(path, "is_closed_surface.txt"), 'i')
 
     def sizeOfZnear_per_Cube(self, cubeNumber):
         test_edges_numbers = self.cubes_lists_edges_numbers[int(cubeNumber)]

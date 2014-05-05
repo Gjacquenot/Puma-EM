@@ -191,11 +191,11 @@ params_simu.SHOW_FIGURE = 0
 
 # CURRENTS_VISUALIZATION tells if we want to create a view of the currents in
 # GMSH or not. if 1, you can use GMSH to view the currents that have been created.
-# open with GMSH the *.pos files that are in the ./geo directory
+# open with GMSH the *.pos files that are in the result directory
 # only works if BISTATIC == 1
 params_simu.CURRENTS_VISUALIZATION = 0
 # we can also save the currents at the centroids of the triangles.
-# It will be stored in ./result directory
+# It will be stored in the result directory
 params_simu.SAVE_CURRENTS_CENTROIDS = 0
 
 # now a parameter that tells if we want to be silent (little to no output)
