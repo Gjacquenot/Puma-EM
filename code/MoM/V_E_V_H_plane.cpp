@@ -12,6 +12,29 @@ using namespace std;
 #include "dictionary.h"
 #include "V_E_V_H.h"
 
+void E_plane (blitz::Array<std::complex<double>, 1> E_field,
+              const blitz::Array<std::complex<double>, 1> E_inc_spherical_coord,
+              const double theta_inc,
+              const double phi_inc,
+              const blitz::Array<double, 1> r_ref,
+              const blitz::Array<double, 1> r_obs,
+              const std::complex<double> k)
+{
+  // local coordinate system
+  const double r_hat[3] = {sin(theta_inc)*cos(phi_inc), sin(theta_inc)*sin(phi_inc), cos(theta_inc)};
+  const double theta_hat[3] = {cos(theta_inc)*cos(phi_inc), cos(theta_inc)*sin(phi_inc), -sin(theta_inc)};
+  const double phi_hat[3] = {-sin(phi_inc), cos(phi_inc), 0.0};
+  const double k_hat[3] = {-r_hat[0], -r_hat[1], -r_hat[2]};
+  // excitation electric field in cartesian coordinate
+  std::complex<double> E_inc[3];
+  for (int i=0; i<3; i++) E_inc[i] = E_inc_spherical_coord(0)*theta_hat[i] + E_inc_spherical_coord(1)*phi_hat[i];
+  double r_obs_r_ref[3];
+  for (int i=0; i<3; i++) r_obs_r_ref[i] = r_obs(i)-r_ref(i);
+  const double a(k_hat[0]*r_obs_r_ref[0]+k_hat[1]*r_obs_r_ref[1]+k_hat[2]*r_obs_r_ref[2]);
+  const std::complex<double> temp(exp(-I*k*a));
+  for (int i=0 ; i<3 ; i++) E_field(i) = E_inc[i] * temp;
+}
+
 void V_EJ_HJ_plane (blitz::Array<std::complex<double>, 1> V_tE_J,
                     blitz::Array<std::complex<double>, 1> V_nE_J,
                     blitz::Array<std::complex<double>, 1> V_tH_J,

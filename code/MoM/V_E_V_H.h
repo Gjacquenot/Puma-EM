@@ -78,6 +78,14 @@ void V_EJ_HJ_dipole_alternative (blitz::Array<std::complex<double>, 1> V_tE_J,
                                  const std::complex<double>& mu_r,
                                  const int FULL_PRECISION);
 
+void E_plane (blitz::Array<std::complex<double>, 1> E_field,
+              const blitz::Array<std::complex<double>, 1> E_inc_spherical_coord,
+              const double theta_inc,
+              const double phi_inc,
+              const blitz::Array<double, 1> r_ref,
+              const blitz::Array<double, 1> r_obs,
+              const std::complex<double> k);
+
 void V_EJ_HJ_plane (blitz::Array<std::complex<double>, 1> V_tE_J,
                     blitz::Array<std::complex<double>, 1> V_nE_J,
                     blitz::Array<std::complex<double>, 1> V_tH_J,

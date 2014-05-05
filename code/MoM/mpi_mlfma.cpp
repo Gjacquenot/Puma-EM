@@ -398,6 +398,9 @@ void computeForOneExcitation(Octtree & octtree,
   const int master = 0, N_local_RWG = local_target_mesh.N_local_RWG;
   const float w = octtree.w;
   const std::complex<float> eps_r = octtree.eps_r, mu_r = octtree.mu_r;
+  const std::complex<double> eps = static_cast<float>(eps_0) * eps_r;
+  const std::complex<double> mu = static_cast<float>(mu_0) * mu_r;
+  const std::complex<double> k(static_cast<double>(w) * sqrt(eps * mu));
   blitz::Array<int, 1> localRWGNumbers(local_target_mesh.localRWGNumbers.size());
   localRWGNumbers = local_target_mesh.localRWGNumbers;
   // functors declarations
@@ -514,10 +517,28 @@ void computeForOneExcitation(Octtree & octtree,
     local_target_mesh.setLocalMeshFromFile(MESH_DATA_PATH);
     computeE_obs(E_obs, r_obs, local_target_mesh, ZI, eps_r, mu_r, w);
     local_target_mesh.resizeToZero();
-    if (my_id==master) writeComplexDoubleBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "E_obs.txt", E_obs);
+    if (my_id==master) writeComplexDoubleBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "E_obs_scatt.txt", E_obs);
     if (my_id==master) writeDoubleBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "r_obs.txt", r_obs);
+    // now we compute the total field in the case of plane wave excitation. We could for dipole as well.
+    if (PLANE_WAVE_EXCITATION==1) {
+      double theta_inc, phi_inc;
+      readDoubleFromASCIIFile(V_CFIE_DATA_PATH + "theta_inc.txt", theta_inc);
+      readDoubleFromASCIIFile(V_CFIE_DATA_PATH + "phi_inc.txt", phi_inc);
+      // we now read the incoming field amplitude and phase and polarization
+      blitz::Array<std::complex<double>, 1> E_inc_spherical_coord(2), E_inc_cart(3);
+      readComplexDoubleBlitzArray1DFromASCIIFile( V_CFIE_DATA_PATH + "E_inc.txt", E_inc_spherical_coord);
+      // r_ref is where the plane wave has been defined. Assumed to be r = (0,0,0)
+      blitz::Array<double, 1> r_ref(3);
+      r_ref = 0.0, 0.0, 0.0;
+      // now computing the plane wave at all r_obs points, and adding it to E_obs_scatt
+      const int N_obs = r_obs.extent(0);
+      for (int i=0; i<N_obs; i++) {
+        E_plane (E_inc_cart, E_inc_spherical_coord, theta_inc, phi_inc, r_ref, r_obs(i, all), k);
+        E_obs(i, all) += E_inc_cart;
+      }
+      if (my_id==master) writeComplexDoubleBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "E_obs_tot.txt", E_obs);
+    }
   }
-
   // now computing the far fields at the user-supplied angles
   int BISTATIC_ANGLES_OBS;
   readIntFromASCIIFile(V_CFIE_DATA_PATH + "BISTATIC_ANGLES_OBS.txt", BISTATIC_ANGLES_OBS);

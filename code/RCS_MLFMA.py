@@ -124,16 +124,16 @@ if __name__=='__main__':
         params_simu.VERBOSE = 1
         # user supplied R_OBS
         if params_simu.BISTATIC_R_OBS==1:
-            E_field = getField(os.path.join(simuDirName, "result", "E_obs.txt"))
+            E_field = getField(os.path.join(simuDirName, "result", "E_obs_scatt.txt"))
             r_obs = readASCIIBlitzFloatArray2DFromDisk(os.path.join(simuDirName, "result", "r_obs.txt"))
             print('\r')
-            print("MLFMA E_field = ") 
+            print("MLFMA scattered E_field = ") 
             print(E_field)
             print('\r')
             print("at observation points r_obs = ")
             print(r_obs)
             print('\r')
-            print("See 'E_obs.txt' and 'r_obs.txt' in './result' directory for the results of the computation, where you will also find the far field values.")
+            print("See 'E_obs_scatt.txt' and 'r_obs.txt' in './result' directory for the results of the computation, where you will also find the far field values.")
             print('\r')
         nameOfFileToSaveTo = os.path.join(simuDirName, 'result', "simulation_parameters.txt") 
         params_simu.saveTo(nameOfFileToSaveTo)
