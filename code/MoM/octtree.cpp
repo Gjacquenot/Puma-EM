@@ -1188,10 +1188,10 @@ void Octtree::computeDipoleSup(blitz::Array<std::complex<float>, 2> & Sup,
     const int index_1 = q*NThetas;
     for (int p=0 ; p<NThetas ; p++) {
       const int index = p + index_1;
-      const std::complex<double> a(I_k * (expArg[0]*kHats(index, 0) + expArg[1]*kHats(index, 1) + expArg[2]*kHats(index, 2))); 
-      double c, s, e;
+      const std::complex<float> a(I_k * (expArg[0]*kHats(index, 0) + expArg[1]*kHats(index, 1) + expArg[2]*kHats(index, 2))); 
+      float c, s, e;
       e = (a.real() == 0.0) ? 1.0 : exp(a.real());
-      sincos(a.imag(), &s, &c);
+      sincosf(a.imag(), &s, &c);
       const std::complex<float> EXP(e * c, e * s);
       FC3Components(index, 0) += fj[0] * EXP;
       FC3Components(index, 1) += fj[1] * EXP;
