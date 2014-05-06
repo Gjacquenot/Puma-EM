@@ -9,13 +9,13 @@ if __name__=="__main__":
     targetNames = ['cubi', 'double_elliptic_cylinder', 'NATO_f16HotSpots', 'closed_waveguide', 'strip', 'corner_reflector', 'tetrahedron', 'EMCC_ogive', 'cube', 'parabolic_reflector', 'cube_crown', 'EMCC_almond', 'EMCC_wedge-plate-cylinder_plate', 'cone-sphere', 'SRR', 'cylinder', 'cone', 'double_ellipsoid', 'corrugated', 'ellipsoid', 'parallelipiped', 'EMCC_wedge-cylinder_plate', 'open_cube', 'test', 'EMCC_cone-gap-sphere', 'cross_plates', 'dihedral_reflector', 'EMCC_double-ogive', 'strip2', 'torus', 'dihedral_with_Y', 'EMCC_cone-sphere', 'wedge', 'cylinder_antenna', 'T', 'sphere', 'parallelipiped_and_plate', 'EMCC_plate-cylinder_plate']
     #targetNames = ['double_elliptic_cylinder']
     for targetName in targetNames:
-        print
-        print
-        print
-        print
-        print "####################################"
-        print "##", targetName, "##################"
-        print "####################################"
+        print()
+        print()
+        print()
+        print()
+        print("####################################")
+        print("##", targetName, "##################")
+        print("####################################")
         f = 2.12e9
         write_geo(path, targetName, 'lc', c/f/10.0)
         write_geo(path, targetName, 'lx', .05)
@@ -52,37 +52,37 @@ if __name__=="__main__":
         # comparison mesh_functions_seb vs mesh_functions_seb_C
         diff_triangles_surfaces = sum(abs(triangles_surfaces - triangles_surfaces_C))
         if not diff_triangles_surfaces == 0:
-            print "Error in triangles_surfaces for target", targetName
+            print("Error in triangles_surfaces for target", targetName)
             sys.stdout.flush()
             sys.exit(1)
         diff_is_closed_surface = sum(abs(is_closed_surface - is_closed_surface_C))
         if not diff_is_closed_surface == 0:
-            print "Error in is_closed_surface for target", targetName
+            print("Error in is_closed_surface for target", targetName)
             sys.stdout.flush()
             sys.exit(1)
         diff_triangle_vertexes = sum(abs(triangle_vertexes_1 - triangle_vertexes_2))
         if not diff_triangle_vertexes == 0:
-            print "Error in triangle_vertexes for target", targetName
+            print("Error in triangle_vertexes for target", targetName)
             sys.stdout.flush()
             sys.exit(1)
         diff_vertexes_coord = sum(abs(vertexes_coord_1 - vertexes_coord_2))
         if not diff_vertexes_coord == 0.0:
-            print "Error in vertexes_coord for target", targetName
+            print("Error in vertexes_coord for target", targetName)
             sys.stdout.flush()
             sys.exit(1)
         diff_RWGNumber_signedTriangles = sum(abs(RWGNumber_signedTriangles - RWGNumber_signedTriangles_C))
         if not diff_RWGNumber_signedTriangles == 0:
-            print "Error in RWGNumber_signedTriangles for target", targetName
+            print("Error in RWGNumber_signedTriangles for target", targetName)
             sys.stdout.flush()
             sys.exit(1)
         diff_RWGNumber_edgeVertexes = sum(abs(RWGNumber_edgeVertexes - RWGNumber_edgeVertexes_C))
         if not diff_RWGNumber_edgeVertexes == 0:
-            print "Error in RWGNumber_edgeVertexes for target", targetName
+            print("Error in RWGNumber_edgeVertexes for target", targetName)
             sys.stdout.flush()
             sys.exit(1)
         diff_RWGNumber_oppVertexes = sum(abs(RWGNumber_oppVertexes - RWGNumber_oppVertexes_C))
         if not diff_RWGNumber_oppVertexes == 0:
-            print "Error in RWGNumber_oppVertexes for target", targetName
+            print("Error in RWGNumber_oppVertexes for target", targetName)
             sys.stdout.flush()
             sys.exit(1)
 

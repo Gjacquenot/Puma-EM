@@ -15,7 +15,7 @@ def JMCentroidsTriangles(ICoeffs, target_mesh):
             t = abs(elem[i])
             rCentroid = triangles_centroids[t]
             Area = triangles_areas[t]
-            signRWG = (-1)**(i-1)
+            signRWG = (-1)**(i)
             rp = target_mesh.vertexes_coord[target_mesh.RWGNumber_oppVertexes[RWG_number, i]]
             lp = RWGNumber_edgeLength[RWG_number]
             f_triangle_i_edge_p = lp/(2.0*Area)*signRWG*(rCentroid-rp)
