@@ -257,14 +257,16 @@ def computeCurrentsVisualization(params_simu, variables, simuDirName):
         CURRENTS_VISUALIZATION = params_simu.CURRENTS_VISUALIZATION and (N_RWG<2e6) and (params_simu.BISTATIC == 1)
         if CURRENTS_VISUALIZATION:
             print("............Constructing visualisation of currents")
-            if (N_RWG<1e4):
+            if (N_RWG<5e4):
                 nbTimeSteps = 48
             else:
                 nbTimeSteps = 1
             I_coeff = read1DBlitzArrayFromDisk(os.path.join(tmpDirName, 'ZI/ZI.txt'), 'F')
             J_centroids_triangles = JMCentroidsTriangles(I_coeff, target_mesh)
-            norm_J_centroids_triangles = normJMCentroidsTriangles(J_centroids_triangles, variables['w'], nbTimeSteps)
+            norm_J_centroids_triangles = normJMCentroidsTriangles(J_centroids_triangles)
+            norm_J_centroids_triangles_timeDomain = normJMCentroidsTriangles_timeDomain(J_centroids_triangles, variables['w'], nbTimeSteps)
             write_VectorFieldTrianglesCentroidsGMSH(os.path.join(simuDirName, 'result', params_simu.targetName) + '.J_centroids_triangles.pos', real(J_centroids_triangles), target_mesh)
+            write_ScalarFieldTrianglesCentroidsGMSH(os.path.join(simuDirName, 'result', params_simu.targetName) + '.norm_J_centroids_triangles_timeDomain.pos', norm_J_centroids_triangles_timeDomain, target_mesh)
             write_ScalarFieldTrianglesCentroidsGMSH(os.path.join(simuDirName, 'result', params_simu.targetName) + '.norm_J_centroids_triangles.pos', norm_J_centroids_triangles, target_mesh)
             print("............end of currents visualisation construction. Open with gmsh the *.pos files in result directory.")
         else:

@@ -1,5 +1,5 @@
 from math import pi
-from scipy import real, imag, exp
+from scipy import real, imag, exp, conj
 from mesh_functions_seb import *
 
 def JMCentroidsTriangles(ICoeffs, target_mesh):
@@ -22,9 +22,15 @@ def JMCentroidsTriangles(ICoeffs, target_mesh):
             J_M_centroids[t] += ICoeffs[RWG_number] * f_triangle_i_edge_p
         RWG_number += 1
     return J_M_centroids
-    
 
-def normJMCentroidsTriangles(J_M_centroids, w, nbTimeSteps):
+def normJMCentroidsTriangles(J_M_centroids):
+    T = J_M_centroids.shape[0]
+    norm_J_M_centroids = zeros((T, 1), 'f')
+    for i in range(T):
+        norm_J_M_centroids[i] = sqrt(real(sum(J_M_centroids[i,:]*conj(J_M_centroids[i,:]))))
+    return norm_J_M_centroids
+
+def normJMCentroidsTriangles_timeDomain(J_M_centroids, w, nbTimeSteps):
     timeValues = arange(0, 2*pi/w, 2*pi/w/nbTimeSteps)
     norm_J_M_centroids = zeros((J_M_centroids.shape[0], nbTimeSteps), 'f')
     # the norm is computed at time t -> J(t) = real(J * exp(jwt))
