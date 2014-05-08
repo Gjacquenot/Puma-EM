@@ -1,0 +1,76 @@
+\chapter{MLFMA interactions}
+%
+\par
+The method of moments EFIE (\ref{eqn:EFIE-O_PEC_2}) and MFIE (\ref{eqn:MFIE-O_PEC_2}) involve the calculation of the following interactions:
+\begin{align}
+& \int_{D_p} \current{g}_p\left(\vect{r}\right) \cdot \left(\left(\nabla \nabla \cdot + k_i^2\right) \int_{D_q} G_i\left(\vect{r}, \vect{r}'\right) \current{f}_q\left(\vect{r}'\right) d\vect{r}' \right) d\vect{r} \qquad \text{(D-type)} \label{eqn:interaction_D}\\
+& \int_{D_p} \current{g}_p\left(\vect{r}\right) \cdot \left( \int_{D_q} \nabla G_i\left(\vect{r}, \vect{r}'\right) \times \current{f}_q\left(\vect{r}'\right) d\vect{r}' \right) d\vect{r} \qquad \text{(K-type)} \label{eqn:interaction_K}
+\end{align}
+with
+\begin{equation*}
+G_i(\vect{r}, \vect{r}') = \frac{e^{-jk_i \left|\vect{r} - \vect{r}'  \right|}}{4 \pi \left|\vect{r} - \vect{r}'  \right|}.
+\end{equation*}
+We will now derive the MLFMA expressions for the far field interactions. First, the addition theorem states that:
+\begin{equation}\label{eqn:addition_theorem}
+\frac{e^{-jk \left|\vect{D} + \vect{d}  \right|}}{4 \pi \left|\vect{D} + \vect{d} \right|} \simeq \frac{-jk}{4 \pi} \sum_{l = 0}^L \left(-1\right)^l \left(2l+1 \right) j_l \! \left(k d\right) h_l^{(2)}\! \left(k D\right) P_l\left(\vect{\hat{d}} \cdot \vect{\hat{D}} \right)
+\end{equation}
+where $j_l$, $h_l$ and $P_l$ are the spherical Bessel function, spherical Hankel function and Legendre polynomial. Another elementary identity reads
+\begin{equation}
+\int d^2\vect{\hat{k}} e^{-j\vect{k} \cdot \vect{d}} P_l \! \left(\vect{\hat{k}} \cdot \vect{\hat{D}}\right) = 4 \pi \left(-j \right)^l j_l \! \left(k d\right) P_l \! \left(\vect{\hat{d}} \cdot \vect{\hat{D}}\right)
+\end{equation}
+which can be plugged right back into (\ref{eqn:addition_theorem}) to yield
+\begin{equation}\label{eqn:addition_theorem_2}
+\begin{split}
+\frac{e^{-jk \left|\vect{D} + \vect{d}  \right|}}{4 \pi \left|\vect{D} + \vect{d} \right|} &\simeq \frac{-jk}{16 \pi^2} \int d^2\vect{\hat{k}} e^{-j\vect{k} \cdot \vect{d}} \sum_{l = 0}^L \left(\frac{-1}{-j}\right)^l \left(2l+1 \right) h_l^{(2)}\! \left(k D\right) P_l\left(\vect{\hat{k}} \cdot \vect{\hat{D}} \right) \\
+&\simeq \frac{-jk}{16 \pi^2} \int d^2\vect{\hat{k}} e^{-j\vect{k} \cdot \vect{d}} T_L\left(\vect{k}, \vect{D} \right)
+\end{split}
+\end{equation}
+with
+\begin{equation}
+T_L\left(\vect{k}, \vect{D} \right) = \sum_{l = 0}^L \left(-j\right)^l \left(2l+1 \right) h_l^{(2)}\! \left(k D\right) P_l\left(\vect{\hat{k}} \cdot \vect{\hat{D}} \right).
+\end{equation}
+Now, if we write 
+\begin{equation}\label{eqn:r_rprime}
+\vect{r} - \vect{r}' = \underbrace{\vect{r} - \vect{r}_m}_{\vect{R}_{m}} + \underbrace{\vect{r}_m - \vect{r}_{m'}}_{\vect{R}_{mm'}} + \underbrace{\vect{r}_{m'} - \vect{r}'}_{-\vect{R}_{m'}}
+\end{equation}
+by letting $\vect{D} = \vect{R}_{mm'}$ and $\vect{d} = \vect{R}_{m} - \vect{R}_{m'}$, we can rewrite (\ref{eqn:addition_theorem_2}):
+\begin{equation}\label{eqn:addition_theorem_3}
+\frac{e^{-jk \left|\vect{r} - \vect{r}'  \right|}}{4 \pi \left|\vect{r} - \vect{r}' \right|} = \int d^2\vect{\hat{k}} e^{-j\vect{k} \cdot \left( \vect{R}_{m} - \vect{R}_{m'} \right)} \alpha_{mm'}\left(\vect{k}, \vect{R}_{mm'} \right)
+\end{equation}
+where
+\begin{equation}
+\alpha_{mm'}\left(\vect{k}, \vect{R}_{mm'} \right) = \frac{-jk}{16 \pi^2} \sum_{l = 0}^L \left(-j\right)^l \left(2l+1 \right) h_l^{(2)}\! \left(k R_{mm'}\right) P_l\left(\vect{\hat{k}} \cdot \vect{\hat{R}}_{mm'} \right).
+\end{equation}
+
+\section{D-type interaction}
+%
+\par
+First, it is to be noted that 
+\begin{equation}
+\left(\nabla \nabla \cdot + k^2\right) \int_{D_q} G\left(\vect{r}, \vect{r}'\right) \current{f}_q\left(\vect{r}'\right) d\vect{r}' = \int_{D_q} \left(\nabla \nabla G\left(\vect{r}, \vect{r}'\right) \right) \cdot \current{f}_q\left(\vect{r}'\right) d\vect{r}' + k^2 \int_{D_q} G\left(\vect{r}, \vect{r}'\right) \current{f}_q\left(\vect{r}'\right) d\vect{r}'.
+\end{equation}
+The double derivation is applied only to $G$, as $\current{f}_n$ is a function of $\vect{r}'$. Using (\ref{eqn:addition_theorem_3}), we can write 
+\begin{equation}
+\nabla G\left(\vect{r}, \vect{r}'\right) = -jk \int \vect{\hat{k}} e^{-j\vect{k} \cdot \left( \vect{R}_{m} - \vect{R}_{m'} \right)}  \alpha_{mm'} \! \left(\vect{k}, \vect{R}_{mm'} \right) d^2\vect{\hat{k}}
+\end{equation}
+and the double derivation results in
+\begin{equation}\label{eqn:double_deriv}
+\nabla \nabla G\left(\vect{r}, \vect{r}'\right) = -k^2  \int \vect{\hat{k}}\vect{\hat{k}} e^{-j\vect{k} \cdot \left( \vect{R}_{m} - \vect{R}_{m'} \right)}  \alpha_{mm'} \! \left(\vect{k}, \vect{R}_{mm'} \right) d^2\vect{\hat{k}}.
+\end{equation}
+%
+\par
+Let us rewrite (\ref{eqn:interaction_D}) by using (\ref{eqn:addition_theorem_3}) and (\ref{eqn:double_deriv}):
+\begin{equation}
+\begin{split}
+\int_{D_p} \current{g}_p\left(\vect{r}\right) \cdot \left(\left(\nabla \nabla \cdot + k^2\right) \int_{D_q} G\left(\vect{r}, \vect{r}'\right) \current{f}_q\left(\vect{r}'\right) d\vect{r}' \right) d\vect{r} &\simeq k^2 \int_{D_p}d \vect{r} \int d^2\vect{\hat{k}} e^{-j\vect{k} \cdot \vect{R}_{m}}\current{g}_p\left(\vect{r}\right) \cdot \\ & \qquad \alpha_{mm'}\left(\vect{k}, \vect{R}_{mm'}\right) \int_{D_q} \left( \overline{\overline{I}}-\vect{\hat{k}}\vect{\hat{k}} \right) \cdot e^{j\vect{k} \cdot \vect{R}_{m'}} \vect{f}_q\left(\vect{r}'\right) d \vect{r}' \\
+&\simeq k^2 \int d^2\vect{\hat{k}} \; \vect{V}_{mp} \! \left(\vect{\hat{k}}\right) \cdot \alpha_{mm'}\left(\vect{k}, \vect{R}_{mm'} \right) \vect{V}_{m'q} \! \left(\vect{\hat{k}}\right).
+\end{split}
+\end{equation}
+We can now clearly see the three MLFMA terms:
+\begin{itemize}
+\item aggregation: $\vect{V}_{m'q} \! \left(\vect{\hat{k}}\right) = \int_{D_q} \left( \overline{\overline{I}}-\vect{\hat{k}}\vect{\hat{k}} \right) \cdot e^{j\vect{k} \cdot \vect{R}_{m'}} \vect{f}_q\left(\vect{r}'\right) d \vect{r}'$
+\item translation: $\alpha_{mm'}\left(\vect{k}, \vect{R}_{mm'} \right)$
+\item disaggregation: $\vect{V}_{mp} \! \left(\vect{\hat{k}}\right) = \int_{D_p} \left( \overline{\overline{I}}-\vect{\hat{k}}\vect{\hat{k}} \right) \cdot e^{-j\vect{k} \cdot \vect{R}_{m}} \vect{f}_p\left(\vect{r}\right) d \vect{r}$
+\end{itemize}
+where the supplementary $\left(\overline{\overline{I}}-\vect{\hat{k}}\vect{\hat{k}} \right)$ in $\vect{V}_{mp} \! \left(\vect{\hat{k}}\right)$ comes from the fact that $\left(\overline{\overline{I}}-\vect{\hat{k}}\vect{\hat{k}} \right) = \left(\overline{\overline{I}}-\vect{\hat{k}}\vect{\hat{k}} \right) \cdot \left(\overline{\overline{I}}-\vect{\hat{k}}\vect{\hat{k}} \right)$.
+
