@@ -50,7 +50,7 @@ First, it is to be noted that
 \left(\nabla \nabla \cdot + k^2\right) \int_{D_q} G\left(\vect{r}, \vect{r}'\right) \current{f}_q\left(\vect{r}'\right) d\vect{r}' = \int_{D_q} \left(\nabla \nabla G\left(\vect{r}, \vect{r}'\right) \right) \cdot \current{f}_q\left(\vect{r}'\right) d\vect{r}' + k^2 \int_{D_q} G\left(\vect{r}, \vect{r}'\right) \current{f}_q\left(\vect{r}'\right) d\vect{r}'.
 \end{equation}
 The double derivation is applied only to $G$, as $\current{f}_n$ is a function of $\vect{r}'$. Using (\ref{eqn:addition_theorem_3}), we can write 
-\begin{equation}
+\begin{equation}\label{eqn:single_deriv}
 \nabla G\left(\vect{r}, \vect{r}'\right) = -jk \int \vect{\hat{k}} e^{-j\vect{k} \cdot \left( \vect{R}_{m} - \vect{R}_{m'} \right)}  \alpha_{mm'} \! \left(\vect{k}, \vect{R}_{mm'} \right) d^2\vect{\hat{k}}
 \end{equation}
 and the double derivation results in
@@ -63,14 +63,31 @@ Let us rewrite (\ref{eqn:interaction_D}) by using (\ref{eqn:addition_theorem_3})
 \begin{equation}
 \begin{split}
 \int_{D_p} \current{g}_p\left(\vect{r}\right) \cdot \left(\left(\nabla \nabla \cdot + k^2\right) \int_{D_q} G\left(\vect{r}, \vect{r}'\right) \current{f}_q\left(\vect{r}'\right) d\vect{r}' \right) d\vect{r} &\simeq k^2 \int_{D_p}d \vect{r} \int d^2\vect{\hat{k}} e^{-j\vect{k} \cdot \vect{R}_{m}}\current{g}_p\left(\vect{r}\right) \cdot \\ & \qquad \alpha_{mm'}\left(\vect{k}, \vect{R}_{mm'}\right) \int_{D_q} \left( \overline{\overline{I}}-\vect{\hat{k}}\vect{\hat{k}} \right) \cdot e^{j\vect{k} \cdot \vect{R}_{m'}} \vect{f}_q\left(\vect{r}'\right) d \vect{r}' \\
-&\simeq k^2 \int d^2\vect{\hat{k}} \; \vect{V}_{mp} \! \left(\vect{\hat{k}}\right) \cdot \alpha_{mm'}\left(\vect{k}, \vect{R}_{mm'} \right) \vect{V}_{m'q} \! \left(\vect{\hat{k}}\right).
+&\simeq k^2 \int d^2\vect{\hat{k}} \; \vect{V}_{mp}^D \! \left(\vect{\hat{k}}\right) \cdot \alpha_{mm'}\left(\vect{k}, \vect{R}_{mm'} \right) \vect{V}_{m'q}^D \! \left(\vect{\hat{k}}\right).
 \end{split}
 \end{equation}
 We can now clearly see the three MLFMA terms:
 \begin{itemize}
-\item aggregation: $\vect{V}_{m'q} \! \left(\vect{\hat{k}}\right) = \int_{D_q} \left( \overline{\overline{I}}-\vect{\hat{k}}\vect{\hat{k}} \right) \cdot e^{j\vect{k} \cdot \vect{R}_{m'}} \vect{f}_q\left(\vect{r}'\right) d \vect{r}'$
+\item aggregation: $\vect{V}_{m'q}^D \! \left(\vect{\hat{k}}\right) = \int_{D_q} \left( \overline{\overline{I}}-\vect{\hat{k}}\vect{\hat{k}} \right) \cdot e^{j\vect{k} \cdot \vect{R}_{m'}} \vect{f}_q\left(\vect{r}'\right) d \vect{r}'$
 \item translation: $\alpha_{mm'}\left(\vect{k}, \vect{R}_{mm'} \right)$
-\item disaggregation: $\vect{V}_{mp} \! \left(\vect{\hat{k}}\right) = \int_{D_p} \left( \overline{\overline{I}}-\vect{\hat{k}}\vect{\hat{k}} \right) \cdot e^{-j\vect{k} \cdot \vect{R}_{m}} \vect{g}_p\left(\vect{r}\right) d \vect{r}$
+\item disaggregation: $\vect{V}_{mp}^D \! \left(\vect{\hat{k}}\right) = \int_{D_p} \left( \overline{\overline{I}}-\vect{\hat{k}}\vect{\hat{k}} \right) \cdot e^{-j\vect{k} \cdot \vect{R}_{m}} \vect{g}_p\left(\vect{r}\right) d \vect{r}$
 \end{itemize}
-where the supplementary $\left(\overline{\overline{I}}-\vect{\hat{k}}\vect{\hat{k}} \right)$ in $\vect{V}_{mp} \! \left(\vect{\hat{k}}\right)$ comes from the fact that $\left(\overline{\overline{I}}-\vect{\hat{k}}\vect{\hat{k}} \right) = \left(\overline{\overline{I}}-\vect{\hat{k}}\vect{\hat{k}} \right) \cdot \left(\overline{\overline{I}}-\vect{\hat{k}}\vect{\hat{k}} \right)$.
+where the supplementary $\left(\overline{\overline{I}}-\vect{\hat{k}}\vect{\hat{k}} \right)$ in $\vect{V}_{mp}^D \! \left(\vect{\hat{k}}\right)$ comes from the fact that $\left(\overline{\overline{I}}-\vect{\hat{k}}\vect{\hat{k}} \right) = \left(\overline{\overline{I}}-\vect{\hat{k}}\vect{\hat{k}} \right) \cdot \left(\overline{\overline{I}}-\vect{\hat{k}}\vect{\hat{k}} \right)$.
 
+\section{K-type interaction}
+%
+\par
+Rewriting (\ref{eqn:interaction_K}) using (\ref{eqn:addition_theorem_3}), (\ref{eqn:single_deriv}), and the vector identity $\vect{a} \cdot \left(\vect{b}\times\vect{c}\right) = \left(\vect{a}\times\vect{b}\right) \cdot \vect{c} = -\left(\vect{b}\times\vect{a}\right) \cdot \vect{c}$, we have
+\begin{equation}
+\begin{split}
+\int_{D_p} \current{g}_p\left(\vect{r}\right) \cdot \left( \int_{D_q} \nabla G_i\left(\vect{r}, \vect{r}'\right) \times \current{f}_q\left(\vect{r}'\right) d\vect{r}' \right) d\vect{r} &\simeq \int_{D_p}d \vect{r} \int d^2\vect{\hat{k}} e^{-j\vect{k} \cdot \vect{R}_{m}}\current{g}_p\left(\vect{r}\right) \cdot \\ & \qquad \alpha_{mm'}\left(\vect{k}, \vect{R}_{mm'}\right) \int_{D_q}  e^{j\vect{k} \cdot \vect{R}_{m'}} \left(-jk \uvect{k} \times \vect{f}_q\left(\vect{r}'\right) \right) d \vect{r}' \\
+&\simeq \int_{D_p}d \vect{r} \int d^2\vect{\hat{k}} e^{-j\vect{k} \cdot \vect{R}_{m}}\left(jk \uvect{k}\times\current{g}_p\left(\vect{r}\right) \right) \cdot \\ & \qquad \alpha_{mm'}\left(\vect{k}, \vect{R}_{mm'}\right) \int_{D_q}  e^{j\vect{k} \cdot \vect{R}_{m'}}  \vect{f}_q\left(\vect{r}'\right) d \vect{r}' \\
+&\simeq jk \int d^2\vect{\hat{k}} \; \vect{V}_{mp}^K \! \left(\vect{\hat{k}}\right) \cdot \alpha_{mm'}\left(\vect{k}, \vect{R}_{mm'} \right) \vect{V}_{m'q}^K \! \left(\vect{\hat{k}}\right).
+\end{split}
+\end{equation}
+We can now see two additional MLFMA terms:
+\begin{itemize}
+\item aggregation: $\vect{V}_{m'q}^K \! \left(\vect{\hat{k}}\right) = \int_{D_q} \left( \overline{\overline{I}}-\vect{\hat{k}}\vect{\hat{k}} \right) \cdot e^{j\vect{k} \cdot \vect{R}_{m'}} \vect{f}_q\left(\vect{r}'\right) d \vect{r}' = \vect{V}_{m'q}^D \! \left(\vect{\hat{k}}\right)$
+\item disaggregation: $\vect{V}_{mp}^K \! \left(\vect{\hat{k}}\right) = \int_{D_p} \left( \overline{\overline{I}}-\vect{\hat{k}}\vect{\hat{k}} \right) \cdot e^{-j\vect{k} \cdot \vect{R}_{m}} \vect{g}_p\left(\vect{r}\right) d \vect{r}$
+\end{itemize}
+where the supplementary $\left(\overline{\overline{I}}-\vect{\hat{k}}\vect{\hat{k}} \right)$ in $\vect{V}_{m'q}^K \! \left(\vect{\hat{k}}\right)$ comes from the fact that
