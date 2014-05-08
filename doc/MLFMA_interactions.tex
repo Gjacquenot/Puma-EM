@@ -10,7 +10,7 @@ with
 \begin{equation*}
 G_i(\vect{r}, \vect{r}') = \frac{e^{-jk_i \left|\vect{r} - \vect{r}'  \right|}}{4 \pi \left|\vect{r} - \vect{r}'  \right|}.
 \end{equation*}
-We will now derive the MLFMA expressions for the far field interactions. First, the addition theorem states that:
+We will now derive the MLFMA expressions for the far field interactions \cite{Chew_01}. First, the addition theorem states that:
 \begin{equation}\label{eqn:addition_theorem}
 \frac{e^{-jk \left|\vect{D} + \vect{d}  \right|}}{4 \pi \left|\vect{D} + \vect{d} \right|} \simeq \frac{-jk}{4 \pi} \sum_{l = 0}^L \left(-1\right)^l \left(2l+1 \right) j_l \! \left(k d\right) h_l^{(2)}\! \left(k D\right) P_l\left(\vect{\hat{d}} \cdot \vect{\hat{D}} \right)
 \end{equation}
@@ -70,7 +70,7 @@ We can now clearly see the three MLFMA terms:
 \begin{itemize}
 \item aggregation: $\vect{V}_{m'q} \! \left(\vect{\hat{k}}\right) = \int_{D_q} \left( \overline{\overline{I}}-\vect{\hat{k}}\vect{\hat{k}} \right) \cdot e^{j\vect{k} \cdot \vect{R}_{m'}} \vect{f}_q\left(\vect{r}'\right) d \vect{r}'$
 \item translation: $\alpha_{mm'}\left(\vect{k}, \vect{R}_{mm'} \right)$
-\item disaggregation: $\vect{V}_{mp} \! \left(\vect{\hat{k}}\right) = \int_{D_p} \left( \overline{\overline{I}}-\vect{\hat{k}}\vect{\hat{k}} \right) \cdot e^{-j\vect{k} \cdot \vect{R}_{m}} \vect{f}_p\left(\vect{r}\right) d \vect{r}$
+\item disaggregation: $\vect{V}_{mp} \! \left(\vect{\hat{k}}\right) = \int_{D_p} \left( \overline{\overline{I}}-\vect{\hat{k}}\vect{\hat{k}} \right) \cdot e^{-j\vect{k} \cdot \vect{R}_{m}} \vect{g}_p\left(\vect{r}\right) d \vect{r}$
 \end{itemize}
 where the supplementary $\left(\overline{\overline{I}}-\vect{\hat{k}}\vect{\hat{k}} \right)$ in $\vect{V}_{mp} \! \left(\vect{\hat{k}}\right)$ comes from the fact that $\left(\overline{\overline{I}}-\vect{\hat{k}}\vect{\hat{k}} \right) = \left(\overline{\overline{I}}-\vect{\hat{k}}\vect{\hat{k}} \right) \cdot \left(\overline{\overline{I}}-\vect{\hat{k}}\vect{\hat{k}} \right)$.
 

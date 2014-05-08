@@ -5,9 +5,9 @@
 \par
 In this section we are going to detail how to compute the terms of the MoM matrices that appear in (\ref{eqn:EFIE-O_PEC_2}) and (\ref{eqn:MFIE-O_PEC_2}) for PEC targets, namely
 \begin{gather} 
-I_1 = \left\{\innerprod{\vect{g}_m}{;}{\left(\nabla \nabla \cdot + k^2\right) \innerprod{G}{,}{\vect{f}_n}{D_n}}{D_m}\right\}\label{eqn:MoM terms I_1} \\
-I_2 = \left\{\innerprod{\vect{g}_m}{;}{\innerprod{\nabla G}{\times}{\vect{f}_n}{D_n}}{D_m}\right\} \label{eqn:MoM terms I_2}\\
-I_3 = \frac{1}{2} \left\{\innerprod{\vect{g}_m}{;}{\uvect{n} \times \vect{f}_n}{D_m} \right\}. \label{eqn:MoM terms I_3}
+I_1 = \int_{D_m}\vect{g}_m \arg{\vect{r}} \cdot \left( \left(\nabla \nabla \cdot + k_1^2\right) \int_{D_n} G\left(\vect{r}, \vect{r}'\right) \current{f}_n\left(\vect{r}'\right) d\vect{r}' \right) d\vect{r} \label{eqn:MoM terms I_1}\\
+I_2 = \int_{D_m} \vect{g}_m \arg{\vect{r}} \cdot \left(\int_{D_n} \nabla G\left(\vect{r}, \vect{r}'\right) \times \current{f}_n\left(\vect{r}'\right) d\vect{r}'\right) d\vect{r} \label{eqn:MoM terms I_2}\\
+I_3 = \int_{D_m} \frac{1}{2} \vect{g}_m \arg{\vect{r}} \cdot \vect{\hat{n}} \times \current{f}_{n}\arg{\vect{r}}d\vect{r}. \label{eqn:MoM terms I_3}
 \end{gather}
 As usual, the homogeneous space Green's function $G$ is given by:
 \begin{equation*}
@@ -18,7 +18,7 @@ where $k = \omega \sqrt{\varepsilon \mu} = \omega \sqrt{\varepsilon_0 \varepsilo
 \section{Computation of $I_1$}
 %
 \par
-First let us transform $\nabla \nabla \cdot \innerprod{G}{,}{\vect{f}_n}{D_n}$. In full form it is written as:
+First let us take care of the derivative term. It is written as:
 \begin{equation}
 \nabla \nabla \cdot \int_{D_n} G\arg{\vect{r},\vect{r}'} \vect{f}_n\arg{\vect{r}'} \; \ud S',
 \end{equation}
@@ -38,10 +38,12 @@ where $\partial D_n$ denotes integration on the border of $D_n$. Due to the prop
 \end{equation}
 which allows us to decompose $I_1$ as follows:
 \begin{equation}
-I_1 = \underbrace{\innerprod{\vect{g}_m}{;}{\nabla \innerprod{G}{,}{\nabla_S^\prime \cdot \vect{f}_n}{D_n}}{D_m}}_{\triangleq I_{1,1}} + k^2\underbrace{\innerprod{\vect{g}_m}{;}{\innerprod{G}{,}{\vect{f}_n}{D_n}}{D_m}}_{\triangleq I_{1,2}}.
+I_1 = \underbrace{\int_{D_m} \vect{g}_m\arg{\vect{r}} \cdot \left(\nabla \int_{D_n} G\arg{\vect{r},\vect{r}'} \; \nabla_S^\prime \cdot \vect{f}_n  \; d \vect{r}'\right) \ud \vect{r} }_{\triangleq I_{1,1}} + k^2\underbrace{\int_{D_m}\vect{g}_m \arg{\vect{r}} \cdot \left( \int_{D_n} G\arg{\vect{r},\vect{r}'} \vect{f}_n\arg{\vect{r}}\right) d\vect{r}}_{\triangleq I_{1,2}}.
 \end{equation}
 
+
 \subsection{Testing with $\vect{g}_m = \vect{f}_m$}
+\subsubsection{$I_{1,1}$}
 %
 \par
 First we modify integral $I_{1,1}$. The gradient applied to the inside inner product can be applied on the testing function by integrating by parts and by applying Gauss' divergence theorem \cite{Rao_82, Taskinen_03}:
@@ -53,7 +55,7 @@ First we modify integral $I_{1,1}$. The gradient applied to the inside inner pro
 \end{equation}
 where $\phi$ is a scalar function, $\partial D_m$ is the contour of $D_m$ and $\uvect{m} = \uvect{l} \times \uvect{n}$ is the normal to the contour of the basis function domain. The contour integral yields zero, due to the fact that, on the edges of the RWG basis function domain $D_m$, $\vect{f}_m$ is parallel to $\uvect{l}_m$. We therefore have that
 \begin{equation}
-I_{1,1} = - \innerprod{\nabla_S \cdot \vect{f}_m}{,}{\innerprod{G}{,}{\nabla_S^\prime \cdot \vect{f}_n}{D_n}}{D_m}.
+I_{1,1} = -\int_{D_m}  \nabla_S \cdot \vect{f}_m\arg{\vect{r}}  \left( \int_{D_n} G\arg{\vect{r},\vect{r}'} \; \nabla_S^\prime \cdot \vect{f}_n  \; d \vect{r}'\right) \ud \vect{r}.
 \end{equation}
 %
 \par
@@ -65,6 +67,8 @@ with $C_m^p = \frac{S_m^p l_m}{2 A_m^p}$, where $S_m^p$ is the sign of test func
 %
 \par
 One more comment must be made about (\ref{eqn:MoM scalar potential term}). $G$ is singular when $\vect{r} = \vect{r}'$, and this renders the numerical integration very imprecise if $T_m^p$ is close to $T_n^q$. This singularity must be properly extracted. This is done thoroughly in \cite{Taskinen_03} and will not be discussed here.
+
+\subsubsection{$I_{1,2}$}
 %
 \par
 Now let us develop $I_{1,2}$. From definition (\ref{eqn:RWG definition}) of the RWG basis functions, it is immediate to see that $I_{1,2}$ is constituted by combinations of the following term:
@@ -76,6 +80,8 @@ C_m^p C_n^q \int_{T_m^p} \left(\vect{r}-\vect{r}_m^p \right) \cdot \int_{T_n^q} 
 where $\vect{r}_m^p$ is the vector position of the node belonging to triangle $p$ and opposite to edge $m$. The four integrals on the right-hand side of the above equation are independent of the edges, and each can again be performed triangle-wise. Only their recombination is edge-dependent. Computationally speaking, this is an enormous advantage over computing directly the left-hand side term of the above equation, as there are always more edges than triangles (up to nine times more for closed bodies). Moreover, we can immediately see that the last term on the right-hand side of (\ref{eqn:MoM vector potential term}) is equal to (\ref{eqn:MoM scalar potential term}).
 
 \subsection{Testing with $\vect{g}_m = \uvect{n} \times \vect{f}_m$}
+
+\subsubsection{$I_{1,1}$}
 %
 \par
 Rewriting explicitly $I_{1,1}$ with $\vect{g}_m = \uvect{n} \times \vect{f}_m$, we can see that it will be a combination of the following term:
@@ -114,6 +120,8 @@ where use of identity $\nabla \times \left(a \vect{b}\right) = a \nabla \times \
 \end{split}
 \end{equation}
 which is a more elegant form than its counterpart (23) of \cite{Taskinen_03}. Singularity $\frac{1}{R^2}$ has been reduced to $\frac{1}{R}$ and can therefore be analytically extracted even for overlapping basis and test functions. 
+
+\subsubsection{$I_{1,2}$}
 %
 \par
 Let us now develop $I_{1,2}$. We will have the following terms:
@@ -183,7 +191,7 @@ C_m^p C_n^p \int_{T_m^p} \left(\vect{r}-\vect{r}_m^p \right) \cdot \left(\vect{r
 \par
 The nonzero terms involved in the computation of the excitation vectors $\Array{V}{}{E}$ and $\Array{V}{}{H}$ have the following generic form:
 \begin{equation}
-V_m^{P} = -\innerprod{\vect{g}_m}{;}{\vect{P}^\text{inc}}{D_m}
+V_m^{P} = -\int_{D_m}\vect{g}_m \arg{\vect{r}} \cdot \field{P}^\text{inc} d\vect{r}
 \end{equation}
 where $\vect{P}$ can be $\vect{E}$ or $\vect{H}$. If tested with $\vect{g}_m = \vect{f}_m$, we immediately have that
 \begin{equation}
