@@ -72,7 +72,7 @@ We can now clearly see the three MLFMA terms:
 \item translation: $\alpha_{mm'}\left(\vect{k}, \vect{R}_{mm'} \right)$
 \item disaggregation: $\vect{V}_{mp}^D \! \left(\vect{\hat{k}}\right) = \int_{D_p} \left( \overline{\overline{I}}-\vect{\hat{k}}\vect{\hat{k}} \right) \cdot e^{-j\vect{k} \cdot \vect{R}_{m}} \vect{g}_p\left(\vect{r}\right) d \vect{r}$
 \end{itemize}
-where the supplementary $\left(\overline{\overline{I}}-\vect{\hat{k}}\vect{\hat{k}} \right)$ in $\vect{V}_{mp}^D \! \left(\vect{\hat{k}}\right)$ comes from the fact that $\left(\overline{\overline{I}}-\vect{\hat{k}}\vect{\hat{k}} \right) = \left(\overline{\overline{I}}-\vect{\hat{k}}\vect{\hat{k}} \right) \cdot \left(\overline{\overline{I}}-\vect{\hat{k}}\vect{\hat{k}} \right)$.
+where the supplementary $\left(\overline{\overline{I}}-\vect{\hat{k}}\vect{\hat{k}} \right)$ in $\vect{V}_{mp}^D \! \left(\vect{\hat{k}}\right)$ comes from the fact that $\left(\overline{\overline{I}}-\vect{\hat{k}}\vect{\hat{k}} \right) = \left(\overline{\overline{I}}-\vect{\hat{k}}\vect{\hat{k}} \right) \cdot \left(\overline{\overline{I}}-\vect{\hat{k}}\vect{\hat{k}} \right)$. This factor eliminates radial components---along $\uvect{k}$.
 
 \section{K-type interaction}
 %
@@ -88,6 +88,9 @@ Rewriting (\ref{eqn:interaction_K}) using (\ref{eqn:addition_theorem_3}), (\ref{
 We can now see two additional MLFMA terms:
 \begin{itemize}
 \item aggregation: $\vect{V}_{m'q}^K \! \left(\vect{\hat{k}}\right) = \int_{D_q} \left( \overline{\overline{I}}-\vect{\hat{k}}\vect{\hat{k}} \right) \cdot e^{j\vect{k} \cdot \vect{R}_{m'}} \vect{f}_q\left(\vect{r}'\right) d \vect{r}' = \vect{V}_{m'q}^D \! \left(\vect{\hat{k}}\right)$
-\item disaggregation: $\vect{V}_{mp}^K \! \left(\vect{\hat{k}}\right) = \int_{D_p} \left( \overline{\overline{I}}-\vect{\hat{k}}\vect{\hat{k}} \right) \cdot e^{-j\vect{k} \cdot \vect{R}_{m}} \vect{g}_p\left(\vect{r}\right) d \vect{r}$
+\item disaggregation: $\vect{V}_{mp}^K \! \left(\vect{\hat{k}}\right) = \int_{D_p} \left( \overline{\overline{I}}-\vect{\hat{k}}\vect{\hat{k}} \right) \cdot e^{-j\vect{k} \cdot \vect{R}_{m}} \left(\uvect{k}\times\vect{g}_p\arg{\vect{r}}\right) d \vect{r}$
 \end{itemize}
-where the supplementary $\left(\overline{\overline{I}}-\vect{\hat{k}}\vect{\hat{k}} \right)$ in $\vect{V}_{m'q}^K \! \left(\vect{\hat{k}}\right)$ comes from the fact that
+where the supplementary $\left(\overline{\overline{I}}-\vect{\hat{k}}\vect{\hat{k}} \right)$ in $\vect{V}_{m'q}^K \! \left(\vect{\hat{k}}\right)$ comes from the fact that, mathematically, 
+\begin{equation}
+\left(\uvect{k}\times\current{g}_p\left(\vect{r}\right) \right) \cdot \vect{f}_q\left(\vect{r}'\right) = \left(\uvect{k}\times\current{g}_p\left(\vect{r}\right) \right) \cdot \left(\overline{\overline{I}}-\vect{\hat{k}}\vect{\hat{k}} \right) \cdot \vect{f}_q\left(\vect{r}'\right).
+\end{equation}
