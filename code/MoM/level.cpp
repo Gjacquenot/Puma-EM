@@ -967,8 +967,10 @@ void Level::sphericalIntegration(blitz::Array<std::complex<float>, 1>& ZI,
   const std::complex<float> ZZERO(0.0, 0.0);
   const bool tE_tmp = (CFIE(0)!=ZZERO), nE_tmp = (CFIE(1)!=ZZERO); 
   const bool tH_tmp = (CFIE(2)!=ZZERO), nH_tmp = (CFIE(3)!=ZZERO);
-  const std::complex<float> JEFIE_factor(static_cast<std::complex<float> >(-I*mu_0)  * w * mu_r * CFIE(0));
-  const std::complex<float> JMFIE_factor(static_cast<std::complex<float> >(I*k) * CFIE(3));
+  const std::complex<float> tJEFIE_factor(static_cast<std::complex<float> >(-I*mu_0)  * w * mu_r * CFIE(0)); // k²/(j*w*eps) factor
+  const std::complex<float> nJEFIE_factor(static_cast<std::complex<float> >(-I*mu_0)  * w * mu_r * CFIE(1)); // k²/(j*w*eps) factor
+  const std::complex<float> tJMFIE_factor(static_cast<std::complex<float> >(I*k) * CFIE(2)); // j*k factor
+  const std::complex<float> nJMFIE_factor(static_cast<std::complex<float> >(I*k) * CFIE(3)); // j*k factor
   const int NThetas = thetas.size(), NPhis = phis.size(), NGauss = cube.triangle_GaussCoord.extent(1)/3;
 
   // A. Francavilla (29-05-2013)
@@ -1053,19 +1055,24 @@ void Level::sphericalIntegration(blitz::Array<std::complex<float>, 1>& ZI,
         const int RWG_index = cube.TriangleToRWGindex[startIndex + rwg];
         const float weight = cube.TriangleToRWGweight[startIndex + rwg] * weigths[j];
         const int RWGNumber = cube.RWG_numbers[RWG_index];
+        const int CFIE_OK = cube.RWG_numbers_CFIE_OK[RWG_index];
         // EFIE
         const int index = startIndex_r_opp + rwg*3;
         const float fj[3] = {(r[0]-cube.TriangleToRWG_ropp[index]), (r[1]-cube.TriangleToRWG_ropp[index + 1]), (r[2]-cube.TriangleToRWG_ropp[index + 2])};
-        ZI(RWGNumber) += JEFIE_factor * (EJ[0]*fj[0] + EJ[1]*fj[1] + EJ[2]*fj[2]) * weight;
-        // MFIE
-        const bool nH = nH_tmp * cube.RWG_numbers_CFIE_OK[RWG_index];
-        if (nH) {
-          float nHat_x_fj[3];
+        ZI(RWGNumber) += tJEFIE_factor * (EJ[0]*fj[0] + EJ[1]*fj[1] + EJ[2]*fj[2]) * weight;
+        // we see if we need n x f_m
+        const bool tH = tH_tmp * CFIE_OK;
+        const bool nH = nH_tmp * CFIE_OK;
+        float nHat_x_fj[3];
+        if (nE_tmp || nH) {
           nHat_x_fj[0] = nHat[1]*fj[2]-nHat[2]*fj[1];
           nHat_x_fj[1] = nHat[2]*fj[0]-nHat[0]*fj[2];
           nHat_x_fj[2] = nHat[0]*fj[1]-nHat[1]*fj[0];
-          ZI(RWGNumber) += JMFIE_factor * (nHat_x_fj[0]*GC3_x_kHat[0] + nHat_x_fj[1]*GC3_x_kHat[1] + nHat_x_fj[2]*GC3_x_kHat[2]) * weight;
-        } // end if (nH)
+        }
+        if (nE_tmp) ZI(RWGNumber) += nJEFIE_factor * (EJ[0]*nHat_x_fj[0] + EJ[1]*nHat_x_fj[1] + EJ[2]*nHat_x_fj[2]) * weight;
+        // MFIE
+        if (tH) ZI(RWGNumber) += tJMFIE_factor * (fj[0]*GC3_x_kHat[0] + fj[1]*GC3_x_kHat[1] + fj[2]*GC3_x_kHat[2]) * weight;
+        if (nH) ZI(RWGNumber) += nJMFIE_factor * (nHat_x_fj[0]*GC3_x_kHat[0] + nHat_x_fj[1]*GC3_x_kHat[1] + nHat_x_fj[2]*GC3_x_kHat[2]) * weight;
       }// end loop on the RWGs
     }// end Gauss integration points loop
     startIndex += n_rwg;
