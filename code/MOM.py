@@ -9,6 +9,8 @@ from Z_MoM import Z_MoM
 from V_EH import computeV_EH, G_EJ_G_HJ, V_EH_dipole_alternative
 from EM_constants import *
 from MoMPostProcessing import *
+from scipy import weave
+from scipy.weave import converters
 
 def computeCurrentsVisualization(w, target_mesh, ZI):
     if (N_RWG<1e4):
@@ -81,6 +83,10 @@ class dielectricTarget_MoM:
         self.compute_Y_CFIE()
         self.I_CFIE = dot(self.Y_CFIE, self.V_CFIE)
 
+def itercount(residual):
+    global count
+    count = count + 1
+
 if __name__=="__main__":
     path = './geo'
     targetName = 'sphere'
@@ -92,7 +98,7 @@ if __name__=="__main__":
     # However, Frob-CFIE convergence is more than OK: it is guaranteed
     f = 1.12e9
     fileName = targetName
-    write_geo(path, fileName, 'lc', c/f/20.)
+    write_geo(path, fileName, 'lc', c/f/10.)
     write_geo(path, fileName, 'lx', 0.07)
     write_geo(path, fileName, 'ly', 0.07)
     write_geo(path, fileName, 'lz', 0.07)
@@ -121,9 +127,10 @@ if __name__=="__main__":
     #CHOICE = "fields verification"
     #CHOICE = "dielectric target"
     if CHOICE=="CFIE testing":
-        for coeff in [1.0, 0.8, 0.5, 0.2, 0.0]:
+        for coeff in [1.0, .8, 0.5, 0.2, 0.0]:
         #for coeff in [0.2]:
-            CFIE = array([coeff, 0.0, 0.0, -(1.0 - coeff) * sqrt(mu_0/eps_0)], 'D')
+            #CFIE = array([coeff, coeff, -(1.0 - coeff) * sqrt(mu_0/eps_0), -(1.0 - coeff) * sqrt(mu_0/eps_0)], 'D')
+            CFIE = array([coeff, 0, -(1.0 - coeff) * sqrt(mu_0/eps_0), -(1.0 - coeff) * sqrt(mu_0/eps_0)], 'D')
             print
             print "CFIE =", CFIE
             target_MoM = Target_MoM(CFIE, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh, w, eps_r, mu_r, TDS_APPROX, Z_s, MOM_FULL_PRECISION)
@@ -133,8 +140,9 @@ if __name__=="__main__":
             print "inverted MoM RCS =", sum(target_MoM.I_CFIE*target_MoM.V_EH[:,0])
             #computeCurrentsVisualization(w, target_mesh, target_MoM.I_CFIE)
             # now we try the iterative method
-            I_CFIE_bicgstab = bicgstab(target_MoM.Z_CFIE_J, target_MoM.V_CFIE, x0=None, tol=1.0e-05, maxiter=1000, xtype=None)
-            print "bicgstab MoM RCS =", sum(I_CFIE_bicgstab[0]*target_MoM.V_EH[:,0]), "# of iterations =", target_MoM.iter_counter
+            count = 0
+            I_CFIE_bicgstab = bicgstab(target_MoM.Z_CFIE_J, target_MoM.V_CFIE, x0=None, tol=1.0e-05, maxiter=1000, xtype=None, callback=itercount)
+            print "bicgstab MoM RCS =", sum(I_CFIE_bicgstab[0]*target_MoM.V_EH[:,0]), "# of iterations =", count
 
     if CHOICE=="fields verification":
         coeff = 0.2
