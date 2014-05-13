@@ -37,6 +37,7 @@ documentation:
 	cd doc; make documentation;
 clean: 
 	rm -rf *~ *.pyc *.txt *.out *.tar *.gz *.tgz MPIcommand.sh GMSHcommand.sh __pycache__;
+	cd run_in_out; rm -rf *~ *.pyc;
 	cd $(PROGR_DIR_PATH); make clean; 
 	cd geo; make clean;
 	cd installScripts; make clean;

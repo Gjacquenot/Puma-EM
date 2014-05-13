@@ -7,8 +7,6 @@ if __name__=='__main__':
     parser.add_argument('--simudir')
     cmdline = parser.parse_args()
     simuDirName = cmdline.simudir
-    if simuDirName==None:
-        simuDirName = '.'
 
     if (my_id==0):
         if 'result' not in os.listdir(simuDirName):

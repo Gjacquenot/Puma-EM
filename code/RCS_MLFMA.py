@@ -24,7 +24,7 @@ def monostatic_RCS(params_simu, simuDirName):
     RCS_VV = readASCIIBlitzFloatArray2DFromDisk(os.path.join(simuDirName, 'result/RCS_VV_ASCII.txt'))
     return RCS_HH, RCS_VV, RCS_HV, RCS_VH, thetas_far_field, phis_far_field
 
-def bistatic_RCS(params_simu, simuDirName):
+def bistatic_RCS(params_simu, inputDirName, simuDirName):
     phis_far_field = 180./pi * readASCIIBlitzFloatArray1DFromDisk(os.path.join(simuDirName, 'result/phis_far_field_ASCII.txt'))
     thetas_far_field = 180./pi * readASCIIBlitzFloatArray1DFromDisk(os.path.join(simuDirName, 'result/thetas_far_field_ASCII.txt'))
     e_phi = readBlitzArrayFromDisk(os.path.join(simuDirName, 'result/scatt_e_phi_far_Binary.txt'), thetas_far_field.shape[0], phis_far_field.shape[0], 'F')
@@ -37,7 +37,7 @@ def bistatic_RCS(params_simu, simuDirName):
     k = w * sqrt(mu * eps) # the wavenumber
     P_inc = 0.0
     if (params_simu.BISTATIC_EXCITATION_DIPOLES == 1):
-        J_src, r_src = read_dipole_excitation(params_simu.BISTATIC_EXCITATION_J_DIPOLES_FILENAME)
+        J_src, r_src = read_dipole_excitation(os.path.join(inputDirName, params_simu.BISTATIC_EXCITATION_J_DIPOLES_FILENAME))
         r_dip_src = r_src[0,:]
         J_dip_src = J_src[0,:]
         G_EJ_inc, G_HJ_inc = G_EJ_G_HJ(r_dip_src, R_cube_center, eps, mu, k)
@@ -64,18 +64,16 @@ def antenna_pattern(params_simu, simuDirName):
     return sigma_theta, sigma_phi, thetas_far_field, phis_far_field
 
 if __name__=='__main__':
-    sys.path.append(os.path.abspath('.'))
     parser = argparse.ArgumentParser(description='...')
+    parser.add_argument('--inputdir')
     parser.add_argument('--simudir')
-    parser.add_argument('--simuparams')
     cmdline = parser.parse_args()
     simuDirName = cmdline.simudir
-    simuParams = cmdline.simuparams
-    if simuDirName==None:
-        simuDirName = '.'
-    if simuParams==None:
-        simuParams = 'simulation_parameters'
+    inputDirName = cmdline.inputdir
+    simuParams = 'simulation_parameters'
+
     # the simulation itself
+    sys.path.append(os.path.abspath(inputDirName))
     exec('from ' + simuParams + ' import *')
     if (params_simu.MONOSTATIC_RCS==1) or (params_simu.MONOSTATIC_SAR==1) or (params_simu.BISTATIC==1):
         print_times(params_simu, simuDirName)
@@ -140,11 +138,11 @@ if __name__=='__main__':
 
         # user supplied observation angles
         if (params_simu.BISTATIC_ANGLES_OBS == 1) and (params_simu.BISTATIC_ANGLES_OBS_FILENAME != ""):
-            bistatic_angles_obs = read_input_angles(params_simu.BISTATIC_ANGLES_OBS_FILENAME)
+            bistatic_angles_obs = read_input_angles(os.path.join(inputDirName, params_simu.BISTATIC_ANGLES_OBS_FILENAME))
             thetas_obs = bistatic_angles_obs[:,0]
             phis_obs = bistatic_angles_obs[:,1]
             # the regular far field grid
-            sigma_theta, sigma_phi, thetas_far_field, phis_far_field = bistatic_RCS(params_simu, simuDirName)
+            sigma_theta, sigma_phi, thetas_far_field, phis_far_field = bistatic_RCS(params_simu, inputDirName, simuDirName)
             import scipy.interpolate
             spline_sigma_theta = scipy.interpolate.RectBivariateSpline(thetas_far_field, phis_far_field, sigma_theta)
             spline_sigma_phi = scipy.interpolate.RectBivariateSpline(thetas_far_field, phis_far_field, sigma_phi)
@@ -159,7 +157,7 @@ if __name__=='__main__':
         if params_simu.ANTENNA_PATTERN == 1:
             sigma_theta, sigma_phi, thetas_far_field, phis_far_field = antenna_pattern(params_simu, simuDirName)
         else:
-            sigma_theta, sigma_phi, thetas_far_field, phis_far_field = bistatic_RCS(params_simu, simuDirName)
+            sigma_theta, sigma_phi, thetas_far_field, phis_far_field = bistatic_RCS(params_simu, inputDirName, simuDirName)
         dimensions = 2
         if (len(thetas_far_field)==1) or (len(phis_far_field)==1):
             dimensions = 1

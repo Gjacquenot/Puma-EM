@@ -130,20 +130,16 @@ def assemble_Z_near(params_simu, simuDirName):
     MPI.COMM_WORLD.Barrier()
 
 if __name__=='__main__':
-    #MPI.Init()
-    my_id = MPI.COMM_WORLD.Get_rank()
-    sys.path.append(os.path.abspath('.'))
     parser = argparse.ArgumentParser(description='...')
+    parser.add_argument('--inputdir')
     parser.add_argument('--simudir')
-    parser.add_argument('--simuparams')
     cmdline = parser.parse_args()
     simuDirName = cmdline.simudir
-    simuParams = cmdline.simuparams
-    if simuDirName==None:
-        simuDirName = '.'
-    if simuParams==None:
-        simuParams = 'simulation_parameters'
+    inputDirName = cmdline.inputdir
+    simuParams = 'simulation_parameters'
+
     # the simulation itself
+    sys.path.append(os.path.abspath(inputDirName))
     exec('from ' + simuParams + ' import *')
     if (params_simu.MONOSTATIC_RCS==1) or (params_simu.MONOSTATIC_SAR==1) or (params_simu.BISTATIC==1):
         assemble_Z_near(params_simu, simuDirName)

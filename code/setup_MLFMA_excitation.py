@@ -4,7 +4,7 @@ from scipy import zeros, array
 from ReadWriteBlitzArray import writeScalarToDisk, writeASCIIBlitzArrayToDisk
 from read_dipole_excitation import read_dipole_excitation, read_observation_points
 
-def setup_excitation(params_simu, simuDirName):
+def setup_excitation(params_simu, inputDirName, simuDirName):
     num_proc = MPI.COMM_WORLD.Get_size()
     my_id = MPI.COMM_WORLD.Get_rank()
 
@@ -12,7 +12,7 @@ def setup_excitation(params_simu, simuDirName):
     tmpDirName = os.path.join(simuDirName, 'tmp' + str(my_id))
     if (params_simu.BISTATIC_R_OBS == 1) and (params_simu.BISTATIC_R_OBS_FILENAME != ""):
         if (my_id==0): # this file is only on processor 0
-            r_obs = read_observation_points(params_simu.BISTATIC_R_OBS_FILENAME)
+            r_obs = read_observation_points(os.path.join(inputDirName, params_simu.BISTATIC_R_OBS_FILENAME))
         else:
             r_obs = zeros((1, 3), 'd')
         r_obs = MPI.COMM_WORLD.bcast(r_obs)
@@ -41,7 +41,7 @@ def setup_excitation(params_simu, simuDirName):
     if (params_simu.BISTATIC_EXCITATION_DIPOLES == 1):
         if params_simu.BISTATIC_EXCITATION_J_DIPOLES_FILENAME != "":
             if (my_id==0): # this file is only on processor 0
-                J_src, r_J_src = read_dipole_excitation(params_simu.BISTATIC_EXCITATION_J_DIPOLES_FILENAME)
+                J_src, r_J_src = read_dipole_excitation(os.path.join(inputDirName, params_simu.BISTATIC_EXCITATION_J_DIPOLES_FILENAME))
             else:
                 J_src, r_J_src = zeros((1, 3), 'D'), zeros((1, 3), 'd')
             J_src = MPI.COMM_WORLD.bcast(J_src)
@@ -53,7 +53,7 @@ def setup_excitation(params_simu, simuDirName):
             writeScalarToDisk(0, os.path.join(tmpDirName,'V_CFIE/J_DIPOLES_EXCITATION.txt'))
         if params_simu.BISTATIC_EXCITATION_M_DIPOLES_FILENAME != "":
             if (my_id==0): # this file is only on processor 0
-                M_src, r_M_src = read_dipole_excitation(params_simu.BISTATIC_EXCITATION_M_DIPOLES_FILENAME)
+                M_src, r_M_src = read_dipole_excitation(os.path.join(inputDirName, params_simu.BISTATIC_EXCITATION_M_DIPOLES_FILENAME))
             else:
                 M_src, r_M_src = zeros((1, 3), 'D'), zeros((1, 3), 'd')
             M_src = MPI.COMM_WORLD.bcast(M_src)
@@ -76,7 +76,7 @@ def setup_excitation(params_simu, simuDirName):
 
     if (params_simu.MONOSTATIC_RCS == 1) and (params_simu.ANGLES_FROM_FILE == 1) and (params_simu.ANGLES_FILENAME != ""):
         if (my_id==0): # this file is only on processor 0
-            angles = read_input_angles(params_simu.ANGLES_FILENAME)
+            angles = read_input_angles(os.path.join(inputDirName, params_simu.ANGLES_FILENAME))
         else:
             angles = zeros((1, 2), 'd')
         angles = MPI.COMM_WORLD.bcast(angles)
@@ -100,23 +100,20 @@ def setup_excitation(params_simu, simuDirName):
 if __name__=='__main__':
     my_id = MPI.COMM_WORLD.Get_rank()
     parser = argparse.ArgumentParser(description='...')
+    parser.add_argument('--inputdir')
     parser.add_argument('--simudir')
-    parser.add_argument('--simuparams')
     cmdline = parser.parse_args()
     simuDirName = cmdline.simudir
-    simuParams = cmdline.simuparams
-    if simuDirName==None:
-        simuDirName = '.'
-    if simuParams==None:
-        simuParams = 'simulation_parameters'
+    inputDirName = cmdline.inputdir
+    simuParams = 'simulation_parameters'
 
     # the simulation itself
-    sys.path.append(os.path.abspath('.'))
+    sys.path.append(os.path.abspath(inputDirName))
     exec('from ' + simuParams + ' import *')
     if (my_id==0):
         params_simu.display()
     if (params_simu.MONOSTATIC_RCS==1) or (params_simu.MONOSTATIC_SAR==1) or (params_simu.BISTATIC==1):
-        setup_excitation(params_simu, simuDirName)
+        setup_excitation(params_simu, inputDirName, simuDirName)
     else:
         print("you should select monostatic RCS or monostatic SAR or bistatic computation, or a combination of these computations. Check the simulation settings.")
         sys.exit(1)

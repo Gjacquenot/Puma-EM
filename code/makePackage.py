@@ -5,7 +5,7 @@ def constructArborescense(path):
     """this function construct the arborescence of a directory, i.e. it seeks for all its sub-directories"""
     arborescence = []
     for root, direct, files in os.walk(path):
-        if '.git' not in root and 'unused' not in root:
+        if '.git' not in root and 'unused' not in root and 'result' not in root and '__pycache__' not in root:
             if files != []:
                 arborescence.append(root)
     return arborescence
@@ -78,6 +78,9 @@ def copySources(SHORT_LICENCE, COPYRIGHT, CONTACT, pathToCopyFrom, pathToCopyTo)
             else:
                 COPY = False
 
+            if ('.pyc' or '~') in sourceFileName:
+                COPY = False
+
             if COPY:
                 for line in sourceFile:
                     newSourceFile.append(line)
@@ -89,7 +92,7 @@ def copySources(SHORT_LICENCE, COPYRIGHT, CONTACT, pathToCopyFrom, pathToCopyTo)
                     os.system("chmod ug+rwx " + os.path.join(pathToCopyTo, sourceFileName))
 
 if __name__=="__main__":
-    RELEASE = '0.5.9'
+    RELEASE = '0.6.1'
     MAIN_DIR = '.'
     SHORT_LICENCE = ['This file is part of Puma-EM.\n', '\n', 'Puma-EM is free software: you can redistribute it and/or modify\n', 'it under the terms of the GNU General Public License as published by\n', 'the Free Software Foundation, either version 3 of the License, or\n', '(at your option) any later version.\n', '\n', 'Puma-EM is distributed in the hope that it will be useful,\n', 'but WITHOUT ANY WARRANTY; without even the implied warranty of\n', 'MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n', 'GNU General Public License for more details.\n', '\n', 'You should have received a copy of the GNU General Public License\n', 'along with Puma-EM.  If not, see <http://www.gnu.org/licenses/>.\n']
     COPYRIGHT = "Copyright (C) 2014 Idesbald Van den Bosch"

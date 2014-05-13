@@ -77,7 +77,7 @@ params_simu.BISTATIC_EXCITATION_DIPOLES = 1
 params_simu.BISTATIC_EXCITATION_PLANE_WAVE = 0
 # now the details of each excitation
 # the name (with path) of the user-supplied excitation file. Set to "" if empty
-params_simu.BISTATIC_EXCITATION_J_DIPOLES_FILENAME = "./input_parameters/J_dipoles.txt"
+params_simu.BISTATIC_EXCITATION_J_DIPOLES_FILENAME = "J_dipoles.txt"
 params_simu.BISTATIC_EXCITATION_M_DIPOLES_FILENAME = ""
 # the structure of the excitation file MUST BE AS FOLLOWS:
 # 1 line per dipole, as many lines as there are dipoles
@@ -102,7 +102,7 @@ params_simu.ANTENNA_PATTERN = 0
 # It will be used only for BISTATIC
 params_simu.BISTATIC_R_OBS = 1
 # the name (with path) of the user-supplied r_obs file. Set to "" if empty
-params_simu.BISTATIC_R_OBS_FILENAME = "./input_parameters/r_obs.txt"
+params_simu.BISTATIC_R_OBS_FILENAME = "r_obs.txt"
 # the structure of the r_obs file MUST BE AS FOLLOWS:
 # 1 line per observation point, as many lines as there are points
 # each line has 3 columns that must be arranged as follows:
@@ -112,7 +112,7 @@ params_simu.BISTATIC_R_OBS_FILENAME = "./input_parameters/r_obs.txt"
 # we can also have sampling angles from a user-input file
 params_simu.BISTATIC_ANGLES_OBS = 0
 # the name (with path) of the user-supplied r_obs file. Set to "" if empty
-params_simu.BISTATIC_ANGLES_OBS_FILENAME = "./input_parameters/bistatic_angles_obs.txt"
+params_simu.BISTATIC_ANGLES_OBS_FILENAME = "bistatic_angles_obs.txt"
 # the structure of the bistatic _angles_obs file MUST BE AS FOLLOWS:
 # 1 line per observation angle, as many lines as there are angles
 # each line has 2 columns which are the angles in degrees (easier for human reading).
@@ -145,7 +145,7 @@ params_simu.USER_DEFINED_NB_PHI = 200
 params_simu.ANGLES_FROM_FILE = 0
 if params_simu.ANGLES_FROM_FILE == 1:
     # the name (with path) of the user-supplied r_obs file. Set to "" if empty
-    params_simu.ANGLES_FILENAME = "./input_parameters/monostatic_RCS_angles.txt"
+    params_simu.ANGLES_FILENAME = "monostatic_RCS_angles.txt"
     # the structure of the angles file MUST BE AS FOLLOWS:
     # 1 line per angle, as many lines as there are angles
     # each line has 2 columns  which are the angles in degrees (easier for human reading):

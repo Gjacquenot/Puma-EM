@@ -237,18 +237,15 @@ def setup_mesh(params_simu, simuDirName):
 if __name__=='__main__':
     my_id = MPI.COMM_WORLD.Get_rank()
     parser = argparse.ArgumentParser(description='...')
+    parser.add_argument('--inputdir')
     parser.add_argument('--simudir')
-    parser.add_argument('--simuparams')
     cmdline = parser.parse_args()
     simuDirName = cmdline.simudir
-    simuParams = cmdline.simuparams
-    if simuDirName==None:
-        simuDirName = '.'
-    if simuParams==None:
-        simuParams = 'simulation_parameters'
+    inputDirName = cmdline.inputdir
+    simuParams = 'simulation_parameters'
 
     # the simulation itself
-    sys.path.append(os.path.abspath('.'))
+    sys.path.append(os.path.abspath(inputDirName))
     exec('from ' + simuParams + ' import *')
     if (params_simu.MONOSTATIC_RCS==1) or (params_simu.MONOSTATIC_SAR==1) or (params_simu.BISTATIC==1):
         setup_mesh(params_simu, simuDirName)
