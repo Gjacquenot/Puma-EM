@@ -9,8 +9,11 @@ from Z_MoM import Z_MoM
 from V_EH import computeV_EH, G_EJ_G_HJ, V_EH_dipole_alternative
 from EM_constants import *
 from MoMPostProcessing import *
-from scipy import weave
-from scipy.weave import converters
+try:
+    from scipy import weave
+    from scipy.weave import converters
+except ImportError:
+    pass
 
 def computeCurrentsVisualization(w, target_mesh, ZI):
     if (N_RWG<1e4):

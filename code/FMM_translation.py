@@ -1,6 +1,9 @@
 from scipy import zeros, array, sqrt, dot
-from scipy import weave
-from scipy.weave import converters
+try:
+    from scipy import weave
+    from scipy.weave import converters
+except ImportError:
+    pass
 
 def IT_theta_IT_phi_alpha_C(r_mn, k, L, XcosTheta, Xphi, ELEM_TYPE):
     """wrapper for C++ IT_theta_IT_phi_alpha_C function"""

@@ -1,7 +1,10 @@
 import os.path, time, sys
 from scipy import arange, array, zeros, ones, reshape, take, put, sqrt, sum
-from scipy import weave
-from scipy.weave import converters
+try:
+    from scipy import weave
+    from scipy.weave import converters
+except ImportError:
+    pass
 from meshClass import MeshClass, CubeClass
 from mesh_functions_seb import edgeNumber_triangles_indexes
 from PyGmsh import executeGmsh, write_geo

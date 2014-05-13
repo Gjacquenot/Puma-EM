@@ -1,8 +1,11 @@
 import os.path
 from scipy import zeros, ones, arange, reshape, take, put, array, arccos, arcsin, sqrt, dot, sum, real, imag, exp
 from scipy import sin, cos, pi
-from scipy import weave
-from scipy.weave import converters
+try:
+    from scipy import weave
+    from scipy.weave import converters
+except ImportError:
+    pass
 from mesh_functions_seb import edgeNumber_triangles_indexes
 from meshClass import MeshClass
 from EM_constants import *

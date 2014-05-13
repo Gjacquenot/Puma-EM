@@ -1,5 +1,9 @@
-from scipy import weave, rand, product
-from scipy.weave import converters
+from scipy import rand, product
+try:
+    from scipy import weave
+    from scipy.weave import converters
+except ImportError:
+    pass
 from scipy import zeros, array, arange
 import time
 from mpi4py import MPI

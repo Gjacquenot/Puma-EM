@@ -1,7 +1,10 @@
 import sys, os
 from scipy import conj, array, zeros, rand, eye, dot, floor, transpose, real, imag, triu
-from scipy import weave
-from scipy.weave import converters
+try:
+    from scipy import weave
+    from scipy.weave import converters
+except ImportError:
+    pass
 #from zgels import zgels, dlamch
 import copy
 

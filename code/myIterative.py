@@ -1,5 +1,9 @@
 from scipy import *
-from scipy.weave import converters
+try:
+    from scipy import weave
+    from scipy.weave import converters
+except ImportError:
+    pass
 from pylab import *
 import copy
 
