@@ -255,8 +255,8 @@ For this formulation we combine the outside fields together, and the inside fiel
   \addtolength{\fboxsep}{5pt} 
  \text{CFIE-O}: \quad   \boxed{ 
    \begin{split} 
-      \alpha \field{E}^\text{inc} + \left(1-\alpha \right) \eta_1\field{H}^\text{inc} &= \alpha \left[\frac{1}{2} \vect{\hat{n}} \times \current{M}_{S,1} - \frac{1}{j \omega \varepsilon_1} \operator{D}_1 \left( \current{J}_{S,1}\right) + \operator{K}_1 \left(\current{M}_{S,1}\right) \right]  \\ 
-      & \qquad + \left(1-\alpha \right) \eta_1 \left[ - \frac{1}{2} \vect{\hat{n}} \times \current{J}_{S,1} - \frac{1}{j \omega \mu_1} \operator{D}_1 \left( \current{M}_{S,1}\right) - \operator{K}_1 \left(\current{J}_{S,1}\right) \right]
+      \alpha \field{E}^\text{inc} - \left(1-\alpha \right) \eta_1\field{H}^\text{inc} &= \alpha \left[\frac{1}{2} \vect{\hat{n}} \times \current{M}_{S,1} - \frac{1}{j \omega \varepsilon_1} \operator{D}_1 \left( \current{J}_{S,1}\right) + \operator{K}_1 \left(\current{M}_{S,1}\right) \right]  \\ 
+      & \qquad - \left(1-\alpha \right) \eta_1 \left[ - \frac{1}{2} \vect{\hat{n}} \times \current{J}_{S,1} - \frac{1}{j \omega \mu_1} \operator{D}_1 \left( \current{M}_{S,1}\right) - \operator{K}_1 \left(\current{J}_{S,1}\right) \right]
    \end{split} 
    } 
 \end{equation}
@@ -265,7 +265,7 @@ where $\eta_1 = \sqrt{\frac{\mu_1}{\varepsilon_1}}$, and where $0<\alpha<1$. For
   \addtolength{\fboxsep}{5pt} 
  \text{CFIE-I}: \quad   \boxed{ 
    \begin{split} 
-      0 &= \alpha \left[\frac{1}{2} \vect{\hat{n}} \times \current{M}_{S,1} + \frac{1}{j \omega \varepsilon_2} \operator{D}_2\left(\current{J}_{S,1}\right) -  \operator{K}_2\left( \current{M}_{S,1}\right) \right] + \\ &\qquad \qquad \qquad\left(1-\alpha \right) \eta_2 \left[ - \frac{1}{2} \vect{\hat{n}} \times \current{J}_{S,1} + \frac{1}{j \omega \mu_2} \operator{D}_2\left(\current{M}_{S,1}\right) +  \operator{K}_2\left( \current{J}_{S,1}\right) \right].
+      0 &= \alpha \left[\frac{1}{2} \vect{\hat{n}} \times \current{M}_{S,1} + \frac{1}{j \omega \varepsilon_2} \operator{D}_2\left(\current{J}_{S,1}\right) -  \operator{K}_2\left( \current{M}_{S,1}\right) \right] \\ &\qquad \qquad \qquad - \left(1-\alpha \right) \eta_2 \left[ - \frac{1}{2} \vect{\hat{n}} \times \current{J}_{S,1} + \frac{1}{j \omega \mu_2} \operator{D}_2\left(\current{M}_{S,1}\right) +  \operator{K}_2\left( \current{J}_{S,1}\right) \right].
    \end{split} 
    } 
 \end{equation}
@@ -275,7 +275,7 @@ The advantage of this formulation is that it can be applied to perfect electric 
 \begin{equation}\label{eqn:CFIE-O-PEC}
   \addtolength{\fboxsep}{5pt} 
  \text{PEC CFIE-O}: \quad   \boxed{ 
-      \alpha \field{E}^\text{inc} + \left(1-\alpha \right) \eta_1\field{H}^\text{inc} = \alpha \left[- \frac{1}{j \omega \varepsilon_1} \operator{D}_1 \left( \current{J}_{S,1}\right)\right]  + \left(1-\alpha \right) \eta_1 \left[ - \frac{1}{2} \vect{\hat{n}} \times \current{J}_{S,1} - \operator{K}_1 \left(\current{J}_{S,1}\right) \right]
+      \alpha \field{E}^\text{inc} - \left(1-\alpha \right) \eta_1\field{H}^\text{inc} = \alpha \left[- \frac{1}{j \omega \varepsilon_1} \operator{D}_1 \left( \current{J}_{S,1}\right)\right]  - \left(1-\alpha \right) \eta_1 \left[ - \frac{1}{2} \vect{\hat{n}} \times \current{J}_{S,1} - \operator{K}_1 \left(\current{J}_{S,1}\right) \right]
    } 
 \end{equation}
 
@@ -379,9 +379,9 @@ where
 \end{itemize}
 %
 \par
-The CFIE is given by a linear combination of the EFIE with the MFIE, \textit{i.e.} $CFIE = \alpha EFIE + \left(1-\alpha\right) \eta MFIE$, see (\ref{eqn:CFIE-O-PEC}). In matrix terms, it is written as:
+The CFIE is given by a linear combination of the EFIE with the MFIE, \textit{i.e.} $CFIE = \alpha EFIE - \left(1-\alpha\right) \eta MFIE$, see (\ref{eqn:CFIE-O-PEC}). In matrix terms, it is written as:
 \begin{equation}
-\left(\alpha\underline{\underline{Z}}^{EJ} + \left(1-\alpha\right)  \eta \underline{\underline{Z}}^{HJ}\right) \underline{I} = \left(\alpha\underline{V}^E + \left(1-\alpha\right)  \eta \underline{V}^{H}\right)
+\left(\alpha\underline{\underline{Z}}^{EJ} - \left(1-\alpha\right)  \eta \underline{\underline{Z}}^{HJ}\right) \underline{I} = \left(\alpha\underline{V}^E - \left(1-\alpha\right)  \eta \underline{V}^{H}\right)
 \end{equation}
 
 \include{Near_interactions}
