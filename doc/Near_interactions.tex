@@ -5,9 +5,9 @@
 \par
 In this section we are going to detail how to compute the terms of the MoM matrices that appear in (\ref{eqn:EFIE-O_PEC_2}) and (\ref{eqn:MFIE-O_PEC_2}) for PEC targets, namely
 \begin{gather} 
-I_1 = \int_{D_m}\vect{g}_m \arg{\vect{r}} \cdot \left( \left(\nabla \nabla \cdot + k_1^2\right) \int_{D_n} G\left(\vect{r}, \vect{r}'\right) \current{f}_n\left(\vect{r}'\right) d\vect{r}' \right) d\vect{r} \label{eqn:MoM terms I_1}\\
-I_2 = \int_{D_m} \vect{g}_m \arg{\vect{r}} \cdot \left(\int_{D_n} \nabla G\left(\vect{r}, \vect{r}'\right) \times \current{f}_n\left(\vect{r}'\right) d\vect{r}'\right) d\vect{r} \label{eqn:MoM terms I_2}\\
-I_3 = \int_{D_m} \frac{1}{2} \vect{g}_m \arg{\vect{r}} \cdot \vect{\hat{n}} \times \current{f}_{n}\arg{\vect{r}}d\vect{r}. \label{eqn:MoM terms I_3}
+D_{mn} = \int_{D_m}\vect{g}_m \arg{\vect{r}} \cdot \left( \left(\nabla \nabla \cdot + k^2\right) \int_{D_n} G\left(\vect{r}, \vect{r}'\right) \current{f}_n\left(\vect{r}'\right) d\vect{r}' \right) d\vect{r} \label{eqn:MoM terms I_1}\\
+K_{mn} = \int_{D_m} \vect{g}_m \arg{\vect{r}} \cdot \left(\int_{D_n} \nabla G\left(\vect{r}, \vect{r}'\right) \times \current{f}_n\left(\vect{r}'\right) d\vect{r}'\right) d\vect{r} \label{eqn:MoM terms I_2}\\
+J_{mn} = \int_{D_m} \frac{1}{2} \vect{g}_m \arg{\vect{r}} \cdot \vect{\hat{n}} \times \current{f}_{n}\arg{\vect{r}}d\vect{r}. \label{eqn:MoM terms I_3}
 \end{gather}
 As usual, the homogeneous space Green's function $G$ is given by:
 \begin{equation*}
@@ -15,7 +15,7 @@ G = \frac{e^{-jk\left|\vect{r}-\vect{r}' \right|}}{4 \pi \left|\vect{r}-\vect{r}
 \end{equation*}
 where $k = \omega \sqrt{\varepsilon \mu} = \omega \sqrt{\varepsilon_0 \varepsilon_r \mu_0 \mu_r}$ (as usual, $\varepsilon_r$ and $\mu_r$ are respectively the relative dielectric permittivity and magnetic permeability of the medium).
 
-\section{Computation of $I_1$}
+\section{Computation of $D_{mn}$}
 %
 \par
 First let us take care of the derivative term. It is written as:
@@ -36,17 +36,17 @@ where $\partial D_n$ denotes integration on the border of $D_n$. Due to the prop
 \begin{equation}
 \nabla \nabla \cdot \int_{D_n} G \vect{f}_n \; \ud S' = \nabla \int_{D_n} G \nabla_S^\prime \cdot \vect{f}_n  \; \ud S',
 \end{equation}
-which allows us to decompose $I_1$ as follows:
+which allows us to decompose $D_{mn}$ as follows:
 \begin{equation}
-I_1 = \underbrace{\int_{D_m} \vect{g}_m\arg{\vect{r}} \cdot \left(\nabla \int_{D_n} G\arg{\vect{r},\vect{r}'} \; \nabla_S^\prime \cdot \vect{f}_n  \; d \vect{r}'\right) \ud \vect{r} }_{\triangleq I_{1,1}} + k^2\underbrace{\int_{D_m}\vect{g}_m \arg{\vect{r}} \cdot \left( \int_{D_n} G\arg{\vect{r},\vect{r}'} \vect{f}_n\arg{\vect{r}}\right) d\vect{r}}_{\triangleq I_{1,2}}.
+D_{mn} = \underbrace{\int_{D_m} \vect{g}_m\arg{\vect{r}} \cdot \left(\nabla \int_{D_n} G\arg{\vect{r},\vect{r}'} \; \nabla_S^\prime \cdot \vect{f}_n  \; d \vect{r}'\right) \ud \vect{r} }_{\triangleq D_{mn,1}} + k^2\underbrace{\int_{D_m}\vect{g}_m \arg{\vect{r}} \cdot \left( \int_{D_n} G\arg{\vect{r},\vect{r}'} \vect{f}_n\arg{\vect{r}}\right) d\vect{r}}_{\triangleq D_{mn,2}}.
 \end{equation}
 
 
-\subsection{Testing with $\vect{g}_m = \vect{f}_m$}
-\subsubsection{$I_{1,1}$}
+\subsection{Testing with $\vect{g}_m = \vect{f}_m$: $D_{mn}^t$}
+\subsubsection{$D_{mn,1}^t$}
 %
 \par
-First we modify integral $I_{1,1}$. The gradient applied to the inside inner product can be applied on the testing function by integrating by parts and by applying Gauss' divergence theorem \cite{Rao_82, Taskinen_03}:
+First we modify integral $D_{mn,1}^t$. The gradient applied to the inside inner product can be applied on the testing function by integrating by parts and by applying Gauss' divergence theorem \cite{Rao_82, Taskinen_03}:
 \begin{equation} \label{eqn:Gauss' divergence theorem}
 \begin{split}
 \int_{D_m} \vect{f}_m \cdot \nabla \phi \; \ud S &= \int_{D_m} \nabla \cdot \left( \vect{f}_m \phi \right) \; \ud S - \int_{D_m} \phi \nabla_S \cdot \vect{f}_m \; \ud S \\
@@ -55,23 +55,23 @@ First we modify integral $I_{1,1}$. The gradient applied to the inside inner pro
 \end{equation}
 where $\phi$ is a scalar function, $\partial D_m$ is the contour of $D_m$ and $\uvect{m} = \uvect{l} \times \uvect{n}$ is the normal to the contour of the basis function domain. The contour integral yields zero, due to the fact that, on the edges of the RWG basis function domain $D_m$, $\vect{f}_m$ is parallel to $\uvect{l}_m$. We therefore have that
 \begin{equation}
-I_{1,1} = -\int_{D_m}  \nabla_S \cdot \vect{f}_m\arg{\vect{r}}  \left( \int_{D_n} G\arg{\vect{r},\vect{r}'} \; \nabla_S^\prime \cdot \vect{f}_n  \; d \vect{r}'\right) \ud \vect{r}.
+D_{mn,1}^t = -\int_{D_m}  \nabla_S \cdot \vect{f}_m\arg{\vect{r}}  \left( \int_{D_n} G\arg{\vect{r},\vect{r}'} \; \nabla_S^\prime \cdot \vect{f}_n  \; d \vect{r}'\right) \ud \vect{r}.
 \end{equation}
 %
 \par
-From the divergence properties of the RWG basis functions given by (\ref{eqn:RWG divergence}), it is easy to see that $I_{1,1}$ is constituted by the following sum:
+From the divergence properties of the RWG basis functions given by (\ref{eqn:RWG divergence}), it is easy to see that $D_{mn,1}^t$ is constituted by the following sum:
 \begin{equation} \label{eqn:MoM scalar potential term}
-I_{1,1} = \sum_{p, \, T_m^p \in D_m} \; \sum_{q, \, T_n^q \in D_n} -4 C_m^p C_n^q \int_{T_m^p} \int_{T_n^q} G \; \ud S' \ud S
+D_{mn,1}^t = \sum_{p, \, T_m^p \in D_m} \; \sum_{q, \, T_n^q \in D_n} -4 C_m^p C_n^q \int_{T_m^p} \int_{T_n^q} G \; \ud S' \ud S
 \end{equation}
 with $C_m^p = \frac{S_m^p l_m}{2 A_m^p}$, where $S_m^p$ is the sign of test function $m$ in triangle $p$, $l_m$ is the length of edge $m$, and $A_m^p$ is the area of triangle $T_m^p$. The sums are performed on $p$ and $q$ for which $T_m^p$ and $T_n^q$ are the triangles that form half of $D_m$ and $D_n$ respectively. We can note that the term under the integration sign is independent upon the basis function. This constatation leads us to remark that, instead of evaluating the MoM integrals RWG-wise, we will perform them triangle-wise, and contribute back the terms into the MoM matrix with the appropriate coefficients for all basis and test functions that pertain to the two triangles \cite{Rao_82}. Since for closed surfaces, there are three basis functions per triangle, and because the majority of the time is spent on these integrals, performing them triangle-wise will save a non-negligible amount of computation time. In the remainder of the text, the two summation symbols will be dropped for clarity.
 %
 \par
 One more comment must be made about (\ref{eqn:MoM scalar potential term}). $G$ is singular when $\vect{r} = \vect{r}'$, and this renders the numerical integration very imprecise if $T_m^p$ is close to $T_n^q$. This singularity must be properly extracted. This is done thoroughly in \cite{Taskinen_03} and will not be discussed here.
 
-\subsubsection{$I_{1,2}$}
+\subsubsection{$D_{mn,2}^t$}
 %
 \par
-Now let us develop $I_{1,2}$. From definition (\ref{eqn:RWG definition}) of the RWG basis functions, it is immediate to see that $I_{1,2}$ is constituted by combinations of the following term:
+Now let us develop $D_{mn,2}^t$. From definition (\ref{eqn:RWG definition}) of the RWG basis functions, it is immediate to see that $D_{mn,2}^t$ is constituted by combinations of the following term:
 \begin{multline}  \label{eqn:MoM vector potential term}
 C_m^p C_n^q \int_{T_m^p} \left(\vect{r}-\vect{r}_m^p \right) \cdot \int_{T_n^q} G \left(\vect{r}'-\vect{r}_n^q \right) \ud S' \ud S \\
 = C_m^p C_n^q \Bigg[ \int_{T_m^p} \vect{r} \cdot \int_{T_n^q} G \; \vect{r}' \ud S' \ud S  - \vect{r}_n^q \cdot \int_{T_m^p} \vect{r} \int_{T_n^q} G \; \ud S' \ud S \\
@@ -79,16 +79,16 @@ C_m^p C_n^q \int_{T_m^p} \left(\vect{r}-\vect{r}_m^p \right) \cdot \int_{T_n^q} 
 \end{multline}
 where $\vect{r}_m^p$ is the vector position of the node belonging to triangle $p$ and opposite to edge $m$. The four integrals on the right-hand side of the above equation are independent of the edges, and each can again be performed triangle-wise. Only their recombination is edge-dependent. Computationally speaking, this is an enormous advantage over computing directly the left-hand side term of the above equation, as there are always more edges than triangles (up to nine times more for closed bodies). Moreover, we can immediately see that the last term on the right-hand side of (\ref{eqn:MoM vector potential term}) is equal to (\ref{eqn:MoM scalar potential term}).
 
-\subsection{Testing with $\vect{g}_m = \uvect{n} \times \vect{f}_m$}
+\subsection{Testing with $\vect{g}_m = \uvect{n} \times \vect{f}_m$: $D_{mn}^n$}
 
-\subsubsection{$I_{1,1}$}
+\subsubsection{$D_{mn,1}^n$}
 %
 \par
-Rewriting explicitly $I_{1,1}$ with $\vect{g}_m = \uvect{n} \times \vect{f}_m$, we can see that it will be a combination of the following term:
+Rewriting explicitly $D_{mn,1}^n$ with $\vect{g}_m = \uvect{n} \times \vect{f}_m$, we can see that it will be a combination of the following term:
 \begin{equation}
 2 C_m^p C_n^q \int_{T_m^p} \big(\uvect{n}_m^p \times \left(\vect{r}-\vect{r}_m^p \right) \big) \cdot \int_{T_n^q} \nabla G \; \ud S' \ud S
 \end{equation}
-This time we cannot move the gradient onto the testing function in $I_{1,1}$, because $\uvect{n} \times \vect{f}_m$ is not continuous on the triangle pair that forms $D_m$ \cite{Taskinen_03}, as the triangles normals differ. The integral may be further decomposed as:
+This time we cannot move the gradient onto the testing function in $D_{mn,1}^n$, because $\uvect{n} \times \vect{f}_m$ is not continuous on the triangle pair that forms $D_m$ \cite{Taskinen_03}, as the triangles normals differ. The integral may be further decomposed as:
 \begin{equation} \label{eqn:n_x_fm_grad_G_terms}
 \begin{split}
 &\int_{T_m^p} \big(\uvect{n}_m^p \times \left(\vect{r}-\vect{r}_m^p \right) \big) \cdot \int_{T_n^q} \nabla G \; \ud S' \ud S \\
@@ -121,10 +121,10 @@ where use of identity $\nabla \times \left(a \vect{b}\right) = a \nabla \times \
 \end{equation}
 which is a more elegant form than its counterpart (23) of \cite{Taskinen_03}. Singularity $\frac{1}{R^2}$ has been reduced to $\frac{1}{R}$ and can therefore be analytically extracted even for overlapping basis and test functions. 
 
-\subsubsection{$I_{1,2}$}
+\subsubsection{$D_{mn,2}^n$}
 %
 \par
-Let us now develop $I_{1,2}$. We will have the following terms:
+Let us now develop $D_{mn,2}^n$. We will have the following terms:
 \begin{multline}
 C_m^p C_n^q \int_{T_m^p} \big( \uvect{n}_m^p \times \left(\vect{r} - \vect{r}_m^p \right)\big) \cdot \int_{T_n^q} G \left(\vect{r}'-\vect{r}_n^q \right) \; \ud S' \ud S \\
 = C_m^p C_n^q  \Bigg[\int_{T_m^p} \left(\uvect{n}_m^p \times \vect{r} \right) \cdot \int_{T_n^q} G \; \vect{r}' \; \ud S' \ud S - \vect{r}_n^q \cdot \int_{T_m^p} \left(\uvect{n} \times \vect{r} \right) \int_{T_n^q} G \; \ud S' \ud S \\
@@ -132,16 +132,16 @@ C_m^p C_n^q \int_{T_m^p} \big( \uvect{n}_m^p \times \left(\vect{r} - \vect{r}_m^
 \end{multline}
 These terms do not pose any particular problems, and some of them are already present in (\ref{eqn:MoM vector potential term}).
 
-\section{Computation of $I_2$}
+\section{Computation of $K_{mn}$}
 %
 \par
-Let us rewrite $I_2$:
+Let us rewrite $K_{mn}$:
 \begin{equation} \label{eqn:new expression for I_2}
-I_2 = \int_{D_m} \vect{g}_m \cdot \int_{D_n} \nabla G \times \vect{f}_n \; \ud S' \ud S 
+K_{mn} = \int_{D_m} \vect{g}_m \cdot \int_{D_n} \nabla G \times \vect{f}_n \; \ud S' \ud S 
 \end{equation}
-Note that, if the two triangles $T_m^p$ and $T_n^q$ that form respectively half of $D_m$ and half of $D_n$ are coplanar, the corresponding contribution $I_2^{pq} = 0$, since in that case $\nabla G$ is contained in the same plane as $\vect{f}_n$ and $\vect{g}_m$, and therefore $\nabla G \times \vect{f}_n$ and $\vect{g}_m$ are perpendicular. \textit{A fortiori}, $I_2^{pq}$ will be zero if $T_m^p = T_n^q$.
+Note that, if the two triangles $T_m^p$ and $T_n^q$ that form respectively half of $D_m$ and half of $D_n$ are coplanar, the corresponding contribution $K_{mn}^{pq} = 0$, since in that case $\nabla G$ is contained in the same plane as $\vect{f}_n$ and $\vect{g}_m$, and therefore $\nabla G \times \vect{f}_n$ and $\vect{g}_m$ are perpendicular. \textit{A fortiori}, $K_{mn}^{pq}$ will be zero if $T_m^p = T_n^q$.
 
-\subsection{Testing with $\vect{g}_m = \vect{f}_m$}
+\subsection{Testing with $\vect{g}_m = \vect{f}_m$: $K_{mn}^t$}
 %
 \par
 After replacing $\left(\vect{r}' - \vect{r}_n^q\right)$ by $\left(\vect{r}' - \vect{r}\right) + \left(\vect{r} - \vect{r}_m^p\right) + \left(\vect{r}_m^p - \vect{r}_n^q\right)$, using $\nabla G = -\nabla' G$ and performing a few manipulations, it can be shown that (\ref{eqn:new expression for I_2}) implies terms of type (see (20) of \cite{Taskinen_03}):
@@ -150,7 +150,7 @@ C_m^p C_n^q \int_{T_m^p} \left(\vect{r} - \vect{r}_m^p \right) \cdot \left[\left
 =C_m^p C_n^q \left(\vect{r}_m^p - \vect{r}_n^q\right) \cdot \left[\int_{T_m^p} \vect{r} \times \int_{T_n^q} \nabla G \; \ud S' \ud S - \vect{r}_m^p \times \int_{T_m^p} \int_{T_n^q}\nabla G \; \ud S' \ud S \right].
 \end{multline}
 
-\subsection{Testing with $\vect{g}_m = \uvect{n} \times \vect{f}_m$}
+\subsection{Testing with $\vect{g}_m = \uvect{n} \times \vect{f}_m$: $K_{mn}^n$}
 %
 \par
 In this case, by using $\nabla G = -\nabla' G$ and by replacing $\left(\vect{r}'-\vect{r}_n^q \right)$ by $\left(\vect{r}'-\vect{r} \right) + \left(\vect{r}-\vect{r}_n^q \right)$, (\ref{eqn:new expression for I_2}) implies terms of type:
@@ -162,17 +162,17 @@ C_m^p C_n^q \int_{T_m^p} \big( \uvect{n}_m^p \times \left(\vect{r} - \vect{r}_m^
 \end{multline}
 Note that two terms of (\ref{eqn:G_HJ_fs_n_x_RWG_testing_decomposition}) are present in (\ref{eqn:G_HJ_fs_testing_decomposition}).
 
-\section{Computation of $I_3$}
+\section{Computation of $J_{mn}$}
 
-\subsection{Testing with $\vect{g}_m = \vect{f}_m$}
+\subsection{Testing with $\vect{g}_m = \vect{f}_m$: $J_{mn}^t$}
 %
 \par
-$I_3$ is nonzero only for overlapping triangles $p$ and $q$, and will involve combinations of terms of the type
+$J_{mn}$ is nonzero only for overlapping triangles $p$ and $q$, and will involve combinations of terms of the type
 \begin{equation} \label{eqn:MMPIE_J_RWG_testing_diag_term}
 C_m^p C_n^p \int_{T_m^p} \left(\vect{r}-\vect{r}_m^p\right) \cdot \left(\uvect{n}_m^p \times \left(\vect{r}-\vect{r}_n^p\right) \right) \; \ud S =  - C_m^p C_n^p \uvect{n}_m^p \cdot \left[\left(\vect{r}_n^p-\vect{r}_m^p\right) \times \int_{T_m^p} \vect{r} \; \ud S + \left(\vect{r}_m^p \times \vect{r}_n^p\right) \int_{T_m^p} 1 \; \ud S \right].
 \end{equation}
 
-\subsubsection{Testing with $\vect{g}_m = \uvect{n} \times \vect{f}_m$}
+\subsection{Testing with $\vect{g}_m = \uvect{n} \times \vect{f}_m$: $J_{mn}^n$}
 %
 \par
 We can immediately write that
