@@ -167,7 +167,7 @@ def V_EH_dipole_alternative(J_dip, r_dip, list_of_edges_numbers, RWGNumber_CFIE_
                  #extra_compile_args = ['-O3', '-pthread', '-w'])
     #return V_EH
 
-def V_EH_plane(J_dip, r_dip, list_of_edges_numbers, RWGNumber_CFIE_OK, RWGNumber_signedTriangles, RWGNumber_edgeVertexes, RWGNumber_oppVertexes, vertexes_coord, w, eps_r, mu_r):
+def V_EH_dipole_plane(J_dip, r_dip, list_of_edges_numbers, RWGNumber_CFIE_OK, RWGNumber_signedTriangles, RWGNumber_edgeVertexes, RWGNumber_oppVertexes, vertexes_coord, w, eps_r, mu_r):
     # observation point for the incoming field
     r_ref = zeros(3, 'd') #sum(triangles_centroids, axis=0)/T
     R_hat = (r_dip - r_ref)/sqrt(dot(r_dip - r_ref, r_dip - r_ref))
@@ -202,18 +202,46 @@ def V_EH_plane(J_dip, r_dip, list_of_edges_numbers, RWGNumber_CFIE_OK, RWGNumber
                  extra_compile_args = ['-O3', '-pthread', '-w'])
     return V_EH
 
+def V_EH_plane(E_0, k_hat, r_ref, list_of_edges_numbers, RWGNumber_CFIE_OK, RWGNumber_signedTriangles, RWGNumber_edgeVertexes, RWGNumber_oppVertexes, vertexes_coord, w, eps_r, mu_r):
+    # creation of the local V arrays
+    E = list_of_edges_numbers.shape[0]
+    V_EH = zeros((E, 4), 'D')
+    V_FULL_PRECISION = 1
+    # RWGNumber_vertexesCoord
+    RWGNumber_vertexesCoord = zeros((E, 6), 'd')
+    RWGNumber_vertexesCoord[:, 0:3] = take(vertexes_coord, RWGNumber_edgeVertexes[:,0], axis=0).astype('d')
+    RWGNumber_vertexesCoord[:, 3:6] = take(vertexes_coord, RWGNumber_edgeVertexes[:,1], axis=0).astype('d')
+    # RWGNumber_oppVertexesCoord
+    RWGNumber_oppVertexesCoord = zeros((E, 6), 'd')
+    RWGNumber_oppVertexesCoord[:, 0:3] = take(vertexes_coord, RWGNumber_oppVertexes[:,0], axis=0).astype('d')
+    RWGNumber_oppVertexesCoord[:, 3:6] = take(vertexes_coord, RWGNumber_oppVertexes[:,1], axis=0).astype('d')
+    wrapping_code = """
+    blitz::Range all = blitz::Range::all();
+    V_EJ_HJ_plane (V_EH(all, 0), V_EH(all, 1), V_EH(all, 2), V_EH(all, 3), E_0, k_hat, r_ref, list_of_edges_numbers, RWGNumber_CFIE_OK, RWGNumber_signedTriangles, RWGNumber_vertexesCoord, RWGNumber_oppVertexesCoord, w, eps_r, mu_r, V_FULL_PRECISION);
+    """
+    weave.inline(wrapping_code,
+                 ['V_EH', 'E_0', 'k_hat', 'r_ref', 'list_of_edges_numbers', 'RWGNumber_CFIE_OK', 'RWGNumber_signedTriangles', 'RWGNumber_vertexesCoord', 'RWGNumber_oppVertexesCoord', 'w', 'eps_r', 'mu_r', 'V_FULL_PRECISION'],
+                 type_converters = converters.blitz,
+                 include_dirs = ['./code/MoM/'],
+                 library_dirs = ['./code/MoM/'],
+                 libraries = ['MoM'],
+                 headers = ['<iostream>','<complex>','"V_E_V_H.h"'],
+                 compiler = 'gcc',
+                 extra_compile_args = ['-O3', '-pthread', '-w'])
+    return V_EH
+
 def computeV_EH(target_mesh, J_dip, r_dip, w, eps_r, mu_r, list_of_edges_numbers, EXCITATION, ELEM_TYPE):
     if EXCITATION=='dipole':
         # V_EH is made of 4 vectors: V_TE_J, V_NE_J, V_TH_J, V_NH_J
         V_EH = V_EH_dipole(J_dip, r_dip, list_of_edges_numbers, target_mesh.RWGNumber_CFIE_OK, target_mesh.RWGNumber_signedTriangles, target_mesh.RWGNumber_edgeVertexes, target_mesh.RWGNumber_oppVertexes, target_mesh.vertexes_coord, w, eps_r, mu_r).astype(ELEM_TYPE)
         return V_EH
-    elif EXCITATION=='plane':
+    elif EXCITATION=='dipole_plane':
         # V_EH is made of 4 vectors: V_TE_J, V_NE_J, V_TH_J, V_NH_J
-        V_EH = V_EH_plane(J_dip, r_dip, list_of_edges_numbers, target_mesh.RWGNumber_CFIE_OK, target_mesh.RWGNumber_signedTriangles, target_mesh.RWGNumber_edgeVertexes, target_mesh.RWGNumber_oppVertexes, target_mesh.vertexes_coord, w, eps_r, mu_r).astype(ELEM_TYPE)
+        V_EH = V_EH_dipole_plane(J_dip, r_dip, list_of_edges_numbers, target_mesh.RWGNumber_CFIE_OK, target_mesh.RWGNumber_signedTriangles, target_mesh.RWGNumber_edgeVertexes, target_mesh.RWGNumber_oppVertexes, target_mesh.vertexes_coord, w, eps_r, mu_r).astype(ELEM_TYPE)
         return V_EH
     elif EXCITATION=='delta_gap':
         print("WARNING!! You asked for delta gap excitation. This is not ready yet. Passing on to plane wave excitation.")
-        V_EH = V_EH_plane(J_dip, r_dip, list_of_edges_numbers, target_mesh.RWGNumber_CFIE_OK, target_mesh.RWGNumber_signedTriangles, target_mesh.RWGNumber_edgeVertexes, target_mesh.RWGNumber_oppVertexes, target_mesh.vertexes_coord, w, eps_r, mu_r).astype(ELEM_TYPE)
+        V_EH = V_EH_dipole_plane(J_dip, r_dip, list_of_edges_numbers, target_mesh.RWGNumber_CFIE_OK, target_mesh.RWGNumber_signedTriangles, target_mesh.RWGNumber_edgeVertexes, target_mesh.RWGNumber_oppVertexes, target_mesh.vertexes_coord, w, eps_r, mu_r).astype(ELEM_TYPE)
         return V_EH
         #if target_mesh.DELTA_GAP:
             #V_EH = V_EH_delta_gap(J_dip, r_dip, list_of_edges_numbers, target_mesh.edges_numbers_triangles, target_mesh.vertexes_coord, target_mesh.triangles_vertexes, target_mesh.triangles_edges_numbers, target_mesh.triangles_edges_kinds, target_mesh.triangles_edges_signs, target_mesh.triangles_edges_lengths, target_mesh.triangles_edges_opp_vertexes, target_mesh.triangles_normals, target_mesh.triangles_areas, target_mesh.triangles_centroids, w, eps_r, mu_r).astype(ELEM_TYPE)
@@ -252,7 +280,7 @@ if __name__=="__main__":
     J_dip = array([1, 0, 0], 'D')
     r_dip = array([0.1, 0.1, 20.0], 'd')
     V_EH = V_EH_dipole(J_dip, r_dip, list_of_test_edges_numbers, target_mesh.RWGNumber_CFIE_OK, target_mesh.RWGNumber_signedTriangles, target_mesh.RWGNumber_edgeVertexes, target_mesh.RWGNumber_oppVertexes, target_mesh.vertexes_coord, w, eps_r, mu_r)
-    V_EH2 = V_EH_plane(J_dip, r_dip, list_of_test_edges_numbers, target_mesh.RWGNumber_CFIE_OK, target_mesh.RWGNumber_signedTriangles, target_mesh.RWGNumber_edgeVertexes, target_mesh.RWGNumber_oppVertexes, target_mesh.vertexes_coord, w, eps_r, mu_r)
+    V_EH2 = V_EH_dipole_plane(J_dip, r_dip, list_of_test_edges_numbers, target_mesh.RWGNumber_CFIE_OK, target_mesh.RWGNumber_signedTriangles, target_mesh.RWGNumber_edgeVertexes, target_mesh.RWGNumber_oppVertexes, target_mesh.vertexes_coord, w, eps_r, mu_r)
     coord = 1
     from pylab import rc, plot, xlabel, ylabel, legend, xticks, yticks, grid, show
     #rc('text', usetex=True)
