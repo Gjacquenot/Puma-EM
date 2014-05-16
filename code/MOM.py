@@ -202,7 +202,7 @@ if __name__=="__main__":
         #J_dip = array([0.0, 1.0, 0.], 'D') * sqrt((c/f)/sqrt(mu_0/eps_0) * 3.0/pi)
         #r_dip = array([0.0, 0.0, 0.2714], 'd')
         #target_MoM.V_EH_computation(CFIE, target_mesh, J_dip, r_dip, w, eps_r_out, mu_r_out, list_of_test_edges_numbers, EXCITATION)
-        E_0 = array([1.0,0.0,0.0],'D')
+        E_0 = array([-1.0,0.0,0.0],'D')
         k_hat = array([0.,0.,-1.0],'d')
         r_ref = zeros(3, 'd') #sum(triangles_centroids, axis=0)/T
         target_MoM.V_EH_plane_computation(CFIE, target_mesh, E_0, k_hat, r_ref, w, eps_r, mu_r, list_of_test_edges_numbers)
@@ -217,7 +217,7 @@ if __name__=="__main__":
         ## computation of the scattered fields
         J_obs = array([1.0, 0.0, 0.0], 'D')
         E_x, E_inc_x, E_tot_x = [], [], []
-        for z in arange(-1.,-0.9,0.005):
+        for z in arange(-1.,-0.075,0.005):
             r_obs = array([0.0, 0.0, z], 'd')
             V_EH = computeV_EH(target_mesh, J_obs, r_obs, w, eps_r_out, mu_r_out, list_of_test_edges_numbers, 'dipole', 'F')
             E_x.append(sum(-target_MoM.I_CFIE[:N_J]*V_EH[:,0] + target_MoM.I_CFIE[N_J:N_J + N_M]*V_EH[:,2]))
@@ -226,9 +226,26 @@ if __name__=="__main__":
             #print "Ex scatt inv =", E_z[-1], "z =", z 
             #print "Ex scatt gmres =", sum(-I_CFIE_gmres[:N_J]*V_EH[:,0] + I_CFIE_gmres[N_J:N_J + N_M]*V_EH[:,2]), "r_obs =", r_obs 
             #print "Ex scatt bicgstab =", sum(-I_CFIE_bicgstab[:N_J]*V_EH[:,0] + I_CFIE_bicgstab[N_J:N_J + N_M]*V_EH[:,2])
+        for z in arange(-0.07,0.07,0.005):
+            r_obs = array([0.0, 0.0, z], 'd')
+            V_EH = computeV_EH(target_mesh, J_obs, r_obs, w, eps_r_in, mu_r_in, list_of_test_edges_numbers, 'dipole', 'F')
+            E_x.append(sum(target_MoM.I_CFIE[:N_J]*V_EH[:,0] - target_MoM.I_CFIE[N_J:N_J + N_M]*V_EH[:,2]))
+            E_inc_x.append(E_0[0] * exp(-1.j * k_out * dot(k_hat, r_obs - r_ref)))
+            E_tot_x.append(E_x[-1])
+        for z in arange(0.075,1.0,0.005):
+            r_obs = array([0.0, 0.0, z], 'd')
+            V_EH = computeV_EH(target_mesh, J_obs, r_obs, w, eps_r_out, mu_r_out, list_of_test_edges_numbers, 'dipole', 'F')
+            E_x.append(sum(-target_MoM.I_CFIE[:N_J]*V_EH[:,0] + target_MoM.I_CFIE[N_J:N_J + N_M]*V_EH[:,2]))
+            E_inc_x.append(E_0[0] * exp(-1.j * k_out * dot(k_hat, r_obs - r_ref)))
+            E_tot_x.append(E_x[-1] + E_inc_x[-1])
 
+        fr = open('E_tot_x_real.txt','w')
+        fi = open('E_tot_x_imag.txt','w')
         for elem in E_tot_x:
-            print real(elem), imag(elem)
+            fr.write(str(real(elem)) + '\n')
+            fi.write(str(imag(elem)) + '\n')
+        fr.close()
+        fi.close()
         from pylab import rc, plot, show, xlabel, ylabel, xticks, yticks, grid, legend, title
         #rc('text', usetex=True)
         FontSize=18
