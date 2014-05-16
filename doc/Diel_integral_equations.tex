@@ -33,12 +33,50 @@ As in section \ref{subsubsec:Basis functions: definition and properties}, the tw
 \begin{equation}\label{eqn:J_M_current_decomposition}
 \vect{J}\arg{\vect{r}} \simeq \sum_{n = 1}^{N} I_n \vect{f}_n \arg{\vect{r}}, \qquad \vect{M}\arg{\vect{r}} \simeq \sum_{n = 1}^{N} M_n \vect{f}_n \arg{\vect{r}}.
 \end{equation}
-With (\ref{eqn:J_M_current_decomposition}), the outside integral equations become:
+With (\ref{eqn:J_M_current_decomposition}), the discretized integral equations become:
 \begin{equation}
-\field{E}^\text{inc} =  \frac{1}{2} \sum_{n=1}^N M_n \vect{\hat{n}} \times \current{f}_n\arg{\vect{r}} - \frac{1}{j \omega \varepsilon_1} \sum_{n=1}^{N} I_n \left(\nabla \nabla \cdot + k_1^2\right) \int_{D_n} G_1\left(\vect{r}, \vect{r}'\right) \current{f}_n\left(\vect{r}'\right) d\vect{r}' +  \sum_{n=1}^{N} M_n \int_{D_n} \nabla G_1\left(\vect{r}, \vect{r}'\right) \times \current{f}_n\left(\vect{r}'\right) d\vect{r}'
+-\field{H}^\text{inc} =  \frac{1}{2} \sum_{n=1}^N I_n \vect{\hat{n}} \times \current{f}_n\arg{\vect{r}} + \frac{1}{j \omega \mu_1} \sum_{n=1}^{N} M_n \operator{D}_1\left(\current{f}_n\right) + \sum_{n=1}^{N} I_n \operator{K}_1\left(\current{f}_n\right) \qquad MFIE-O 
 \end{equation}
 \begin{equation}
-\field{H}^\text{inc} =  -\frac{1}{2} \sum_{n=1}^N I_n \vect{\hat{n}} \times \current{f}_n\arg{\vect{r}} - \frac{1}{j \omega \mu_1} \sum_{n=1}^{N} M_n \left(\nabla \nabla \cdot + k_1^2\right) \int_{D_n} G_1\left(\vect{r}, \vect{r}'\right) \current{f}_n\left(\vect{r}'\right) d\vect{r}' -  \sum_{n=1}^{N} I_n \int_{D_n} \nabla G_1\left(\vect{r}, \vect{r}'\right) \times \current{f}_n\left(\vect{r}'\right) d\vect{r}'
+-\field{E}^\text{inc} =  -\frac{1}{2} \sum_{n=1}^N M_n \vect{\hat{n}} \times \current{f}_n\arg{\vect{r}} + \frac{1}{j \omega \varepsilon_1} \sum_{n=1}^{N} I_n \operator{D}_1\left(\current{f}_n\right) -  \sum_{n=1}^{N} M_n \operator{K}_1\left(\current{f}_n\right) \qquad EFIE-O 
 \end{equation}
-where $D_n$ is the domain of basis function $\vect{f}_n$.
+\begin{equation}
+0 =  -\frac{1}{2} \sum_{n=1}^N I_n \vect{\hat{n}} \times \current{f}_n\arg{\vect{r}} + \frac{1}{j \omega \mu_2} \sum_{n=1}^{N} M_n \operator{D}_2\left(\current{f}_n\right) +  \sum_{n=1}^{N} I_n \operator{K}_2\left(\current{f}_n\right) \qquad MFIE-I 
+\end{equation}
+\begin{equation}
+0 =  \frac{1}{2} \sum_{n=1}^N M_n \vect{\hat{n}} \times \current{f}_n\arg{\vect{r}} + \frac{1}{j \omega \varepsilon_2} \sum_{n=1}^{N} I_n \operator{D}_2\left(\current{f}_n\right) -  \sum_{n=1}^{N} M_n \operator{K}_2\left(\current{f}_n\right) \qquad EFIE-I 
+\end{equation}
+with
+\begin{align*}
+\operator{D}_i\left(\current{f}_n\right) &= \left(\nabla \nabla \cdot + k_i^2\right) \int_{D_n} G_i\left(\vect{r}, \vect{r}'\right) \current{f}_n\left(\vect{r}'\right) d\vect{r}' \\
+\operator{K}_i\left(\current{f}_n\right) &= \int_{D_n} \nabla G_i\left(\vect{r}, \vect{r}'\right) \times \current{f}_n\left(\vect{r}'\right) d\vect{r}'
+\end{align*}
+and where $D_n$ is the domain of basis function $\vect{f}_n$.
+%
+\par
+Finally, testing with $\vect{g}_m \arg{\vect{r}}$ (\ref{eqn:testing_function}), the method of moments expressions for the integral equations become:
+\begin{equation}\label{eqn:MoM MFIE-O}
+\boxed{V_m^H =  \frac{1}{2} \sum_{n=1}^N I_n J_{mn} + \frac{1}{j \omega \mu_1} \sum_{n=1}^{N} M_n D_{mn}^{(1)} + \sum_{n=1}^{N} I_n K_{mn}^{(1)}} \qquad MFIE-O 
+\end{equation}
+\begin{equation}\label{eqn:MoM EFIE-O}
+\boxed{V_m^E =  -\frac{1}{2} \sum_{n=1}^N M_n J_{mn} + \frac{1}{j \omega \varepsilon_1} \sum_{n=1}^{N} I_n D_{mn}^{(1)} - \sum_{n=1}^{N} M_n K_{mn}^{(1)}} \qquad EFIE-O 
+\end{equation}
+\begin{equation}\label{eqn:MoM MFIE-I}
+\boxed{0 =  -\frac{1}{2} \sum_{n=1}^N I_n J_{mn} + \frac{1}{j \omega \mu_2} \sum_{n=1}^{N} M_n D_{mn}^{(2)} + \sum_{n=1}^{N} I_n K_{mn}^{(2)}} \qquad MFIE-I
+\end{equation}
+\begin{equation}\label{eqn:MoM EFIE-I}
+\boxed{0 =  \frac{1}{2} \sum_{n=1}^N M_n J_{mn} + \frac{1}{j \omega \varepsilon_2} \sum_{n=1}^{N} I_n D_{mn}^{(2)} - \sum_{n=1}^{N} M_n K_{mn}^{(2)}} \qquad EFIE-I 
+\end{equation}
+where
+\begin{itemize}
+\item $D_{mn}^{(i)} = \int_{D_m}\vect{g}_m \arg{\vect{r}} \cdot \left( \left(\nabla \nabla \cdot + k_i^2\right) \int_{D_n} G_i\left(\vect{r}, \vect{r}'\right) \current{f}_n\left(\vect{r}'\right) d\vect{r}' \right) d\vect{r}$
+\item $K_{mn}^{(i)} = \int_{D_m} \vect{g}_m \arg{\vect{r}} \cdot \left(\int_{D_n} \nabla G_i\left(\vect{r}, \vect{r}'\right) \times \current{f}_n\left(\vect{r}'\right) d\vect{r}'\right) d\vect{r}$
+\item $J_{mn} = \int_{D_m} \frac{1}{2} \vect{g}_m \arg{\vect{r}} \cdot \vect{\hat{n}} \times \current{f}_{n}\arg{\vect{r}}d\vect{r}$
+\item $V_m^{E} = -\int_{D_m}\vect{g}_m \arg{\vect{r}} \cdot \field{E}^\text{inc} d\vect{r}$
+\item $V_m^{H} = -\int_{D_m}\vect{g}_m \arg{\vect{r}} \cdot \field{H}^\text{inc} d\vect{r}$.
+\end{itemize}
+%
+\par
+Equations (\ref{eqn:MoM MFIE-O}), (\ref{eqn:MoM EFIE-O}), (\ref{eqn:MoM MFIE-I}) and (\ref{eqn:MoM EFIE-I}) look very similar in form to their counterparts (\ref{eqn:MFIE-O}), (\ref{eqn:EFIE-O}), (\ref{eqn:MFIE-I}) and (\ref{eqn:EFIE-I}).
+
 
