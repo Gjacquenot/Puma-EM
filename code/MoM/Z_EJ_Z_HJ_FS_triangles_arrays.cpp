@@ -94,7 +94,8 @@ void Z_CFIE_J_computation (blitz::Array<std::complex<double>, 2>& Z_CFIE_J,
   const bool tE_tmp = (CFIE(0)!=0.0), nE_tmp = ((CFIE(1)!=0.0) && (!tds_approx)), tH_tmp = ((CFIE(2)!=0.0) && (!tds_approx)), nH_tmp = ((CFIE(3)!=0.0) && (!tds_approx));
   bool IS_TOUCH, IS_NEAR;
   int N_points_o, N_points_s, EXTRACT_1_R, EXTRACT_R;
-  std::complex<double> mu = mu_0 * mu_r, eps = eps_0 * eps_r, k = w * sqrt(eps*mu);
+  const std::complex<double> mu = mu_0 * mu_r, eps = eps_0 * eps_r, k = w * sqrt(eps*mu), k_square = k*k;
+  const std::complex<double> z_pq_factor = 1.0/(I*w*eps);
 
   // declaration of all the geometrical vectors
   //double r_oc[3], r_sc[3];
@@ -104,7 +105,7 @@ void Z_CFIE_J_computation (blitz::Array<std::complex<double>, 2>& Z_CFIE_J,
   double IT_r[3], IT_n_hat_X_r[3];
 
   std::complex<double> ITo_ITs_G, ITo_r_dot_ITs_G_rprime, p_dot_ITo_ITs_G_rprime, ITo_n_hat_X_r_dot_ITs_G_rprime, n_hat_X_r_p_dot_ITo_ITs_G_rprime, IDTo_l_hat_dot_r_ITs_G;
-  std::complex<double> a_pq, phi_pq, z_pq;
+  std::complex<double> a_pq, phi_pq, z_pq, D_mn_1, D_mn_2;
   std::complex<double> ITo_r_ITs_G[3], ITo_ITs_G_rprime[3], ITo_n_hat_X_r_ITs_G[3], IDTo_l_hat_ITs_G[3];
 
   std::complex<double> ITo_n_hat_X_r_dot_r_X_ITs_grad_G, n_hat_X_r_p_dot_ITo_r_X_ITs_grad_G, n_hat_dot_ITo_r_X_ITs_grad_G;
@@ -170,10 +171,10 @@ void Z_CFIE_J_computation (blitz::Array<std::complex<double>, 2>& Z_CFIE_J,
         const int local_number_edge_p = test_RWGs[index_p].number;
         const double l_p = test_RWGs[index_p].length;
         const double sign_edge_p = triangleTest_signsInRWGs[p];
-        const double C_p = sign_edge_p * l_p * 0.25/triangles_test[r].A;
+        const double C_p = sign_edge_p * l_p * 0.5/triangles_test[r].A;
         double *r_p, n_hat_X_r_p[3];
         if (triangleTest_indexesInRWGs[p]==0) r_p = test_RWGs[index_p].vertexesCoord_0;
-        else if (triangleTest_indexesInRWGs[p]==1) r_p = test_RWGs[index_p].vertexesCoord_3;
+        else r_p = test_RWGs[index_p].vertexesCoord_3;
         cross3D(n_hat_X_r_p, n_hat, r_p);
         const int IS_CFIE = testRWGNumber_CFIE_OK(local_number_edge_p);
         const bool tEJ = tE_tmp, nEJ = (nE_tmp * IS_CFIE) , tHJ = (tH_tmp * IS_CFIE ), nHJ = (nH_tmp * IS_CFIE);
@@ -201,30 +202,30 @@ void Z_CFIE_J_computation (blitz::Array<std::complex<double>, 2>& Z_CFIE_J,
           const int local_number_edge_q = src_RWGs[index_q].number;
           const double l_q = src_RWGs[index_q].length;
           const double sign_edge_q = triangleSrc_signsInRWGs[q];
-          const double C_pq = sign_edge_q * l_q * C_p/triangles_src[s].A;
+          const double C_pq = C_p * sign_edge_q * l_q * 0.5/triangles_src[s].A;
           double *r_q;
           if (triangleSrc_indexesInRWGs[q]==0) r_q = src_RWGs[index_q].vertexesCoord_0;
-          else if (triangleSrc_indexesInRWGs[q]==1) r_q = src_RWGs[index_q].vertexesCoord_3;
+          else r_q = src_RWGs[index_q].vertexesCoord_3;
           const bool M_CURRENT_OK = (srcRWGNumber_CURRENT_M_OK(local_number_edge_q)==1);
           const bool tHM = (tH_tmp && M_CURRENT_OK), nHM = (nH_tmp && M_CURRENT_OK), tEM = (tE_tmp && M_CURRENT_OK), nEM = (nE_tmp && M_CURRENT_OK);
 
           // <f_p ; EFIE> : Z_tE_J computation. Z_tH_M = eps/mu * Z_tE_J
           if (tEJ || tHM) {
-            a_pq = C_pq * (ITo_r_dot_ITs_G_rprime - (ITo_r_ITs_G[0]*r_q[0] + ITo_r_ITs_G[1]*r_q[1] + ITo_r_ITs_G[2]*r_q[2]) - p_dot_ITo_ITs_G_rprime + (r_p[0]*r_q[0] + r_p[1]*r_q[1] + r_p[2]*r_q[2]) * ITo_ITs_G);
-            phi_pq = 4.0 * C_pq * ITo_ITs_G;
-            z_pq = -I * w * mu * (a_pq - 1.0/(k*k) * phi_pq);
+            D_mn_1 = (-4.0 * C_pq) * ITo_ITs_G;
+            D_mn_2 = C_pq * (ITo_r_dot_ITs_G_rprime - (ITo_r_ITs_G[0]*r_q[0] + ITo_r_ITs_G[1]*r_q[1] + ITo_r_ITs_G[2]*r_q[2]) - p_dot_ITo_ITs_G_rprime + (r_p[0]*r_q[0] + r_p[1]*r_q[1] + r_p[2]*r_q[2]) * ITo_ITs_G);
+            z_pq = z_pq_factor * (D_mn_1 + k_square * D_mn_2); // z_pq_factor = 1.0/(I*w*eps)
             if (tds_approx && IS_SAME_TR) z_pq += 0.5 * C_pq * Z_s * ( IT_r_square - ((r_p[0]+r_q[0])*IT_r[0] + (r_p[1]+r_q[1])*IT_r[1] + (r_p[2]+r_q[2])*IT_r[2]) + (r_p[0]*r_q[0] + r_p[1]*r_q[1] + r_p[2]*r_q[2]) * triangles_test[r].A );
-            if (tEJ) Z_CFIE_J (local_number_edge_p, local_number_edge_q) += signSurfObs * signSurfSrc * CFIE(0) * z_pq;
-            if (tHM) Z_CFIE_M (local_number_edge_p, local_number_edge_q) += signSurfObs * signSurfSrc * CFIE(2) * eps/mu * z_pq;
+            if (tEJ) Z_CFIE_J (local_number_edge_p, local_number_edge_q) += (signSurfObs * signSurfSrc) * CFIE(0) * z_pq;
+            if (tHM) Z_CFIE_M (local_number_edge_p, local_number_edge_q) += (signSurfObs * signSurfSrc) * CFIE(2) * eps/mu * z_pq;
           }
           // <n x f_p ; EFIE> : Z_nE_J computation. Z_nH_M = eps/mu * Z_nE_J
           if (nEJ || nHM) {
-            a_pq = C_pq * (ITo_n_hat_X_r_dot_ITs_G_rprime - (ITo_n_hat_X_r_ITs_G[0]*r_q[0] + ITo_n_hat_X_r_ITs_G[1]*r_q[1] + ITo_n_hat_X_r_ITs_G[2]*r_q[2]) - n_hat_X_r_p_dot_ITo_ITs_G_rprime + (n_hat_X_r_p[0]*r_q[0] + n_hat_X_r_p[1]*r_q[1] + n_hat_X_r_p[2]*r_q[2]) * ITo_ITs_G);
-            if (IS_TOUCH) phi_pq = 2.0 * C_pq * (-IDTo_l_hat_dot_r_ITs_G + (r_p[0]*IDTo_l_hat_ITs_G[0] + r_p[1]*IDTo_l_hat_ITs_G[1] + r_p[2]*IDTo_l_hat_ITs_G[2]));
-            else phi_pq = 2.0 * C_pq * ( n_hat_dot_ITo_r_X_ITs_grad_G - (n_hat_X_r_p[0]*ITo_ITs_grad_G[0] + n_hat_X_r_p[1]*ITo_ITs_grad_G[1] + n_hat_X_r_p[2]*ITo_ITs_grad_G[2]));
-            z_pq = -I * w * mu * (a_pq + 1.0/(k*k) * phi_pq);
-            if (nEJ) Z_CFIE_J (local_number_edge_p, local_number_edge_q) += signSurfObs * signSurfSrc * CFIE(1) * z_pq;
-            if (nHM) Z_CFIE_M (local_number_edge_p, local_number_edge_q) += signSurfObs * signSurfSrc * CFIE(3) * eps/mu * z_pq;
+            if (IS_TOUCH) D_mn_1 = 2.0 * C_pq * (-IDTo_l_hat_dot_r_ITs_G + (r_p[0]*IDTo_l_hat_ITs_G[0] + r_p[1]*IDTo_l_hat_ITs_G[1] + r_p[2]*IDTo_l_hat_ITs_G[2]));
+            else D_mn_1 = 2.0 * C_pq * ( n_hat_dot_ITo_r_X_ITs_grad_G - (n_hat_X_r_p[0]*ITo_ITs_grad_G[0] + n_hat_X_r_p[1]*ITo_ITs_grad_G[1] + n_hat_X_r_p[2]*ITo_ITs_grad_G[2]));
+            D_mn_2 = C_pq * (ITo_n_hat_X_r_dot_ITs_G_rprime - (ITo_n_hat_X_r_ITs_G[0]*r_q[0] + ITo_n_hat_X_r_ITs_G[1]*r_q[1] + ITo_n_hat_X_r_ITs_G[2]*r_q[2]) - n_hat_X_r_p_dot_ITo_ITs_G_rprime + (n_hat_X_r_p[0]*r_q[0] + n_hat_X_r_p[1]*r_q[1] + n_hat_X_r_p[2]*r_q[2]) * ITo_ITs_G);
+            z_pq = z_pq_factor * ( D_mn_1 + k_square*D_mn_2);
+            if (nEJ) Z_CFIE_J (local_number_edge_p, local_number_edge_q) += (signSurfObs * signSurfSrc) * CFIE(1) * z_pq;
+            if (nHM) Z_CFIE_M (local_number_edge_p, local_number_edge_q) += (signSurfObs * signSurfSrc) * CFIE(3) * eps/mu * z_pq;
           }
           // <f_p ; MFIE> : Z_tH_J computation. Z_tE_M = -Z_tH_J
           if (tHJ || tEM) {

@@ -91,9 +91,17 @@ class dielectricTarget_MoM:
 
     def solveByInversion(self):
         print "Matrix inversion..."
+        t0 = time.clock()
         self.compute_Y_CFIE()
-        print "Done."
+        print "Done. time =", time.clock() - t0, "seconds"
         self.I_CFIE = dot(self.Y_CFIE, self.V_CFIE)
+
+    def solveByLUdecomposition(self):
+        print "LU decomposition and solution..."
+        t0 = time.clock()
+        lu, piv = linalg.lu_factor(self.Z_CFIE)
+        self.I_CFIE = linalg.lu_solve((lu, piv), self.V_CFIE)
+        print "Done. time =", time.clock() - t0, "seconds"
 
 def itercount(residual):
     global count
@@ -206,7 +214,9 @@ if __name__=="__main__":
         k_hat = array([0.,0.,-1.0],'d')
         r_ref = zeros(3, 'd') #sum(triangles_centroids, axis=0)/T
         target_MoM.V_EH_plane_computation(CFIE, target_mesh, E_0, k_hat, r_ref, w, eps_r, mu_r, list_of_test_edges_numbers)
-        target_MoM.solveByInversion()
+        #target_MoM.solveByInversion()
+        target_MoM.solveByLUdecomposition()
+
         count = 0
         #I_CFIE_bicgstab = bicgstab(target_MoM.Z_CFIE,target_MoM.V_CFIE,x0=None,tol=1.0e-04, maxiter=1000,xtype=None, callback=itercount)[0]
         #print "bicgstab MoM  # of iterations =", count
