@@ -11,13 +11,8 @@ languageForMeshConstruction = ["Python", "C++"]
 params_simu.languageForMeshConstruction = languageForMeshConstruction[1]
 
 ###################################################
-#
 # Now the MoM/MLFMA parameters. Only for those who know what they're doing :)
-#
 ###################################################
-# COMPUTE_Z_NEAR = 1 or 0: do we need to compute the near field and SAI preconditioner 
-# sparse matrices or not. DOES NOT WORK ANYMORE!!! SHOULD BE 1 ALWAYS!!
-params_simu.COMPUTE_Z_NEAR = 1
 
 # MOM_FULL_PRECISION = 0/1: faster/slower Z_near computation but less/more precision
 params_simu.MOM_FULL_PRECISION = 1
@@ -30,6 +25,7 @@ params_simu.a_factor = 0.25
 
 # CFIE factor nu
 params_simu.nu = 0.2
+params_simu.CFIE = [params_simu.nu, 0, -(1.0-params_simu.nu) * 377, -(1.0-params_simu.nu) * 377]
 
 # BE_BH_N_Gauss_points: the number of points for the leaf cubes radiation functions calculation
 # BE_BH_N_Gauss_points = 1, 3, 6, 9, 12, 13

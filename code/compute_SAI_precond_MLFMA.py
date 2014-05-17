@@ -48,8 +48,6 @@ def compute_SAI(params_simu, simuDirName):
     tmpDirName = os.path.join(simuDirName, 'tmp' + str(my_id))
     pathToReadFrom = os.path.join(tmpDirName, 'Z_tmp')
     pathToSaveTo = os.path.join(tmpDirName, 'Mg_LeftFrob')
-    if params_simu.COMPUTE_Z_NEAR==1:
-        pass
     file = open(os.path.join(tmpDirName, 'pickle', 'variables.txt'), 'rb')
     variables = cPickle.load(file)
     file.close()
