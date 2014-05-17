@@ -50,6 +50,13 @@ class Target_MoM:
        self.compute_Y_CFIE()
        self.I_CFIE = dot(self.Y_CFIE, self.V_CFIE)
 
+    def solveByLUdecomposition(self):
+        print "LU decomposition and solution..."
+        t0 = time.clock()
+        lu, piv = linalg.lu_factor(self.Z_CFIE_J)
+        self.I_CFIE = linalg.lu_solve((lu, piv), self.V_CFIE)
+        print "Done. time =", time.clock() - t0, "seconds"
+
 class dielectricTarget_MoM:
     def __init__(self, CFIE, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh, w, eps_r_out, mu_r_out, eps_r_in, mu_r_in, MOM_FULL_PRECISION):
         self.numberOfMedia = sum(target_mesh.IS_CLOSED_SURFACE) + 1
@@ -137,8 +144,8 @@ if __name__=="__main__":
     mu_r = 1.
     TDS_APPROX = 0
     Z_s = 0.0
-    J_dip = array([.0, 1.0, 0.], 'D')
-    r_dip = array([0.0, 0.0, 0.2714], 'd')
+    J_dip = array([1.0, 0.0, 0.], 'D')
+    r_dip = array([0.1, 0.1, 20.0], 'd')
     list_of_test_edges_numbers = arange(N_RWG,dtype='i')
     list_of_src_edges_numbers = arange(N_RWG,dtype='i')
     MOM_FULL_PRECISION = 1
@@ -156,7 +163,8 @@ if __name__=="__main__":
             target_MoM = Target_MoM(CFIE, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh, w, eps_r, mu_r, TDS_APPROX, Z_s, MOM_FULL_PRECISION)
             # excitation computation
             target_MoM.V_EH_computation(CFIE, target_mesh, J_dip, r_dip, w, eps_r, mu_r, list_of_test_edges_numbers, EXCITATION)
-            target_MoM.solveByInversion()
+            #target_MoM.solveByInversion()
+            target_MoM.solveByLUdecomposition()
             print "inverted MoM RCS =", sum(target_MoM.I_CFIE*target_MoM.V_EH[:,0])
             #computeCurrentsVisualization(w, target_mesh, target_MoM.I_CFIE)
             # now we try the iterative method

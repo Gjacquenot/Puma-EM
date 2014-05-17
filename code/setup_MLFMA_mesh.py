@@ -173,7 +173,7 @@ def setup_mesh(params_simu, simuDirName):
 
     w = 2. * pi * params_simu.f
     k = w * sqrt(eps_0*params_simu.eps_r*mu_0*params_simu.mu_r) + 1.j * 0.
-    CFIE = array([params_simu.nu, 0, 0, -(1.0-params_simu.nu) * 377]).astype('D')
+    CFIE = array([params_simu.nu, 0, -(1.0-params_simu.nu) * 377, -(1.0-params_simu.nu) * 377]).astype('D')
 
     writeScalarToDisk( num_procs, os.path.join(tmpDirName,'octtree_data/num_procs.txt') )
     writeScalarToDisk( a, os.path.join(tmpDirName,'octtree_data/leaf_side_length.txt') )

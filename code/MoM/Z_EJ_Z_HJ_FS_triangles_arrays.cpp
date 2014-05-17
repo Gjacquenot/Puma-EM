@@ -111,7 +111,7 @@ void Z_CFIE_J_computation (blitz::Array<std::complex<double>, 2>& Z_CFIE_J,
   std::complex<double> ITo_n_hat_X_r_dot_r_X_ITs_grad_G, n_hat_X_r_p_dot_ITo_r_X_ITs_grad_G, n_hat_dot_ITo_r_X_ITs_grad_G;
   std::complex<double> ITo_ITs_grad_G[3], ITo_r_X_ITs_grad_G[3], ITo_n_hat_X_r_X_ITs_grad_G[3], r_p_X_ITo_ITs_grad_G[3], n_hat_X_r_p_X_ITo_ITs_grad_G[3];
 
-  Z_CFIE_J = 0.0;
+  Z_CFIE_J = 0.0; Z_CFIE_M = 0.0;
   for (unsigned int r=0 ; r<triangles_test.size() ; ++r) { // loop on the observation RWGs
     // computation of the triangle-to-triangle terms
     double *n_hat;
@@ -177,7 +177,7 @@ void Z_CFIE_J_computation (blitz::Array<std::complex<double>, 2>& Z_CFIE_J,
         else r_p = test_RWGs[index_p].vertexesCoord_3;
         cross3D(n_hat_X_r_p, n_hat, r_p);
         const int IS_CFIE = testRWGNumber_CFIE_OK(local_number_edge_p);
-        const bool tEJ = tE_tmp, nEJ = (nE_tmp * IS_CFIE) , tHJ = (tH_tmp * IS_CFIE ), nHJ = (nH_tmp * IS_CFIE);
+        const bool tEJ = tE_tmp, nEJ = nE_tmp, tHJ = (tH_tmp * IS_CFIE ), nHJ = (nH_tmp * IS_CFIE);
 
         // temporary elements for Z_tE_J
         p_dot_ITo_ITs_G_rprime = r_p[0]*ITo_ITs_G_rprime[0] + r_p[1]*ITo_ITs_G_rprime[1] + r_p[2]*ITo_ITs_G_rprime[2];
