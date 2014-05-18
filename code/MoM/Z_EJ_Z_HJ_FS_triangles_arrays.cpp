@@ -161,8 +161,11 @@ void Z_CFIE_J_computation (blitz::Array<std::complex<double>, 2>& Z_CFIE_J,
         }
       }
 
-      ITo_ITs_free (ITo_ITs_G, ITo_r_ITs_G, ITo_ITs_G_rprime, ITo_r_dot_ITs_G_rprime, ITo_n_hat_X_r_ITs_G, ITo_n_hat_X_r_dot_ITs_G_rprime, ITo_ITs_grad_G, ITo_r_X_ITs_grad_G, ITo_n_hat_X_r_dot_r_X_ITs_grad_G, ITo_n_hat_X_r_X_ITs_grad_G, triangles_test[r], triangles_src[s], k, N_points_o, N_points_s, EXTRACT_1_R, EXTRACT_R);
+      ITo_ITs_free (ITo_ITs_G, ITo_r_ITs_G, ITo_ITs_G_rprime, ITo_r_dot_ITs_G_rprime, ITo_n_hat_X_r_dot_ITs_G_rprime, ITo_ITs_grad_G, ITo_r_X_ITs_grad_G, ITo_n_hat_X_r_dot_r_X_ITs_grad_G, ITo_n_hat_X_r_X_ITs_grad_G, triangles_test[r], triangles_src[s], k, N_points_o, N_points_s, EXTRACT_1_R, EXTRACT_R);
 
+      ITo_n_hat_X_r_ITs_G[0] = n_hat[1]*ITo_r_ITs_G[2] - n_hat[2]*ITo_r_ITs_G[1];
+      ITo_n_hat_X_r_ITs_G[1] = n_hat[2]*ITo_r_ITs_G[0] - n_hat[0]*ITo_r_ITs_G[2];
+      ITo_n_hat_X_r_ITs_G[2] = n_hat[0]*ITo_r_ITs_G[1] - n_hat[1]*ITo_r_ITs_G[0];
       n_hat_dot_ITo_r_X_ITs_grad_G = n_hat[0]*ITo_r_X_ITs_grad_G[0] + n_hat[1]*ITo_r_X_ITs_grad_G[1] + n_hat[2]*ITo_r_X_ITs_grad_G[2];
 
       if ((IS_TOUCH) && (nE_tmp || nH_tmp)) IDTo_ITs_free(IDTo_l_hat_dot_r_ITs_G, IDTo_l_hat_ITs_G, triangles_test[r], triangles_src[s], k, 3, N_points_s, EXTRACT_1_R, EXTRACT_R);

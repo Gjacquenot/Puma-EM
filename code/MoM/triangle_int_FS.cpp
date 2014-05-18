@@ -455,7 +455,6 @@ void ITo_ITs_free (std::complex<double>& ITo_ITs_G,
                    std::complex<double> ITo_r_ITs_G[], // 3D
                    std::complex<double> ITo_ITs_G_rprime[], // 3D
                    std::complex<double>& ITo_r_dot_ITs_G_rprime,
-                   std::complex<double> ITo_n_hat_X_r_ITs_G[], // 3D
                    std::complex<double>& ITo_n_hat_X_r_dot_ITs_G_rprime,
                    std::complex<double> ITo_ITs_grad_G[], // 3D
                    std::complex<double> ITo_r_X_ITs_grad_G[], // 3D
@@ -488,7 +487,6 @@ void ITo_ITs_free (std::complex<double>& ITo_ITs_G,
   for (int i=0 ; i<3 ; ++i) {
     ITo_r_ITs_G[i] = 0.0; // Vector<complex<double>, 3>
     ITo_ITs_G_rprime[i] = 0.0; // Vector<complex<double>, 3>
-    ITo_n_hat_X_r_ITs_G[i] = 0.0; // Vector<complex<double>, 3>
     ITo_ITs_grad_G[i] = 0.0; // Vector<complex<double>, 3>
     ITo_r_X_ITs_grad_G[i] = 0.0; // Vector<complex<double>, 3>
     ITo_n_hat_X_r_X_ITs_grad_G[i] = 0.0; // Vector<complex<double>, 3>
@@ -525,9 +523,6 @@ void ITo_ITs_free (std::complex<double>& ITo_ITs_G,
     ITo_ITs_G_rprime[1] += ITs_G_rprime_j[1];
     ITo_ITs_G_rprime[2] += ITs_G_rprime_j[2];
     ITo_r_dot_ITs_G_rprime += (r[0] * ITs_G_rprime_j[0] + r[1] * ITs_G_rprime_j[1] + r[2] * ITs_G_rprime_j[2]);
-    ITo_n_hat_X_r_ITs_G[0] += ITs_G_j * n_hat_X_r[0];
-    ITo_n_hat_X_r_ITs_G[1] += ITs_G_j * n_hat_X_r[1];
-    ITo_n_hat_X_r_ITs_G[2] += ITs_G_j * n_hat_X_r[2];
     ITo_n_hat_X_r_dot_ITs_G_rprime += (n_hat_X_r[0] * ITs_G_rprime_j[0] + n_hat_X_r[1] * ITs_G_rprime_j[1] + n_hat_X_r[2] * ITs_G_rprime_j[2]);
     ITo_ITs_grad_G[0] += ITs_grad_G_j[0];
     ITo_ITs_grad_G[1] += ITs_grad_G_j[1];
@@ -548,7 +543,6 @@ void ITo_ITs_free (std::complex<double>& ITo_ITs_G,
   for (int i=0 ; i<3 ; ++i) {
     ITo_r_ITs_G[i] *= norm_factor;
     ITo_ITs_G_rprime[i] *= norm_factor;
-    ITo_n_hat_X_r_ITs_G[i] *= norm_factor;
     ITo_ITs_grad_G[i] *= norm_factor;
     ITo_r_X_ITs_grad_G[i] *= norm_factor;
     ITo_n_hat_X_r_X_ITs_grad_G[i] *= norm_factor;

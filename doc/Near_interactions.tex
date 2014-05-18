@@ -118,7 +118,7 @@ which is a more elegant form than its counterpart (23) of \cite{Taskinen_03}. Si
 Let us now develop $D_{mn,2}^n$. We will have the following terms:
 \begin{multline}
 C_m^p C_n^q \int_{T_m^p} \big( \uvect{n}_m^p \times \left(\vect{r} - \vect{r}_m^p \right)\big) \cdot \int_{T_n^q} G \left(\vect{r}'-\vect{r}_n^q \right) \; \ud S' \ud S \\
-= C_m^p C_n^q  \Bigg[\int_{T_m^p} \left(\uvect{n}_m^p \times \vect{r} \right) \cdot \int_{T_n^q} G \; \vect{r}' \; \ud S' \ud S - \vect{r}_n^q \cdot \int_{T_m^p} \left(\uvect{n} \times \vect{r} \right) \int_{T_n^q} G \; \ud S' \ud S \\
+= C_m^p C_n^q  \Bigg[\int_{T_m^p} \left(\uvect{n}_m^p \times \vect{r} \right) \cdot \int_{T_n^q} G \; \vect{r}' \; \ud S' \ud S - \vect{r}_n^q \cdot \left(\uvect{n} \times \int_{T_m^p} \vect{r} \int_{T_n^q} G \; \ud S' \ud S \right)  \\
 - \left(\uvect{n}_m^p \times \vect{r}_m^p\right)  \cdot \int_{T_m^p} \int_{T_n^q} G \; \vect{r}'\; \ud S' \ud S + \vect{r}_n^q \cdot \left(\uvect{n}_m^p \times \vect{r}_m^p\right) \int_{T_m^p} \int_{T_n^q} G \; \ud S' \ud S \Bigg].
 \end{multline}
 These terms do not pose any particular problems, and some of them are already present in (\ref{eqn:MoM vector potential term}).
@@ -249,7 +249,7 @@ $V_m^{E,H}$ & \multicolumn{2}{|c|}{$-\int_{D_m}\vect{g}_m \arg{\vect{r}} \cdot \
 & & $+ \vect{r}_m^p \cdot \vect{r}_n^q \int_{T_m} \int_{T_n} G \Bigg]$ & \\
   \hline
 \multirow{4}{*}{$\vect{g}_m = \uvect{n}\times\vect{f}_m$} &  & $C_m^p C_n^q  \Bigg[\int_{T_m} \left(\uvect{n} \times \vect{r} \right) \cdot \int_{T_n} G \; \vect{r}'$ & $-C_m^p C_n^q \Bigg\{ \int_{T_m} \left(\uvect{n} \times \vect{r}\right) \cdot \left[\vect{r} \times \int_{T_n} \nabla G \right]$\\
-& $2C_m^p C_n^q\uvect{n} \cdot \Big(\int_{T_m} \vect{r} \times \int_{T_n} \nabla G$ & $- \vect{r}_n^q \cdot \int_{T_m} \left(\uvect{n} \times \vect{r} \right) \int_{T_n} G$ & $+ \vect{r}_n^q \cdot \int_{T_m} \left(\uvect{n} \times \vect{r}\right) \times \int_{T_n} \nabla G$\\
+& $2C_m^p C_n^q\uvect{n} \cdot \Big(\int_{T_m} \vect{r} \times \int_{T_n} \nabla G$ & $- \vect{r}_n^q \cdot \left(\uvect{n} \times \int_{T_m} \vect{r} \int_{T_n} G \right) $ & $+ \vect{r}_n^q \cdot \int_{T_m} \left(\uvect{n} \times \vect{r}\right) \times \int_{T_n} \nabla G$\\
 & $- \vect{r}_m^p \times \int_{T_m^p} \int_{T_n^q} \nabla G \Big)$ & $- \left(\uvect{n} \times \vect{r}_m^p\right)  \cdot \int_{T_m} \int_{T_n} G \; \vect{r}'$ & $- \left(\uvect{n}\times\vect{r}_m^p \right) \cdot \int_{T_m} \vect{r} \times \int_{T_n} \nabla G$\\
 & & $+ \vect{r}_n^q \cdot \left(\uvect{n} \times \vect{r}_m^p\right) \int_{T_m} \int_{T_n} G \Bigg]$ & $-\vect{r}_n^q \cdot \left[\left(\uvect{n} \times \vect{r}_m^p \right) \times \int_{T_m} \int_{T_n}\nabla G \right]\Bigg\}$\\
   \hline

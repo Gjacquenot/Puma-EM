@@ -114,7 +114,6 @@ void ITo_ITs_free (std::complex<double>& ITo_ITs_G,
                    std::complex<double> ITo_r_ITs_G[], // dim 3 
                    std::complex<double> ITo_ITs_G_rprime[], // dim 3
                    std::complex<double>& ITo_r_dot_ITs_G_rprime, 
-                   std::complex<double> ITo_n_hat_X_r_ITs_G[], // dim 3
                    std::complex<double>& ITo_n_hat_X_r_dot_ITs_G_rprime, 
                    std::complex<double> ITo_ITs_grad_G[], // dim 3
                    std::complex<double> ITo_r_X_ITs_grad_G[], // dim 3
