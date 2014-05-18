@@ -62,6 +62,7 @@ class dielectricTarget_MoM:
         self.numberOfMedia = sum(target_mesh.IS_CLOSED_SURFACE) + 1
         print "MOM.py: number of possible media =", self.numberOfMedia
         print "Target_MoM instanciation..."
+        t0 = time.clock()
         TDS_APPROX, Z_s = 0, 0.0 + 0.0j
         N_J, N_M = len(list_of_test_edges_numbers), len(list_of_test_edges_numbers)
         self.Z_CFIE = zeros((N_J + N_M, N_J + N_M), 'D')
@@ -71,6 +72,7 @@ class dielectricTarget_MoM:
         print "dielectricTarget_MoM: computing the inside interactions..."
         signSurfObs, signSurfSrc = -1.0, -1.0
         self.Z_CFIE[N_J:N_J + N_M,:N_J], self.Z_CFIE[N_J:N_J + N_M, N_J:N_J + N_M] = Z_MoM(CFIE, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh.RWGNumber_CFIE_OK, target_mesh.RWGNumber_M_CURRENT_OK, target_mesh.RWGNumber_signedTriangles, target_mesh.RWGNumber_edgeVertexes, target_mesh.RWGNumber_oppVertexes, target_mesh.vertexes_coord, w, eps_r_in, mu_r_in, signSurfObs, signSurfSrc, TDS_APPROX, Z_s, MOM_FULL_PRECISION)
+        print "Done. time =", time.clock() - t0, "seconds"
         self.iter_counter = 0
     # functions
     def matvec(self, x):

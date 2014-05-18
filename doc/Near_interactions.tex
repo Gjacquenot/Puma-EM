@@ -9,11 +9,7 @@ D_{mn} = \int_{D_m}\vect{g}_m \arg{\vect{r}} \cdot \left( \left(\nabla \nabla \c
 K_{mn} = \int_{D_m} \vect{g}_m \arg{\vect{r}} \cdot \left(\int_{D_n} \nabla G\left(\vect{r}, \vect{r}'\right) \times \current{f}_n\left(\vect{r}'\right) d\vect{r}'\right) d\vect{r} \label{eqn:MoM terms I_2}\\
 J_{mn} = \int_{D_m} \frac{1}{2} \vect{g}_m \arg{\vect{r}} \cdot \vect{\hat{n}} \times \current{f}_{n}\arg{\vect{r}}d\vect{r}. \label{eqn:MoM terms I_3}
 \end{gather}
-As usual, the homogeneous space Green's function $G$ is given by:
-\begin{equation*}
-G = \frac{e^{-jk\left|\vect{r}-\vect{r}' \right|}}{4 \pi \left|\vect{r}-\vect{r}' \right|}
-\end{equation*}
-where $k = \omega \sqrt{\varepsilon \mu} = \omega \sqrt{\varepsilon_0 \varepsilon_r \mu_0 \mu_r}$ (as usual, $\varepsilon_r$ and $\mu_r$ are respectively the relative dielectric permittivity and magnetic permeability of the medium).
+As usual, the homogeneous space Green's function $G = \frac{e^{-jk\left|\vect{r}-\vect{r}' \right|}}{4 \pi \left|\vect{r}-\vect{r}' \right|}$, and $k = \omega \sqrt{\varepsilon \mu} = \omega \sqrt{\varepsilon_0 \varepsilon_r \mu_0 \mu_r}$.
 
 \section{Computation of $D_{mn}$}
 %
@@ -73,11 +69,10 @@ One more comment must be made about (\ref{eqn:MoM scalar potential term}). $G$ i
 \par
 Now let us develop $D_{mn,2}^t$. From definition (\ref{eqn:RWG definition}) of the RWG basis functions, it is immediate to see that $D_{mn,2}^t$ is constituted by combinations of the following term:
 \begin{multline}  \label{eqn:MoM vector potential term}
-C_m^p C_n^q \int_{T_m^p} \left(\vect{r}-\vect{r}_m^p \right) \cdot \int_{T_n^q} G \left(\vect{r}'-\vect{r}_n^q \right) \ud S' \ud S \\
-= C_m^p C_n^q \Bigg[ \int_{T_m^p} \vect{r} \cdot \int_{T_n^q} G \; \vect{r}' \ud S' \ud S  - \vect{r}_n^q \cdot \int_{T_m^p} \vect{r} \int_{T_n^q} G \; \ud S' \ud S \\
+C_m^p C_n^q \int_{T_m^p} \left(\vect{r}-\vect{r}_m^p \right) \cdot \int_{T_n^q} G \left(\vect{r}'-\vect{r}_n^q \right) \ud S' \ud S = C_m^p C_n^q \Bigg[ \int_{T_m^p} \vect{r} \cdot \int_{T_n^q} G \; \vect{r}' \ud S' \ud S  - \vect{r}_n^q \cdot \int_{T_m^p} \vect{r} \int_{T_n^q} G \; \ud S' \ud S \\
 - \vect{r}_m^p \cdot \int_{T_m^p} \int_{T_n^q} G \; \vect{r}' \ud S' \ud S + \vect{r}_m^p \cdot \vect{r}_n^q \int_{T_m^p} \int_{T_n^q} G \; \ud S' \ud S \Bigg]
 \end{multline}
-where $\vect{r}_m^p$ is the vector position of the node belonging to triangle $p$ and opposite to edge $m$. The four integrals on the right-hand side of the above equation are independent of the edges, and each can again be performed triangle-wise. Only their recombination is edge-dependent. Computationally speaking, this is an enormous advantage over computing directly the left-hand side term of the above equation, as there are always more edges than triangles (up to nine times more for closed bodies). Moreover, we can immediately see that the last term on the right-hand side of (\ref{eqn:MoM vector potential term}) is equal to (\ref{eqn:MoM scalar potential term}).
+where $\vect{r}_m^p$ is the vector position of the node belonging to triangle $p$ and opposite to edge $m$. The four integrals on the right-hand side of the above equation are independent of the edges, and each can again be performed triangle-wise. Only their recombination is edge-dependent.
 
 \subsection{Testing with $\vect{g}_m = \uvect{n} \times \vect{f}_m$: $D_{mn}^n$}
 
@@ -91,9 +86,8 @@ Rewriting explicitly $D_{mn,1}^n$ with $\vect{g}_m = \uvect{n} \times \vect{f}_m
 This time we cannot move the gradient onto the testing function in $D_{mn,1}^n$, because $\uvect{n} \times \vect{f}_m$ is not continuous on the triangle pair that forms $D_m$ \cite{Taskinen_03}, as the triangles normals differ. The integral may be further decomposed as:
 \begin{equation} \label{eqn:n_x_fm_grad_G_terms}
 \begin{split}
-&\int_{T_m^p} \big(\uvect{n}_m^p \times \left(\vect{r}-\vect{r}_m^p \right) \big) \cdot \int_{T_n^q} \nabla G \; \ud S' \ud S \\
-&\qquad = \int_{T_m^p} \left(\uvect{n}_m^p \times \vect{r} \right) \cdot \int_{T_n^q} \nabla G \; \ud S' \ud S - \left(\uvect{n}_m^p \times \vect{r}_m^p\right) \cdot \int_{T_m^p} \int_{T_n^q} \nabla G \; \ud S' \ud S \\
-&\qquad  = \uvect{n}_m^p \cdot \left(\int_{T_m^p} \vect{r} \times \int_{T_n^q} \nabla G \; \ud S' \ud S - \vect{r}_m^p \times \int_{T_m^p} \int_{T_n^q} \nabla G \; \ud S' \ud S\right).
+\int_{T_m^p} \big(\uvect{n}_m^p \times \left(\vect{r}-\vect{r}_m^p \right) \big) \cdot \int_{T_n^q} \nabla G \; \ud S' \ud S & = \int_{T_m^p} \left(\uvect{n}_m^p \times \vect{r} \right) \cdot \int_{T_n^q} \nabla G \; \ud S' \ud S - \left(\uvect{n}_m^p \times \vect{r}_m^p\right) \cdot \int_{T_m^p} \int_{T_n^q} \nabla G \; \ud S' \ud S \\
+& = \uvect{n}_m^p \cdot \left(\int_{T_m^p} \vect{r} \times \int_{T_n^q} \nabla G \; \ud S' \ud S - \vect{r}_m^p \times \int_{T_m^p} \int_{T_n^q} \nabla G \; \ud S' \ud S\right).
 \end{split}
 \end{equation}
 %
@@ -104,18 +98,15 @@ The kernel involved in the terms contained in (\ref{eqn:n_x_fm_grad_G_terms}) is
 However, an elegant transformation may be applied to the integrand by noting that
 \begin{equation}
 \begin{split}
-\int_{T_m^p} \big(\uvect{n}_m^p \times \left(\vect{r}-\vect{r}_m^p \right) \big) &\cdot \int_{T_n^q} \nabla G \; \ud S' \ud S \\
-&\qquad = \uvect{n}_m^p \cdot \int_{T_m^p} \left(\vect{r}-\vect{r}_m^p \right) \times \int_{T_n^q} \nabla G \; \ud S' \ud S \\
-&\qquad = - \uvect{n}_m^p \cdot \left[ \int_{T_m^p} \int_{T_n^q} \nabla \times \big( G \left( \vect{r}-\vect{r}_m^p \right)\big) \; \ud S' \ud S \right. \\
-& \qquad \qquad \qquad \left. - \int_{T_m^p} \int_{T_n^q} G \nabla \times \left( \vect{r}-\vect{r}_m^p \right) \; \ud S' \ud S\right] \\
-&\qquad =  - \uvect{n}_m^p \cdot \int_{\partial T_m^p} \big(\uvect{m}_m^p \times  \left( \vect{r}-\vect{r}_m^p \right) \big) \int_{T_n^q}  G \; \ud S' \ud l 
+\int_{T_m^p} \big(\uvect{n}_m^p \times \left(\vect{r}-\vect{r}_m^p \right) \big) \cdot \int_{T_n^q} \nabla G \; \ud S' \ud S &= \uvect{n}_m^p \cdot \int_{T_m^p} \left(\vect{r}-\vect{r}_m^p \right) \times \int_{T_n^q} \nabla G \; \ud S' \ud S \\
+&= - \uvect{n}_m^p \cdot \left[ \int_{T_m^p} \int_{T_n^q} \nabla \times \big( G \left( \vect{r}-\vect{r}_m^p \right)\big) \; \ud S' \ud S - \int_{T_m^p} \int_{T_n^q} G \nabla \times \left( \vect{r}-\vect{r}_m^p \right) \; \ud S' \ud S\right] \\
+&=  - \uvect{n}_m^p \cdot \int_{\partial T_m^p} \big(\uvect{m}_m^p \times  \left( \vect{r}-\vect{r}_m^p \right) \big) \int_{T_n^q}  G \; \ud S' \ud l 
 \end{split}
 \end{equation}
-where use of identity $\nabla \times \left(a \vect{b}\right) = a \nabla \times \vect{b} - \vect{b} \times \nabla a$ has been made. The last equality is due to the fact that the rotational of the position vector $ \left( \vect{r}-\vect{r}_m^p \right)$ is zero. By noting that $\uvect{m} = \uvect{l} \times \uvect{n}$ (Fig.\ \ref{fig:RWG}), we finally obtain
+where use of identity $\nabla \times \left(a \vect{b}\right) = a \nabla \times \vect{b} - \vect{b} \times \nabla a$ has been made. The last equality is due to the fact that the rotational of the position vector $ \left( \vect{r}-\vect{r}_m^p \right)$ is zero. By noting that $\uvect{m} = \uvect{l} \times \uvect{n}$, we finally obtain
 \begin{equation}
 \begin{split}
-\int_{T_m^p} \big(\uvect{n}_m^p  \times \left(\vect{r}-\vect{r}_m^p \right) \big) &\cdot \int_{T_n^q} \nabla G \; \ud S' \ud S \\
-& = \int_{\partial T_m^p} -\uvect{l}_m^p \cdot  \left( \vect{r}-\vect{r}_m^p \right)  \int_{T_n^q}  G \; \ud S' \ud l \\
+\int_{T_m^p} \big(\uvect{n}_m^p  \times \left(\vect{r}-\vect{r}_m^p \right) \big) \cdot \int_{T_n^q} \nabla G \; \ud S' \ud S &= \int_{\partial T_m^p} -\uvect{l}_m^p \cdot  \left( \vect{r}-\vect{r}_m^p \right)  \int_{T_n^q}  G \; \ud S' \ud l \\
 & = \int_{\partial T_m^p} -\uvect{l}_m^p \cdot \vect{r}  \int_{T_n^q}  G \; \ud S' \ud l + \vect{r}_m^p \cdot \int_{\partial T_m^p}\uvect{l}_m^p  \int_{T_n^q}  G \; \ud S' \ud l
 \end{split}
 \end{equation}
@@ -135,27 +126,23 @@ These terms do not pose any particular problems, and some of them are already pr
 \section{Computation of $K_{mn}$}
 %
 \par
-Let us rewrite $K_{mn}$:
-\begin{equation} \label{eqn:new expression for I_2}
-K_{mn} = \int_{D_m} \vect{g}_m \cdot \int_{D_n} \nabla G \times \vect{f}_n \; \ud S' \ud S 
-\end{equation}
-Note that, if the two triangles $T_m^p$ and $T_n^q$ that form respectively half of $D_m$ and half of $D_n$ are coplanar, the corresponding contribution $K_{mn}^{pq} = 0$, since in that case $\nabla G$ is contained in the same plane as $\vect{f}_n$ and $\vect{g}_m$, and therefore $\nabla G \times \vect{f}_n$ and $\vect{g}_m$ are perpendicular. \textit{A fortiori}, $K_{mn}^{pq}$ will be zero if $T_m^p = T_n^q$.
+Let us rewrite $K_{mn} = \int_{D_m} \vect{g}_m \cdot \int_{D_n} \nabla G \times \vect{f}_n \; \ud S' \ud S$. Note that, if the two triangles $T_m^p$ and $T_n^q$ that form respectively half of $D_m$ and half of $D_n$ are coplanar, the corresponding contribution $K_{mn}^{pq} = 0$, since in that case $\nabla G$ is contained in the same plane as $\vect{f}_n$ and $\vect{g}_m$, and therefore $\nabla G \times \vect{f}_n$ and $\vect{g}_m$ are perpendicular. \textit{A fortiori}, $K_{mn}^{pq}$ will be zero if $T_m^p = T_n^q$.
 
 \subsection{Testing with $\vect{g}_m = \vect{f}_m$: $K_{mn}^t$}
 %
 \par
-After replacing $\left(\vect{r}' - \vect{r}_n^q\right)$ by $\left(\vect{r}' - \vect{r}\right) + \left(\vect{r} - \vect{r}_m^p\right) + \left(\vect{r}_m^p - \vect{r}_n^q\right)$, using $\nabla G = -\nabla' G$ and performing a few manipulations, it can be shown that (\ref{eqn:new expression for I_2}) implies terms of type (see (20) of \cite{Taskinen_03}):
+After replacing $\left(\vect{r}' - \vect{r}_n^q\right)$ by $\left(\vect{r}' - \vect{r}\right) + \left(\vect{r} - \vect{r}_m^p\right) + \left(\vect{r}_m^p - \vect{r}_n^q\right)$ and performing a few manipulations, it can be shown that (\ref{eqn:MoM terms I_2}) implies terms of type (see (20) of \cite{Taskinen_03}):
 \begin{multline} \label{eqn:G_HJ_fs_testing_decomposition}
-C_m^p C_n^q \int_{T_m^p} \left(\vect{r} - \vect{r}_m^p \right) \cdot \left[\left(\vect{r}_m^p - \vect{r}_n^q\right) \times \int_{T_n^q} \nabla' G \; \ud S'\right] \; \ud S \\
-=C_m^p C_n^q \left(\vect{r}_m^p - \vect{r}_n^q\right) \cdot \left[\int_{T_m^p} \vect{r} \times \int_{T_n^q} \nabla G \; \ud S' \ud S - \vect{r}_m^p \times \int_{T_m^p} \int_{T_n^q}\nabla G \; \ud S' \ud S \right].
+C_m^p C_n^q \int_{T_m^p} \left(\vect{r} - \vect{r}_m^p \right) \cdot \left[-\left(\vect{r}_m^p - \vect{r}_n^q\right) \times \int_{T_n^q} \nabla G \; \ud S'\right] \; \ud S \\
+= C_m^p C_n^q \left(\vect{r}_m^p - \vect{r}_n^q\right) \cdot \left[\int_{T_m^p} \vect{r} \times \int_{T_n^q} \nabla G \; \ud S' \ud S - \vect{r}_m^p \times \int_{T_m^p} \int_{T_n^q}\nabla G \; \ud S' \ud S \right].
 \end{multline}
 
 \subsection{Testing with $\vect{g}_m = \uvect{n} \times \vect{f}_m$: $K_{mn}^n$}
 %
 \par
-In this case, by using $\nabla G = -\nabla' G$ and by replacing $\left(\vect{r}'-\vect{r}_n^q \right)$ by $\left(\vect{r}'-\vect{r} \right) + \left(\vect{r}-\vect{r}_n^q \right)$, (\ref{eqn:new expression for I_2}) implies terms of type:
+In this case, by replacing $\left(\vect{r}'-\vect{r}_n^q \right)$ by $\left(\vect{r}'-\vect{r} \right) + \left(\vect{r}-\vect{r}_n^q \right)$, (\ref{eqn:MoM terms I_2}) implies terms of type:
 \begin{multline} \label{eqn:G_HJ_fs_n_x_RWG_testing_decomposition}
-C_m^p C_n^q \int_{T_m^p} \big( \uvect{n}_m^p \times \left(\vect{r} - \vect{r}_m^p \right) \big) \cdot \left[\left(\vect{r} - \vect{r}_n^q\right) \times \int_{T_n^q} -\nabla G \; \ud S'\right] \; \ud S \\
+C_m^p C_n^q \int_{T_m^p} \big( \uvect{n}_m^p \times \left(\vect{r} - \vect{r}_m^p \right) \big) \cdot \left[-\left(\vect{r} - \vect{r}_n^q\right) \times \int_{T_n^q} \nabla G \; \ud S'\right] \; \ud S \\ 
 = -C_m^p C_n^q \left\{ \int_{T_m^p} \left(\uvect{n}_m^p \times \vect{r}\right) \cdot \left[\vect{r} \times \int_{T_n^q} \nabla G \; \ud S' \right] \ud S \right. \\
 + \vect{r}_n^q \cdot \int_{T_m^p} \left(\uvect{n}_m^p \times \vect{r}\right) \times \int_{T_n^q} \nabla G \; \ud S' \ud S  - \left(\uvect{n}_m^p\times\vect{r}_m^p \right) \cdot \int_{T_m^p} \vect{r} \times \int_{T_n^q} \nabla G \; \ud S' \ud S \\
 \left. - \vect{r}_n^q \cdot \left[\left(\uvect{n} \times \vect{r}_m^p \right) \times \int_{T_m^p} \int_{T_n^q}\nabla G \; \ud S' \ud S\right]\right\}.
@@ -202,7 +189,72 @@ If tested with $\vect{g}_m = \uvect{n} \times \vect{f}_m$, we have
 -\int_{D_m} \left(\uvect{n}\times\vect{f}_m\arg{\vect{r}}\right)  \cdot \field{P}^\text{inc} d\vect{r} = -\frac{l_m}{2 A_m^+}\int_{T_m^+} \big( \uvect{n}_m^+ \times \left(\vect{r} - \vect{r}_m^+ \right) \big) \cdot \vect{P}^\text{inc} \; \ud S + \frac{l_m}{2 A_m^-}\int_{T_m^-} \big( \uvect{n}_m^- \times \left(\vect{r} - \vect{r}_m^- \right)\big) \cdot \vect{P}^\text{inc} \; \ud S.
 \end{equation}
 
+\section{Summary of terms for dielectric body}
+%
+\par
+\renewcommand{\arraystretch}{2}
+\begin{table}[h!]
+\centering
+\begin{tabular}{|c||c|c|}
+  \hline
+  \multicolumn{3}{|c|}{Integral equations for a dielectric body} \\
+  \hline
+  \hline
+   & EFIE & MFIE \\
+  \hline
+  outside & $\field{E}^\text{inc} =  \frac{1}{2} \vect{\hat{n}} \times \current{M}_{S} - \frac{1}{j \omega \varepsilon_1} \operator{D}_1 \left( \current{J}_{S}\right) + \operator{K}_1 \left(\current{M}_{S}\right)$ & $\field{H}^\text{inc} = - \frac{1}{2} \vect{\hat{n}} \times \current{J}_{S} - \frac{1}{j \omega \mu_1} \operator{D}_1 \left( \current{M}_{S}\right) - \operator{K}_1 \left(\current{J}_{S}\right)$ \\
+  \hline
+  inside  & $0 = \frac{1}{2} \vect{\hat{n}} \times \current{M}_{S} + \frac{1}{j \omega \varepsilon_2} \operator{D}_2\left(\current{J}_{S}\right) -  \operator{K}_2\left( \current{M}_{S}\right)$ & $0 = - \frac{1}{2} \vect{\hat{n}} \times \current{J}_{S} + \frac{1}{j \omega \mu_2} \operator{D}_2\left(\current{M}_{S}\right) +  \operator{K}_2\left( \current{J}_{S}\right)$ \\
+  \hline
+  \hline
+ & $\operator{D}_i\left(\current{X}\right) = \left(\nabla \nabla \cdot + k_i^2\right) \int_{S} G_i\left(\vect{r}, \vect{r}'\right) \current{X}\left(\vect{r}'\right) d\vect{r}'$  & $\operator{K}_i\left(\current{X}\right) = \int_S \nabla G_i\left(\vect{r}, \vect{r}'\right) \times \current{X}\left(\vect{r}'\right) d\vect{r}'$ \\
+  \hline
+\end{tabular}
+\end{table}
 
+\begin{table}[h!]
+\centering
+\begin{tabular}{|c||c|c|}
+  \hline
+  \multicolumn{3}{|c|}{Method of moments discretization} \\
+  \hline
+  \hline
+   & MoM EFIE & MoM MFIE \\
+  \hline
+  outside (sign changed) & $\underline{V}^E =  -\left[\underline{\underline{J}} + \underline{\underline{K}}^{(1)} \right] \underline{M} + \frac{1}{j \omega \varepsilon_1}  \underline{\underline{D}}^{(1)} \underline{I}$ & $\underline{V}^H =  \left[\underline{\underline{J}} + \underline{\underline{K}}^{(1)} \right] \underline{I} + \frac{1}{j \omega \mu_1}  \underline{\underline{D}}^{(1)} \underline{M}$ \\
+  \hline
+  inside  & $\underline{0} =  \left[\underline{\underline{J}} - \underline{\underline{K}}^{(2)} \right] \underline{M} + \frac{1}{j \omega \varepsilon_2}  \underline{\underline{D}}^{(2)} \underline{I}$ & $\underline{0} =  \left[-\underline{\underline{J}} + \underline{\underline{K}}^{(2)} \right] \underline{I} + \frac{1}{j \omega \mu_2}  \underline{\underline{D}}^{(2)} \underline{M}$ \\
+  \hline
+  \hline
+$D_{mn}^{(i)}$ & \multicolumn{2}{|c|}{$\int_{D_m}\vect{g}_m \arg{\vect{r}} \cdot \left( \left(\nabla \nabla \cdot + k_i^2\right) \int_{D_n} G_i\left(\vect{r}, \vect{r}'\right) \current{f}_n\left(\vect{r}'\right) d\vect{r}' \right) d\vect{r}$} \\
+\hline
+ $K_{mn}^{(i)}$ & \multicolumn{2}{|c|}{$\int_{D_m} \vect{g}_m \arg{\vect{r}} \cdot \left(\int_{D_n} \nabla G_i\left(\vect{r}, \vect{r}'\right) \times \current{f}_n\left(\vect{r}'\right) d\vect{r}'\right) d\vect{r}$} \\
+  \hline
+$J_{mn}$ & \multicolumn{2}{|c|}{$\int_{D_m} \frac{1}{2} \vect{g}_m \arg{\vect{r}} \cdot \vect{\hat{n}} \times \current{f}_{n}\arg{\vect{r}}d\vect{r}$} \\
+  \hline
+$V_m^{E,H}$ & \multicolumn{2}{|c|}{$-\int_{D_m}\vect{g}_m \arg{\vect{r}} \cdot \left(\field{E}^\text{inc},\field{H}^\text{inc}\right) d\vect{r}$} \\
+\hline
+\end{tabular}
+\end{table}
 
+\begin{table}[h!]
+\centering
+\begin{tabular}{|c||c|c|c|}
+  \hline
+& $D_{mn,1}$ & $D_{mn,2}$ & $K_{mn}$ \\
+  \hline
+\multirow{4}{*}{$\vect{g}_m = \vect{f}_m$} & \multirow{4}{*}{$-4 C_m^p C_n^q \int_{T_m} \int_{T_n} G$} & $C_m^p C_n^q  \Bigg[\int_{T_m} \vect{r} \cdot \int_{T_n} G \; \vect{r}'$ & \\
+& & $- \vect{r}_n^q \cdot \int_{T_m} \vect{r} \int_{T_n} G$ & $C_m^p C_n^q \left(\vect{r}_m^p - \vect{r}_n^q\right) \cdot \Bigg[\int_{T_m} \vect{r} \times \int_{T_n} \nabla G$ \\
+& & $- \vect{r}_m^p  \cdot \int_{T_m} \int_{T_n} G \; \vect{r}'$ & $- \vect{r}_m^p \times \int_{T_m} \int_{T_n}\nabla G \Bigg]$\\
+& & $+ \vect{r}_m^p \cdot \vect{r}_n^q \int_{T_m} \int_{T_n} G \Bigg]$ & \\
+  \hline
+\multirow{4}{*}{$\vect{g}_m = \uvect{n}\times\vect{f}_m$} &  & $C_m^p C_n^q  \Bigg[\int_{T_m} \left(\uvect{n} \times \vect{r} \right) \cdot \int_{T_n} G \; \vect{r}'$ & $-C_m^p C_n^q \Bigg\{ \int_{T_m} \left(\uvect{n} \times \vect{r}\right) \cdot \left[\vect{r} \times \int_{T_n} \nabla G \right]$\\
+& $2C_m^p C_n^q\uvect{n} \cdot \Big(\int_{T_m} \vect{r} \times \int_{T_n} \nabla G$ & $- \vect{r}_n^q \cdot \int_{T_m} \left(\uvect{n} \times \vect{r} \right) \int_{T_n} G$ & $+ \vect{r}_n^q \cdot \int_{T_m} \left(\uvect{n} \times \vect{r}\right) \times \int_{T_n} \nabla G$\\
+& $- \vect{r}_m^p \times \int_{T_m^p} \int_{T_n^q} \nabla G \Big)$ & $- \left(\uvect{n} \times \vect{r}_m^p\right)  \cdot \int_{T_m} \int_{T_n} G \; \vect{r}'$ & $- \left(\uvect{n}\times\vect{r}_m^p \right) \cdot \int_{T_m} \vect{r} \times \int_{T_n} \nabla G$\\
+& & $+ \vect{r}_n^q \cdot \left(\uvect{n} \times \vect{r}_m^p\right) \int_{T_m} \int_{T_n} G \Bigg]$ & $-\vect{r}_n^q \cdot \left[\left(\uvect{n} \times \vect{r}_m^p \right) \times \int_{T_m} \int_{T_n}\nabla G \right]\Bigg\}$\\
+  \hline
+
+\end{tabular}
+\end{table}
 
 
