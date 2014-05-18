@@ -209,7 +209,7 @@ if __name__=="__main__":
         eps_r_in, mu_r_in = 3.0 - 0.0j, 1.0 - 0.0j
         k_out = w/c
         #CFIE = array([coeff, 0.0, 0., -(1.0 - coeff) * sqrt(mu_0/eps_0)], 'D')
-        TE, NE, TH, NH = 1., 0., 1., 1.
+        TE, NE, TH, NH = 1., 1., 1., 1.
         CFIE = array([TE * coeff, NE * coeff, -TH * (1.0 - coeff) * sqrt(mu_0/(eps_0*eps_r_in)), -NH * (1.0 - coeff) * sqrt(mu_0/(eps_0*eps_r_in))], 'D')
         target_MoM = dielectricTarget_MoM(CFIE, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh, w, eps_r_out, mu_r_out, eps_r_in, mu_r_in, MOM_FULL_PRECISION)
         N_J, N_M = len(list_of_test_edges_numbers), len(list_of_test_edges_numbers)

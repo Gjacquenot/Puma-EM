@@ -104,12 +104,14 @@ void Z_CFIE_J_computation (blitz::Array<std::complex<double>, 2>& Z_CFIE_J,
   double IT_r_square; // n_hat_X_r_p_dot_IT_r;
   double IT_r[3], IT_n_hat_X_r[3];
 
+  double n_hat_X_rp_dot_IT_r;
   std::complex<double> ITo_ITs_G, ITo_r_dot_ITs_G_rprime, p_dot_ITo_ITs_G_rprime, ITo_n_hat_X_r_dot_ITs_G_rprime, n_hat_X_r_p_dot_ITo_ITs_G_rprime, IDTo_l_hat_dot_r_ITs_G;
   std::complex<double> a_pq, phi_pq, z_pq, D_mn_1, D_mn_2;
   std::complex<double> ITo_r_ITs_G[3], ITo_ITs_G_rprime[3], ITo_n_hat_X_r_ITs_G[3], IDTo_l_hat_ITs_G[3];
 
-  std::complex<double> ITo_n_hat_X_r_dot_r_X_ITs_grad_G, n_hat_X_r_p_dot_ITo_r_X_ITs_grad_G, n_hat_dot_ITo_r_X_ITs_grad_G;
-  std::complex<double> ITo_ITs_grad_G[3], ITo_r_X_ITs_grad_G[3], ITo_n_hat_X_r_X_ITs_grad_G[3], r_p_X_ITo_ITs_grad_G[3], n_hat_X_r_p_X_ITo_ITs_grad_G[3];
+  std::complex<double> ITo_n_hat_X_r_dot_r_X_ITs_grad_G, n_hat_X_r_p_dot_ITo_r_X_ITs_grad_G, n_hat_dot_ITo_r_X_ITs_grad_G, n_hat_X_r_p_dot_ITo_ITs_grad_G;
+  std::complex<double> ITo_ITs_grad_G[3], ITo_r_X_ITs_grad_G[3], ITo_n_hat_X_r_X_ITs_grad_G[3], r_p_X_ITo_ITs_grad_G[3], ITo_r_rp_X_ITs_grad_G[3];
+  std::complex<double> ITo_n_hat_X_r_rp_X_ITs_grad_G[3], n_hat_X_r_p_X_ITo_ITs_grad_G[3];
 
   Z_CFIE_J = 0.0; Z_CFIE_M = 0.0;
   for (unsigned int r=0 ; r<triangles_test.size() ; ++r) { // loop on the observation RWGs
@@ -184,17 +186,25 @@ void Z_CFIE_J_computation (blitz::Array<std::complex<double>, 2>& Z_CFIE_J,
 
         // temporary elements for Z_nE_J
         n_hat_X_r_p_dot_ITo_ITs_G_rprime = n_hat_X_r_p[0]*ITo_ITs_G_rprime[0] + n_hat_X_r_p[1]*ITo_ITs_G_rprime[1] + n_hat_X_r_p[2]*ITo_ITs_G_rprime[2];
+        n_hat_X_r_p_dot_ITo_ITs_grad_G = n_hat_X_r_p[0]*ITo_ITs_grad_G[0] + n_hat_X_r_p[1]*ITo_ITs_grad_G[1] + n_hat_X_r_p[2]*ITo_ITs_grad_G[2];
 
         // temporary elements for Z_tH_J
         //n_hat_X_r_p_dot_IT_r = n_hat_X_r_p[0]*IT_r[0] + n_hat_X_r_p[1]*IT_r[1] + n_hat_X_r_p[2]*IT_r[2];
         r_p_X_ITo_ITs_grad_G[0] = r_p[1]*ITo_ITs_grad_G[2] - r_p[2]*ITo_ITs_grad_G[1];
         r_p_X_ITo_ITs_grad_G[1] = r_p[2]*ITo_ITs_grad_G[0] - r_p[0]*ITo_ITs_grad_G[2];
         r_p_X_ITo_ITs_grad_G[2] = r_p[0]*ITo_ITs_grad_G[1] - r_p[1]*ITo_ITs_grad_G[0];
+        ITo_r_rp_X_ITs_grad_G[0] = ITo_r_X_ITs_grad_G[0]-r_p_X_ITo_ITs_grad_G[0];
+        ITo_r_rp_X_ITs_grad_G[1] = ITo_r_X_ITs_grad_G[1]-r_p_X_ITo_ITs_grad_G[1];
+        ITo_r_rp_X_ITs_grad_G[2] = ITo_r_X_ITs_grad_G[2]-r_p_X_ITo_ITs_grad_G[2];
+        n_hat_X_rp_dot_IT_r = n_hat_X_r_p[0]*IT_r[0] + n_hat_X_r_p[1]*IT_r[1] + n_hat_X_r_p[2]*IT_r[2];
 
         // temporary elements for Z_nH_J
         n_hat_X_r_p_X_ITo_ITs_grad_G[0] = n_hat_X_r_p[1]*ITo_ITs_grad_G[2] - n_hat_X_r_p[2]*ITo_ITs_grad_G[1];
         n_hat_X_r_p_X_ITo_ITs_grad_G[1] = n_hat_X_r_p[2]*ITo_ITs_grad_G[0] - n_hat_X_r_p[0]*ITo_ITs_grad_G[2];
         n_hat_X_r_p_X_ITo_ITs_grad_G[2] = n_hat_X_r_p[0]*ITo_ITs_grad_G[1] - n_hat_X_r_p[1]*ITo_ITs_grad_G[0];
+        ITo_n_hat_X_r_rp_X_ITs_grad_G[0] = ITo_n_hat_X_r_X_ITs_grad_G[0] - n_hat_X_r_p_X_ITo_ITs_grad_G[0];
+        ITo_n_hat_X_r_rp_X_ITs_grad_G[1] = ITo_n_hat_X_r_X_ITs_grad_G[1] - n_hat_X_r_p_X_ITo_ITs_grad_G[1];
+        ITo_n_hat_X_r_rp_X_ITs_grad_G[2] = ITo_n_hat_X_r_X_ITs_grad_G[2] - n_hat_X_r_p_X_ITo_ITs_grad_G[2];
         n_hat_X_r_p_dot_ITo_r_X_ITs_grad_G = n_hat_X_r_p[0]*ITo_r_X_ITs_grad_G[0] + n_hat_X_r_p[1]*ITo_r_X_ITs_grad_G[1] + n_hat_X_r_p[2]*ITo_r_X_ITs_grad_G[2];
 
         for (unsigned int q=0 ; q<RWGsIndexes_src.size() ; ++q) {
@@ -208,20 +218,22 @@ void Z_CFIE_J_computation (blitz::Array<std::complex<double>, 2>& Z_CFIE_J,
           else r_q = src_RWGs[index_q].vertexesCoord_3;
           const bool M_CURRENT_OK = (srcRWGNumber_CURRENT_M_OK(local_number_edge_q)==1);
           const bool tHM = (tH_tmp && M_CURRENT_OK), nHM = (nH_tmp && M_CURRENT_OK), tEM = (tE_tmp && M_CURRENT_OK), nEM = (nE_tmp && M_CURRENT_OK);
+          const double rp_dot_rq = (r_p[0]*r_q[0] + r_p[1]*r_q[1] + r_p[2]*r_q[2]);
+          const double rp_plus_rq_dot_ITr = ((r_p[0]+r_q[0])*IT_r[0] + (r_p[1]+r_q[1])*IT_r[1] + (r_p[2]+r_q[2])*IT_r[2]);
 
           // <f_p ; EFIE> : Z_tE_J computation. Z_tH_M = eps/mu * Z_tE_J
           if (tEJ || tHM) {
             D_mn_1 = (-4.0 * C_pq) * ITo_ITs_G;
-            D_mn_2 = C_pq * (ITo_r_dot_ITs_G_rprime - (ITo_r_ITs_G[0]*r_q[0] + ITo_r_ITs_G[1]*r_q[1] + ITo_r_ITs_G[2]*r_q[2]) - p_dot_ITo_ITs_G_rprime + (r_p[0]*r_q[0] + r_p[1]*r_q[1] + r_p[2]*r_q[2]) * ITo_ITs_G);
+            D_mn_2 = C_pq * (ITo_r_dot_ITs_G_rprime - (ITo_r_ITs_G[0]*r_q[0] + ITo_r_ITs_G[1]*r_q[1] + ITo_r_ITs_G[2]*r_q[2]) - p_dot_ITo_ITs_G_rprime + rp_dot_rq * ITo_ITs_G);
             z_pq = z_pq_factor * (D_mn_1 + k_square * D_mn_2); // z_pq_factor = 1.0/(I*w*eps)
-            if (tds_approx && IS_SAME_TR) z_pq += 0.5 * C_pq * Z_s * ( IT_r_square - ((r_p[0]+r_q[0])*IT_r[0] + (r_p[1]+r_q[1])*IT_r[1] + (r_p[2]+r_q[2])*IT_r[2]) + (r_p[0]*r_q[0] + r_p[1]*r_q[1] + r_p[2]*r_q[2]) * triangles_test[r].A );
+            if (tds_approx && IS_SAME_TR) z_pq += 0.5 * C_pq * Z_s * ( IT_r_square - rp_plus_rq_dot_ITr + rp_dot_rq * triangles_test[r].A );
             if (tEJ) Z_CFIE_J (local_number_edge_p, local_number_edge_q) += (signSurfObs * signSurfSrc) * CFIE(0) * z_pq;
             if (tHM) Z_CFIE_M (local_number_edge_p, local_number_edge_q) += (signSurfObs * signSurfSrc) * CFIE(2) * eps/mu * z_pq;
           }
           // <n x f_p ; EFIE> : Z_nE_J computation. Z_nH_M = eps/mu * Z_nE_J
           if (nEJ || nHM) {
             if (IS_TOUCH) D_mn_1 = 2.0 * C_pq * (-IDTo_l_hat_dot_r_ITs_G + (r_p[0]*IDTo_l_hat_ITs_G[0] + r_p[1]*IDTo_l_hat_ITs_G[1] + r_p[2]*IDTo_l_hat_ITs_G[2]));
-            else D_mn_1 = 2.0 * C_pq * ( n_hat_dot_ITo_r_X_ITs_grad_G - (n_hat_X_r_p[0]*ITo_ITs_grad_G[0] + n_hat_X_r_p[1]*ITo_ITs_grad_G[1] + n_hat_X_r_p[2]*ITo_ITs_grad_G[2]));
+            else D_mn_1 = 2.0 * C_pq * ( n_hat_dot_ITo_r_X_ITs_grad_G - n_hat_X_r_p_dot_ITo_ITs_grad_G);
             D_mn_2 = C_pq * (ITo_n_hat_X_r_dot_ITs_G_rprime - (ITo_n_hat_X_r_ITs_G[0]*r_q[0] + ITo_n_hat_X_r_ITs_G[1]*r_q[1] + ITo_n_hat_X_r_ITs_G[2]*r_q[2]) - n_hat_X_r_p_dot_ITo_ITs_G_rprime + (n_hat_X_r_p[0]*r_q[0] + n_hat_X_r_p[1]*r_q[1] + n_hat_X_r_p[2]*r_q[2]) * ITo_ITs_G);
             z_pq = z_pq_factor * ( D_mn_1 + k_square*D_mn_2);
             if (nEJ) Z_CFIE_J (local_number_edge_p, local_number_edge_q) += (signSurfObs * signSurfSrc) * CFIE(1) * z_pq;
@@ -229,17 +241,17 @@ void Z_CFIE_J_computation (blitz::Array<std::complex<double>, 2>& Z_CFIE_J,
           }
           // <f_p ; MFIE> : Z_tH_J computation. Z_tE_M = -Z_tH_J
           if (tHJ || tEM) {
-            if (!IS_SAME_TR) z_pq = signSurfObs * signSurfSrc * C_pq * ((r_p[0]-r_q[0])*(ITo_r_X_ITs_grad_G[0]-r_p_X_ITo_ITs_grad_G[0]) + (r_p[1]-r_q[1])*(ITo_r_X_ITs_grad_G[1]-r_p_X_ITo_ITs_grad_G[1]) + (r_p[2]-r_q[2])*(ITo_r_X_ITs_grad_G[2]-r_p_X_ITo_ITs_grad_G[2]));
+            if (!IS_SAME_TR) z_pq = signSurfObs * signSurfSrc * C_pq * ((r_p[0]-r_q[0])*ITo_r_rp_X_ITs_grad_G[0] + (r_p[1]-r_q[1])*ITo_r_rp_X_ITs_grad_G[1] + (r_p[2]-r_q[2])*ITo_r_rp_X_ITs_grad_G[2]);
             // else we have: z_pq = 0.5 * <f_p ; n x f_q>
-            else z_pq = signSurfObs * 0.5 * C_pq * ( (n_hat_X_r_p[0]*IT_r[0] + n_hat_X_r_p[1]*IT_r[1] + n_hat_X_r_p[2]*IT_r[2]) + (r_q[0]*IT_n_hat_X_r[0] + r_q[1]*IT_n_hat_X_r[1] + r_q[2]*IT_n_hat_X_r[2]) - (r_q[0]*n_hat_X_r_p[0] + r_q[1]*n_hat_X_r_p[1] + r_q[2]*n_hat_X_r_p[2]) * triangles_test[r].A );
+            else z_pq = signSurfObs * 0.5 * C_pq * ( n_hat_X_rp_dot_IT_r + (r_q[0]*IT_n_hat_X_r[0] + r_q[1]*IT_n_hat_X_r[1] + r_q[2]*IT_n_hat_X_r[2]) - (r_q[0]*n_hat_X_r_p[0] + r_q[1]*n_hat_X_r_p[1] + r_q[2]*n_hat_X_r_p[2]) * triangles_test[r].A );
             if (tHJ) Z_CFIE_J (local_number_edge_p, local_number_edge_q) += CFIE(2) * z_pq;
             if (tEM) Z_CFIE_M (local_number_edge_p, local_number_edge_q) -= CFIE(0) * z_pq;
           }
           // <n x f_p ; MFIE> : Z_nH_J computation. Z_nE_M = -Z_nH_J
           if (nHJ || nEM) {
-            if (!IS_SAME_TR) z_pq = -signSurfObs * signSurfSrc * C_pq * ( ITo_n_hat_X_r_dot_r_X_ITs_grad_G + (r_q[0]*(ITo_n_hat_X_r_X_ITs_grad_G[0]-n_hat_X_r_p_X_ITo_ITs_grad_G[0]) + r_q[1]*(ITo_n_hat_X_r_X_ITs_grad_G[1]-n_hat_X_r_p_X_ITo_ITs_grad_G[1]) + r_q[2]*(ITo_n_hat_X_r_X_ITs_grad_G[2]-n_hat_X_r_p_X_ITo_ITs_grad_G[2])) - n_hat_X_r_p_dot_ITo_r_X_ITs_grad_G  );
+            if (!IS_SAME_TR) z_pq = -signSurfObs * signSurfSrc * C_pq * ( ITo_n_hat_X_r_dot_r_X_ITs_grad_G + (r_q[0]*ITo_n_hat_X_r_rp_X_ITs_grad_G[0] + r_q[1]*ITo_n_hat_X_r_rp_X_ITs_grad_G[1] + r_q[2]*ITo_n_hat_X_r_rp_X_ITs_grad_G[2]) - n_hat_X_r_p_dot_ITo_r_X_ITs_grad_G  );
             // else we have: z_pq = 0.5 * <n x f_p ; n x f_q> = 0.5 * <f_p ; f_q>
-            else z_pq = signSurfObs * 0.5 * C_pq * ( IT_r_square - ((r_p[0]+r_q[0])*IT_r[0] + (r_p[1]+r_q[1])*IT_r[1] + (r_p[2]+r_q[2])*IT_r[2]) + (r_p[0]*r_q[0] + r_p[1]*r_q[1] + r_p[2]*r_q[2]) * triangles_test[r].A );
+            else z_pq = signSurfObs * 0.5 * C_pq * ( IT_r_square - rp_plus_rq_dot_ITr + rp_dot_rq * triangles_test[r].A );
             if (nHJ) Z_CFIE_J (local_number_edge_p, local_number_edge_q) += CFIE(3) * z_pq;
             if (nEM) Z_CFIE_M (local_number_edge_p, local_number_edge_q) -= CFIE(1) * z_pq;
           }
