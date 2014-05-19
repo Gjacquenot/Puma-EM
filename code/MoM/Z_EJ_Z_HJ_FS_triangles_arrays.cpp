@@ -96,27 +96,13 @@ void Z_CFIE_J_computation (blitz::Array<std::complex<double>, 2>& Z_CFIE_J,
   const std::complex<double> mu = mu_0 * mu_r, eps = eps_0 * eps_r, k = w * sqrt(eps*mu), k_square = k*k;
   const std::complex<double> z_pq_factor = 1.0/(I*w*eps);
 
-  // declaration of all the geometrical vectors
-  //double r_oc[3], r_sc[3];
-
-  // declaration of the scalars and vectors needed in the integrations
-  double IT_r_square; // n_hat_X_r_p_dot_IT_r;
-  double IT_r[3], IT_n_hat_X_r[3];
-
-  double n_hat_X_rp_dot_IT_r;
-  std::complex<double> ITo_ITs_G, ITo_r_dot_ITs_G_rprime, p_dot_ITo_ITs_G_rprime, ITo_n_hat_X_r_dot_ITs_G_rprime, n_hat_X_r_p_dot_ITo_ITs_G_rprime, IDTo_l_hat_dot_r_ITs_G;
-  std::complex<double> a_pq, phi_pq, z_pq, D_mn_1, D_mn_2;
-  std::complex<double> ITo_r_ITs_G[3], ITo_ITs_G_rprime[3], ITo_n_hat_X_r_ITs_G[3], IDTo_l_hat_ITs_G[3];
-
-  std::complex<double> ITo_n_hat_X_r_dot_r_X_ITs_grad_G, n_hat_X_r_p_dot_ITo_r_X_ITs_grad_G, n_hat_dot_ITo_r_X_ITs_grad_G, n_hat_X_r_p_dot_ITo_ITs_grad_G;
-  std::complex<double> ITo_ITs_grad_G[3], ITo_r_X_ITs_grad_G[3], ITo_n_hat_X_r_X_ITs_grad_G[3], r_p_X_ITo_ITs_grad_G[3], ITo_r_rp_X_ITs_grad_G[3];
-  std::complex<double> ITo_n_hat_X_r_rp_X_ITs_grad_G[3], n_hat_X_r_p_X_ITo_ITs_grad_G[3];
-
   Z_CFIE_J = 0.0; Z_CFIE_M = 0.0;
   for (unsigned int r=0 ; r<triangles_test.size() ; ++r) { // loop on the observation RWGs
     // computation of the triangle-to-triangle terms
     double *n_hat;
     n_hat = triangles_test[r].n_hat;
+    double IT_r_square; // n_hat_X_r_p_dot_IT_r;
+    double IT_r[3], IT_n_hat_X_r[3];
     IT_fm_fn (IT_r_square, IT_r, triangles_test[r]); // serves for <f_m ; f_n> and <f_m ; n x f_n>
     cross3D(IT_n_hat_X_r, n_hat, IT_r); // serves for <f_m ; n x f_n>
     // the RWGs concerned by the test triangle
@@ -161,12 +147,18 @@ void Z_CFIE_J_computation (blitz::Array<std::complex<double>, 2>& Z_CFIE_J,
         }
       }
 
+      // declaration of the scalars and vectors needed in the integrations
+      std::complex<double> ITo_ITs_G, ITo_r_dot_ITs_G_rprime, ITo_n_hat_X_r_dot_ITs_G_rprime, IDTo_l_hat_dot_r_ITs_G;
+      std::complex<double> ITo_n_hat_X_r_dot_r_X_ITs_grad_G;
+      std::complex<double> ITo_r_ITs_G[3], ITo_ITs_G_rprime[3], IDTo_l_hat_ITs_G[3];
+      std::complex<double> ITo_ITs_grad_G[3], ITo_r_X_ITs_grad_G[3], ITo_n_hat_X_r_X_ITs_grad_G[3];
+
       ITo_ITs_free (ITo_ITs_G, ITo_r_ITs_G, ITo_ITs_G_rprime, ITo_r_dot_ITs_G_rprime, ITo_n_hat_X_r_dot_ITs_G_rprime, ITo_ITs_grad_G, ITo_r_X_ITs_grad_G, ITo_n_hat_X_r_dot_r_X_ITs_grad_G, ITo_n_hat_X_r_X_ITs_grad_G, triangles_test[r], triangles_src[s], k, N_points_o, N_points_s, EXTRACT_1_R, EXTRACT_R);
 
-      ITo_n_hat_X_r_ITs_G[0] = n_hat[1]*ITo_r_ITs_G[2] - n_hat[2]*ITo_r_ITs_G[1];
-      ITo_n_hat_X_r_ITs_G[1] = n_hat[2]*ITo_r_ITs_G[0] - n_hat[0]*ITo_r_ITs_G[2];
-      ITo_n_hat_X_r_ITs_G[2] = n_hat[0]*ITo_r_ITs_G[1] - n_hat[1]*ITo_r_ITs_G[0];
-      n_hat_dot_ITo_r_X_ITs_grad_G = n_hat[0]*ITo_r_X_ITs_grad_G[0] + n_hat[1]*ITo_r_X_ITs_grad_G[1] + n_hat[2]*ITo_r_X_ITs_grad_G[2];
+      const std::complex<double> ITo_n_hat_X_r_ITs_G[3] = {n_hat[1]*ITo_r_ITs_G[2] - n_hat[2]*ITo_r_ITs_G[1],
+                                                           n_hat[2]*ITo_r_ITs_G[0] - n_hat[0]*ITo_r_ITs_G[2],
+                                                           n_hat[0]*ITo_r_ITs_G[1] - n_hat[1]*ITo_r_ITs_G[0]};
+      const std::complex<double> n_hat_dot_ITo_r_X_ITs_grad_G(n_hat[0]*ITo_r_X_ITs_grad_G[0] + n_hat[1]*ITo_r_X_ITs_grad_G[1] + n_hat[2]*ITo_r_X_ITs_grad_G[2]);
 
       if ((IS_TOUCH) && (nE_tmp || nH_tmp)) IDTo_ITs_free(IDTo_l_hat_dot_r_ITs_G, IDTo_l_hat_ITs_G, triangles_test[r], triangles_src[s], k, 3, N_points_s, EXTRACT_1_R, EXTRACT_R);
 
@@ -184,30 +176,29 @@ void Z_CFIE_J_computation (blitz::Array<std::complex<double>, 2>& Z_CFIE_J,
         const bool tEJ = tE_tmp, nEJ = nE_tmp, tHJ = (tH_tmp * IS_CFIE ), nHJ = (nH_tmp * IS_CFIE);
 
         // temporary elements for Z_tE_J
-        p_dot_ITo_ITs_G_rprime = r_p[0]*ITo_ITs_G_rprime[0] + r_p[1]*ITo_ITs_G_rprime[1] + r_p[2]*ITo_ITs_G_rprime[2];
+        const std::complex<double> p_dot_ITo_ITs_G_rprime(r_p[0]*ITo_ITs_G_rprime[0] + r_p[1]*ITo_ITs_G_rprime[1] + r_p[2]*ITo_ITs_G_rprime[2]);
 
         // temporary elements for Z_nE_J
-        n_hat_X_r_p_dot_ITo_ITs_G_rprime = n_hat_X_r_p[0]*ITo_ITs_G_rprime[0] + n_hat_X_r_p[1]*ITo_ITs_G_rprime[1] + n_hat_X_r_p[2]*ITo_ITs_G_rprime[2];
-        n_hat_X_r_p_dot_ITo_ITs_grad_G = n_hat_X_r_p[0]*ITo_ITs_grad_G[0] + n_hat_X_r_p[1]*ITo_ITs_grad_G[1] + n_hat_X_r_p[2]*ITo_ITs_grad_G[2];
+        const std::complex<double> n_hat_X_r_p_dot_ITo_ITs_G_rprime(n_hat_X_r_p[0]*ITo_ITs_G_rprime[0] + n_hat_X_r_p[1]*ITo_ITs_G_rprime[1] + n_hat_X_r_p[2]*ITo_ITs_G_rprime[2]);
+        const std::complex<double> n_hat_X_r_p_dot_ITo_ITs_grad_G(n_hat_X_r_p[0]*ITo_ITs_grad_G[0] + n_hat_X_r_p[1]*ITo_ITs_grad_G[1] + n_hat_X_r_p[2]*ITo_ITs_grad_G[2]);
 
         // temporary elements for Z_tH_J
-        //n_hat_X_r_p_dot_IT_r = n_hat_X_r_p[0]*IT_r[0] + n_hat_X_r_p[1]*IT_r[1] + n_hat_X_r_p[2]*IT_r[2];
-        r_p_X_ITo_ITs_grad_G[0] = r_p[1]*ITo_ITs_grad_G[2] - r_p[2]*ITo_ITs_grad_G[1];
-        r_p_X_ITo_ITs_grad_G[1] = r_p[2]*ITo_ITs_grad_G[0] - r_p[0]*ITo_ITs_grad_G[2];
-        r_p_X_ITo_ITs_grad_G[2] = r_p[0]*ITo_ITs_grad_G[1] - r_p[1]*ITo_ITs_grad_G[0];
-        ITo_r_rp_X_ITs_grad_G[0] = ITo_r_X_ITs_grad_G[0]-r_p_X_ITo_ITs_grad_G[0];
-        ITo_r_rp_X_ITs_grad_G[1] = ITo_r_X_ITs_grad_G[1]-r_p_X_ITo_ITs_grad_G[1];
-        ITo_r_rp_X_ITs_grad_G[2] = ITo_r_X_ITs_grad_G[2]-r_p_X_ITo_ITs_grad_G[2];
-        n_hat_X_rp_dot_IT_r = n_hat_X_r_p[0]*IT_r[0] + n_hat_X_r_p[1]*IT_r[1] + n_hat_X_r_p[2]*IT_r[2];
+        const std::complex<double> r_p_X_ITo_ITs_grad_G[3] = {r_p[1]*ITo_ITs_grad_G[2] - r_p[2]*ITo_ITs_grad_G[1],
+                                                              r_p[2]*ITo_ITs_grad_G[0] - r_p[0]*ITo_ITs_grad_G[2],
+                                                              r_p[0]*ITo_ITs_grad_G[1] - r_p[1]*ITo_ITs_grad_G[0]};
+        const std::complex<double> ITo_r_rp_X_ITs_grad_G[3] = {ITo_r_X_ITs_grad_G[0]-r_p_X_ITo_ITs_grad_G[0],
+                                                               ITo_r_X_ITs_grad_G[1]-r_p_X_ITo_ITs_grad_G[1],
+                                                               ITo_r_X_ITs_grad_G[2]-r_p_X_ITo_ITs_grad_G[2]};
+        const double n_hat_X_rp_dot_IT_r(n_hat_X_r_p[0]*IT_r[0] + n_hat_X_r_p[1]*IT_r[1] + n_hat_X_r_p[2]*IT_r[2]);
 
         // temporary elements for Z_nH_J
-        n_hat_X_r_p_X_ITo_ITs_grad_G[0] = n_hat_X_r_p[1]*ITo_ITs_grad_G[2] - n_hat_X_r_p[2]*ITo_ITs_grad_G[1];
-        n_hat_X_r_p_X_ITo_ITs_grad_G[1] = n_hat_X_r_p[2]*ITo_ITs_grad_G[0] - n_hat_X_r_p[0]*ITo_ITs_grad_G[2];
-        n_hat_X_r_p_X_ITo_ITs_grad_G[2] = n_hat_X_r_p[0]*ITo_ITs_grad_G[1] - n_hat_X_r_p[1]*ITo_ITs_grad_G[0];
-        ITo_n_hat_X_r_rp_X_ITs_grad_G[0] = ITo_n_hat_X_r_X_ITs_grad_G[0] - n_hat_X_r_p_X_ITo_ITs_grad_G[0];
-        ITo_n_hat_X_r_rp_X_ITs_grad_G[1] = ITo_n_hat_X_r_X_ITs_grad_G[1] - n_hat_X_r_p_X_ITo_ITs_grad_G[1];
-        ITo_n_hat_X_r_rp_X_ITs_grad_G[2] = ITo_n_hat_X_r_X_ITs_grad_G[2] - n_hat_X_r_p_X_ITo_ITs_grad_G[2];
-        n_hat_X_r_p_dot_ITo_r_X_ITs_grad_G = n_hat_X_r_p[0]*ITo_r_X_ITs_grad_G[0] + n_hat_X_r_p[1]*ITo_r_X_ITs_grad_G[1] + n_hat_X_r_p[2]*ITo_r_X_ITs_grad_G[2];
+        const std::complex<double> n_hat_X_r_p_X_ITo_ITs_grad_G[3] = {n_hat_X_r_p[1]*ITo_ITs_grad_G[2] - n_hat_X_r_p[2]*ITo_ITs_grad_G[1],
+                                                                      n_hat_X_r_p[2]*ITo_ITs_grad_G[0] - n_hat_X_r_p[0]*ITo_ITs_grad_G[2],
+                                                                      n_hat_X_r_p[0]*ITo_ITs_grad_G[1] - n_hat_X_r_p[1]*ITo_ITs_grad_G[0]};
+        const std::complex<double> ITo_n_hat_X_r_rp_X_ITs_grad_G[3] = {ITo_n_hat_X_r_X_ITs_grad_G[0] - n_hat_X_r_p_X_ITo_ITs_grad_G[0], 
+                                                                       ITo_n_hat_X_r_X_ITs_grad_G[1] - n_hat_X_r_p_X_ITo_ITs_grad_G[1],
+                                                                       ITo_n_hat_X_r_X_ITs_grad_G[2] - n_hat_X_r_p_X_ITo_ITs_grad_G[2]};
+        const std::complex<double> n_hat_X_r_p_dot_ITo_r_X_ITs_grad_G(n_hat_X_r_p[0]*ITo_r_X_ITs_grad_G[0] + n_hat_X_r_p[1]*ITo_r_X_ITs_grad_G[1] + n_hat_X_r_p[2]*ITo_r_X_ITs_grad_G[2]);
 
         for (unsigned int q=0 ; q<RWGsIndexes_src.size() ; ++q) {
           const int index_q = RWGsIndexes_src[q];
@@ -220,8 +211,9 @@ void Z_CFIE_J_computation (blitz::Array<std::complex<double>, 2>& Z_CFIE_J,
           else r_q = src_RWGs[index_q].vertexesCoord_3;
           const bool M_CURRENT_OK = (srcRWGNumber_CURRENT_M_OK(local_number_edge_q)==1);
           const bool tHM = (tH_tmp && M_CURRENT_OK), nHM = (nH_tmp && M_CURRENT_OK), tEM = (tE_tmp && M_CURRENT_OK), nEM = (nE_tmp && M_CURRENT_OK);
-          const double rp_dot_rq = (r_p[0]*r_q[0] + r_p[1]*r_q[1] + r_p[2]*r_q[2]);
-          const double rp_plus_rq_dot_ITr = ((r_p[0]+r_q[0])*IT_r[0] + (r_p[1]+r_q[1])*IT_r[1] + (r_p[2]+r_q[2])*IT_r[2]);
+          const double rp_dot_rq(r_p[0]*r_q[0] + r_p[1]*r_q[1] + r_p[2]*r_q[2]);
+          const double rp_plus_rq_dot_ITr((r_p[0]+r_q[0])*IT_r[0] + (r_p[1]+r_q[1])*IT_r[1] + (r_p[2]+r_q[2])*IT_r[2]);
+          std::complex<double> z_pq, D_mn_1, D_mn_2;
 
           // <f_p ; EFIE> : Z_tE_J computation. Z_tH_M = eps/mu * Z_tE_J
           if (tEJ || tHM) {
