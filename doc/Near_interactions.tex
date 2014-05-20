@@ -189,4 +189,25 @@ If tested with $\vect{g}_m = \uvect{n} \times \vect{f}_m$, we have
 -\int_{D_m} \left(\uvect{n}\times\vect{f}_m\arg{\vect{r}}\right)  \cdot \field{P}^\text{inc} d\vect{r} = -\frac{l_m}{2 A_m^+}\int_{T_m^+} \big( \uvect{n}_m^+ \times \left(\vect{r} - \vect{r}_m^+ \right) \big) \cdot \vect{P}^\text{inc} \; \ud S + \frac{l_m}{2 A_m^-}\int_{T_m^-} \big( \uvect{n}_m^- \times \left(\vect{r} - \vect{r}_m^- \right)\big) \cdot \vect{P}^\text{inc} \; \ud S.
 \end{equation}
 
+\section{Summary}
+\begin{table}[h!]
+\centering
+\begin{tabular}{|c||c|c|c|}
+  \hline
+& $D_{mn,1}$ & $D_{mn,2}$ & $K_{mn}$ \\
+  \hline
+\multirow{4}{*}{$\vect{g}_m = \vect{f}_m$} & \multirow{4}{*}{$-4 C_m^p C_n^q \int_{T_m} \int_{T_n} G$} & $C_m^p C_n^q  \Bigg[\int_{T_m} \vect{r} \cdot \int_{T_n} G \; \vect{r}'$ & \\
+& & $- \vect{r}_n^q \cdot \int_{T_m} \vect{r} \int_{T_n} G$ & $C_m^p C_n^q \left(\vect{r}_m^p - \vect{r}_n^q\right) \cdot \Bigg[\int_{T_m} \vect{r} \times \int_{T_n} \nabla G$ \\
+& & $- \vect{r}_m^p  \cdot \int_{T_m} \int_{T_n} G \; \vect{r}'$ & $- \vect{r}_m^p \times \int_{T_m} \int_{T_n}\nabla G \Bigg]$\\
+& & $+ \vect{r}_m^p \cdot \vect{r}_n^q \int_{T_m} \int_{T_n} G \Bigg]$ & \\
+  \hline
+\multirow{4}{*}{$\vect{g}_m = \uvect{n}\times\vect{f}_m$} &  & $C_m^p C_n^q  \Bigg[\int_{T_m} \left(\uvect{n} \times \vect{r} \right) \cdot \int_{T_n} G \; \vect{r}'$ & $-C_m^p C_n^q \Bigg\{ \int_{T_m} \left(\uvect{n} \times \vect{r}\right) \cdot \left[\vect{r} \times \int_{T_n} \nabla G \right]$\\
+& $2C_m^p C_n^q\uvect{n} \cdot \Big(\int_{T_m} \vect{r} \times \int_{T_n} \nabla G$ & $- \vect{r}_n^q \cdot \left(\uvect{n} \times \int_{T_m} \vect{r} \int_{T_n} G \right) $ & $+ \vect{r}_n^q \cdot \int_{T_m} \left(\uvect{n} \times \vect{r}\right) \times \int_{T_n} \nabla G$\\
+& $- \vect{r}_m^p \times \int_{T_m^p} \int_{T_n^q} \nabla G \Big)$ & $- \left(\uvect{n} \times \vect{r}_m^p\right)  \cdot \int_{T_m} \int_{T_n} G \; \vect{r}'$ & $- \left(\uvect{n}\times\vect{r}_m^p \right) \cdot \int_{T_m} \vect{r} \times \int_{T_n} \nabla G$\\
+& & $+ \vect{r}_n^q \cdot \left(\uvect{n} \times \vect{r}_m^p\right) \int_{T_m} \int_{T_n} G \Bigg]$ & $-\vect{r}_n^q \cdot \left[\left(\uvect{n} \times \vect{r}_m^p \right) \times \int_{T_m} \int_{T_n}\nabla G \right]\Bigg\}$\\
+  \hline
+
+\end{tabular}
+\end{table}
+
 
