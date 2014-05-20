@@ -1,0 +1,85 @@
+\chapter{Summary of MoM terms and formulations}
+%
+\par
+\renewcommand{\arraystretch}{2}
+\begin{table}[h!]
+\centering
+\begin{tabular}{|c||c|c|}
+  \hline
+  \multicolumn{3}{|c|}{Integral equations for a PEC body} \\
+  \hline
+  \hline
+   & EFIE & MFIE \\
+  \hline
+  outside & $\field{E}^\text{inc} =  - \frac{1}{j \omega \varepsilon_1} \operator{D}_1 \left( \current{J}_{S}\right)$ & $\field{H}^\text{inc} = - \frac{1}{2} \vect{\hat{n}} \times \current{J}_{S} - \operator{K}_1 \left(\current{J}_{S}\right)$ \\
+  \hline
+  \hline
+  \multicolumn{3}{|c|}{Integral equations for a dielectric body} \\
+  \hline
+  \hline
+   & EFIE & MFIE \\
+  \hline
+  outside & $\field{E}^\text{inc} =  \frac{1}{2} \vect{\hat{n}} \times \current{M}_{S} - \frac{1}{j \omega \varepsilon_1} \operator{D}_1 \left( \current{J}_{S}\right) + \operator{K}_1 \left(\current{M}_{S}\right)$ & $\field{H}^\text{inc} = - \frac{1}{2} \vect{\hat{n}} \times \current{J}_{S} - \frac{1}{j \omega \mu_1} \operator{D}_1 \left( \current{M}_{S}\right) - \operator{K}_1 \left(\current{J}_{S}\right)$ \\
+  \hline
+  inside  & $0 = \frac{1}{2} \vect{\hat{n}} \times \current{M}_{S} + \frac{1}{j \omega \varepsilon_2} \operator{D}_2\left(\current{J}_{S}\right) -  \operator{K}_2\left( \current{M}_{S}\right)$ & $0 = - \frac{1}{2} \vect{\hat{n}} \times \current{J}_{S} + \frac{1}{j \omega \mu_2} \operator{D}_2\left(\current{M}_{S}\right) +  \operator{K}_2\left( \current{J}_{S}\right)$ \\
+  \hline
+  \hline
+ & $\operator{D}_i\left(\current{X}\right) = \left(\nabla \nabla \cdot + k_i^2\right) \int_{S} G_i\left(\vect{r}, \vect{r}'\right) \current{X}\left(\vect{r}'\right) d\vect{r}'$  & $\operator{K}_i\left(\current{X}\right) = \int_S \nabla G_i\left(\vect{r}, \vect{r}'\right) \times \current{X}\left(\vect{r}'\right) d\vect{r}'$ \\
+  \hline
+\end{tabular}
+\end{table}
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{|c||c|c|}
+  \hline
+  \multicolumn{3}{|c|}{Method of moments discretization for PEC} \\
+  \hline
+  \hline
+   & MoM EFIE & MoM MFIE \\
+  \hline
+  outside (sign changed) & $\underline{V}^E =  \frac{1}{j \omega \varepsilon_1}  \underline{\underline{D}}^{(1)} \underline{I}$ & $\underline{V}^H =  \left[\underline{\underline{J}} + \underline{\underline{K}}^{(1)} \right] \underline{I}$ \\
+  \hline
+  \hline
+  \multicolumn{3}{|c|}{Method of moments discretization for dielectric} \\
+  \hline
+  \hline
+   & MoM EFIE & MoM MFIE \\
+  \hline
+  outside (sign changed) & $\underline{V}^E =  -\left[\underline{\underline{J}} + \underline{\underline{K}}^{(1)} \right] \underline{M} + \frac{1}{j \omega \varepsilon_1}  \underline{\underline{D}}^{(1)} \underline{I}$ & $\underline{V}^H =  \left[\underline{\underline{J}} + \underline{\underline{K}}^{(1)} \right] \underline{I} + \frac{1}{j \omega \mu_1}  \underline{\underline{D}}^{(1)} \underline{M}$ \\
+  \hline
+  inside  & $\underline{0} =  \left[\underline{\underline{J}} - \underline{\underline{K}}^{(2)} \right] \underline{M} + \frac{1}{j \omega \varepsilon_2}  \underline{\underline{D}}^{(2)} \underline{I}$ & $\underline{0} =  \left[-\underline{\underline{J}} + \underline{\underline{K}}^{(2)} \right] \underline{I} + \frac{1}{j \omega \mu_2}  \underline{\underline{D}}^{(2)} \underline{M}$ \\
+  \hline
+  \hline
+$D_{mn}^{(i)}$ & \multicolumn{2}{|c|}{$\int_{D_m}\vect{g}_m \arg{\vect{r}} \cdot \left( \left(\nabla \nabla \cdot + k_i^2\right) \int_{D_n} G_i\left(\vect{r}, \vect{r}'\right) \current{f}_n\left(\vect{r}'\right) d\vect{r}' \right) d\vect{r}$} \\
+\hline
+ $K_{mn}^{(i)}$ & \multicolumn{2}{|c|}{$\int_{D_m} \vect{g}_m \arg{\vect{r}} \cdot \left(\int_{D_n} \nabla G_i\left(\vect{r}, \vect{r}'\right) \times \current{f}_n\left(\vect{r}'\right) d\vect{r}'\right) d\vect{r}$} \\
+  \hline
+$J_{mn}$ & \multicolumn{2}{|c|}{$\int_{D_m} \frac{1}{2} \vect{g}_m \arg{\vect{r}} \cdot \vect{\hat{n}} \times \current{f}_{n}\arg{\vect{r}}d\vect{r}$} \\
+  \hline
+$V_m^{E,H}$ & \multicolumn{2}{|c|}{$-\int_{D_m}\vect{g}_m \arg{\vect{r}} \cdot \left(\field{E}^\text{inc},\field{H}^\text{inc}\right) d\vect{r}$} \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{|c||c|c|c|}
+  \hline
+& $D_{mn,1}$ & $D_{mn,2}$ & $K_{mn}$ \\
+  \hline
+\multirow{4}{*}{$\vect{g}_m = \vect{f}_m$} & \multirow{4}{*}{$-4 C_m^p C_n^q \int_{T_m} \int_{T_n} G$} & $C_m^p C_n^q  \Bigg[\int_{T_m} \vect{r} \cdot \int_{T_n} G \; \vect{r}'$ & \\
+& & $- \vect{r}_n^q \cdot \int_{T_m} \vect{r} \int_{T_n} G$ & $C_m^p C_n^q \left(\vect{r}_m^p - \vect{r}_n^q\right) \cdot \Bigg[\int_{T_m} \vect{r} \times \int_{T_n} \nabla G$ \\
+& & $- \vect{r}_m^p  \cdot \int_{T_m} \int_{T_n} G \; \vect{r}'$ & $- \vect{r}_m^p \times \int_{T_m} \int_{T_n}\nabla G \Bigg]$\\
+& & $+ \vect{r}_m^p \cdot \vect{r}_n^q \int_{T_m} \int_{T_n} G \Bigg]$ & \\
+  \hline
+\multirow{4}{*}{$\vect{g}_m = \uvect{n}\times\vect{f}_m$} &  & $C_m^p C_n^q  \Bigg[\int_{T_m} \left(\uvect{n} \times \vect{r} \right) \cdot \int_{T_n} G \; \vect{r}'$ & $-C_m^p C_n^q \Bigg\{ \int_{T_m} \left(\uvect{n} \times \vect{r}\right) \cdot \left[\vect{r} \times \int_{T_n} \nabla G \right]$\\
+& $2C_m^p C_n^q\uvect{n} \cdot \Big(\int_{T_m} \vect{r} \times \int_{T_n} \nabla G$ & $- \vect{r}_n^q \cdot \left(\uvect{n} \times \int_{T_m} \vect{r} \int_{T_n} G \right) $ & $+ \vect{r}_n^q \cdot \int_{T_m} \left(\uvect{n} \times \vect{r}\right) \times \int_{T_n} \nabla G$\\
+& $- \vect{r}_m^p \times \int_{T_m^p} \int_{T_n^q} \nabla G \Big)$ & $- \left(\uvect{n} \times \vect{r}_m^p\right)  \cdot \int_{T_m} \int_{T_n} G \; \vect{r}'$ & $- \left(\uvect{n}\times\vect{r}_m^p \right) \cdot \int_{T_m} \vect{r} \times \int_{T_n} \nabla G$\\
+& & $+ \vect{r}_n^q \cdot \left(\uvect{n} \times \vect{r}_m^p\right) \int_{T_m} \int_{T_n} G \Bigg]$ & $-\vect{r}_n^q \cdot \left[\left(\uvect{n} \times \vect{r}_m^p \right) \times \int_{T_m} \int_{T_n}\nabla G \right]\Bigg\}$\\
+  \hline
+
+\end{tabular}
+\end{table}
+
+
