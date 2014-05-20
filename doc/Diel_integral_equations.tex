@@ -92,6 +92,13 @@ where
 \item $V_m^{E} = -\int_{D_m}\vect{g}_m \arg{\vect{r}} \cdot \field{E}^\text{inc} d\vect{r}$
 \item $V_m^{H} = -\int_{D_m}\vect{g}_m \arg{\vect{r}} \cdot \field{H}^\text{inc} d\vect{r}$.
 \end{itemize}
+%
+\par
+As for the PEC target, we also have that, for $K_{mn}$ and $J_{mn}$:
+\begin{itemize}
+\item $K_{mn} = 0$ if $\vect{g}_m$ and $\vect{f}_n$ are coplanar
+\item $J_{mn} = 0$ if $\vect{g}_m = \vect{f}_m$, and $\vect{f}_m$ and $\vect{f}_n$ are coplanar.
+\end{itemize}
 
 \section{Combining the MoM matrix equations}
 %
@@ -99,12 +106,37 @@ where
 \subsection{PMCHWT}
 %
 \par
-According to section \ref{subsec:PMCHWT}, for this formulation we combine the outside and inside on a per-field basis: EFIE-O (\ref{eqn:EFIE-O}) with EFIE-I (\ref{eqn:EFIE-I}), and MFIE-O (\ref{eqn:MFIE-O}) with MFIE-I (\ref{eqn:MFIE-I}). The testing is done with $\vect{g}_m = \vect{f}_m$. We have
+According to section \ref{subsec:PMCHWT}, for this formulation we combine the outside (1) and inside (2) on a per-field basis: EFIE-O (\ref{eqn:EFIE-O}) with EFIE-I (\ref{eqn:EFIE-I}), and MFIE-O (\ref{eqn:MFIE-O}) with MFIE-I (\ref{eqn:MFIE-I}). The testing is done with $\vect{g}_m = \vect{f}_m$. We have
 \begin{equation}\label{eqn:Matrix EFIE}
 \boxed{\underline{V}^{tE} =  -\left[\underline{\underline{K}}^{(1),t} + \underline{\underline{K}}^{(2),t} \right] \underline{M} + \left[\frac{1}{j \omega \varepsilon_1}  \underline{\underline{D}}^{(1),t} + \frac{1}{j \omega \varepsilon_2}  \underline{\underline{D}}^{(2),t}\right] \underline{I} } \qquad EFIE 
 \end{equation}
 \begin{equation}\label{eqn:Matrix MFIE}
 \boxed{\underline{V}^{tH} =  \left[\underline{\underline{K}}^{(1),t} + \underline{\underline{K}}^{(2),t} \right] \underline{I} + \left[\frac{1}{j \omega \mu_1}  \underline{\underline{D}}^{(1),t} + \frac{1}{j \omega \mu_2}  \underline{\underline{D}}^{(2),t}\right] \underline{M} } \qquad MFIE.
+\end{equation}
+%
+\par
+In matrix for, it is written as:
+\begin{equation}
+\left[
+\begin{matrix}
+  \frac{1}{j \omega \varepsilon_1} \underline{\underline{D}}^{(1), t} + \frac{1}{j \omega \varepsilon_2} \underline{\underline{D}}^{(2), t} & -\underline{\underline{K}}^{(1),t} - \underline{\underline{K}}^{(2),t}  \\ \\
+  \underline{\underline{K}}^{(1),t} + \underline{\underline{K}}^{(2),t} & \frac{1}{j \omega \mu_1}\underline{\underline{D}}^{(1), t} + \frac{1}{j \omega \mu_2} \underline{\underline{D}}^{(2), t}
+\end{matrix}
+\right]
+\cdot 
+\left[
+\begin{matrix}
+  \underline{I} \\ \\
+  \underline{M}  
+\end{matrix}
+\right]
+=
+\left[
+\begin{matrix}
+  \underline{V}^{tE} \\ \\
+  \underline{V}^{tH}
+\end{matrix}
+\right].
 \end{equation}
 
 
