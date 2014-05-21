@@ -47,15 +47,15 @@ def testVolakisMoM(path, targetName, f, M0M_FULL_PRECISION):
             theta_hat = array([cos(theta)*cos(phi), cos(theta)*sin(phi), -sin(theta)], 'd');
             phi_hat = array([-sin(phi), cos(phi), 0.0], 'd');
             # excitation parameters computation
-            J_dip_factor = -(1.0 + 0.0j)
+            J_dip_factor = 100.0
             if polarization=='HH':
                 J_dip = J_dip_factor * phi_hat # HH polarization
             else:
-                J_dip = J_dip_factor * theta_hat # VV polarization
+                J_dip = J_dip_factor * -theta_hat # VV polarization
             R_dip = 300.0 * c/f # we wanna be in far field
             r_dip = R_dip * r_hat
             # excitation vector computation
-            V_EH = computeV_EH(target_mesh, J_dip, r_dip, w, eps_r, mu_r, list_of_test_edges_numbers, 'dipole_plane', 'F')
+            V_EH = computeV_EH(target_mesh, J_dip, r_dip, w, eps_r, mu_r, list_of_test_edges_numbers, 'dipole', 'F')
             V_CFIE = zeros(V_EH.shape[0], complex)
             for i in range(4):
                 V_CFIE += V_EH[:,i] * CFIE[i]
@@ -63,7 +63,7 @@ def testVolakisMoM(path, targetName, f, M0M_FULL_PRECISION):
             I_CFIE = dot(target_MoM.Y_CFIE, V_CFIE)
             # we compute the scattered fields by reciprocity
             V_EH = computeV_EH(target_mesh, J_dip, r_dip, w, eps_r, mu_r, list_of_test_edges_numbers, 'dipole', 'F')
-            E_scatt = sum(I_CFIE * V_EH[:,0]/J_dip_factor)
+            E_scatt = sum(I_CFIE * V_EH[:,0])/J_dip_factor
             # incoming field computation
             Delta_r = (r_dip - r_obs)
             k = w/c # the wavenumber
