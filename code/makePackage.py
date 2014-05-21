@@ -92,7 +92,6 @@ def copySources(SHORT_LICENCE, COPYRIGHT, CONTACT, pathToCopyFrom, pathToCopyTo)
                     os.system("chmod ug+rwx " + os.path.join(pathToCopyTo, sourceFileName))
 
 if __name__=="__main__":
-    RELEASE = '0.6.1'
     MAIN_DIR = '.'
     SHORT_LICENCE = ['This file is part of Puma-EM.\n', '\n', 'Puma-EM is free software: you can redistribute it and/or modify\n', 'it under the terms of the GNU General Public License as published by\n', 'the Free Software Foundation, either version 3 of the License, or\n', '(at your option) any later version.\n', '\n', 'Puma-EM is distributed in the hope that it will be useful,\n', 'but WITHOUT ANY WARRANTY; without even the implied warranty of\n', 'MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n', 'GNU General Public License for more details.\n', '\n', 'You should have received a copy of the GNU General Public License\n', 'along with Puma-EM.  If not, see <http://www.gnu.org/licenses/>.\n']
     COPYRIGHT = "Copyright (C) 2014 Idesbald Van den Bosch"

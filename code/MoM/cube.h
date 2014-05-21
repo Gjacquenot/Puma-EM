@@ -2,7 +2,6 @@
 #define CUBE_H
 
 #include <iostream>
-#include <complex>
 #include <blitz/array.h>
 #include <vector>
 #include <algorithm>  // Include STL algorithms for sorting lists and vectors

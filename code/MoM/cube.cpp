@@ -1,8 +1,6 @@
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <complex>
-#include <cmath>
 #include <blitz/array.h>
 #include <vector>
 #include <algorithm>
