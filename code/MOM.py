@@ -279,7 +279,7 @@ if __name__=="__main__":
             #print "Ex scatt inv =", E_z[-1], "z =", z 
             #print "Ex scatt gmres =", sum(-I_CFIE_gmres[:N_J]*V_EH[:,0] + I_CFIE_gmres[N_J:N_J + N_M]*V_EH[:,2]), "r_obs =", r_obs 
             #print "Ex scatt bicgstab =", sum(-I_CFIE_bicgstab[:N_J]*V_EH[:,0] + I_CFIE_bicgstab[N_J:N_J + N_M]*V_EH[:,2])
-        for z in arange(-0.07,0.07,0.005):
+        for z in arange(-0.075,0.075,0.005):
             r_obs = array([0.0, 0.0, z], 'd')
             V_EH = computeV_EH(target_mesh, J_obs, r_obs, w, eps_r_in, mu_r_in, list_of_test_edges_numbers, 'dipole', 'F')
             E_x.append(sum(target_MoM.I[:N_J]*V_EH[:,0] - target_MoM.I[N_J:N_J + N_M]*V_EH[:,2]))
