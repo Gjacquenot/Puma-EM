@@ -55,7 +55,7 @@ def testVolakisMoM(path, targetName, f, M0M_FULL_PRECISION):
             R_dip = 300.0 * c/f # we wanna be in far field
             r_dip = R_dip * r_hat
             # excitation vector computation
-            V_EH = computeV_EH(target_mesh, J_dip, r_dip, w, eps_r, mu_r, list_of_test_edges_numbers, 'plane', 'F')
+            V_EH = computeV_EH(target_mesh, J_dip, r_dip, w, eps_r, mu_r, list_of_test_edges_numbers, 'dipole_plane', 'F')
             V_CFIE = zeros(V_EH.shape[0], complex)
             for i in range(4):
                 V_CFIE += V_EH[:,i] * CFIE[i]
