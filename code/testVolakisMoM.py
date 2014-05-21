@@ -47,15 +47,19 @@ def testVolakisMoM(path, targetName, f, M0M_FULL_PRECISION):
             theta_hat = array([cos(theta)*cos(phi), cos(theta)*sin(phi), -sin(theta)], 'd');
             phi_hat = array([-sin(phi), cos(phi), 0.0], 'd');
             # excitation parameters computation
-            J_dip_factor = 100.0
+            J_dip_factor = 1.0
             if polarization=='HH':
                 J_dip = J_dip_factor * phi_hat # HH polarization
+                E_0 = phi_hat * (1.0 + 0.0j)
             else:
                 J_dip = J_dip_factor * -theta_hat # VV polarization
+                E_0 = -theta_hat * (1.0 + 0.0j)
             R_dip = 300.0 * c/f # we wanna be in far field
             r_dip = R_dip * r_hat
             # excitation vector computation
-            V_EH = computeV_EH(target_mesh, J_dip, r_dip, w, eps_r, mu_r, list_of_test_edges_numbers, 'dipole', 'F')
+            k_hat = -r_hat
+            r_ref = r_obs
+            V_EH = V_EH_plane(E_0, k_hat, r_ref, list_of_test_edges_numbers, target_mesh.RWGNumber_CFIE_OK, target_mesh.RWGNumber_signedTriangles, target_mesh.RWGNumber_edgeVertexes, target_mesh.RWGNumber_oppVertexes, target_mesh.vertexes_coord, w, eps_r, mu_r)
             V_CFIE = zeros(V_EH.shape[0], complex)
             for i in range(4):
                 V_CFIE += V_EH[:,i] * CFIE[i]
@@ -66,14 +70,9 @@ def testVolakisMoM(path, targetName, f, M0M_FULL_PRECISION):
             E_scatt = sum(I_CFIE * V_EH[:,0])/J_dip_factor
             # incoming field computation
             Delta_r = (r_dip - r_obs)
-            k = w/c # the wavenumber
-            eps = eps_r * eps_0
-            mu = mu_r * mu_0
-            G_EJ_inc, G_HJ_inc = G_EJ_G_HJ(r_dip, r_obs, eps, mu, k)
-            E_inc = dot(G_EJ_inc, J_dip)
             # sigma computation
             P_scatt = real(E_scatt*conj(E_scatt))
-            P_inc = real(dot(E_inc, conj(E_inc)))
+            P_inc = real(dot(E_0, conj(E_0)))
             if polarization=='HH':
                 sigmas_HH[index] = 4*pi* sum(Delta_r**2) * P_scatt/P_inc
             else:
