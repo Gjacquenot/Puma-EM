@@ -1,9 +1,3 @@
-#include <fstream>
-#include <iostream>
-#include <string>
-#include <blitz/array.h>
-#include <vector>
-#include <algorithm>
 #include <mpi.h>
 
 using namespace std;
