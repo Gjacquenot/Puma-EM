@@ -5,13 +5,11 @@ using namespace std;
 #include "cube.h"
 #include "readWriteBlitzArrayFromFile.h"
 
-Cube::Cube(const bool is_leaf,                           // 1 if cube is leaf
-           const int level,                              // the level
+Cube::Cube(const int level,                              // the level
            const double sideLength,                      // length of cube side
            const double bigCubeLowerCoord[3], // coordinates of level 0 cube
            const double r_c[3])                  // coordinates of center
 {
-  leaf = is_leaf;
   for (int i=0 ; i<3 ; ++i) rCenter[i] = r_c[i]; // we must loop, since rCenter is an array
 
   // we compute the absolute cartesian coordinates and the cube number
@@ -40,7 +38,6 @@ Cube::Cube(const Cube& sonCube,
            const double bigCubeLowerCoord[3],
            const double sideLength)
 {
-  leaf = 0; // since we construct from a son cube...
   number = sonCube.getFatherNumber();
   procNumber = sonCube.getProcNumber();
   sonsIndexes.push_back(sonCube.getIndex());
@@ -231,7 +228,6 @@ void Cube::computeGaussLocatedArguments(const blitz::Array<int, 1>& local_RWG_nu
 
 void Cube::copyCube(const Cube& cubeToCopy) // copy member function
 {
-  leaf = cubeToCopy.getLeaf();
   number = cubeToCopy.getNumber();
   index = cubeToCopy.getIndex();
   oldIndex = cubeToCopy.getOldIndex();

@@ -34,7 +34,7 @@ Level::Level(const int l,
   cubes.reserve(N_cubes_level_L);
   for (int j=0 ; j<N_cubes_level_L ; ++j) {
     const double r_c[3] = {cubes_centroids(j, 0), cubes_centroids(j, 1), cubes_centroids(j, 2)};
-    addNode(Cube(leaf, level, leaf_side_length, big_cube_lower_coord, r_c));
+    addNode(Cube(level, leaf_side_length, big_cube_lower_coord, r_c));
     cubes[j].setOldIndex(j); // the original index, from the python mesh
   }
 }
@@ -83,8 +83,7 @@ Level::Level(const int l,
   cubes.resize(N_cubes_level_L);
   for (j=0 ; j<N_cubes_level_L ; ++j) {
     const double r_c[3] = {cubes_centroids(j, 0), cubes_centroids(j, 1), cubes_centroids(j, 2)};
-    cubes[j] = Cube(leaf, level, leaf_side_length, big_cube_lower_coord, r_c);
-    //addNode( Cube(leaf, level, leaf_side_length, big_cube_lower_coord, cubes_centroids(j, all)) );
+    cubes[j] = Cube(level, leaf_side_length, big_cube_lower_coord, r_c);
     cubes[j].setOldIndex(j); // the original index, from the python mesh
   }
   if ( (my_id==0) && (VERBOSE==1) ) cout << "cubes.size() = " << cubes.size() << ", cubes.capacity() = " << cubes.capacity() << endl;

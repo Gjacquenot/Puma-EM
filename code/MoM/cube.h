@@ -13,8 +13,6 @@ using namespace std;
 #include "dictionary.h"
 
 class Cube {
-    //! tells if the current cube is leaf (finest) or not
-    bool leaf;
     //! the absolute number of the current cube
     int number;
     //! the current index of the current cube in the list of all cubes at a given level
@@ -60,15 +58,13 @@ class Cube {
     Cube(void){};
     //! the base constructor
     /*!
-      \param is_leaf a bool argument, true if cube is leaf
       \param level the number of the level
       \param sideLength the length of the cube side
       \param big_cube_lower_coord the lower coordinate of the father of all cubes
       \param r_c the coordinates of cube center
       \return the constructed cube
     */
-    Cube(const bool is_leaf, 
-         const int level,
+    Cube(const int level,
          const double sideLength,
          const double big_cube_lower_coord[3],
          const double r_c[3]);
@@ -95,8 +91,6 @@ class Cube {
     ~Cube();
 
     // specific functions
-    //! returns true if we are at leaf level, false otherwise
-    bool getLeaf(void) const {return leaf;}
     void addSon(const Cube&);
     //! returns the size of the sonsIndexes vector
     int getSonsIndexesSize(void) const {return sonsIndexes.size();}
