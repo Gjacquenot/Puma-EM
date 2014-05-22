@@ -9,10 +9,10 @@ Cube::Cube(const bool is_leaf,                           // 1 if cube is leaf
            const int level,                              // the level
            const double sideLength,                      // length of cube side
            const double bigCubeLowerCoord[3], // coordinates of level 0 cube
-           const blitz::Array<double, 1>& r_c)                  // coordinates of center
+           const double r_c[3])                  // coordinates of center
 {
   leaf = is_leaf;
-  for (int i=0 ; i<3 ; ++i) rCenter[i] = r_c(i); // we must loop, since rCenter is an array
+  for (int i=0 ; i<3 ; ++i) rCenter[i] = r_c[i]; // we must loop, since rCenter is an array
 
   // we compute the absolute cartesian coordinates and the cube number
   for (int i=0 ; i<3 ; ++i) absoluteCartesianCoord[i] = floor( (rCenter[i]-bigCubeLowerCoord[i])/sideLength );

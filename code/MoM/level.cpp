@@ -24,7 +24,6 @@ Level::Level(const int l,
              const double big_cube_lower_coord[3],
              const blitz::Array<double, 2>& cubes_centroids)
 {
-  blitz::Range all = blitz::Range::all();
   numberTimesCopied = 0;
   level = l;
   DIRECTIONS_PARALLELIZATION = 0;
@@ -34,7 +33,8 @@ Level::Level(const int l,
   const int leaf = 1;
   cubes.reserve(N_cubes_level_L);
   for (int j=0 ; j<N_cubes_level_L ; ++j) {
-    addNode(Cube(leaf, level, leaf_side_length, big_cube_lower_coord, cubes_centroids(j, all)));
+    const double r_c[3] = {cubes_centroids(j, 0), cubes_centroids(j, 1), cubes_centroids(j, 2)};
+    addNode(Cube(leaf, level, leaf_side_length, big_cube_lower_coord, r_c));
     cubes[j].setOldIndex(j); // the original index, from the python mesh
   }
 }
@@ -70,7 +70,6 @@ Level::Level(const int l,
 {
   const int my_id = MPI::COMM_WORLD.Get_rank(), num_procs = MPI::COMM_WORLD.Get_size();
   numberTimesCopied = 0;
-  blitz::Range all = blitz::Range::all();
   k = waveNumber;
   level = l;
   leaf = true;
@@ -83,7 +82,8 @@ Level::Level(const int l,
   int j, N_cubes_level_L = cubes_centroids.extent(0);
   cubes.resize(N_cubes_level_L);
   for (j=0 ; j<N_cubes_level_L ; ++j) {
-    cubes[j] = Cube(leaf, level, leaf_side_length, big_cube_lower_coord, cubes_centroids(j, all));
+    const double r_c[3] = {cubes_centroids(j, 0), cubes_centroids(j, 1), cubes_centroids(j, 2)};
+    cubes[j] = Cube(leaf, level, leaf_side_length, big_cube_lower_coord, r_c);
     //addNode( Cube(leaf, level, leaf_side_length, big_cube_lower_coord, cubes_centroids(j, all)) );
     cubes[j].setOldIndex(j); // the original index, from the python mesh
   }

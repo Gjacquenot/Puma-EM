@@ -71,7 +71,7 @@ class Cube {
          const int level,
          const double sideLength,
          const double big_cube_lower_coord[3],
-         const blitz::Array<double, 1>& r_c);
+         const double r_c[3]);
     //! allows a cube to be overwritten by the provided cube
     /*!
       \param cubeToCopy the cube to copy
