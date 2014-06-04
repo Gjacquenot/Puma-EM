@@ -579,6 +579,130 @@ void local_V_CFIE_dipole_array (blitz::Array<std::complex<float>, 1>& V_CFIE,
   V_CFIE_dipole_array (V_CFIE, CFIE, J_dip, r_dip, local_target_mesh.reallyLocalRWGNumbers, local_target_mesh.localRWGNumber_CFIE_OK, local_target_mesh.localRWGNumber_trianglesCoord, w, eps_r, mu_r, CURRENT_TYPE, FULL_PRECISION);
 }
 
+/*****************************************
+ * computation of the observation fields *
+ *****************************************/
+void compute_E_obs(blitz::Array<std::complex<float>, 1>& E_obs,
+                   blitz::Array<std::complex<float>, 1>& H_obs,
+                   const blitz::Array<double, 1>& r_obs,
+                   const blitz::Array<std::complex<float>, 1>& ZI,
+                   const blitz::Array<int, 1>& numbers_RWG_test,
+                   const blitz::Array<float, 2>& RWGNumber_trianglesCoord,
+                   const double w,
+                   const std::complex<double>& eps_r,
+                   const std::complex<double>& mu_r,
+                   const int FULL_PRECISION)
+{
+  // def of k, mu_i, eps_i
+  int N_RWG_test = numbers_RWG_test.size();
+  std::complex<double> mu = mu_0 * mu_r, eps = eps_0 * eps_r, k = w * sqrt(eps*mu);
+  // triangle integration precision. Possible values for N_points: 1, 3, 6, 9, 12, 13
+  int N_points_far, N_points_near;
+  if (FULL_PRECISION!=0) {
+    N_points_far = 6; 
+    N_points_near = 9;
+  }
+  else {
+    N_points_far = 1; 
+    N_points_near = 3;
+  }
+
+  // geometrical entities
+  double r0[3], r1[3], r2[3], *r_opp;
+  std::vector< std::vector < std::complex<double> > > G_EJ, G_HJ;
+  G_EJ.resize(3);
+  G_HJ.resize(3);
+  for (int i=0; i<3; i++) {
+    G_EJ[i].resize(3);
+    G_HJ[i].resize(3);
+  }
+  double rObs[3];
+  for (int i=0 ; i<3 ; ++i) rObs[i] = r_obs(i);
+
+  E_obs = 0.0;   // E_obs = int_S G_EJ dot J + int_S G_EM dot M
+  H_obs = 0.0;   // H_obs = int_S G_HJ dot J + int_S G_HM dot M
+  for (int rwg=0 ; rwg<N_RWG_test ; ++rwg) { // loop on the RWGs
+    for (int tr = 0 ; tr<2 ; ++tr) {
+      double l_p;
+      if (tr==0) {
+        for (int i=0; i<3; i++) { 
+          r0[i] = RWGNumber_trianglesCoord(rwg, i);
+          r1[i] = RWGNumber_trianglesCoord(rwg, i+3);
+          r2[i] = RWGNumber_trianglesCoord(rwg, i+6);
+        }
+        r_opp = r0;
+        double r1_r2[3] = {r1[0]-r2[0], r1[1]-r2[1], r1[2]-r2[2]};
+        l_p = sqrt(dot3D(r1_r2, r1_r2));
+      }
+      else{
+        for (int i=0; i<3; i++) { 
+          r0[i] = RWGNumber_trianglesCoord(rwg, i+6);
+          r1[i] = RWGNumber_trianglesCoord(rwg, i+3);
+          r2[i] = RWGNumber_trianglesCoord(rwg, i+9);
+        }
+        r_opp = r2;
+        double r0_r1[3] = {r0[0]-r1[0], r0[1]-r1[1], r0[2]-r1[2]};
+        l_p = sqrt(dot3D(r0_r1, r0_r1));
+      }
+      Triangle triangle(r0, r1, r2, 0);
+
+      // weights and abscissas for triangle integration
+      const double rGrav_rObs[3] = {triangle.r_grav[0] - rObs[0], triangle.r_grav[1] - rObs[1], triangle.r_grav[2] - rObs[2]};
+      double R_os = sqrt (dot3D(rGrav_rObs, rGrav_rObs));
+      bool IS_NEAR = (R_os - 1.5 * triangle.R_max <= 0.0);
+      int N_points = N_points_far;
+      if (IS_NEAR) N_points = N_points_near;
+      double sum_weigths;
+      const double *xi, *eta, *weigths;
+      IT_points (xi, eta, weigths, sum_weigths, N_points);
+      // triangle integration
+      std::complex<double> ITo_E_obs[3] = {0.0, 0.0, 0.0};
+      std::complex<double> ITo_H_obs[3] = {0.0, 0.0, 0.0};
+      for (int j=0 ; j<N_points ; ++j) {
+        double r_src[3];
+        r_src[0] = r0[0] * xi[j] + r1[0] * eta[j] + r2[0] * (1-xi[j]-eta[j]);
+        r_src[1] = r0[1] * xi[j] + r1[1] * eta[j] + r2[1] * (1-xi[j]-eta[j]);
+        r_src[2] = r0[2] * xi[j] + r1[2] * eta[j] + r2[2] * (1-xi[j]-eta[j]);
+        G_EJ_G_HJ (G_EJ, G_HJ, rObs, r_src, eps, mu, k);
+
+        // computation of E_obs
+        const double fn[3] = {r_src[0]-r_opp[0], r_src[1]-r_opp[1], r_src[2]-r_opp[2]};
+        for (int m=0 ; m<3 ; m++) ITo_E_obs[m] += (G_EJ [m][0] * fn[0] + G_EJ [m][1] * fn[1] + G_EJ [m][2] * fn[2]) * weigths[j];
+
+        // computation of H_obs
+        for (int m=0 ; m<3 ; m++) ITo_H_obs[m] += (G_HJ [m][0] * fn[0] + G_HJ [m][1] * fn[1] + G_HJ [m][2] * fn[2]) * weigths[j];
+      }
+      const double norm_factor = triangle.A/sum_weigths;
+      for (int i=0 ; i<3 ; ++i) ITo_E_obs[i] *= norm_factor;
+      for (int i=0 ; i<3 ; ++i) ITo_H_obs[i] *= norm_factor;
+
+      const double sign_edge_p = (tr==0) ? 1.0 : -1.0;
+      const double C_rp = sign_edge_p * l_p * 0.5/triangle.A;
+      const int local_number_edge_p = numbers_RWG_test(rwg);
+      const std::complex<double> i_rwg = ZI(local_number_edge_p);
+
+      for (int i=0 ; i<3 ; ++i) E_obs(i) += ITo_E_obs[i] * (C_rp*i_rwg);
+      for (int i=0 ; i<3 ; ++i) H_obs(i) += ITo_H_obs[i] * (C_rp*i_rwg);
+    }
+  }
+}
+
+
+void local_compute_E_obs (blitz::Array<std::complex<float>, 1>& E_obs,
+                          blitz::Array<std::complex<float>, 1>& H_obs,
+                          const blitz::Array<double, 1>& r_obs,
+                          const blitz::Array<std::complex<float>, 1>& ZI,
+                          const LocalMesh & local_target_mesh,
+                          const double w,
+                          const std::complex<double>& eps_r,
+                          const std::complex<double>& mu_r,
+                          const int FULL_PRECISION)
+{
+  // We now compute the excitation vectors
+  E_obs.resize(3);
+  H_obs.resize(3);
+  compute_E_obs(E_obs, H_obs, r_obs, ZI, local_target_mesh.reallyLocalRWGNumbers, local_target_mesh.localRWGNumber_trianglesCoord, w, eps_r, mu_r, FULL_PRECISION);
+}
 
 /*void V_EJ_HJ_dipole_alternative (blitz::Array<std::complex<double>, 1> V_tE_J,
                                  blitz::Array<std::complex<double>, 1> V_nE_J,

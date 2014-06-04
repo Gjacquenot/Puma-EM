@@ -62,7 +62,17 @@ void local_V_CFIE_dipole_array (blitz::Array<std::complex<float>, 1>& V_CFIE,
                                 const char CURRENT_TYPE,
                                 const int FULL_PRECISION);
 
-void V_EJ_HJ_dipole_alternative (blitz::Array<std::complex<double>, 1> V_tE_J, 
+void local_compute_E_obs (blitz::Array<std::complex<float>, 1>& E_obs,
+                          blitz::Array<std::complex<float>, 1>& H_obs,
+                          const blitz::Array<double, 1>& r_obs,
+                          const blitz::Array<std::complex<float>, 1>& ZI,
+                          const LocalMesh & local_target_mesh,
+                          const double w,
+                          const std::complex<double>& eps_r,
+                          const std::complex<double>& mu_r,
+                          const int FULL_PRECISION);
+
+/*void V_EJ_HJ_dipole_alternative (blitz::Array<std::complex<double>, 1> V_tE_J, 
                                  blitz::Array<std::complex<double>, 1> V_nE_J,
                                  blitz::Array<std::complex<double>, 1> V_tH_J,
                                  blitz::Array<std::complex<double>, 1> V_nH_J,
@@ -76,7 +86,7 @@ void V_EJ_HJ_dipole_alternative (blitz::Array<std::complex<double>, 1> V_tE_J,
                                  const double w,
                                  const std::complex<double>& eps_r,
                                  const std::complex<double>& mu_r,
-                                 const int FULL_PRECISION);
+                                 const int FULL_PRECISION);*/
 
 void E_plane (blitz::Array<std::complex<double>, 1> E_field,
               const blitz::Array<std::complex<double>, 1> E_inc_spherical_coord,

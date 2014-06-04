@@ -356,6 +356,7 @@ blitz::Array<std::complex<float>, 1> PsolveAMLFMA::psolve(const blitz::Array<std
 /****************************************************************************/
 
 void computeE_obs(blitz::Array<std::complex<double>, 2>& E_obs,
+                  blitz::Array<std::complex<double>, 2>& H_obs,
                   const blitz::Array<double, 2>& r_obs,
                   const LocalMesh &  local_target_mesh,
                   const blitz::Array<std::complex<float>, 1>& ZI,
@@ -365,19 +366,20 @@ void computeE_obs(blitz::Array<std::complex<double>, 2>& E_obs,
 {
   int ierror, FULL_PRECISION = 1;
   blitz::Range all = blitz::Range::all();
-  blitz::Array<std::complex<float>, 1> CFIE_for_tE(4);
-  CFIE_for_tE = 1.0, 0.0, 0.0, 0.0;
   E_obs.resize(r_obs.extent(0), r_obs.extent(1));
+  H_obs.resize(r_obs.extent(0), r_obs.extent(1));
   for (int j=0 ; j<r_obs.extent(0) ; ++j) {
+    blitz::Array<std::complex<float>, 1> E_tmp(3), H_tmp(3);
+    local_compute_E_obs(E_tmp, H_tmp, r_obs(j, all), ZI, local_target_mesh, w, eps_r, mu_r, FULL_PRECISION);
     for (int i=0 ; i<3 ; ++i) {
-      blitz::Array<std::complex<float>, 1> V_tE;
-      blitz::Array<std::complex<double>, 1> J_obs(3);
-      J_obs = 0.0;
-      J_obs(i) = 1.0;
-      local_V_CFIE_dipole (V_tE, J_obs, r_obs(j, all), local_target_mesh, w, eps_r, mu_r, CFIE_for_tE, FULL_PRECISION);
-      std::complex<float> local_e_tmp = sum(V_tE * ZI), e_tmp;
+      // E field
+      std::complex<float> local_e_tmp(E_tmp(i)), e_tmp(0.0);
       ierror = MPI_Allreduce(&local_e_tmp, &e_tmp, 1, MPI_COMPLEX, MPI_SUM, MPI_COMM_WORLD);
       E_obs(j, i) = e_tmp;
+      // H field
+      std::complex<float> local_h_tmp(H_tmp(i)), h_tmp(0.0);
+      ierror = MPI_Allreduce(&local_h_tmp, &h_tmp, 1, MPI_COMPLEX, MPI_SUM, MPI_COMM_WORLD);
+      H_obs(j, i) = h_tmp;
     }
   }
 }
@@ -513,9 +515,9 @@ void computeForOneExcitation(Octtree & octtree,
   if (BISTATIC_R_OBS==1) {
     blitz::Array<double, 2> r_obs;
     readDoubleBlitzArray2DFromASCIIFile( V_CFIE_DATA_PATH + "r_obs.txt", r_obs);
-    blitz::Array<std::complex<double>, 2> E_obs;
+    blitz::Array<std::complex<double>, 2> E_obs, H_obs;
     local_target_mesh.setLocalMeshFromFile(MESH_DATA_PATH);
-    computeE_obs(E_obs, r_obs, local_target_mesh, ZI, eps_r, mu_r, w);
+    computeE_obs(E_obs, H_obs, r_obs, local_target_mesh, ZI, eps_r, mu_r, w);
     local_target_mesh.resizeToZero();
     if (my_id==master) writeComplexDoubleBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "E_obs_scatt.txt", E_obs);
     if (my_id==master) writeDoubleBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "r_obs.txt", r_obs);
@@ -1025,10 +1027,10 @@ void computeMonostaticSAR(Octtree & octtree,
           }
           // field computation (O(N) version)
           blitz::Array<double, 2> r_obs(1, 3);
-          blitz::Array<std::complex<double>, 2> E_obs(1, 3);
+          blitz::Array<std::complex<double>, 2> E_obs(1, 3), H_obs(1, 3);
           r_obs(0, all) = r_ref;
           local_target_mesh.setLocalMeshFromFile(MESH_DATA_PATH);
-          computeE_obs(E_obs, r_obs, local_target_mesh, ZI, static_cast<complex<float> >(eps_r), static_cast<complex<float> >(mu_r), w);
+          computeE_obs(E_obs, H_obs, r_obs, local_target_mesh, ZI, static_cast<complex<float> >(eps_r), static_cast<complex<float> >(mu_r), w);
           local_target_mesh.resizeToZero();
           // filling of the RCS Arrays
           if (HH || HV) {
