@@ -38,8 +38,8 @@ D_{mn} = \underbrace{\int_{D_m} \vect{g}_m\arg{\vect{r}} \cdot \left(\nabla \int
 \end{equation}
 
 
-\subsection{Testing with $\vect{g}_m = \vect{f}_m$: $D_{mn}^t$}
-\subsubsection{$D_{mn,1}^t$}
+\subsection{$D_{mn,1}$}
+\subsubsection{Testing with $\vect{g}_m = \vect{f}_m$: $D_{mn,1}^t$}
 %
 \par
 First we modify integral $D_{mn,1}^t$. The gradient applied to the inside inner product can be applied on the testing function by integrating by parts and by applying Gauss' divergence theorem \cite{Rao_82, Taskinen_03}:
@@ -64,19 +64,7 @@ with $C_m^p = \frac{S_m^p l_m}{2 A_m^p}$, where $S_m^p$ is the sign of test func
 \par
 One more comment must be made about (\ref{eqn:MoM scalar potential term}). $G$ is singular when $\vect{r} = \vect{r}'$, and this renders the numerical integration very imprecise if $T_m^p$ is close to $T_n^q$. This singularity must be properly extracted. This is done thoroughly in \cite{Taskinen_03} and will not be discussed here.
 
-\subsubsection{$D_{mn,2}^t$}
-%
-\par
-Now let us develop $D_{mn,2}^t$. From definition (\ref{eqn:RWG definition}) of the RWG basis functions, it is immediate to see that $D_{mn,2}^t$ is constituted by combinations of the following term:
-\begin{multline}  \label{eqn:MoM vector potential term}
-C_m^p C_n^q \int_{T_m^p} \left(\vect{r}-\vect{r}_m^p \right) \cdot \int_{T_n^q} G \left(\vect{r}'-\vect{r}_n^q \right) \ud S' \ud S = C_m^p C_n^q \Bigg[ \int_{T_m^p} \vect{r} \cdot \int_{T_n^q} G \; \vect{r}' \ud S' \ud S  - \vect{r}_n^q \cdot \int_{T_m^p} \vect{r} \int_{T_n^q} G \; \ud S' \ud S \\
-- \vect{r}_m^p \cdot \int_{T_m^p} \int_{T_n^q} G \; \vect{r}' \ud S' \ud S + \vect{r}_m^p \cdot \vect{r}_n^q \int_{T_m^p} \int_{T_n^q} G \; \ud S' \ud S \Bigg]
-\end{multline}
-where $\vect{r}_m^p$ is the vector position of the node belonging to triangle $p$ and opposite to edge $m$. The four integrals on the right-hand side of the above equation are independent of the edges, and each can again be performed triangle-wise. Only their recombination is edge-dependent.
-
-\subsection{Testing with $\vect{g}_m = \uvect{n} \times \vect{f}_m$: $D_{mn}^n$}
-
-\subsubsection{$D_{mn,1}^n$}
+\subsubsection{Testing with $\vect{g}_m = \uvect{n} \times \vect{f}_m$: $D_{mn,1}^n$}
 %
 \par
 Rewriting explicitly $D_{mn,1}^n$ with $\vect{g}_m = \uvect{n} \times \vect{f}_m$, we can see that it will be a combination of the following term:
@@ -112,7 +100,19 @@ where use of identity $\nabla \times \left(a \vect{b}\right) = a \nabla \times \
 \end{equation}
 which is a more elegant form than its counterpart (23) of \cite{Taskinen_03}. Singularity $\frac{1}{R^2}$ has been reduced to $\frac{1}{R}$ and can therefore be analytically extracted even for overlapping basis and test functions. 
 
-\subsubsection{$D_{mn,2}^n$}
+
+\subsection{$D_{mn,2}$}
+\subsubsection{Testing with $\vect{g}_m = \vect{f}_m$: $D_{mn,2}^t$}
+%
+\par
+Now let us develop $D_{mn,2}^t$. From definition (\ref{eqn:RWG definition}) of the RWG basis functions, it is immediate to see that $D_{mn,2}^t$ is constituted by combinations of the following term:
+\begin{multline}  \label{eqn:MoM vector potential term}
+C_m^p C_n^q \int_{T_m^p} \left(\vect{r}-\vect{r}_m^p \right) \cdot \int_{T_n^q} G \left(\vect{r}'-\vect{r}_n^q \right) \ud S' \ud S = C_m^p C_n^q \Bigg[ \int_{T_m^p} \vect{r} \cdot \int_{T_n^q} G \; \vect{r}' \ud S' \ud S  - \vect{r}_n^q \cdot \int_{T_m^p} \vect{r} \int_{T_n^q} G \; \ud S' \ud S \\
+- \vect{r}_m^p \cdot \int_{T_m^p} \int_{T_n^q} G \; \vect{r}' \ud S' \ud S + \vect{r}_m^p \cdot \vect{r}_n^q \int_{T_m^p} \int_{T_n^q} G \; \ud S' \ud S \Bigg]
+\end{multline}
+where $\vect{r}_m^p$ is the vector position of the node belonging to triangle $p$ and opposite to edge $m$. The four integrals on the right-hand side of the above equation are independent of the edges, and each can again be performed triangle-wise. Only their recombination is edge-dependent.
+
+\subsubsection{Testing with $\vect{g}_m = \uvect{n} \times \vect{f}_m$: $D_{mn,2}^n$}
 %
 \par
 Let us now develop $D_{mn,2}^n$. We will have the following terms:
