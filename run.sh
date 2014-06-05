@@ -46,6 +46,7 @@ ${PYTHON_CMD} code/setup_GMSH.py --inputdir ${INPUT_DIR} --simudir ${SIMU_DIR}
 ${MPI_CMD} ${PYTHON_CMD} code/setup_MLFMA_folders.py --simudir ${SIMU_DIR}
 ${MPI_CMD} ${PYTHON_CMD} code/setup_MLFMA_excitation.py --inputdir ${INPUT_DIR} --simudir ${SIMU_DIR}
 ${MPI_CMD} ${PYTHON_CMD} code/setup_MLFMA_mesh.py --inputdir ${INPUT_DIR} --simudir ${SIMU_DIR}
+${MPI_CMD} ${PYTHON_CMD} code/setup_MLFMA_poles.py --inputdir ${INPUT_DIR} --simudir ${SIMU_DIR}
 
 # distribution of data across processes
 { time -p ${MPI_CMD} ./code/MoM/distribute_Z_cubes --simudir ${SIMU_DIR}; } 2> ${SIMU_DIR}/result/CPU_time_distribute_Z_cubes.txt

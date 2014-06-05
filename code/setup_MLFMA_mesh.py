@@ -11,7 +11,6 @@ from mpi4py import MPI
 from scipy import array, sqrt, take, sum, mean, zeros
 from ReadWriteBlitzArray import writeScalarToDisk, writeASCIIBlitzArrayToDisk, writeBlitzArrayToDisk, read1DBlitzArrayFromDisk
 from ReadWriteBlitzArray import readIntFromDisk, readASCIIBlitzIntArray1DFromDisk, readBlitzArrayFromDisk
-from MLFMA import computeTreeParameters
 from read_mesh import read_mesh_GMSH_1, read_mesh_GMSH_2, read_mesh_GiD, read_mesh_ANSYS
 from mesh_functions_seb import compute_RWG_meanEdgeLength
 
@@ -219,7 +218,6 @@ def setup_mesh(params_simu, simuDirName):
     writeScalarToDisk(params_simu.INNER_MAXITER, os.path.join(tmpDirName, 'iterative_data/INNER_MAXITER.txt') )
     writeScalarToDisk(params_simu.INNER_RESTART, os.path.join(tmpDirName, 'iterative_data/INNER_RESTART.txt') )
     writeScalarToDisk(N_RWG, os.path.join(tmpDirName, 'ZI/ZI_size.txt') )
-    computeTreeParameters(my_id, tmpDirName, a, k, N_levels, params_simu)
 
     variables = {}
     variables['a'] = a
