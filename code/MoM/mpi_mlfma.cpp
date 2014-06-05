@@ -553,6 +553,8 @@ void computeForOneExcitation(Octtree & octtree,
   blitz::Array<std::complex<float>, 2> e_theta_far, e_phi_far;
   octtree.computeFarField(e_theta_far, e_phi_far, octtreeXthetas_coarsest, octtreeXphis_coarsest, ZI, OCTTREE_DATA_PATH);
   if (my_id==master) {
+    // the real fields at far-field distance R from target are obtained by:
+    // (E_theta, E_phi) = exp(-j*k*R)/(4*pi*R) * (e_theta_far, e_phi_far)
     writeComplexFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "scatt_e_theta_far_ASCII.txt", e_theta_far);
     writeComplexFloatBlitzArray2DToBinaryFile(RESULT_DATA_PATH + "scatt_e_theta_far_Binary.txt", e_theta_far);
     writeComplexFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "scatt_e_phi_far_ASCII.txt", e_phi_far);
@@ -575,6 +577,8 @@ void computeForOneExcitation(Octtree & octtree,
       readFloatBlitzArray2DFromASCIIFile( V_CFIE_DATA_PATH + "r_J_dip.txt", r_J_dip);
       blitz::Array<std::complex<float>, 2> e_theta_far_source, e_phi_far_source;
       if (my_id==master) {
+        // the real fields at far-field distance R from target are obtained by:
+        // (E_theta, E_phi) = exp(-j*k*R)/(4*pi*R) * (e_theta_far, e_phi_far)
         octtree.computeSourceFarField(e_theta_far_source, e_phi_far_source, octtreeXthetas_coarsest, octtreeXphis_coarsest, J_dip, r_J_dip);
         writeComplexFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "source_e_theta_far_ASCII.txt", e_theta_far_source);
         writeComplexFloatBlitzArray2DToBinaryFile(RESULT_DATA_PATH + "source_e_theta_far_Binary.txt", e_theta_far_source);
@@ -733,6 +737,8 @@ void computeMonostaticRCS(Octtree & octtree,
           blitz::Array<float, 1> thetas(1), phis(1);
           thetas(0) = theta;
           phis(0) = phi;
+          // the real fields at far-field distance R from target are obtained by:
+          // (E_theta, E_phi) = exp(-j*k*R)/(4*pi*R) * (e_theta_far, e_phi_far)
           octtree.computeFarField(e_theta_far, e_phi_far, thetas, phis, ZI, OCTTREE_DATA_PATH);
           // filling of the RCS Arrays
           if (HH || HV) {
