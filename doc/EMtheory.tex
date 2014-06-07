@@ -121,18 +121,18 @@ Evaluating (\ref{eqn:magneticFieldInt-2}) at a point $\vect{r}$ on the surface $
 But, since $\current{J}_{S,1} \triangleq \vect{\hat{n}} \times \field{H}_1$, we have that $\field{H}_1 = -\vect{\hat{n}} \times \current{J}_{S,1}$, and (\ref{eqn:magneticFieldInt-3}) is rewritten as:
 \begin{equation}\label{eqn:magneticFieldInt-4}
 \boxed{
-\field{H}^\text{inc}\left(\vect{r}\right) = - \frac{1}{2} \vect{\hat{n}} \times \current{J}_{S,1}\left(\vect{r}\right) - \frac{\nabla \nabla \cdot + k_1^2}{j \omega \mu_1} \int_S G_1(\vect{r}, \vect{r}') \current{M}_{S,1}\left(\vect{r}'\right) d\vect{r}'  - \int_S \nabla G_1(\vect{r}, \vect{r}') \times \current{J}_{S,1}\left(\vect{r}'\right) d\vect{r}'}
+\field{H}^\text{inc}\left(\vect{r}\right) = - \frac{1}{2} \vect{\hat{n}} \times \current{J}_{S,1}\left(\vect{r}\right)  - \int_S \nabla G_1(\vect{r}, \vect{r}') \times \current{J}_{S,1}\left(\vect{r}'\right) d\vect{r}' - \frac{\nabla \nabla \cdot + k_1^2}{j \omega \mu_1} \int_S G_1(\vect{r}, \vect{r}') \current{M}_{S,1}\left(\vect{r}'\right) d\vect{r}'}
 \end{equation}
 which is known as the outside magnetic field integral equation. It can be conveniently rewritten in a more compact form as follows:
 \begin{equation}\label{eqn:MFIE-O}
 \boxed{
-\field{H}^\text{inc} = - \frac{1}{2} \vect{\hat{n}} \times \current{J}_{S,1} - \frac{1}{j \omega \mu_1} \operator{D}_1 \left( \current{M}_{S,1}\right) - \operator{K}_1 \left(\current{J}_{S,1}\right)
+\field{H}^\text{inc} = - \frac{1}{2} \vect{\hat{n}} \times \current{J}_{S,1} - \operator{K}_1 \left(\current{J}_{S,1}\right) - \frac{1}{j \omega \mu_1} \operator{D}_1 \left( \current{M}_{S,1}\right)
 } \qquad MFIE-O
 \end{equation}
 The outside electric field integral equation is then simply obtained by duality:
 \begin{equation}\label{eqn:EFIE-O}
 \boxed{
-\field{E}^\text{inc} =  \frac{1}{2} \vect{\hat{n}} \times \current{M}_{S,1} - \frac{1}{j \omega \varepsilon_1} \operator{D}_1 \left( \current{J}_{S,1}\right) + \operator{K}_1 \left(\current{M}_{S,1}\right)
+\field{E}^\text{inc} =  - \frac{1}{j \omega \varepsilon_1} \operator{D}_1 \left( \current{J}_{S,1}\right) + \frac{1}{2} \vect{\hat{n}} \times \current{M}_{S,1} + \operator{K}_1 \left(\current{M}_{S,1}\right)
 } \qquad EFIE-O
 \end{equation}
 
@@ -164,8 +164,8 @@ Evaluating (\ref{eqn:magneticFieldIntInside-2}) at a point $\vect{r}$ on the sur
 Since $\current{J}_{S,2} \triangleq (-\vect{\hat{n}}) \times \field{H}_2$, we have $\vect{\hat{n}} \times \current{J}_{S,2} = \field{H}_2$, and (\ref{eqn:magneticFieldIntInside-3}) is recast as
 \begin{equation}\label{eqn:magneticFieldIntInside-4}
 \begin{split}
-0 &= - \frac{1}{2} \vect{\hat{n}} \times \current{J}_{S,2}\left(\vect{r}\right) + \frac{\nabla \nabla \cdot + k_2^2}{j \omega \mu_2} \int_S G_2(\vect{r}, \vect{r}') \current{M}_{S,2}\left(\vect{r}'\right) d\vect{r}' +  \int_S \nabla G_2(\vect{r}, \vect{r}') \times \current{J}_{S,2}\left(\vect{r}'\right) d\vect{r}' \\
-&=  - \frac{1}{2} \vect{\hat{n}} \times \current{J}_{S,2} + \frac{1}{j \omega \mu_2} \operator{D}_2\left(\current{M}_{S,2}\right) +  \operator{K}_2\left( \current{J}_{S,2}\right).
+0 &= - \frac{1}{2} \vect{\hat{n}} \times \current{J}_{S,2}\left(\vect{r}\right) +  \int_S \nabla G_2(\vect{r}, \vect{r}') \times \current{J}_{S,2}\left(\vect{r}'\right) d\vect{r}' + \frac{\nabla \nabla \cdot + k_2^2}{j \omega \mu_2} \int_S G_2(\vect{r}, \vect{r}') \current{M}_{S,2}\left(\vect{r}'\right) d\vect{r}'  \\
+&=  - \frac{1}{2} \vect{\hat{n}} \times \current{J}_{S,2} +  \operator{K}_2\left( \current{J}_{S,2}\right) + \frac{1}{j \omega \mu_2} \operator{D}_2\left(\current{M}_{S,2}\right).
 \end{split}
 \end{equation}
 
@@ -174,13 +174,13 @@ Since $\current{J}_{S,2} \triangleq (-\vect{\hat{n}}) \times \field{H}_2$, we ha
 Since the boundary conditions impose that $\field{E}_1 = \field{E}_2$ and $\field{H}_1 = \field{H}_2$, it follows from the equivalent current definitions that $\current{M}_{S,2} = -\current{M}_{S,1}$ and $\current{J}_{S,2} = -\current{J}_{S,1}$. Hence the last equation can be rewritten as follows:
 \begin{equation}\label{eqn:MFIE-I}
 \boxed{
-0 = - \frac{1}{2} \vect{\hat{n}} \times \current{J}_{S,1} + \frac{1}{j \omega \mu_2} \operator{D}_2\left(\current{M}_{S,1}\right) +  \operator{K}_2\left( \current{J}_{S,1}\right)
+0 = - \frac{1}{2} \vect{\hat{n}} \times \current{J}_{S,1} +  \operator{K}_2\left( \current{J}_{S,1}\right) + \frac{1}{j \omega \mu_2} \operator{D}_2\left(\current{M}_{S,1}\right) 
 } \qquad MFIE-I
 \end{equation}
 and the EFIE-I is obtained by duality:
 \begin{equation}\label{eqn:EFIE-I}
 \boxed{
-0 = \frac{1}{2} \vect{\hat{n}} \times \current{M}_{S,1} + \frac{1}{j \omega \varepsilon_2} \operator{D}_2\left(\current{J}_{S,1}\right) -  \operator{K}_2\left( \current{M}_{S,1}\right)
+0 = \frac{1}{j \omega \varepsilon_2} \operator{D}_2\left(\current{J}_{S,1}\right) + \frac{1}{2} \vect{\hat{n}} \times \current{M}_{S,1} -  \operator{K}_2\left( \current{M}_{S,1}\right)
 } \qquad EFIE-I
 \end{equation}
 
@@ -190,22 +190,22 @@ and the EFIE-I is obtained by duality:
 Let's first recall the integral equations:
 \begin{equation*}
 \boxed{
-\field{H}^\text{inc} = - \frac{1}{2} \vect{\hat{n}} \times \current{J}_{S,1} - \frac{1}{j \omega \mu_1} \operator{D}_1 \left( \current{M}_{S,1}\right) - \operator{K}_1 \left(\current{J}_{S,1}\right)
+\field{H}^\text{inc} = - \frac{1}{2} \vect{\hat{n}} \times \current{J}_{S,1} - \operator{K}_1 \left(\current{J}_{S,1}\right) - \frac{1}{j \omega \mu_1} \operator{D}_1 \left( \current{M}_{S,1}\right) 
 } \qquad MFIE-O \tag{\ref{eqn:MFIE-O} recalled}
 \end{equation*}
 \begin{equation*}
 \boxed{
-\field{E}^\text{inc} =  \frac{1}{2} \vect{\hat{n}} \times \current{M}_{S,1} - \frac{1}{j \omega \varepsilon_1} \operator{D}_1 \left( \current{J}_{S,1}\right) + \operator{K}_1 \left(\current{M}_{S,1}\right)
+\field{E}^\text{inc} =  - \frac{1}{j \omega \varepsilon_1} \operator{D}_1 \left( \current{J}_{S,1}\right) + \frac{1}{2} \vect{\hat{n}} \times \current{M}_{S,1} + \operator{K}_1 \left(\current{M}_{S,1}\right)
 } \qquad EFIE-O \tag{\ref{eqn:EFIE-O} recalled}
 \end{equation*}
 \begin{equation*}
 \boxed{
-0 = - \frac{1}{2} \vect{\hat{n}} \times \current{J}_{S,1} + \frac{1}{j \omega \mu_2} \operator{D}_2\left(\current{M}_{S,1}\right) +  \operator{K}_2\left( \current{J}_{S,1}\right)
+0 = - \frac{1}{2} \vect{\hat{n}} \times \current{J}_{S,1} + \operator{K}_2\left( \current{J}_{S,1}\right) + \frac{1}{j \omega \mu_2} \operator{D}_2\left(\current{M}_{S,1}\right)
 } \qquad MFIE-I \tag{\ref{eqn:MFIE-I} recalled}
 \end{equation*}
 \begin{equation*}
 \boxed{
-0 = \frac{1}{2} \vect{\hat{n}} \times \current{M}_{S,1} + \frac{1}{j \omega \varepsilon_2} \operator{D}_2\left(\current{J}_{S,1}\right) -  \operator{K}_2\left( \current{M}_{S,1}\right)
+0 = \frac{1}{j \omega \varepsilon_2} \operator{D}_2\left(\current{J}_{S,1}\right) + \frac{1}{2} \vect{\hat{n}} \times \current{M}_{S,1} -  \operator{K}_2\left( \current{M}_{S,1}\right)
 } \qquad EFIE-I \tag{\ref{eqn:EFIE-I} recalled}
 \end{equation*}
 with
@@ -258,8 +258,8 @@ For this formulation we combine the outside fields together, and the inside fiel
   \addtolength{\fboxsep}{5pt} 
  \text{CFIE-O}: \quad   \boxed{ 
    \begin{split} 
-      \alpha \field{E}^\text{inc} - \left(1-\alpha \right) \eta_1\field{H}^\text{inc} &= \alpha \left[\frac{1}{2} \vect{\hat{n}} \times \current{M}_{S,1} - \frac{1}{j \omega \varepsilon_1} \operator{D}_1 \left( \current{J}_{S,1}\right) + \operator{K}_1 \left(\current{M}_{S,1}\right) \right]  \\ 
-      & \qquad - \left(1-\alpha \right) \eta_1 \left[ - \frac{1}{2} \vect{\hat{n}} \times \current{J}_{S,1} - \frac{1}{j \omega \mu_1} \operator{D}_1 \left( \current{M}_{S,1}\right) - \operator{K}_1 \left(\current{J}_{S,1}\right) \right]
+      \alpha \field{E}^\text{inc} - \left(1-\alpha \right) \eta_1\field{H}^\text{inc} &= \alpha \left[- \frac{1}{j \omega \varepsilon_1} \operator{D}_1 \left( \current{J}_{S,1}\right) + \frac{1}{2} \vect{\hat{n}} \times \current{M}_{S,1}  + \operator{K}_1 \left(\current{M}_{S,1}\right) \right]  \\ 
+      & \qquad - \left(1-\alpha \right) \eta_1 \left[ - \frac{1}{2} \vect{\hat{n}} \times \current{J}_{S,1} - \operator{K}_1 \left(\current{J}_{S,1}\right) - \frac{1}{j \omega \mu_1} \operator{D}_1 \left( \current{M}_{S,1}\right)  \right]
    \end{split} 
    } 
 \end{equation}
@@ -268,7 +268,7 @@ where $\eta_1 = \sqrt{\frac{\mu_1}{\varepsilon_1}}$, and where $0<\alpha<1$. For
   \addtolength{\fboxsep}{5pt} 
  \text{CFIE-I}: \quad   \boxed{ 
    \begin{split} 
-      0 &= \alpha \left[\frac{1}{2} \vect{\hat{n}} \times \current{M}_{S,1} + \frac{1}{j \omega \varepsilon_2} \operator{D}_2\left(\current{J}_{S,1}\right) -  \operator{K}_2\left( \current{M}_{S,1}\right) \right] \\ &\qquad \qquad \qquad - \left(1-\alpha \right) \eta_2 \left[ - \frac{1}{2} \vect{\hat{n}} \times \current{J}_{S,1} + \frac{1}{j \omega \mu_2} \operator{D}_2\left(\current{M}_{S,1}\right) +  \operator{K}_2\left( \current{J}_{S,1}\right) \right].
+      0 &= \alpha \left[\frac{1}{j \omega \varepsilon_2} \operator{D}_2\left(\current{J}_{S,1}\right) + \frac{1}{2} \vect{\hat{n}} \times \current{M}_{S,1} -  \operator{K}_2\left( \current{M}_{S,1}\right) \right] \\ &\qquad \qquad \qquad - \left(1-\alpha \right) \eta_2 \left[ - \frac{1}{2} \vect{\hat{n}} \times \current{J}_{S,1} + \operator{K}_2\left( \current{J}_{S,1}\right)  + \frac{1}{j \omega \mu_2} \operator{D}_2\left(\current{M}_{S,1}\right) \right].
    \end{split} 
    } 
 \end{equation}

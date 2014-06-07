@@ -6,22 +6,22 @@
 We will now examine the Method-of-Moments solution for homogeneous dielectric bodies. Let's first recall the integral equations:
 \begin{equation*}
 \boxed{
-\field{H}^\text{inc} = - \frac{1}{2} \vect{\hat{n}} \times \current{J}_{S,1} - \frac{1}{j \omega \mu_1} \operator{D}_1 \left( \current{M}_{S,1}\right) - \operator{K}_1 \left(\current{J}_{S,1}\right)
+\field{H}^\text{inc} = - \frac{1}{2} \vect{\hat{n}} \times \current{J}_{S,1} - \operator{K}_1 \left(\current{J}_{S,1}\right) - \frac{1}{j \omega \mu_1} \operator{D}_1 \left( \current{M}_{S,1}\right) 
 } \qquad MFIE-O \tag{\ref{eqn:MFIE-O} recalled}
 \end{equation*}
 \begin{equation*}
 \boxed{
-\field{E}^\text{inc} =  \frac{1}{2} \vect{\hat{n}} \times \current{M}_{S,1} - \frac{1}{j \omega \varepsilon_1} \operator{D}_1 \left( \current{J}_{S,1}\right) + \operator{K}_1 \left(\current{M}_{S,1}\right)
+\field{E}^\text{inc} =   - \frac{1}{j \omega \varepsilon_1} \operator{D}_1 \left( \current{J}_{S,1}\right) + \frac{1}{2} \vect{\hat{n}} \times \current{M}_{S,1} + \operator{K}_1 \left(\current{M}_{S,1}\right)
 } \qquad EFIE-O \tag{\ref{eqn:EFIE-O} recalled}
 \end{equation*}
 \begin{equation*}
 \boxed{
-0 = - \frac{1}{2} \vect{\hat{n}} \times \current{J}_{S,1} + \frac{1}{j \omega \mu_2} \operator{D}_2\left(\current{M}_{S,1}\right) +  \operator{K}_2\left( \current{J}_{S,1}\right)
+0 = - \frac{1}{2} \vect{\hat{n}} \times \current{J}_{S,1} + \operator{K}_2\left( \current{J}_{S,1}\right) + \frac{1}{j \omega \mu_2} \operator{D}_2\left(\current{M}_{S,1}\right)
 } \qquad MFIE-I \tag{\ref{eqn:MFIE-I} recalled}
 \end{equation*}
 \begin{equation*}
 \boxed{
-0 = \frac{1}{2} \vect{\hat{n}} \times \current{M}_{S,1} + \frac{1}{j \omega \varepsilon_2} \operator{D}_2\left(\current{J}_{S,1}\right) -  \operator{K}_2\left( \current{M}_{S,1}\right)
+0 = \frac{1}{j \omega \varepsilon_2} \operator{D}_2\left(\current{J}_{S,1}\right) + \frac{1}{2} \vect{\hat{n}} \times \current{M}_{S,1} -  \operator{K}_2\left( \current{M}_{S,1}\right)
 } \qquad EFIE-I \tag{\ref{eqn:EFIE-I} recalled}
 \end{equation*}
 with
@@ -37,16 +37,16 @@ As in section \ref{subsubsec:Basis functions: definition and properties}, the tw
 \end{equation}
 With (\ref{eqn:J_M_current_decomposition}), the discretized integral equations become:
 \begin{equation}
--\field{H}^\text{inc} =  \frac{1}{2} \sum_{n=1}^N I_n \vect{\hat{n}} \times \current{f}_n\arg{\vect{r}} + \frac{1}{j \omega \mu_1} \sum_{n=1}^{N} M_n \operator{D}_1\left(\current{f}_n\right) + \sum_{n=1}^{N} I_n \operator{K}_1\left(\current{f}_n\right) \qquad MFIE-O 
+-\field{H}^\text{inc} =  \frac{1}{2} \sum_{n=1}^N I_n \vect{\hat{n}} \times \current{f}_n\arg{\vect{r}} + \sum_{n=1}^{N} I_n \operator{K}_1\left(\current{f}_n\right) + \frac{1}{j \omega \mu_1} \sum_{n=1}^{N} M_n \operator{D}_1\left(\current{f}_n\right)  \qquad MFIE-O 
 \end{equation}
 \begin{equation}
--\field{E}^\text{inc} =  -\frac{1}{2} \sum_{n=1}^N M_n \vect{\hat{n}} \times \current{f}_n\arg{\vect{r}} + \frac{1}{j \omega \varepsilon_1} \sum_{n=1}^{N} I_n \operator{D}_1\left(\current{f}_n\right) -  \sum_{n=1}^{N} M_n \operator{K}_1\left(\current{f}_n\right) \qquad EFIE-O 
+-\field{E}^\text{inc} = \frac{1}{j \omega \varepsilon_1} \sum_{n=1}^{N} I_n \operator{D}_1\left(\current{f}_n\right) -\frac{1}{2} \sum_{n=1}^N M_n \vect{\hat{n}} \times \current{f}_n\arg{\vect{r}}  -  \sum_{n=1}^{N} M_n \operator{K}_1\left(\current{f}_n\right) \qquad EFIE-O 
 \end{equation}
 \begin{equation}
-0 =  -\frac{1}{2} \sum_{n=1}^N I_n \vect{\hat{n}} \times \current{f}_n\arg{\vect{r}} + \frac{1}{j \omega \mu_2} \sum_{n=1}^{N} M_n \operator{D}_2\left(\current{f}_n\right) +  \sum_{n=1}^{N} I_n \operator{K}_2\left(\current{f}_n\right) \qquad MFIE-I 
+0 =  -\frac{1}{2} \sum_{n=1}^N I_n \vect{\hat{n}} \times \current{f}_n\arg{\vect{r}} + \sum_{n=1}^{N} I_n \operator{K}_2\left(\current{f}_n\right) + \frac{1}{j \omega \mu_2} \sum_{n=1}^{N} M_n \operator{D}_2\left(\current{f}_n\right)  \qquad MFIE-I 
 \end{equation}
 \begin{equation}
-0 =  \frac{1}{2} \sum_{n=1}^N M_n \vect{\hat{n}} \times \current{f}_n\arg{\vect{r}} + \frac{1}{j \omega \varepsilon_2} \sum_{n=1}^{N} I_n \operator{D}_2\left(\current{f}_n\right) -  \sum_{n=1}^{N} M_n \operator{K}_2\left(\current{f}_n\right) \qquad EFIE-I 
+0 =   \frac{1}{j \omega \varepsilon_2} \sum_{n=1}^{N} I_n \operator{D}_2\left(\current{f}_n\right) + \frac{1}{2} \sum_{n=1}^N M_n \vect{\hat{n}} \times \current{f}_n\arg{\vect{r}} -  \sum_{n=1}^{N} M_n \operator{K}_2\left(\current{f}_n\right) \qquad EFIE-I 
 \end{equation}
 with
 \begin{align*}
@@ -58,16 +58,16 @@ and where $D_n$ is the domain of basis function $\vect{f}_n$.
 \par
 Finally, testing with $\vect{g}_m \arg{\vect{r}}$ (\ref{eqn:testing_function}), the method of moments expressions for the integral equations become:
 \begin{equation}\label{eqn:MoM MFIE-O}
-\boxed{V_m^H =  \sum_{n=1}^N I_n J_{mn} + \frac{1}{j \omega \mu_1} \sum_{n=1}^{N} M_n D_{mn}^{(1)} + \sum_{n=1}^{N} I_n K_{mn}^{(1)}} \qquad MFIE-O 
+\boxed{V_m^H =  \sum_{n=1}^N I_n J_{mn} + \sum_{n=1}^{N} I_n K_{mn}^{(1)} + \frac{1}{j \omega \mu_1} \sum_{n=1}^{N} M_n D_{mn}^{(1)}} \qquad MFIE-O 
 \end{equation}
 \begin{equation}\label{eqn:MoM EFIE-O}
-\boxed{V_m^E =  - \sum_{n=1}^N M_n J_{mn} + \frac{1}{j \omega \varepsilon_1} \sum_{n=1}^{N} I_n D_{mn}^{(1)} - \sum_{n=1}^{N} M_n K_{mn}^{(1)}} \qquad EFIE-O 
+\boxed{V_m^E =  \frac{1}{j \omega \varepsilon_1} \sum_{n=1}^{N} I_n D_{mn}^{(1)} - \sum_{n=1}^N M_n J_{mn} - \sum_{n=1}^{N} M_n K_{mn}^{(1)}} \qquad EFIE-O 
 \end{equation}
 \begin{equation}\label{eqn:MoM MFIE-I}
-\boxed{0 =  - \sum_{n=1}^N I_n J_{mn} + \frac{1}{j \omega \mu_2} \sum_{n=1}^{N} M_n D_{mn}^{(2)} + \sum_{n=1}^{N} I_n K_{mn}^{(2)}} \qquad MFIE-I
+\boxed{0 =  - \sum_{n=1}^N I_n J_{mn} + \sum_{n=1}^{N} I_n K_{mn}^{(2)} + \frac{1}{j \omega \mu_2} \sum_{n=1}^{N} M_n D_{mn}^{(2)} } \qquad MFIE-I
 \end{equation}
 \begin{equation}\label{eqn:MoM EFIE-I}
-\boxed{0 =   \sum_{n=1}^N M_n J_{mn} + \frac{1}{j \omega \varepsilon_2} \sum_{n=1}^{N} I_n D_{mn}^{(2)} - \sum_{n=1}^{N} M_n K_{mn}^{(2)}} \qquad EFIE-I. 
+\boxed{0 =   \frac{1}{j \omega \varepsilon_2} \sum_{n=1}^{N} I_n D_{mn}^{(2)} + \sum_{n=1}^N M_n J_{mn} - \sum_{n=1}^{N} M_n K_{mn}^{(2)}} \qquad EFIE-I. 
 \end{equation}
 %
 \par
@@ -76,13 +76,13 @@ Equations (\ref{eqn:MoM MFIE-O}), (\ref{eqn:MoM EFIE-O}), (\ref{eqn:MoM MFIE-I})
 \boxed{\underline{V}^H =  \left[\underline{\underline{J}} + \underline{\underline{K}}^{(1)} \right] \underline{I} + \frac{1}{j \omega \mu_1}  \underline{\underline{D}}^{(1)} \underline{M} } \qquad MFIE-O 
 \end{equation}
 \begin{equation}\label{eqn:Matrix EFIE-O}
-\boxed{\underline{V}^E =  -\left[\underline{\underline{J}} + \underline{\underline{K}}^{(1)} \right] \underline{M} + \frac{1}{j \omega \varepsilon_1}  \underline{\underline{D}}^{(1)} \underline{I} } \qquad EFIE-O 
+\boxed{\underline{V}^E =  \frac{1}{j \omega \varepsilon_1}  \underline{\underline{D}}^{(1)} \underline{I} -\left[\underline{\underline{J}} + \underline{\underline{K}}^{(1)} \right] \underline{M} } \qquad EFIE-O 
 \end{equation}
 \begin{equation}\label{eqn:Matrix MFIE-I}
 \boxed{\underline{0} =  \left[-\underline{\underline{J}} + \underline{\underline{K}}^{(2)} \right] \underline{I} + \frac{1}{j \omega \mu_2}  \underline{\underline{D}}^{(2)} \underline{M} } \qquad MFIE-I
 \end{equation}
 \begin{equation}\label{eqn:Matrix EFIE-I}
-\boxed{\underline{0} =  \left[\underline{\underline{J}} - \underline{\underline{K}}^{(2)} \right] \underline{M} + \frac{1}{j \omega \varepsilon_2}  \underline{\underline{D}}^{(2)} \underline{I} } \qquad EFIE-I 
+\boxed{\underline{0} =  \frac{1}{j \omega \varepsilon_2}  \underline{\underline{D}}^{(2)} \underline{I}  + \left[\underline{\underline{J}} - \underline{\underline{K}}^{(2)} \right] \underline{M} } \qquad EFIE-I 
 \end{equation}
 where
 \begin{itemize}
@@ -108,7 +108,7 @@ As for the PEC target, we also have that, for $K_{mn}$ and $J_{mn}$:
 \par
 According to section \ref{subsec:PMCHWT}, for this formulation we combine the outside (1) and inside (2) on a per-field basis: EFIE-O (\ref{eqn:EFIE-O}) with EFIE-I (\ref{eqn:EFIE-I}), and MFIE-O (\ref{eqn:MFIE-O}) with MFIE-I (\ref{eqn:MFIE-I}). The testing is done with $\vect{g}_m = \vect{f}_m$. We have
 \begin{equation}\label{eqn:Matrix EFIE}
-\boxed{\underline{V}^{tE} =  -\left[\underline{\underline{K}}^{(1),t} + \underline{\underline{K}}^{(2),t} \right] \underline{M} + \left[\frac{1}{j \omega \varepsilon_1}  \underline{\underline{D}}^{(1),t} + \frac{1}{j \omega \varepsilon_2}  \underline{\underline{D}}^{(2),t}\right] \underline{I} } \qquad EFIE 
+\boxed{\underline{V}^{tE} =  \left[\frac{1}{j \omega \varepsilon_1}  \underline{\underline{D}}^{(1),t} + \frac{1}{j \omega \varepsilon_2}  \underline{\underline{D}}^{(2),t}\right] \underline{I} -\left[\underline{\underline{K}}^{(1),t} + \underline{\underline{K}}^{(2),t} \right] \underline{M} } \qquad EFIE 
 \end{equation}
 \begin{equation}\label{eqn:Matrix MFIE}
 \boxed{\underline{V}^{tH} =  \left[\underline{\underline{K}}^{(1),t} + \underline{\underline{K}}^{(2),t} \right] \underline{I} + \left[\frac{1}{j \omega \mu_1}  \underline{\underline{D}}^{(1),t} + \frac{1}{j \omega \mu_2}  \underline{\underline{D}}^{(2),t}\right] \underline{M} } \qquad MFIE.
