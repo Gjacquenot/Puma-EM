@@ -52,16 +52,21 @@ it has not been tested yet.
 
 First, extract the *.tar.gz file that you downloaded in your home directory.
 
-Second, cd into Puma-EM, then type:
+Second, cd into Puma-EM, then open the guide.pdf file. You can install the necessary
+files locally or, if you have root access to the machine, you can install it for all
+the users. The needed libraries and programs are:
+- gmsh, an open-source mesh generator
+- g++ and gfortran compilers (works with intel compilers too)
+- blitz++, a C++ container library
+- OpenMPI for the parallel code
+- scipy and numpy, Python scientific libraries
+- mpi4py, which is mpi for Python
+- matplotlib, a Python plotting library.
 
-  $ ./install.sh
-
-Follow the instructions for the installation.
-
-This process will issue a lot of output at the terminal, and the code will run on
-a small example in order to compile the interfaces between Python and C++.
-
-For more details, or if you have to install Puma-EM locally, see the guide.pdf.
+There are automated scripts for installing Puma for some distributions. Due to a 
+lack of time, not all of them are fully tested, but they should work. Type 
+./install.sh in a terminal and follow the instructions. If unsure, install as per
+the guide.
 
 
 4. Ready to Go
