@@ -1,7 +1,7 @@
 #/bin/sh
 ###############################################################
-# script for fedora 13 to compile puma-em MoM simulator. #
-# script produced by simon.batchelor@wirelessconsultancy.com #
+# script for fedora 17 to compile puma-em MoM simulator.      #
+# script produced by vandenbosch.idesbald@gmail.com)          #
 ###############################################################
 
 echo " "
