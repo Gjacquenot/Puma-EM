@@ -1,11 +1,11 @@
-import os
+import os, sys
 from math import pi
 from scipy import zeros, array, arange, dot
 from scipy import sparse, linalg, cos, sin, conj, log10, real, sum, imag
-from scipy.sparse.linalg import gmres, bicgstab
+from scipy.sparse.linalg import gmres, bicgstab, lgmres
 from meshClass import MeshClass
 from PyGmsh import executeGmsh, write_geo
-from Z_MoM import Z_MoM
+from Z_MoM import Z_CFIE_MoM, Z_EH_J_MoM
 from V_EH import computeV_EH, G_EJ_G_HJ, V_EH_dipole_alternative, V_EH_plane
 from EM_constants import *
 from MoMPostProcessing import *
@@ -30,7 +30,7 @@ class Target_MoM:
         print "Target_MoM instanciation..."
         signSurfObs, signSurfSrc = 1.0, 1.0 # no dielectric target here
         target_mesh.RWGNumber_M_CURRENT_OK *= 0
-        self.Z_CFIE_J, self.Z_CFIE_M = Z_MoM(CFIE, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh.RWGNumber_CFIE_OK, target_mesh.RWGNumber_M_CURRENT_OK, target_mesh.RWGNumber_signedTriangles, target_mesh.RWGNumber_edgeVertexes, target_mesh.RWGNumber_oppVertexes, target_mesh.vertexes_coord, w, eps_r, mu_r, signSurfObs, signSurfSrc, TDS_APPROX, Z_s, MOM_FULL_PRECISION)
+        self.Z_CFIE_J, self.Z_CFIE_M = Z_CFIE_MoM(CFIE, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh.RWGNumber_CFIE_OK, target_mesh.RWGNumber_M_CURRENT_OK, target_mesh.RWGNumber_signedTriangles, target_mesh.RWGNumber_edgeVertexes, target_mesh.RWGNumber_oppVertexes, target_mesh.vertexes_coord, w, eps_r, mu_r, signSurfObs, signSurfSrc, TDS_APPROX, Z_s, MOM_FULL_PRECISION)
         self.iter_counter = 0
     # functions
     def matvec(self, x):
@@ -59,7 +59,7 @@ class Target_MoM:
         print "Done. time =", time.clock() - t0, "seconds"
 
 class dielectricTarget_MoM:
-    def __init__(self, CFIE, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh, w, eps_r_out, mu_r_out, eps_r_in, mu_r_in, MOM_FULL_PRECISION, IS_PMCHWT):
+    def __init__(self, CFIE_coeff, TENETHNH, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh, w, eps_r_out, mu_r_out, eps_r_in, mu_r_in, MOM_FULL_PRECISION, FORMULATION):
         self.numberOfMedia = sum(target_mesh.IS_CLOSED_SURFACE) + 1
         print "MOM.py: number of possible media =", self.numberOfMedia
         print "Target_MoM instanciation..."
@@ -67,32 +67,71 @@ class dielectricTarget_MoM:
         TDS_APPROX, Z_s = 0, 0.0 + 0.0j
         N_J, N_M = len(list_of_test_edges_numbers), len(list_of_test_edges_numbers)
         self.Z = zeros((N_J + N_M, N_J + N_M), 'D')
-        print "dielectricTarget_MoM: computing the outside interactions..."
-        signSurfObs, signSurfSrc = 1.0, 1.0
 
-        if not (IS_PMCHWT == 1): # we have CFIE
-            self.Z[:N_J, :N_J], self.Z[:N_J,N_J:N_J + N_M] = Z_MoM(CFIE, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh.RWGNumber_CFIE_OK, target_mesh.RWGNumber_M_CURRENT_OK, target_mesh.RWGNumber_signedTriangles, target_mesh.RWGNumber_edgeVertexes, target_mesh.RWGNumber_oppVertexes, target_mesh.vertexes_coord, w, eps_r_out, mu_r_out, signSurfObs, signSurfSrc, TDS_APPROX, Z_s, MOM_FULL_PRECISION)
+        if FORMULATION=="CFIE": # we have CFIE
+            print "OK, using CFIE formulation"
+            print "dielectricTarget_MoM: computing the outside interactions..."
+            coeff = CFIE_coeff
+            TE, NE, TH, NH = TENETHNH[0], TENETHNH[1], TENETHNH[2], TENETHNH[3]
+            CFIE = array([TE * coeff, NE * coeff, -TH * (1.0 - coeff) * sqrt(mu_0/(eps_0*eps_r_out)), -NH * (1.0 - coeff) * sqrt(mu_0/(eps_0*eps_r_out))], 'D')
+            signSurfObs, signSurfSrc = 1.0, 1.0
+            self.Z[:N_J, :N_J], self.Z[:N_J,N_J:N_J + N_M] = Z_CFIE_MoM(CFIE, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh.RWGNumber_CFIE_OK, target_mesh.RWGNumber_M_CURRENT_OK, target_mesh.RWGNumber_signedTriangles, target_mesh.RWGNumber_edgeVertexes, target_mesh.RWGNumber_oppVertexes, target_mesh.vertexes_coord, w, eps_r_out, mu_r_out, signSurfObs, signSurfSrc, TDS_APPROX, Z_s, MOM_FULL_PRECISION)
 
-        else: # we have PMCHWT
+            print "dielectricTarget_MoM: computing the inside interactions..."
+            CFIE = array([TE * coeff, NE * coeff, -TH * (1.0 - coeff) * sqrt(mu_0/(eps_0*eps_r_in)), -NH * (1.0 - coeff) * sqrt(mu_0/(eps_0*eps_r_in))], 'D')
+            signSurfObs, signSurfSrc = -1.0, -1.0
+            self.Z[N_J:N_J + N_M,:N_J], self.Z[N_J:N_J + N_M, N_J:N_J + N_M] = Z_CFIE_MoM(CFIE, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh.RWGNumber_CFIE_OK, target_mesh.RWGNumber_M_CURRENT_OK, target_mesh.RWGNumber_signedTriangles, target_mesh.RWGNumber_edgeVertexes, target_mesh.RWGNumber_oppVertexes, target_mesh.vertexes_coord, w, eps_r_in, mu_r_in, signSurfObs, signSurfSrc, TDS_APPROX, Z_s, MOM_FULL_PRECISION)
+
+        elif FORMULATION=="PMCHWT": # we have PMCHWT
+            print "OK, using PMCHWT formulation"
+            print "dielectricTarget_MoM: computing the outside interactions..."
+            signSurfObs, signSurfSrc = 1.0, 1.0
             CFIE_for_PMCHWT = array([1.0, 0., 0., 0.], 'D')
-            Z_EJ, Z_EM = Z_MoM(CFIE_for_PMCHWT, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh.RWGNumber_CFIE_OK, target_mesh.RWGNumber_M_CURRENT_OK, target_mesh.RWGNumber_signedTriangles, target_mesh.RWGNumber_edgeVertexes, target_mesh.RWGNumber_oppVertexes, target_mesh.vertexes_coord, w, eps_r_out, mu_r_out, signSurfObs, signSurfSrc, TDS_APPROX, Z_s, MOM_FULL_PRECISION)
+            Z_EJ, Z_EM = Z_CFIE_MoM(CFIE_for_PMCHWT, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh.RWGNumber_CFIE_OK, target_mesh.RWGNumber_M_CURRENT_OK, target_mesh.RWGNumber_signedTriangles, target_mesh.RWGNumber_edgeVertexes, target_mesh.RWGNumber_oppVertexes, target_mesh.vertexes_coord, w, eps_r_out, mu_r_out, signSurfObs, signSurfSrc, TDS_APPROX, Z_s, MOM_FULL_PRECISION)
+            #TENETHNH = array([1.0, 0.0, 1.0, 0.0])
+            #Z_EJ, Z_nE_J, Z_HJ, Z_nH_J = Z_EH_J_MoM(TENETHNH, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh.RWGNumber_CFIE_OK, target_mesh.RWGNumber_signedTriangles, target_mesh.RWGNumber_edgeVertexes, target_mesh.RWGNumber_oppVertexes, target_mesh.vertexes_coord, w, eps_r_out, mu_r_out, signSurfObs, signSurfSrc, TDS_APPROX, Z_s, MOM_FULL_PRECISION)
+            #Z_EM = -Z_HJ
+            eta_0 = sqrt(mu_0/(eps_0*eps_r_out))
             self.Z[:N_J, :N_J], self.Z[:N_J,N_J:N_J + N_M] = Z_EJ, Z_EM
             self.Z[N_J:N_J+N_M, :N_J] = -Z_EM # Z_HJ = -Z_EM
             self.Z[N_J:N_J+N_M,N_J:N_J + N_M] = (eps_0*eps_r_out / (mu_0 * mu_r_out)) * Z_EJ # Z_HM = eps/mu * Z_EJ
 
-        print "dielectricTarget_MoM: computing the inside interactions..."
-        signSurfObs, signSurfSrc = -1.0, -1.0
-
-        if not (IS_PMCHWT == 1): # we have CFIE
-            self.Z[N_J:N_J + N_M,:N_J], self.Z[N_J:N_J + N_M, N_J:N_J + N_M] = Z_MoM(CFIE, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh.RWGNumber_CFIE_OK, target_mesh.RWGNumber_M_CURRENT_OK, target_mesh.RWGNumber_signedTriangles, target_mesh.RWGNumber_edgeVertexes, target_mesh.RWGNumber_oppVertexes, target_mesh.vertexes_coord, w, eps_r_in, mu_r_in, signSurfObs, signSurfSrc, TDS_APPROX, Z_s, MOM_FULL_PRECISION)
-
-        else: # we have PMCHWT
-            CFIE_for_PMCHWT = array([1.0, 0., 0., 0.], 'D')
-            Z_EJ, Z_EM = Z_MoM(CFIE_for_PMCHWT, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh.RWGNumber_CFIE_OK, target_mesh.RWGNumber_M_CURRENT_OK, target_mesh.RWGNumber_signedTriangles, target_mesh.RWGNumber_edgeVertexes, target_mesh.RWGNumber_oppVertexes, target_mesh.vertexes_coord, w, eps_r_in, mu_r_in, signSurfObs, signSurfSrc, TDS_APPROX, Z_s, MOM_FULL_PRECISION)
+            print "dielectricTarget_MoM: computing the inside interactions..."
+            signSurfObs, signSurfSrc = -1.0, -1.0
+            Z_EJ, Z_EM = Z_CFIE_MoM(CFIE_for_PMCHWT, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh.RWGNumber_CFIE_OK, target_mesh.RWGNumber_M_CURRENT_OK, target_mesh.RWGNumber_signedTriangles, target_mesh.RWGNumber_edgeVertexes, target_mesh.RWGNumber_oppVertexes, target_mesh.vertexes_coord, w, eps_r_in, mu_r_in, signSurfObs, signSurfSrc, TDS_APPROX, Z_s, MOM_FULL_PRECISION)
+            #Z_EJ, Z_nE_J, Z_HJ, Z_nH_J = Z_EH_J_MoM(TENETHNH, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh.RWGNumber_CFIE_OK, target_mesh.RWGNumber_signedTriangles, target_mesh.RWGNumber_edgeVertexes, target_mesh.RWGNumber_oppVertexes, target_mesh.vertexes_coord, w, eps_r_in, mu_r_in, signSurfObs, signSurfSrc, TDS_APPROX, Z_s, MOM_FULL_PRECISION)
+            #Z_EM = -Z_HJ
             self.Z[:N_J, :N_J] += Z_EJ
             self.Z[:N_J,N_J:N_J + N_M] += Z_EM
-            self.Z[N_J:N_J+N_M, :N_J] -= Z_EM # Z_HJ = -Z_EM
+            self.Z[N_J:N_J+N_M, :N_J] += -Z_EM # Z_HJ = -Z_EM
             self.Z[N_J:N_J+N_M,N_J:N_J + N_M] += (eps_0*eps_r_in / (mu_0 * mu_r_in)) * Z_EJ # Z_HM = eps/mu * Z_EJ
+
+        elif FORMULATION=="JMCFIE":
+            print "OK, using JMCFIE formulation"
+            print "dielectricTarget_MoM: computing the outside interactions..."
+            signSurfObs, signSurfSrc = 1.0, 1.0
+            coeff = CFIE_coeff
+            TENETHNH = array([1.0, 1.0, 1.0, 1.0])
+            Z_tE_J, Z_nE_J, Z_tH_J, Z_nH_J = Z_EH_J_MoM(TENETHNH, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh.RWGNumber_CFIE_OK, target_mesh.RWGNumber_signedTriangles, target_mesh.RWGNumber_edgeVertexes, target_mesh.RWGNumber_oppVertexes, target_mesh.vertexes_coord, w, eps_r_out, mu_r_out, signSurfObs, signSurfSrc, TDS_APPROX, Z_s, MOM_FULL_PRECISION)
+            self.Z[:N_J, :N_J] = coeff * Z_tE_J + (1.0-coeff) * sqrt(mu_0/(eps_0*eps_r_out)) * Z_nH_J
+            # Z_EM = -Z_HJ, Z_HM = eps/mu * Z_EJ
+            #self.Z[:N_J,N_J:N_J + N_M] =  coeff * Z_tE_M + (1.0-coeff) * sqrt(mu_0/(eps_0*eps_r_out)) *  Z_nH_M
+            self.Z[:N_J,N_J:N_J + N_M] =  -coeff * Z_tH_J + (1.0-coeff) * sqrt(mu_0/(eps_0*eps_r_out)) *(eps_0*eps_r_out / (mu_0 * mu_r_out)) *  Z_nE_J
+            self.Z[N_J:N_J+N_M, :N_J] = coeff * sqrt(mu_0/(eps_0*eps_r_out)) * Z_tH_J - (1.0-coeff) * Z_nE_J
+            self.Z[N_J:N_J+N_M,N_J:N_J + N_M] = coeff * sqrt(mu_0/(eps_0*eps_r_out)) *(eps_0*eps_r_out / (mu_0 * mu_r_out)) * Z_tE_J + (1.0-coeff) * Z_nH_J
+
+            print "dielectricTarget_MoM: computing the inside interactions..."
+            signSurfObs, signSurfSrc = -1.0, -1.0
+            Z_tE_J, Z_nE_J, Z_tH_J, Z_nH_J = Z_EH_J_MoM(TENETHNH, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh.RWGNumber_CFIE_OK, target_mesh.RWGNumber_signedTriangles, target_mesh.RWGNumber_edgeVertexes, target_mesh.RWGNumber_oppVertexes, target_mesh.vertexes_coord, w, eps_r_in, mu_r_in, signSurfObs, signSurfSrc, TDS_APPROX, Z_s, MOM_FULL_PRECISION)
+            self.Z[:N_J, :N_J] -= coeff * Z_tE_J + (1.0)*(1.0-coeff) * sqrt(mu_0/(eps_0*eps_r_in)) * Z_nH_J
+            # Z_EM = -Z_HJ, Z_HM = eps/mu * Z_EJ
+            #self.Z[:N_J,N_J:N_J + N_M] =  coeff * Z_tE_M + (1.0-coeff) * sqrt(mu_0/(eps_0*eps_r_out)) *  Z_nH_M
+            self.Z[:N_J,N_J:N_J + N_M] -=  -coeff * Z_tH_J + (1.0)*(1.0-coeff) * sqrt(mu_0/(eps_0*eps_r_in)) *(eps_0*eps_r_in / (mu_0 * mu_r_in)) *  Z_nE_J
+            self.Z[N_J:N_J+N_M, :N_J] -= coeff * sqrt(mu_0/(eps_0*eps_r_in)) * Z_tH_J - (1.0)*(1.0-coeff) * Z_nE_J
+            self.Z[N_J:N_J+N_M,N_J:N_J + N_M] -= coeff * sqrt(mu_0/(eps_0*eps_r_in)) *(eps_0*eps_r_in / (mu_0 * mu_r_in)) * Z_tE_J + (1.0)*(1.0-coeff) * Z_nH_J
+        else:
+            print "use another formulation please. Error."
+            sys.exit(1)
 
         print "Done. time =", time.clock() - t0, "seconds"
         self.iter_counter = 0
@@ -101,31 +140,53 @@ class dielectricTarget_MoM:
         self.iter_counter += 1
         return dot(self.Z, x)
 
-    def V_EH_computation(self, CFIE, target_mesh, J_dip, r_dip, w, eps_r, mu_r, list_of_test_edges_numbers, EXCITATION, IS_PMCHWT):
+    def V_EH_computation(self, CFIE_coeff, TENETHNH, target_mesh, J_dip, r_dip, w, eps_r, mu_r, list_of_test_edges_numbers, EXCITATION, FORMULATION):
         V_EH_tmp = computeV_EH(target_mesh, J_dip, r_dip, w, eps_r, mu_r, list_of_test_edges_numbers, EXCITATION, 'F')
         N_test = len(list_of_test_edges_numbers)
-        self.V_EH = zeros((2*N_test, 4), 'D')
-        self.V_EH[:N_test] = V_EH_tmp
-        if not (IS_PMCHWT == 1): # we have CFIE
-            self.V = self.V_EH[:,0] * CFIE[0]
+        V_EH = zeros((2*N_test, 4), 'D')
+        V_EH[:N_test] = V_EH_tmp
+        eta_0 = sqrt(mu_0/(eps_0*eps_r_out))
+        if (FORMULATION == "CFIE"): # we have CFIE
+            coeff = CFIE_coeff
+            TE, NE, TH, NH = TENETHNH[0], TENETHNH[1], TENETHNH[2], TENETHNH[3]
+            CFIE = array([TE * coeff, NE * coeff, -TH * (1.0 - coeff) * eta_0, -NH * (1.0 - coeff) * eta_0], 'D')
+            self.V = V_EH[:,0] * CFIE[0]
             for i in range(1, 4):
-                self.V += self.V_EH[:,i] * CFIE[i]
+                self.V += V_EH[:,i] * CFIE[i]
+        elif (FORMULATION == "PMCHWT"):
+            self.V = V_EH[:,0]
+            self.V[N_test:2*N_test] = V_EH[:N_test,2]
+        elif (FORMULATION == "JMCFIE"):
+            coeff = CFIE_coeff
+            self.V = zeros(2*N_test, 'D')
+            self.V[:N_test] = coeff * V_EH_tmp[:,0] + (1.0-coeff) * sqrt(mu_0/(eps_0*eps_r_out)) * V_EH_tmp[:,3]
+            self.V[N_test:2*N_test] = coeff * sqrt(mu_0/(eps_0*eps_r_out)) * V_EH_tmp[:,2] - (1.0-coeff) * V_EH_tmp[:,1]
         else:
-            self.V = self.V_EH[:,0]
-            self.V[N_test:2*N_test] = self.V_EH[:N_test,2]
+            pass
 
-    def V_EH_plane_computation(self, CFIE, target_mesh, E_0, k_hat, r_ref, w, eps_r, mu_r, list_of_test_edges_numbers, IS_PMCHWT):
+    def V_EH_plane_computation(self, CFIE_coeff, TENETHNH, target_mesh, E_0, k_hat, r_ref, w, eps_r, mu_r, list_of_test_edges_numbers, FORMULATION):
         V_EH_tmp = V_EH_plane(E_0, k_hat, r_ref, list_of_test_edges_numbers, target_mesh.RWGNumber_CFIE_OK, target_mesh.RWGNumber_signedTriangles, target_mesh.RWGNumber_edgeVertexes, target_mesh.RWGNumber_oppVertexes, target_mesh.vertexes_coord, w, eps_r, mu_r)
         N_test = len(list_of_test_edges_numbers)
-        self.V_EH = zeros((2*N_test, 4), 'D')
-        self.V_EH[:N_test] = V_EH_tmp
-        if not (IS_PMCHWT == 1): # we have CFIE
-            self.V = self.V_EH[:,0] * CFIE[0]
+        V_EH = zeros((2*N_test, 4), 'D')
+        V_EH[:N_test] = V_EH_tmp
+        eta_0 = sqrt(mu_0/(eps_0*eps_r_out))
+        if (FORMULATION == "CFIE"): # we have CFIE
+            coeff = CFIE_coeff
+            TE, NE, TH, NH = TENETHNH[0], TENETHNH[1], TENETHNH[2], TENETHNH[3]
+            CFIE = array([TE * coeff, NE * coeff, -TH * (1.0 - coeff) * eta_0, -NH * (1.0 - coeff) * eta_0], 'D')
+            self.V = V_EH[:,0] * CFIE[0]
             for i in range(1, 4):
-                self.V += self.V_EH[:,i] * CFIE[i]
+                self.V += V_EH[:,i] * CFIE[i]
+        elif (FORMULATION == "PMCHWT"):
+            self.V = V_EH[:,0]
+            self.V[N_test:2*N_test] = V_EH[:N_test,2]
+        elif (FORMULATION == "JMCFIE"):
+            coeff = CFIE_coeff
+            self.V = zeros(2*N_test, 'D')
+            self.V[:N_test] = coeff * V_EH_tmp[:,0] + (1.0-coeff) * sqrt(mu_0/(eps_0*eps_r_out)) * V_EH_tmp[:,3]
+            self.V[N_test:2*N_test] = coeff * sqrt(mu_0/(eps_0*eps_r_out)) * V_EH_tmp[:,2] - (1.0-coeff) * V_EH_tmp[:,1]
         else:
-            self.V = self.V_EH[:,0]
-            self.V[N_test:2*N_test] = self.V_EH[:N_test,2]
+            pass
 
     def compute_Y(self):
         self.Y = linalg.inv(self.Z)
@@ -191,8 +252,8 @@ if __name__=="__main__":
         for coeff in [1.0, .8, 0.5, 0.2, 0.0]:
         #for coeff in [0.2]:
             #CFIE = array([coeff, coeff, -(1.0 - coeff) * sqrt(mu_0/eps_0), -(1.0 - coeff) * sqrt(mu_0/eps_0)], 'D')
-            CFIE = array([coeff, 0, -(1.0 - coeff) * sqrt(mu_0/eps_0), -(1.0 - coeff) * sqrt(mu_0/eps_0)], 'D')
-            print
+            #CFIE = array([coeff, 0, -(1.0 - coeff) * sqrt(mu_0/eps_0), -(1.0 - coeff) * sqrt(mu_0/eps_0)], 'D')
+            CFIE = array([coeff* 1.0/sqrt(mu_0/eps_0), 0, -(1.0 - coeff), -(1.0 - coeff)], 'D')
             print "CFIE =", CFIE
             target_MoM = Target_MoM(CFIE, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh, w, eps_r, mu_r, TDS_APPROX, Z_s, MOM_FULL_PRECISION)
             # excitation computation
@@ -238,14 +299,14 @@ if __name__=="__main__":
         show()
 
     if CHOICE=="dielectric target":
-        coeff = 0.2
         eps_r_out, mu_r_out = eps_r, mu_r
         eps_r_in, mu_r_in = 3.0 - 0.0j, 1.0 - 0.0j
         k_out = w/c
-        IS_PMCHWT = 1 # 1 if we want PMCHWT, 0 for CFIE
-        TE, NE, TH, NH = 1., 1., 1., 1.
-        CFIE = array([TE * coeff, NE * coeff, -TH * (1.0 - coeff) * sqrt(mu_0/(eps_0*eps_r_in)), -NH * (1.0 - coeff) * sqrt(mu_0/(eps_0*eps_r_in))], 'D')
-        target_MoM = dielectricTarget_MoM(CFIE, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh, w, eps_r_out, mu_r_out, eps_r_in, mu_r_in, MOM_FULL_PRECISION, IS_PMCHWT)
+        FORMULATIONS = ["CFIE", "PMCHWT", "JMCFIE"]
+        FORMULATION = FORMULATIONS[1]
+        CFIE_coeff = 0.2
+        TENETHNH = array([1., 1., 1., 1.], 'd')
+        target_MoM = dielectricTarget_MoM(CFIE_coeff, TENETHNH, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh, w, eps_r_out, mu_r_out, eps_r_in, mu_r_in, MOM_FULL_PRECISION, FORMULATION)
         N_J, N_M = len(list_of_test_edges_numbers), len(list_of_test_edges_numbers)
         
         
@@ -255,17 +316,17 @@ if __name__=="__main__":
         E_0 = array([-1.0,0.0,0.0],'D')
         k_hat = array([0.,0.,-1.0],'d')
         r_ref = zeros(3, 'd') #sum(triangles_centroids, axis=0)/T
-        target_MoM.V_EH_plane_computation(CFIE, target_mesh, E_0, k_hat, r_ref, w, eps_r, mu_r, list_of_test_edges_numbers, IS_PMCHWT)
+        target_MoM.V_EH_plane_computation(CFIE_coeff, TENETHNH, target_mesh, E_0, k_hat, r_ref, w, eps_r, mu_r, list_of_test_edges_numbers, FORMULATION)
         #target_MoM.solveByInversion()
         target_MoM.solveByLUdecomposition()
 
         count = 0
-        I_bicgstab = bicgstab(target_MoM.Z,target_MoM.V,x0=None,tol=1.0e-04, maxiter=1000,xtype=None, callback=itercount)[0]
+        I_bicgstab = bicgstab(target_MoM.Z,target_MoM.V,x0=None,tol=1.0e-4, maxiter=500,xtype=None, callback=itercount)[0]
         print "bicgstab MoM  # of iterations =", count
 
         count = 0
-        I_gmres = gmres(target_MoM.Z, target_MoM.V, x0=None, tol=1.0e-04, maxiter=1000, xtype=None, restrt=300, callback=itercount)[0]
-        print "gmres MoM  # of iterations =", count
+        I_gmres = lgmres(target_MoM.Z, target_MoM.V, x0=None, tol=1.0e-4, maxiter=500, callback=itercount)[0]
+        print "lgmres MoM  # of iterations =", count
         
         ## computation of the scattered fields
         J_obs = array([1.0, 0.0, 0.0], 'D')
@@ -276,9 +337,10 @@ if __name__=="__main__":
             E_x.append(sum(-target_MoM.I[:N_J]*V_EH[:,0] + target_MoM.I[N_J:N_J + N_M]*V_EH[:,2]))
             E_inc_x.append(E_0[0] * exp(-1.j * k_out * dot(k_hat, r_obs - r_ref)))
             E_tot_x.append(E_x[-1] + E_inc_x[-1])
-            #print "Ex scatt inv =", E_z[-1], "z =", z 
-            #print "Ex scatt gmres =", sum(-I_CFIE_gmres[:N_J]*V_EH[:,0] + I_CFIE_gmres[N_J:N_J + N_M]*V_EH[:,2]), "r_obs =", r_obs 
-            #print "Ex scatt bicgstab =", sum(-I_CFIE_bicgstab[:N_J]*V_EH[:,0] + I_CFIE_bicgstab[N_J:N_J + N_M]*V_EH[:,2])
+            #print
+            #print "Ex scatt inv   =", E_x[-1], "z =", z 
+            #print "Ex scatt gmres =", sum(-I_gmres[:N_J]*V_EH[:,0] + I_gmres[N_J:N_J + N_M]*V_EH[:,2]), "r_obs =", r_obs 
+            #print "Ex scatt bicgs =", sum(-I_bicgstab[:N_J]*V_EH[:,0] + I_bicgstab[N_J:N_J + N_M]*V_EH[:,2])
         for z in arange(-0.075,0.075,0.005):
             r_obs = array([0.0, 0.0, z], 'd')
             V_EH = computeV_EH(target_mesh, J_obs, r_obs, w, eps_r_in, mu_r_in, list_of_test_edges_numbers, 'dipole', 'F')

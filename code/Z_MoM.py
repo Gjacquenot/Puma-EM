@@ -11,7 +11,7 @@ from PyGmsh import executeGmsh, write_geo
 from EM_constants import *
 from ReadWriteBlitzArray import readIntFromDisk, writeScalarToDisk, writeBlitzArrayToDisk, readBlitzArrayFromDisk, read1DBlitzArrayFromDisk
 
-def Z_MoM(CFIE, list_of_test_edges_numbers, list_of_src_edges_numbers, RWGNumber_CFIE_OK, RWGNumber_M_CURRENT_OK, RWGNumber_signedTriangles, RWGNumber_edgeVertexes, RWGNumber_oppVertexes, vertexes_coord, w, eps_r, mu_r, signSurfObs, signSurfSrc, TDS_APPROX, Z_s, MOM_FULL_PRECISION):
+def Z_CFIE_MoM(CFIE, list_of_test_edges_numbers, list_of_src_edges_numbers, RWGNumber_CFIE_OK, RWGNumber_M_CURRENT_OK, RWGNumber_signedTriangles, RWGNumber_edgeVertexes, RWGNumber_oppVertexes, vertexes_coord, w, eps_r, mu_r, signSurfObs, signSurfSrc, TDS_APPROX, Z_s, MOM_FULL_PRECISION):
     """I don't know yet what's gonna go here.
     Anyway, we use prefentially 2-D triangles arrays in the C++ code"""
     # creation of the local MoM matrices 
@@ -35,6 +35,33 @@ def Z_MoM(CFIE, list_of_test_edges_numbers, list_of_src_edges_numbers, RWGNumber
                  compiler = 'gcc',
                  extra_compile_args = ['-O3', '-pthread', '-w'])
     return Z_CFIE_J, Z_CFIE_M
+
+def Z_EH_J_MoM(TENETHNH, list_of_test_edges_numbers, list_of_src_edges_numbers, RWGNumber_CFIE_OK, RWGNumber_signedTriangles, RWGNumber_edgeVertexes, RWGNumber_oppVertexes, vertexes_coord, w, eps_r, mu_r, signSurfObs, signSurfSrc, TDS_APPROX, Z_s, MOM_FULL_PRECISION):
+    """I don't know yet what's gonna go here.
+    Anyway, we use prefentially 2-D triangles arrays in the C++ code"""
+    # creation of the local MoM matrices 
+    E_test, E_src = list_of_test_edges_numbers.shape[0], list_of_src_edges_numbers.shape[0]
+    Z_tE_J = zeros((E_test, E_src), 'D')
+    Z_nE_J = zeros((E_test, E_src), 'D')
+    Z_tH_J = zeros((E_test, E_src), 'D')
+    Z_nH_J = zeros((E_test, E_src), 'D')
+    RWGNumber_nodes = zeros((RWGNumber_oppVertexes.shape[0], 4), 'i')
+    RWGNumber_nodes[:, 0] = RWGNumber_oppVertexes[:, 0]
+    RWGNumber_nodes[:, 1:3] = RWGNumber_edgeVertexes
+    RWGNumber_nodes[:, 3] = RWGNumber_oppVertexes[:, 1]
+    wrapping_code = """
+    Z_EH_J_computation(Z_tE_J, Z_nE_J, Z_tH_J, Z_nH_J, TENETHNH, signSurfObs, signSurfSrc, list_of_test_edges_numbers, list_of_src_edges_numbers, RWGNumber_CFIE_OK, RWGNumber_signedTriangles, RWGNumber_nodes, vertexes_coord, w, eps_r, mu_r, TDS_APPROX, Z_s, MOM_FULL_PRECISION);
+    """
+    weave.inline(wrapping_code,
+                 ['Z_tE_J', 'Z_nE_J', 'Z_tH_J', 'Z_nH_J', 'TENETHNH', 'signSurfObs', 'signSurfSrc', 'list_of_test_edges_numbers', 'list_of_src_edges_numbers', 'RWGNumber_CFIE_OK', 'RWGNumber_signedTriangles', 'RWGNumber_nodes', 'vertexes_coord', 'w', 'eps_r', 'mu_r', 'TDS_APPROX', 'Z_s', 'MOM_FULL_PRECISION'],
+                 type_converters = converters.blitz,
+                 include_dirs = ['./code/MoM/'],
+                 library_dirs = ['./code/MoM/'],
+                 libraries = ['MoM','pthread'],
+                 headers = ['<iostream>','<complex>','"Z_EJ_Z_HJ.h"'],
+                 compiler = 'gcc',
+                 extra_compile_args = ['-O3', '-pthread', '-w'])
+    return Z_tE_J, Z_nE_J, Z_tH_J, Z_nH_J
 
 def Z_MoM_triangles_arraysFromCube(cube, CFIE, w, eps_r, mu_r, TDS_APPROX, Z_s, MOM_FULL_PRECISION):
     """I don't know yet what's gonna go here.
@@ -94,7 +121,7 @@ if __name__=="__main__":
     signSurfObs, signSurfSrc = 1.0, 1.0
     t0 = time.clock()
     MOM_FULL_PRECISION = 1
-    Z_CFIE_J, Z_CFIE_M = Z_MoM(CFIE, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh.RWGNumber_CFIE_OK, target_mesh.RWGNumber_M_CURRENT_OK, target_mesh.RWGNumber_signedTriangles, target_mesh.RWGNumber_edgeVertexes, target_mesh.RWGNumber_oppVertexes, target_mesh.vertexes_coord, w, eps_r, mu_r, signSurfObs, signSurfSrc, TDS_APPROX, Z_s, MOM_FULL_PRECISION)
+    Z_CFIE_J, Z_CFIE_M = Z_CFIE_MoM(CFIE, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh.RWGNumber_CFIE_OK, target_mesh.RWGNumber_M_CURRENT_OK, target_mesh.RWGNumber_signedTriangles, target_mesh.RWGNumber_edgeVertexes, target_mesh.RWGNumber_oppVertexes, target_mesh.vertexes_coord, w, eps_r, mu_r, signSurfObs, signSurfSrc, TDS_APPROX, Z_s, MOM_FULL_PRECISION)
 
     SAVE = False
     if SAVE:
