@@ -524,14 +524,123 @@ def write_normals(name, triangles_centroids, triangles_normals, triangles_surfac
     f.close()
 
 
+def triangle_unnormalized_normal_computation(vertexes_coord, triangle_vertexes):
+    v0 = triangle_vertexes[0]
+    v1 = triangle_vertexes[1]
+    v2 = triangle_vertexes[2]
+    r0 = vertexes_coord[v0]
+    r1_r0 = vertexes_coord[v1] - r0
+    r2_r0 = vertexes_coord[v2] - r0
+    triangle_normal = zeros(3, 'd')
+    triangle_normal[0] = r1_r0[1] * r2_r0[2] - r1_r0[2] * r2_r0[1]
+    triangle_normal[1] = r1_r0[2] * r2_r0[0] - r1_r0[0] * r2_r0[2]
+    triangle_normal[2] = r1_r0[0] * r2_r0[1] - r1_r0[1] * r2_r0[0]
+    return triangle_normal
+
+
+def barycentric_mesh(RWGNumber_signedTriangles, RWGNumber_edgeVertexes, reordered_triangle_vertexes, vertexes_coord):
+    N_RWG = RWGNumber_signedTriangles.shape[0]
+    V = vertexes_coord.shape[0]
+    T = reordered_triangle_vertexes.shape[0]
+    triangle_has_been_called = zeros(T,'int32')
+    triangle_treated_edges = zeros((T, 6),'int32')-1
+    barycentric_triangles_vertexes = zeros((T*6, 3), 'int32')
+    # we now create a global nodes list that will be populated
+    vertexes_coord_barycentric = zeros((V+T+N_RWG, 3), 'd')
+    vertexes_coord_barycentric[:V,:] = vertexes_coord
+
+    triangle_to_barycentric_triangles = zeros((T, 6), 'int32')-1
+    number_of_barycentric_triangle = 0
+    for i in range(N_RWG):
+        n0 = RWGNumber_edgeVertexes[i,0]
+        n1 = RWGNumber_edgeVertexes[i,1]
+        number_of_edge_centroid = V + T + i
+        vertexes_coord_barycentric[number_of_edge_centroid, :] = (vertexes_coord[n0,:] + vertexes_coord[n1,:])/2.0
+        for j in range(2):
+            t = RWGNumber_signedTriangles[i,j]
+            n2 = reordered_triangle_vertexes[t,0]
+            n3 = reordered_triangle_vertexes[t,1]
+            n4 = reordered_triangle_vertexes[t,2]
+            number_of_triangle_centroid = V + t
+            if triangle_has_been_called[t]==0:
+                vertexes_coord_barycentric[number_of_triangle_centroid, :] = (vertexes_coord[n2,:] + vertexes_coord[n3,:] + vertexes_coord[n4,:])/3.0
+            number_of_triangle_centroid = V + t
+            # we do the following only if a triangle has been called less than 3 times (otherwise we're at a junction)
+            if triangle_has_been_called[t]<3:
+                # we now create the new, barycentric triangles
+                triangle_1 = [n0, number_of_edge_centroid, number_of_triangle_centroid]
+                triangle_2 = [n1, number_of_edge_centroid, number_of_triangle_centroid]
+                treated_edge = [n0, n1]
+                treated_edge.sort()
+                triangle_treated_edges[t, 2*triangle_has_been_called[t]] = treated_edge[0]
+                triangle_treated_edges[t, 2*triangle_has_been_called[t]+1] = treated_edge[1]
+                # we now populate the "barycentric_triangles_vertexes"
+                barycentric_triangles_vertexes[number_of_barycentric_triangle,:] = triangle_1
+                barycentric_triangles_vertexes[number_of_barycentric_triangle+1,:] = triangle_2
+                # we now relate the created triangles to their master triangle
+                triangle_to_barycentric_triangles[t, 2*triangle_has_been_called[t]] = number_of_barycentric_triangle
+                triangle_to_barycentric_triangles[t, 2*triangle_has_been_called[t]+1] = number_of_barycentric_triangle+1
+                # finally, update of number_of_barycentric_triangle
+                number_of_barycentric_triangle += 2
+                triangle_has_been_called[t] += 1
+
+    # we are still missing some barycentric triangles (for border triangles, with edges not RWG-associated)
+    vertexes_coord_barycentric = vertexes_coord_barycentric.tolist() # we need to add more nodes
+    for t in range(T):
+        number_of_inside_triangles = triangle_has_been_called[t] * 2
+        if number_of_inside_triangles<6: # that means some edges have not been considered
+            # first we find the centroid number
+            number_of_triangle_centroid = V + t
+            # we construct a list of the treated edges
+            treated_edges = []
+            for i in range(3):
+                edge = [triangle_treated_edges[t, 2*i], triangle_treated_edges[t, 2*i+1]]
+                edge.sort()
+                treated_edges.append(edge)
+            # we need to cover all parts of the triangle
+            n0 = reordered_triangle_vertexes[t,0]
+            n1 = reordered_triangle_vertexes[t,1]
+            n2 = reordered_triangle_vertexes[t,2]
+            edges = [n0, n1, n2, n0]
+            for i in range(3):
+                edge = [edges[i], edges[i+1]]
+                edge.sort()
+                if edge not in treated_edges: # we then create the two barycentric triangles
+                    number_of_edge_centroid += 1
+                    vertexes_coord_barycentric.append( ((vertexes_coord[edge[0],:] + vertexes_coord[edge[1],:])/2.0).tolist() )
+                    # we now create the barycentric triangles
+                    triangle_1 = [edge[0], number_of_edge_centroid, number_of_triangle_centroid]
+                    triangle_2 = [edge[1], number_of_edge_centroid, number_of_triangle_centroid]
+                    # we now populate the "barycentric_triangles_vertexes"
+                    barycentric_triangles_vertexes[number_of_barycentric_triangle,:] = triangle_1
+                    barycentric_triangles_vertexes[number_of_barycentric_triangle+1,:] = triangle_2
+                    # we now relate the created triangles to their master triangle
+                    triangle_to_barycentric_triangles[t, 2*triangle_has_been_called[t]] = number_of_barycentric_triangle
+                    triangle_to_barycentric_triangles[t, 2*triangle_has_been_called[t]+1] = number_of_barycentric_triangle+1
+                    # finally, update of number_of_barycentric_triangle
+                    number_of_barycentric_triangle += 2
+                    triangle_has_been_called[t] += 1
+
+    # we now check the normals and change them to be in line with the father triangle
+    vertexes_coord_barycentric = array(vertexes_coord_barycentric)
+    for t in range(T):
+        main_normal = triangle_unnormalized_normal_computation(vertexes_coord, reordered_triangle_vertexes[t,:])
+        for bary_t in triangle_to_barycentric_triangles[t,:]:
+            triangle = barycentric_triangles_vertexes[bary_t,:]
+            normal_bary_t = triangle_unnormalized_normal_computation(vertexes_coord_barycentric, triangle)
+            if sum(main_normal*normal_bary_t)<0.0:
+                barycentric_triangles_vertexes[bary_t,:] = [triangle[0], triangle[2], triangle[1]]
+
+    return vertexes_coord_barycentric, barycentric_triangles_vertexes, triangle_to_barycentric_triangles, triangle_has_been_called
+
 if __name__=="__main__":
     path = './geo'
-    targetName = 'cubi'
-    f = 2.12e9
+    targetName = 'strip'
+    f = 1.12e9
     write_geo(path, targetName, 'lc', c/f/10.0)
-    write_geo(path, targetName, 'lx', 4.05)
-    write_geo(path, targetName, 'ly', 4.05)
-    write_geo(path, targetName, 'lz', 4.05)
+    write_geo(path, targetName, 'lx', .05)
+    write_geo(path, targetName, 'ly', .05)
+    write_geo(path, targetName, 'lz', .05)
     write_geo(path, targetName, 'w', 0.02)
     executeGmsh(path, targetName, 0)
     targetDimensions_scaling_factor = 1.0
@@ -561,7 +670,14 @@ if __name__=="__main__":
     #write_normals(os.path.join(path, "normals.pos"), triangles_centroids, triangles_normals, triangles_surfaces, -1)
     
     RWGNumber_signedTriangles, RWGNumber_edgeVertexes, N_edges, N_RWG = RWGNumber_signedTriangles_computation(edgeNumber_triangles, edgeNumber_vertexes, triangles_surfaces, is_closed_surface, triangle_vertexes, vertexes_coord)
+    #print RWGNumber_signedTriangles
     RWGNumber_oppVertexes = RWGNumber_oppVertexes_computation(RWGNumber_signedTriangles, RWGNumber_edgeVertexes, triangle_vertexes)
     print("    Number of edges = " + str(N_edges))
     print("    Number of RWG = " + str(N_RWG))
+
+
+    vertexes_coord_barycentric, barycentric_triangles_vertexes, triangle_to_barycentric_triangles, triangle_has_been_called = barycentric_mesh(RWGNumber_signedTriangles, RWGNumber_edgeVertexes, triangle_vertexes, vertexes_coord)
+    print "number of original triangles = ", triangle_vertexes.shape[0]
+    print "number of barycentric triangles = ", barycentric_triangles_vertexes.shape[0]
+    print triangle_to_barycentric_triangles
 
