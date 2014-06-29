@@ -125,7 +125,9 @@ if __name__=="__main__":
 
     # now construction of the barycentric mesh
     target_mesh_bary = MeshClass(path, targetName, targetDimensions_scaling_factor, z_offset, languageForMeshConstruction, meshFormat, meshFileTermination)
-    target_mesh_bary.vertexes_coord, target_mesh_bary.triangle_vertexes, triangle_to_barycentric_triangles, triangle_has_been_called = barycentric_mesh(target_mesh.RWGNumber_signedTriangles, target_mesh.RWGNumber_edgeVertexes, target_mesh.triangle_vertexes, target_mesh.vertexes_coord)
+    divided_triangles_vertexes, MAX_V = divide_triangles(target_mesh.RWGNumber_signedTriangles, target_mesh.RWGNumber_edgeVertexes, target_mesh.triangle_vertexes, target_mesh.vertexes_coord)
+    target_mesh_bary.vertexes_coord, target_mesh_bary.triangle_vertexes = create_barycentric_triangles(divided_triangles_vertexes, target_mesh.vertexes_coord, MAX_V)
+
     t0 = time.clock()
     edgeNumber_vertexes, edgeNumber_triangles, triangle_adjacentTriangles, is_triangle_adjacentTriangles_via_junction = edges_computation(target_mesh_bary.triangle_vertexes, target_mesh_bary.vertexes_coord)
     time_edges_classification = time.clock()-t0
