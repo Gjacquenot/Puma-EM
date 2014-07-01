@@ -66,14 +66,14 @@ def itercount(residual):
 
 if __name__=="__main__":
     path = './geo'
-    targetName = 'strip'
+    targetName = 'cube2'
     # first resonances for the sphere: f = c * Z/(2*pi*a), where Z is a zero of J Bessel function
     # Z = 4.493409375, 5.763459195, 6.987932, 8.18256145, 9.35581211, 10.5128354
     # respectively for orders 0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5
     # Frob-EFIE convergence is difficult or impossible at the corresponding frequencies,
     # especially for order 5.5, a = 0.3, for which f = 1487993627.3926289, tol = 1e-3
     # However, Frob-CFIE convergence is more than OK: it is guaranteed
-    f = 2.e9
+    f = .9e9
     fileName = targetName
     write_geo(path, fileName, 'lc', c/f/10.)
     write_geo(path, fileName, 'lx', 0.075)
@@ -169,6 +169,46 @@ if __name__=="__main__":
     target_mesh_bary.average_RWG_length = compute_RWG_meanEdgeLength(target_mesh_bary.vertexes_coord, target_mesh_bary.RWGNumber_edgeVertexes, stride)
     print("average barycentric RWG length = " + str(target_mesh_bary.average_RWG_length) + "m = lambda /" + str((c/f)/target_mesh_bary.average_RWG_length))
 
+
+    list_of_test_edges_numbers = arange(target_mesh_bary.N_RWG,dtype='i')
+    list_of_src_edges_numbers = arange(target_mesh_bary.N_RWG,dtype='i')
+    MOM_FULL_PRECISION = 1
+    EXCITATION = 'dipole'
+    CHOICE = "CFIE testing"
+    #CHOICE = "fields verification"
+    #CHOICE = "dielectric target"
+    if CHOICE=="CFIE testing":
+        #for coeff in [1.0, .8, 0.5, 0.2, 0.0]:
+        for coeff in [0.2]:
+            #CFIE = array([coeff, coeff, -(1.0 - coeff) * sqrt(mu_0/eps_0), -(1.0 - coeff) * sqrt(mu_0/eps_0)], 'D')
+            #CFIE = array([coeff, 0, -(1.0 - coeff) * sqrt(mu_0/eps_0), -(1.0 - coeff) * sqrt(mu_0/eps_0)], 'D')
+            CFIE = array([coeff* 1.0/sqrt(mu_0/eps_0), 0, -(1.0 - coeff), -(1.0 - coeff)], 'D')
+            print "CFIE =", CFIE
+            target_MoM = Target_MoM(CFIE, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh_bary, w, eps_r, mu_r, TDS_APPROX, Z_s, MOM_FULL_PRECISION)
+            # excitation computation
+            target_MoM.V_EH_computation(CFIE, target_mesh_bary, J_dip, r_dip, w, eps_r, mu_r, list_of_test_edges_numbers, EXCITATION)
+            #target_MoM.solveByInversion()
+            target_MoM.solveByLUdecomposition()
+            print "inverted MoM RCS =", sum(target_MoM.I_CFIE*target_MoM.V_EH[:,0])
+            #computeCurrentsVisualization(w, target_mesh, target_MoM.I_CFIE)
+            # now we try the iterative method
+            count = 0
+            I_CFIE_bicgstab = bicgstab(target_MoM.Z_CFIE_J, target_MoM.V_CFIE, x0=None, tol=1.0e-05, maxiter=1000, xtype=None, callback=itercount)
+            print "bicgstab MoM RCS =", sum(I_CFIE_bicgstab[0]*target_MoM.V_EH[:,0]), "# of iterations =", count
+
+
+
+    target_mesh_bary.RWGNumber_signedTriangles, target_mesh_bary.RWGNumber_edgeVertexes, target_mesh_bary.RWGNumber_oppVertexes = create_barycentric_RWGs(target_mesh.RWGNumber_signedTriangles, target_mesh.RWGNumber_edgeVertexes, divided_triangles_vertexes, target_mesh_bary.triangle_vertexes)
+    print("  Number of edges = " + str(target_mesh_bary.N_edges))
+    print("  Number of RWG = " + str(target_mesh_bary.N_RWG))
+    sys.stdout.flush()
+    if target_mesh_bary.N_RWG<1e4:
+        stride = 1
+    else:
+        stride = target_mesh_bary.N_RWG/100
+    target_mesh_bary.average_RWG_length = compute_RWG_meanEdgeLength(target_mesh_bary.vertexes_coord, target_mesh_bary.RWGNumber_edgeVertexes, stride)
+    print("average barycentric RWG length = " + str(target_mesh_bary.average_RWG_length) + "m = lambda /" + str((c/f)/target_mesh_bary.average_RWG_length))
+    
 
     list_of_test_edges_numbers = arange(target_mesh_bary.N_RWG,dtype='i')
     list_of_src_edges_numbers = arange(target_mesh_bary.N_RWG,dtype='i')

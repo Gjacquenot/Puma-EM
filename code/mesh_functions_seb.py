@@ -601,6 +601,80 @@ def create_barycentric_triangles(divided_triangles_vertexes, vertexes_coord, MAX
 
     return vertexes_coord_barycentric, barycentric_triangles_vertexes
 
+def create_barycentric_RWGs(RWGNumber_signedTriangles, RWGNumber_edgeVertexes, divided_triangles_vertexes, barycentric_triangles_vertexes):
+    T = divided_triangles_vertexes.shape[0]
+    T_bary = 6*T
+    N_RWG = RWGNumber_signedTriangles.shape[0]
+    barycentric_RWGNumber_signedTriangles = zeros((T_bary+2*N_RWG, 2),'int32')
+    barycentric_RWGNumber_edgeVertexes = zeros((T_bary+2*N_RWG, 2),'int32')
+    barycentric_RWGNumber_oppVertexes = zeros((T_bary+2*N_RWG, 2),'int32')    
+    # first we take care of the 6 barycentric RWGs that are enclosed in each original triangle 
+    for t in range(T):
+        barycentric_RWGNumber_signedTriangles[6*t + 0, :] = [6*t+0, 6*t+1]
+        barycentric_RWGNumber_signedTriangles[6*t + 1, :] = [6*t+1, 6*t+2]
+        barycentric_RWGNumber_signedTriangles[6*t + 2, :] = [6*t+2, 6*t+3]
+        barycentric_RWGNumber_signedTriangles[6*t + 3, :] = [6*t+3, 6*t+4]
+        barycentric_RWGNumber_signedTriangles[6*t + 4, :] = [6*t+4, 6*t+5]
+        barycentric_RWGNumber_signedTriangles[6*t + 5, :] = [6*t+5, 6*t+0]
+
+        # REMINDER: in divided_triangles_vertexes, the column indexes:
+        # 0, 2, 4 correspond to the nodes 0, 1, 2 of the triangles_vertexes
+        # 1, 3, 5 correspond to the midpoints of the edges n01, n12, n20 of the triangles
+        # 6 corresponds to the r_grav of the triangle
+        # draw a triangle and bary-divide it and number points with above indexes to derive the following 
+        barycentric_RWGNumber_edgeVertexes[6*t + 0, :] = [divided_triangles_vertexes[t,1], divided_triangles_vertexes[t,6]]
+        barycentric_RWGNumber_edgeVertexes[6*t + 1, :] = [divided_triangles_vertexes[t,2], divided_triangles_vertexes[t,6]]
+        barycentric_RWGNumber_edgeVertexes[6*t + 2, :] = [divided_triangles_vertexes[t,3], divided_triangles_vertexes[t,6]]
+        barycentric_RWGNumber_edgeVertexes[6*t + 3, :] = [divided_triangles_vertexes[t,4], divided_triangles_vertexes[t,6]]
+        barycentric_RWGNumber_edgeVertexes[6*t + 4, :] = [divided_triangles_vertexes[t,5], divided_triangles_vertexes[t,6]]
+        barycentric_RWGNumber_edgeVertexes[6*t + 5, :] = [divided_triangles_vertexes[t,0], divided_triangles_vertexes[t,6]]
+
+        barycentric_RWGNumber_oppVertexes[6*t + 0, :] = [divided_triangles_vertexes[t,0], divided_triangles_vertexes[t,2]]
+        barycentric_RWGNumber_oppVertexes[6*t + 1, :] = [divided_triangles_vertexes[t,1], divided_triangles_vertexes[t,3]]
+        barycentric_RWGNumber_oppVertexes[6*t + 2, :] = [divided_triangles_vertexes[t,2], divided_triangles_vertexes[t,4]]
+        barycentric_RWGNumber_oppVertexes[6*t + 3, :] = [divided_triangles_vertexes[t,3], divided_triangles_vertexes[t,5]]
+        barycentric_RWGNumber_oppVertexes[6*t + 4, :] = [divided_triangles_vertexes[t,4], divided_triangles_vertexes[t,0]]
+        barycentric_RWGNumber_oppVertexes[6*t + 5, :] = [divided_triangles_vertexes[t,5], divided_triangles_vertexes[t,1]]
+
+    # we then create the 4 barycentric RWGs that are associated with each original RWG
+    for i in range(N_RWG):
+        e0 = RWGNumber_edgeVertexes[i, 0]
+        e1 = RWGNumber_edgeVertexes[i, 1]
+        edge_RWG = [e0,e1]
+
+        t0 = RWGNumber_signedTriangles[i, 0]
+        t1 = RWGNumber_signedTriangles[i, 1]
+        nodes_t0 = divided_triangles_vertexes[t0,:].tolist()
+        nodes_t1 = divided_triangles_vertexes[t1,:].tolist()
+        index_start_node = nodes_t0.index(e0)
+        index_end_node = nodes_t0.index(e1)
+        index_mid_node = (index_start_node + index_end_node)/2
+        if ((index_start_node==0) and (index_end_node==4)) or ((index_start_node==4) and (index_end_node==0)):
+            index_mid_node = 5
+        # the points forming the barycentric RWGs
+        barycentric_RWGNumber_edgeVertexes[T_bary + 2*i, :] = [nodes_t0[index_start_node], nodes_t0[index_mid_node]]
+        barycentric_RWGNumber_edgeVertexes[T_bary + 2*i + 1, :] = [nodes_t0[index_mid_node], nodes_t0[index_end_node]]
+        # the points opposite the barycentric RWGs
+        barycentric_RWGNumber_oppVertexes[T_bary + 2*i, :] = [nodes_t0[6], nodes_t1[6]]
+        barycentric_RWGNumber_oppVertexes[T_bary + 2*i + 1, :] = [nodes_t0[6], nodes_t1[6]]
+        # the signed barycentric triangles forming the RWG: first the two triangles in t0
+        start_node = nodes_t0[index_start_node]
+        mid_node = nodes_t0[index_mid_node]
+        end_node = nodes_t0[index_end_node]
+        for j in range(6):
+            t0_j = barycentric_triangles_vertexes[6*t0+j, :].tolist()
+            t1_j = barycentric_triangles_vertexes[6*t1+j, :].tolist()
+            if (start_node in t0_j) and (mid_node in t0_j):
+                barycentric_RWGNumber_signedTriangles[T_bary + 2*i, 0] = 6*t0 + j
+            if (mid_node in t0_j) and (end_node in t0_j):
+                barycentric_RWGNumber_signedTriangles[T_bary + 2*i + 1, 0] = 6*t0 + j
+            if (start_node in t1_j) and (mid_node in t1_j):
+                barycentric_RWGNumber_signedTriangles[T_bary + 2*i, 1] = 6*t1 + j
+            if (mid_node in t1_j) and (end_node in t1_j):
+                barycentric_RWGNumber_signedTriangles[T_bary + 2*i + 1, 1] = 6*t1 + j
+
+    return barycentric_RWGNumber_signedTriangles, barycentric_RWGNumber_edgeVertexes, barycentric_RWGNumber_oppVertexes
+
 if __name__=="__main__":
     path = './geo'
     targetName = 'strip'
@@ -649,3 +723,6 @@ if __name__=="__main__":
     print "number of original triangles = ", triangle_vertexes.shape[0]
     print "number of barycentric triangles = ", barycentric_triangles_vertexes.shape[0]
     print vertexes_coord_barycentric.shape
+
+    barycentric_RWGNumber_signedTriangles, barycentric_RWGNumber_edgeVertexes, barycentric_RWGNumber_oppVertexes = create_barycentric_RWGs(RWGNumber_signedTriangles, RWGNumber_edgeVertexes, divided_triangles_vertexes, barycentric_triangles_vertexes)
+
