@@ -636,11 +636,10 @@ def create_barycentric_RWGs(RWGNumber_signedTriangles, RWGNumber_edgeVertexes, d
         barycentric_RWGNumber_oppVertexes[6*t + 4, :] = [divided_triangles_vertexes[t,4], divided_triangles_vertexes[t,0]]
         barycentric_RWGNumber_oppVertexes[6*t + 5, :] = [divided_triangles_vertexes[t,5], divided_triangles_vertexes[t,1]]
 
-    # we then create the 4 barycentric RWGs that are associated with each original RWG
+    # we then create the 2 barycentric RWGs that are associated with each original RWG
     for i in range(N_RWG):
         e0 = RWGNumber_edgeVertexes[i, 0]
         e1 = RWGNumber_edgeVertexes[i, 1]
-        edge_RWG = [e0,e1]
 
         t0 = RWGNumber_signedTriangles[i, 0]
         t1 = RWGNumber_signedTriangles[i, 1]
@@ -674,6 +673,111 @@ def create_barycentric_RWGs(RWGNumber_signedTriangles, RWGNumber_edgeVertexes, d
                 barycentric_RWGNumber_signedTriangles[T_bary + 2*i + 1, 1] = 6*t1 + j
 
     return barycentric_RWGNumber_signedTriangles, barycentric_RWGNumber_edgeVertexes, barycentric_RWGNumber_oppVertexes
+
+
+def create_RWG_to_barycentricRWG(RWGNumber_signedTriangles, RWGNumber_edgeVertexes, divided_triangles_vertexes, vertexes_coord_barycentric):
+    # for a given, original RWG, we have 14 participating barycentric RWGs: 6 per triangle plus 2 on the edge.
+    # of these 14 barycentric RWGs, only 10 actually participate for rebuilding the original RWG.
+    # The 14 can be related to the original RWG as follows:
+    # Original RWG i -> 2 original triangles: RWGNumber_signedTriangles[i, :]
+    # Original triangle t -> barycentric RWG j: barycentric_RWGNumber_signedTriangles[6*t + j, :]
+    # We have then 12 RWGs, but we still lack the two barycentric RWGs that are on the original RWG edge.
+    # Original RWG i -> barycentric_RWGNumber_signedTriangles[6*t + 2*i, :] and [6*t + 2*i + 1, :]
+    T = divided_triangles_vertexes.shape[0]
+    N_RWG = RWGNumber_signedTriangles.shape[0]
+    RWG_to_barycentricRWG = zeros((N_RWG, 14), 'int32')
+    for i in range(N_RWG):
+        t0 = RWGNumber_signedTriangles[i,0]
+        t1 = RWGNumber_signedTriangles[i,1]
+        for j in range(6):
+            RWG_to_barycentricRWG[i, j] = 6*t0 + j
+            RWG_to_barycentricRWG[i, j+8] = 6*t1 + j
+        RWG_to_barycentricRWG[i, 6] = T*6 + 2*i
+        RWG_to_barycentricRWG[i, 7] = T*6 + 2*i + 1
+
+    RWG_to_barycentricRWG_coefficients = zeros((N_RWG, 14), 'd')
+    # we already know that the two barycentric RWGs that are on the
+    # edge of the RWG have a coefficient of 1 (Andriulli TAP 2008).
+    RWG_to_barycentricRWG_coefficients[:, 6] = 1.
+    RWG_to_barycentricRWG_coefficients[:, 7] = 1.
+    for i in range(N_RWG):
+        # original RWG nodes
+        e0 = RWGNumber_edgeVertexes[i, 0]
+        e1 = RWGNumber_edgeVertexes[i, 1]
+        # now length of RWG
+        l_RWG = vertexes_coord_barycentric[e0,:]-vertexes_coord_barycentric[e1,:]
+        l = sqrt(sum(l_RWG*l_RWG))
+        # we first deal with the first half of the original RWG
+        t = RWGNumber_signedTriangles[i, 0]
+        nodes_t = divided_triangles_vertexes[t,:].tolist()
+        index_start_node = nodes_t.index(e0)
+        index_end_node = nodes_t.index(e1)
+        index_mid_node = (index_start_node + index_end_node)/2
+        if ((index_start_node==0) and (index_end_node==4)) or ((index_start_node==4) and (index_end_node==0)):
+            index_mid_node = 5
+        # remember:
+        # barycentric_RWGNumber_signedTriangles[6*t + 0, :] = [6*t+0, 6*t+1]
+        # barycentric_RWGNumber_signedTriangles[6*t + 1, :] = [6*t+1, 6*t+2]
+        # barycentric_RWGNumber_signedTriangles[6*t + 2, :] = [6*t+2, 6*t+3]
+        # barycentric_RWGNumber_signedTriangles[6*t + 3, :] = [6*t+3, 6*t+4]
+        # barycentric_RWGNumber_signedTriangles[6*t + 4, :] = [6*t+4, 6*t+5]
+        # barycentric_RWGNumber_signedTriangles[6*t + 5, :] = [6*t+5, 6*t+0]
+        # now lengths of inner RWGs
+        l_barycentricRWGs = zeros(6, 'd')
+        for j in range(6):
+            vector = vertexes_coord_barycentric[nodes_t[(j+1)%6]] - vertexes_coord_barycentric[nodes_t[6]]
+            l_barycentricRWGs[j] = sqrt(sum(vector*vector))
+        coefficients = array([l/6., l/3., l/6., l/3., l/6., l/3.])
+        coefficients = coefficients/l_barycentricRWGs
+        if index_mid_node == 1:
+            # then inner RWGs 1 and 4 (indexes 0 and 3) are aligned with mother RWG and remain zero
+            # we only care about inner RWGs 2, 3, 5, 6 (indexes 1, 2, 4, 5)
+            # in this case, RWGs 2 and 3 are against mother RWG, and 5 and 6 are in same direction
+            RWG_to_barycentricRWG_coefficients[i, :6] = array([0., -1., -1., 0., 1., 1.]) * coefficients
+        if index_mid_node == 3:
+            # then inner RWGs 3 and 6 (indexes 2 and 5) are aligned with mother RWG and remain zero
+            # we only care about inner RWGs 1, 2, 4, 5 (indexes 0, 1, 3, 4)
+            # in this case, RWGs 4 and 5 are against mother RWG, and 1 and 2 are in same direction
+            RWG_to_barycentricRWG_coefficients[i, :6] = array([1., 1., 0., -1., -1., 0.]) * coefficients
+        if index_mid_node == 5:
+            # then inner RWGs 2 and 5 (indexes 1 and 4) are aligned with mother RWG and remain zero
+            # we only care about inner RWGs 1, 3, 4, 6 (indexes 0, 2, 3, 5)
+            # in this case, RWGs 1 and 6 are against mother RWG, and 3 and 4 are in same direction
+            RWG_to_barycentricRWG_coefficients[i, :6] = array([-1., 0., 1., 1., 0., -1.]) * coefficients
+
+        # we now deal with the second half of the original RWG
+        t = RWGNumber_signedTriangles[i, 1]
+        nodes_t = divided_triangles_vertexes[t,:].tolist()
+        index_start_node = nodes_t.index(e0)
+        index_end_node = nodes_t.index(e1)
+        index_mid_node = (index_start_node + index_end_node)/2
+        if ((index_start_node==0) and (index_end_node==4)) or ((index_start_node==4) and (index_end_node==0)):
+            index_mid_node = 5
+        l_barycentricRWGs = zeros(6, 'd')
+        for j in range(6):
+            vector = vertexes_coord_barycentric[nodes_t[(j+1)%6]] - vertexes_coord_barycentric[nodes_t[6]]
+            l_barycentricRWGs[j] = sqrt(sum(vector*vector))
+        coefficients = array([l/6., l/3., l/6., l/3., l/6., l/3.])
+        coefficients = coefficients/l_barycentricRWGs
+        if index_mid_node == 1:
+            # then inner RWGs 1 and 4 (indexes 0 and 3) are aligned with mother RWG and remain zero
+            # we only care about inner RWGs 2, 3, 5, 6 (indexes 1, 2, 4, 5)
+            # in this case, RWGs 2 and 3 are against mother RWG, and 5 and 6 are in same direction
+            RWG_to_barycentricRWG_coefficients[i, 8:] = array([0., -1., -1., 0., 1., 1.]) * coefficients * (-1.0)
+        if index_mid_node == 3:
+            # then inner RWGs 3 and 6 (indexes 2 and 5) are aligned with mother RWG and remain zero
+            # we only care about inner RWGs 1, 2, 4, 5 (indexes 0, 1, 3, 4)
+            # in this case, RWGs 4 and 5 are against mother RWG, and 1 and 2 are in same direction
+            RWG_to_barycentricRWG_coefficients[i, 8:] = array([1., 1., 0., -1., -1., 0.]) * coefficients * (-1.0)
+        if index_mid_node == 5:
+            # then inner RWGs 2 and 5 (indexes 1 and 4) are aligned with mother RWG and remain zero
+            # we only care about inner RWGs 1, 3, 4, 6 (indexes 0, 2, 3, 5)
+            # in this case, RWGs 1 and 6 are against mother RWG, and 3 and 4 are in same direction
+            RWG_to_barycentricRWG_coefficients[i, 8:] = array([-1., 0., 1., 1., 0., -1.]) * coefficients * (-1.0)
+
+    return RWG_to_barycentricRWG, RWG_to_barycentricRWG_coefficients
+
+
 
 if __name__=="__main__":
     path = './geo'
@@ -725,4 +829,8 @@ if __name__=="__main__":
     print vertexes_coord_barycentric.shape
 
     barycentric_RWGNumber_signedTriangles, barycentric_RWGNumber_edgeVertexes, barycentric_RWGNumber_oppVertexes = create_barycentric_RWGs(RWGNumber_signedTriangles, RWGNumber_edgeVertexes, divided_triangles_vertexes, barycentric_triangles_vertexes)
-
+    T = divided_triangles_vertexes.shape[0]
+    N_RWG_bary = barycentric_RWGNumber_signedTriangles.shape[0]
+    print "N_RWG_bary =", N_RWG_bary
+    RWG_to_barycentricRWG, RWG_to_barycentricRWG_coefficients = create_RWG_to_barycentricRWG(RWGNumber_signedTriangles, RWGNumber_edgeVertexes, divided_triangles_vertexes, vertexes_coord_barycentric)
+    print RWG_to_barycentricRWG_coefficients
