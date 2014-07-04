@@ -99,6 +99,7 @@ def compute_edgeNumber_triangles(col_sorted_e_v):
                 # have a common edge. We then merge the two lists and
                 # there is no need for increasing the index j
                 indexesEqualEdges[j-1] += indexesEqualEdges[j][1:]
+                del indexesEqualEdges[j]
             else:
                 j += 1
         else:
