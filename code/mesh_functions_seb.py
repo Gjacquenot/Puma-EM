@@ -539,12 +539,14 @@ def divide_triangles(RWGNumber_signedTriangles, RWGNumber_edgeVertexes, reordere
     divided_triangles_vertexes[:, 4] = reordered_triangle_vertexes[:, 2]
     divided_triangles_vertexes[:, 6] = arange(V,V+T)
     # first we take care of the points located on RWG edges
+    number_of_edge_centroid = V + T
     for i in range(N_RWG):
         e0 = RWGNumber_edgeVertexes[i, 0]
         e1 = RWGNumber_edgeVertexes[i, 1]
         edge = [e0, e1]
         edge.sort()
-        number_of_edge_centroid = V + T + i
+        index_in_t = [0, 0]
+        edge_centroid_number = [0, 0]
         for j in range(2):
             t = RWGNumber_signedTriangles[i, j]
             n0 = reordered_triangle_vertexes[t, 0]
@@ -553,12 +555,21 @@ def divide_triangles(RWGNumber_signedTriangles, RWGNumber_edgeVertexes, reordere
             edges_triangle = [[n0,n1], [n1,n2], [n2,n0]]
             for e in edges_triangle:
                 e.sort()
-            index = edges_triangle.index(edge)
-            if divided_triangles_vertexes[t, index*2+1]==0:
-                divided_triangles_vertexes[t, index*2+1] = number_of_edge_centroid
+            index_in_t[j] = edges_triangle.index(edge)*2+1
+            edge_centroid_number[j] = divided_triangles_vertexes[t, index_in_t[j]]
+        # we now check if one of the edges has already a number. If not we assign a number.
+        if edge_centroid_number[0] != 0:
+            number = edge_centroid_number[0]
+        elif edge_centroid_number[1] != 0:
+            number = edge_centroid_number[1]
+        else:
+            number = number_of_edge_centroid
+            number_of_edge_centroid += 1
+        for j in range(2):
+            t = RWGNumber_signedTriangles[i, j]
+            divided_triangles_vertexes[t, index_in_t[j]] = number
 
     # then we take care of the points located on triangle edges that are not RWGs
-    number_of_edge_centroid = V + T + N_RWG
     for t in range(T):
         for j in range(3):
             if (divided_triangles_vertexes[t, j*2+1] == 0):
@@ -778,7 +789,13 @@ def create_RWG_to_barycentricRWG(RWGNumber_signedTriangles, RWGNumber_edgeVertex
 
     return RWG_to_barycentricRWG, RWG_to_barycentricRWG_coefficients
 
-
+def compute_barycentric_RWG_CFIE_OK(RWGNumber_CFIE_OK, RWGNumber_M_CURRENT_OK, T_bary):
+    N_RWG = RWGNumber_CFIE_OK.shape[0]
+    barycentric_RWGNumber_CFIE_OK = zeros(T_bary + 2*N_RWG, 'int32')
+    barycentric_RWGNumber_M_CURRENT_OK = zeros(T_bary + 2*N_RWG, 'int32')
+    for i in range(N_RWG):
+        pass
+    return barycentric_RWGNumber_CFIE_OK, barycentric_RWGNumber_M_CURRENT_OK
 
 if __name__=="__main__":
     path = './geo'
@@ -796,7 +813,6 @@ if __name__=="__main__":
     #vertexes_coord, triangle_vertexes, triangles_physicalSurface = read_mesh_GMSH_2(os.path.join(path, targetName + '.msh'), targetDimensions_scaling_factor, z_offset)
     edgeNumber_vertexes, edgeNumber_triangles, triangle_adjacentTriangles, is_triangle_adjacentTriangles_via_junction = edges_computation(triangle_vertexes, vertexes_coord)
     T = len(triangle_adjacentTriangles)
-    
     #print "attribution of a surface number to each triangle...",
     #triangles_surfaces = triangles_surfaces_computation(triangle_adjacentTriangles, is_triangle_adjacentTriangles_via_junction)
     #S = max(triangles_surfaces)+1

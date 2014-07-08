@@ -16,6 +16,7 @@ except ImportError:
     pass
 from mesh_functions_seb import *
 
+
 def computeCurrentsVisualization(w, target_mesh, ZI):
     if (N_RWG<1e4):
         nbTimeSteps = 48
@@ -95,8 +96,8 @@ if __name__=="__main__":
     mu_r = 1.
     TDS_APPROX = 0
     Z_s = 0.0
-    J_dip = array([1.0, 0.0, 0.], 'D')
-    r_dip = array([0.1, 0.1, 20.0], 'd')
+    J_dip = array([1.0, 1.0, 0.], 'D')
+    r_dip = array([0.1, 0.1, 2.0], 'd')
     list_of_test_edges_numbers = arange(N_RWG,dtype='i')
     list_of_src_edges_numbers = arange(N_RWG,dtype='i')
     MOM_FULL_PRECISION = 1
@@ -104,9 +105,11 @@ if __name__=="__main__":
     CHOICE = "CFIE testing"
     #CHOICE = "fields verification"
     #CHOICE = "dielectric target"
+    V_RWG = zeros(N_RWG, 'D')
+
     if CHOICE=="CFIE testing":
         #for coeff in [1.0, .8, 0.5, 0.2, 0.0]:
-        for coeff in [0.2]:
+        for coeff in [1.0]:
             #CFIE = array([coeff, coeff, -(1.0 - coeff) * sqrt(mu_0/eps_0), -(1.0 - coeff) * sqrt(mu_0/eps_0)], 'D')
             #CFIE = array([coeff, 0, -(1.0 - coeff) * sqrt(mu_0/eps_0), -(1.0 - coeff) * sqrt(mu_0/eps_0)], 'D')
             CFIE = array([coeff* 1.0/sqrt(mu_0/eps_0), 0, -(1.0 - coeff), -(1.0 - coeff)], 'D')
@@ -114,6 +117,7 @@ if __name__=="__main__":
             target_MoM = Target_MoM(CFIE, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh, w, eps_r, mu_r, TDS_APPROX, Z_s, MOM_FULL_PRECISION)
             # excitation computation
             target_MoM.V_EH_computation(CFIE, target_mesh, J_dip, r_dip, w, eps_r, mu_r, list_of_test_edges_numbers, EXCITATION)
+            V_RWG = target_MoM.V_CFIE
             #target_MoM.solveByInversion()
             target_MoM.solveByLUdecomposition()
             print "inverted MoM RCS =", sum(target_MoM.I_CFIE*target_MoM.V_EH[:,0])
@@ -123,44 +127,45 @@ if __name__=="__main__":
             I_CFIE_bicgstab = bicgstab(target_MoM.Z_CFIE_J, target_MoM.V_CFIE, x0=None, tol=1.0e-05, maxiter=1000, xtype=None, callback=itercount)
             print "bicgstab MoM RCS =", sum(I_CFIE_bicgstab[0]*target_MoM.V_EH[:,0]), "# of iterations =", count
 
-    # now construction of the barycentric mesh
+    # now construction of the barycentric mesh: the classical way
     target_mesh_bary = MeshClass(path, targetName, targetDimensions_scaling_factor, z_offset, languageForMeshConstruction, meshFormat, meshFileTermination)
     divided_triangles_vertexes, MAX_V = divide_triangles(target_mesh.RWGNumber_signedTriangles, target_mesh.RWGNumber_edgeVertexes, target_mesh.triangle_vertexes, target_mesh.vertexes_coord)
     target_mesh_bary.vertexes_coord, target_mesh_bary.triangle_vertexes = create_barycentric_triangles(divided_triangles_vertexes, target_mesh.vertexes_coord, MAX_V)
 
-    t0 = time.clock()
+    #t0 = time.clock()
     edgeNumber_vertexes, edgeNumber_triangles, triangle_adjacentTriangles, is_triangle_adjacentTriangles_via_junction = edges_computation(target_mesh_bary.triangle_vertexes, target_mesh_bary.vertexes_coord)
-    time_edges_classification = time.clock()-t0
-    print("  edges classification cumulated time = " + str(time_edges_classification) + " seconds")
+    #print is_triangle_adjacentTriangles_via_junction
+    #time_edges_classification = time.clock()-t0
+    #print("  edges classification cumulated time = " + str(time_edges_classification) + " seconds")
 
-    print("  reordering triangles for normals coherency...")
-    sys.stdout.flush()
-    t0 = time.clock()
+    #print("  reordering triangles for normals coherency...")
+    #sys.stdout.flush()
+    #t0 = time.clock()
     target_mesh_bary.triangles_surfaces = reorder_triangle_vertexes(triangle_adjacentTriangles, is_triangle_adjacentTriangles_via_junction, target_mesh_bary.triangle_vertexes, target_mesh_bary.vertexes_coord)
     target_mesh_bary.S = max(target_mesh_bary.triangles_surfaces)+1
-    time_reordering_normals = time.clock()-t0
-    print("  cumulated time = " + str(time_reordering_normals) + " seconds")
+    #time_reordering_normals = time.clock()-t0
+    #print("  cumulated time = " + str(time_reordering_normals) + " seconds")
 
-    print("  checking the closed and open surfaces...")
-    sys.stdout.flush()
-    t0 = time.clock()
+    #print("  checking the closed and open surfaces...")
+    #sys.stdout.flush()
+    #t0 = time.clock()
     target_mesh_bary.IS_CLOSED_SURFACE, target_mesh_bary.connected_surfaces, target_mesh_bary.potential_closed_surfaces = is_surface_closed(target_mesh_bary.triangles_surfaces, edgeNumber_triangles)
     print("  test of the closed surfaces : " + str(target_mesh_bary.IS_CLOSED_SURFACE))
     print("  connected surfaces : " + str(target_mesh_bary.connected_surfaces))
     print("  potential closed surfaces : " + str(target_mesh_bary.potential_closed_surfaces))
 
-    print("  computing the effective RWG functions and their opposite vertexes...")
-    sys.stdout.flush()
-    t0 = time.clock()
+    #print("  computing the effective RWG functions and their opposite vertexes...")
+    #sys.stdout.flush()
+    #t0 = time.clock()
     target_mesh_bary.RWGNumber_signedTriangles, target_mesh_bary.RWGNumber_edgeVertexes, target_mesh_bary.N_edges, target_mesh_bary.N_RWG = RWGNumber_signedTriangles_computation(edgeNumber_triangles, edgeNumber_vertexes, target_mesh_bary.triangles_surfaces, target_mesh_bary.IS_CLOSED_SURFACE, target_mesh_bary.triangle_vertexes, target_mesh_bary.vertexes_coord)
     del edgeNumber_vertexes
     target_mesh_bary.RWGNumber_oppVertexes = RWGNumber_oppVertexes_computation(target_mesh_bary.RWGNumber_signedTriangles, target_mesh_bary.RWGNumber_edgeVertexes, target_mesh_bary.triangle_vertexes)
-    # memory-economic way for computing average_RWG_length
-    time_effective_RWG_functions_computation =  time.clock() - t0
-    print("  effective RWG functions computation cumulated time = " + str(time_effective_RWG_functions_computation))
+    ## memory-economic way for computing average_RWG_length
+    #time_effective_RWG_functions_computation =  time.clock() - t0
+    #print("  effective RWG functions computation cumulated time = " + str(time_effective_RWG_functions_computation))
     print("  Number of edges = " + str(target_mesh_bary.N_edges))
     print("  Number of RWG = " + str(target_mesh_bary.N_RWG))
-    sys.stdout.flush()
+    #sys.stdout.flush()
     target_mesh_bary.compute_RWG_CFIE_OK()
     if target_mesh_bary.N_RWG<1e4:
         stride = 1
@@ -179,7 +184,7 @@ if __name__=="__main__":
     #CHOICE = "dielectric target"
     if CHOICE=="CFIE testing":
         #for coeff in [1.0, .8, 0.5, 0.2, 0.0]:
-        for coeff in [0.2]:
+        for coeff in [1.0]:
             #CFIE = array([coeff, coeff, -(1.0 - coeff) * sqrt(mu_0/eps_0), -(1.0 - coeff) * sqrt(mu_0/eps_0)], 'D')
             #CFIE = array([coeff, 0, -(1.0 - coeff) * sqrt(mu_0/eps_0), -(1.0 - coeff) * sqrt(mu_0/eps_0)], 'D')
             CFIE = array([coeff* 1.0/sqrt(mu_0/eps_0), 0, -(1.0 - coeff), -(1.0 - coeff)], 'D')
@@ -197,9 +202,10 @@ if __name__=="__main__":
             print "bicgstab MoM RCS =", sum(I_CFIE_bicgstab[0]*target_MoM.V_EH[:,0]), "# of iterations =", count
 
 
-
+    # now construction of the barycentric mesh: the new way based on the original mesh
     target_mesh_bary.RWGNumber_signedTriangles, target_mesh_bary.RWGNumber_edgeVertexes, target_mesh_bary.RWGNumber_oppVertexes = create_barycentric_RWGs(target_mesh.RWGNumber_signedTriangles, target_mesh.RWGNumber_edgeVertexes, divided_triangles_vertexes, target_mesh_bary.triangle_vertexes)
-    print("  Number of edges = " + str(target_mesh_bary.N_edges))
+    target_mesh_bary.N_RWG = target_mesh_bary.RWGNumber_signedTriangles.shape[0]
+    #print("  Number of edges = " + str(target_mesh_bary.N_edges))
     print("  Number of RWG = " + str(target_mesh_bary.N_RWG))
     sys.stdout.flush()
     if target_mesh_bary.N_RWG<1e4:
@@ -208,8 +214,9 @@ if __name__=="__main__":
         stride = target_mesh_bary.N_RWG/100
     target_mesh_bary.average_RWG_length = compute_RWG_meanEdgeLength(target_mesh_bary.vertexes_coord, target_mesh_bary.RWGNumber_edgeVertexes, stride)
     print("average barycentric RWG length = " + str(target_mesh_bary.average_RWG_length) + "m = lambda /" + str((c/f)/target_mesh_bary.average_RWG_length))
-    
-
+    T = divided_triangles_vertexes.shape[0]
+    target_mesh_bary.RWGNumber_CFIE_OK, target_mesh_bary.RWGNumber_M_CURRENT_OK = compute_barycentric_RWG_CFIE_OK(target_mesh.RWGNumber_CFIE_OK, target_mesh.RWGNumber_M_CURRENT_OK, 6*T)
+    print "T_bary =", 6*T
     list_of_test_edges_numbers = arange(target_mesh_bary.N_RWG,dtype='i')
     list_of_src_edges_numbers = arange(target_mesh_bary.N_RWG,dtype='i')
     MOM_FULL_PRECISION = 1
@@ -217,9 +224,10 @@ if __name__=="__main__":
     CHOICE = "CFIE testing"
     #CHOICE = "fields verification"
     #CHOICE = "dielectric target"
+    V_RWG_bary = zeros(target_mesh_bary.N_RWG, 'D')
     if CHOICE=="CFIE testing":
         #for coeff in [1.0, .8, 0.5, 0.2, 0.0]:
-        for coeff in [0.2]:
+        for coeff in [1.0]:
             #CFIE = array([coeff, coeff, -(1.0 - coeff) * sqrt(mu_0/eps_0), -(1.0 - coeff) * sqrt(mu_0/eps_0)], 'D')
             #CFIE = array([coeff, 0, -(1.0 - coeff) * sqrt(mu_0/eps_0), -(1.0 - coeff) * sqrt(mu_0/eps_0)], 'D')
             CFIE = array([coeff* 1.0/sqrt(mu_0/eps_0), 0, -(1.0 - coeff), -(1.0 - coeff)], 'D')
@@ -227,6 +235,7 @@ if __name__=="__main__":
             target_MoM = Target_MoM(CFIE, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh_bary, w, eps_r, mu_r, TDS_APPROX, Z_s, MOM_FULL_PRECISION)
             # excitation computation
             target_MoM.V_EH_computation(CFIE, target_mesh_bary, J_dip, r_dip, w, eps_r, mu_r, list_of_test_edges_numbers, EXCITATION)
+            V_RWG_bary = target_MoM.V_CFIE
             #target_MoM.solveByInversion()
             target_MoM.solveByLUdecomposition()
             print "inverted MoM RCS =", sum(target_MoM.I_CFIE*target_MoM.V_EH[:,0])
@@ -235,5 +244,19 @@ if __name__=="__main__":
             count = 0
             I_CFIE_bicgstab = bicgstab(target_MoM.Z_CFIE_J, target_MoM.V_CFIE, x0=None, tol=1.0e-05, maxiter=1000, xtype=None, callback=itercount)
             print "bicgstab MoM RCS =", sum(I_CFIE_bicgstab[0]*target_MoM.V_EH[:,0]), "# of iterations =", count
+
+
+    RWG_to_barycentricRWG, RWG_to_barycentricRWG_coefficients = create_RWG_to_barycentricRWG(target_mesh.RWGNumber_signedTriangles, target_mesh.RWGNumber_edgeVertexes, divided_triangles_vertexes, target_mesh_bary.vertexes_coord)
+
+    N_RWG = V_RWG.shape[0]
+    N_RWG_bary = V_RWG_bary.shape[0]
+    V_RWG_2 = zeros(N_RWG, 'D')
+    for i in range(N_RWG):
+        for j in range(14):
+            index = RWG_to_barycentricRWG[i, j]
+            V_RWG_2[i] += RWG_to_barycentricRWG_coefficients[i, j]* V_RWG_bary[index]
+
+    #for i in range(N_RWG):
+        #print V_RWG[i], V_RWG_2[i], real(V_RWG_2[i]-V_RWG[i])/real(V_RWG[i]), imag(V_RWG_2[i]-V_RWG[i])/imag(V_RWG[i])
 
 
