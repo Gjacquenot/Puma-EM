@@ -67,19 +67,19 @@ def itercount(residual):
 
 if __name__=="__main__":
     path = './geo'
-    targetName = 'cube2'
+    targetName = 'sphere2'
     # first resonances for the sphere: f = c * Z/(2*pi*a), where Z is a zero of J Bessel function
     # Z = 4.493409375, 5.763459195, 6.987932, 8.18256145, 9.35581211, 10.5128354
     # respectively for orders 0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5
     # Frob-EFIE convergence is difficult or impossible at the corresponding frequencies,
     # especially for order 5.5, a = 0.3, for which f = 1487993627.3926289, tol = 1e-3
     # However, Frob-CFIE convergence is more than OK: it is guaranteed
-    f = .9e9
+    f = .5e9
     fileName = targetName
     write_geo(path, fileName, 'lc', c/f/10.)
-    write_geo(path, fileName, 'lx', 0.075)
-    write_geo(path, fileName, 'ly', 0.07)
-    write_geo(path, fileName, 'lz', 0.07)
+    write_geo(path, fileName, 'lx', 0.1)
+    write_geo(path, fileName, 'ly', 0.1)
+    write_geo(path, fileName, 'lz', 0.1)
     executeGmsh(path, targetName, 0)
     z_offset = 0.0
     targetDimensions_scaling_factor = 1.0
@@ -106,7 +106,8 @@ if __name__=="__main__":
     #CHOICE = "fields verification"
     #CHOICE = "dielectric target"
     V_RWG = zeros(N_RWG, 'D')
-
+    I_RWG = zeros(N_RWG, 'D')
+    Z_RWG = zeros((N_RWG, N_RWG), 'D')
     if CHOICE=="CFIE testing":
         #for coeff in [1.0, .8, 0.5, 0.2, 0.0]:
         for coeff in [1.0]:
@@ -121,6 +122,8 @@ if __name__=="__main__":
             #target_MoM.solveByInversion()
             target_MoM.solveByLUdecomposition()
             print "inverted MoM RCS =", sum(target_MoM.I_CFIE*target_MoM.V_EH[:,0])
+            I_RWG = target_MoM.I_CFIE
+            Z_RWG = target_MoM.Z_CFIE_J
             #computeCurrentsVisualization(w, target_mesh, target_MoM.I_CFIE)
             # now we try the iterative method
             count = 0
@@ -225,6 +228,8 @@ if __name__=="__main__":
     #CHOICE = "fields verification"
     #CHOICE = "dielectric target"
     V_RWG_bary = zeros(target_mesh_bary.N_RWG, 'D')
+    I_RWG_bary = zeros(target_mesh_bary.N_RWG, 'D')
+    Z_RWG_bary = zeros((target_mesh_bary.N_RWG, target_mesh_bary.N_RWG), 'D')
     if CHOICE=="CFIE testing":
         #for coeff in [1.0, .8, 0.5, 0.2, 0.0]:
         for coeff in [1.0]:
@@ -239,6 +244,8 @@ if __name__=="__main__":
             #target_MoM.solveByInversion()
             target_MoM.solveByLUdecomposition()
             print "inverted MoM RCS =", sum(target_MoM.I_CFIE*target_MoM.V_EH[:,0])
+            I_RWG_bary = target_MoM.I_CFIE
+            Z_RWG_bary = target_MoM.Z_CFIE_J
             #computeCurrentsVisualization(w, target_mesh, target_MoM.I_CFIE)
             # now we try the iterative method
             count = 0
@@ -249,14 +256,42 @@ if __name__=="__main__":
     RWG_to_barycentricRWG, RWG_to_barycentricRWG_coefficients = create_RWG_to_barycentricRWG(target_mesh.RWGNumber_signedTriangles, target_mesh.RWGNumber_edgeVertexes, divided_triangles_vertexes, target_mesh_bary.vertexes_coord)
 
     N_RWG = V_RWG.shape[0]
+    # first test: V_RWG
     N_RWG_bary = V_RWG_bary.shape[0]
     V_RWG_2 = zeros(N_RWG, 'D')
     for i in range(N_RWG):
         for j in range(14):
             index = RWG_to_barycentricRWG[i, j]
-            V_RWG_2[i] += RWG_to_barycentricRWG_coefficients[i, j]* V_RWG_bary[index]
+            V_RWG_2[i] += RWG_to_barycentricRWG_coefficients[i, j] * V_RWG_bary[index]
 
-    #for i in range(N_RWG):
-        #print V_RWG[i], V_RWG_2[i], real(V_RWG_2[i]-V_RWG[i])/real(V_RWG[i]), imag(V_RWG_2[i]-V_RWG[i])/imag(V_RWG[i])
+#    for i in range(N_RWG):
+#        print V_RWG[i], V_RWG_2[i], real(V_RWG_2[i]-V_RWG[i])/real(V_RWG[i]), imag(V_RWG_2[i]-V_RWG[i])/imag(V_RWG[i])
 
+    # second test: M * Z_bary * Mtranspose * I = Z*I
+    #Z_RWG_bary
+    #Z_RWG
+    I_RWG_bary_2 = zeros(N_RWG_bary, 'D')
+    ZI_RWG_bary = zeros(N_RWG_bary, 'D')
+    ZI_RWG, ZI_RWG_2 = zeros(N_RWG, 'D'), zeros(N_RWG, 'D')
+    # M_T * I_RWG
+    for i in range(N_RWG):
+        for j in range(14):
+            index = RWG_to_barycentricRWG[i, j]
+            I_RWG_bary_2[index] += RWG_to_barycentricRWG_coefficients[i, j] * I_RWG[i]
+
+    # Z_bary * M_T * I_RWG
+    for i in range(N_RWG_bary):
+            ZI_RWG_bary[i] = sum(Z_RWG_bary[i,:] * I_RWG_bary_2)
+
+    # M * Z_bary * M_T * I_RWG
+    for i in range(N_RWG):
+        for j in range(14):
+            index = RWG_to_barycentricRWG[i, j]
+            ZI_RWG_2[i] += RWG_to_barycentricRWG_coefficients[i, j] * ZI_RWG_bary[index]
+
+    for i in range(N_RWG):
+        ZI_RWG[i] = sum(Z_RWG[i,:] * I_RWG)    
+
+    for i in range(N_RWG):
+        print ZI_RWG[i], ZI_RWG_2[i], real(ZI_RWG_2[i]-ZI_RWG[i])/real(ZI_RWG[i]), imag(ZI_RWG_2[i]-ZI_RWG[i])/imag(ZI_RWG[i])
 
