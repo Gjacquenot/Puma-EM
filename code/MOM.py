@@ -92,19 +92,20 @@ class dielectricTarget_MoM:
             #Z_EJ, Z_nE_J, Z_HJ, Z_nH_J = Z_EH_J_MoM(TENETHNH, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh.RWGNumber_CFIE_OK, target_mesh.RWGNumber_signedTriangles, target_mesh.RWGNumber_edgeVertexes, target_mesh.RWGNumber_oppVertexes, target_mesh.vertexes_coord, w, eps_r_out, mu_r_out, signSurfObs, signSurfSrc, TDS_APPROX, Z_s, MOM_FULL_PRECISION)
             #Z_EM = -Z_HJ
             eta_0 = sqrt(mu_0/(eps_0*eps_r_out))
-            self.Z[:N_J, :N_J], self.Z[:N_J,N_J:N_J + N_M] = Z_EJ, Z_EM
-            self.Z[N_J:N_J+N_M, :N_J] = -Z_EM # Z_HJ = -Z_EM
-            self.Z[N_J:N_J+N_M,N_J:N_J + N_M] = (eps_0*eps_r_out / (mu_0 * mu_r_out)) * Z_EJ # Z_HM = eps/mu * Z_EJ
+            self.Z[:N_J, :N_J], self.Z[:N_J,N_J:N_J + N_M] = 1.0/eta_0*Z_EJ, 1.0/eta_0*Z_EM
+            self.Z[N_J:N_J+N_M, :N_J] = -eta_0*Z_EM # Z_HJ = -Z_EM
+            self.Z[N_J:N_J+N_M,N_J:N_J + N_M] = eta_0*(eps_0*eps_r_out / (mu_0 * mu_r_out)) * Z_EJ # Z_HM = eps/mu * Z_EJ
 
             print "dielectricTarget_MoM: computing the inside interactions..."
             signSurfObs, signSurfSrc = -1.0, -1.0
             Z_EJ, Z_EM = Z_CFIE_MoM(CFIE_for_PMCHWT, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh.RWGNumber_CFIE_OK, target_mesh.RWGNumber_M_CURRENT_OK, target_mesh.RWGNumber_signedTriangles, target_mesh.RWGNumber_edgeVertexes, target_mesh.RWGNumber_oppVertexes, target_mesh.vertexes_coord, w, eps_r_in, mu_r_in, signSurfObs, signSurfSrc, TDS_APPROX, Z_s, MOM_FULL_PRECISION)
             #Z_EJ, Z_nE_J, Z_HJ, Z_nH_J = Z_EH_J_MoM(TENETHNH, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh.RWGNumber_CFIE_OK, target_mesh.RWGNumber_signedTriangles, target_mesh.RWGNumber_edgeVertexes, target_mesh.RWGNumber_oppVertexes, target_mesh.vertexes_coord, w, eps_r_in, mu_r_in, signSurfObs, signSurfSrc, TDS_APPROX, Z_s, MOM_FULL_PRECISION)
             #Z_EM = -Z_HJ
-            self.Z[:N_J, :N_J] += Z_EJ
-            self.Z[:N_J,N_J:N_J + N_M] += Z_EM
-            self.Z[N_J:N_J+N_M, :N_J] += -Z_EM # Z_HJ = -Z_EM
-            self.Z[N_J:N_J+N_M,N_J:N_J + N_M] += (eps_0*eps_r_in / (mu_0 * mu_r_in)) * Z_EJ # Z_HM = eps/mu * Z_EJ
+            eta_1 = sqrt(mu_0/(eps_0*eps_r_in))
+            self.Z[:N_J, :N_J] += 1.0/eta_1*Z_EJ
+            self.Z[:N_J,N_J:N_J + N_M] += 1.0/eta_1*Z_EM
+            self.Z[N_J:N_J+N_M, :N_J] += -eta_1*Z_EM # Z_HJ = -Z_EM
+            self.Z[N_J:N_J+N_M,N_J:N_J + N_M] += eta_1*(eps_0*eps_r_in / (mu_0 * mu_r_in)) * Z_EJ # Z_HM = eps/mu * Z_EJ
 
         elif FORMULATION=="JMCFIE":
             print "OK, using JMCFIE formulation"
@@ -154,8 +155,8 @@ class dielectricTarget_MoM:
             for i in range(1, 4):
                 self.V += V_EH[:,i] * CFIE[i]
         elif (FORMULATION == "PMCHWT"):
-            self.V = V_EH[:,0]
-            self.V[N_test:2*N_test] = V_EH[:N_test,2]
+            self.V = 1.0/eta_0 * V_EH[:,0]
+            self.V[N_test:2*N_test] = eta_0 * V_EH[:N_test,2]
         elif (FORMULATION == "JMCFIE"):
             coeff = CFIE_coeff
             self.V = zeros(2*N_test, 'D')
@@ -178,8 +179,8 @@ class dielectricTarget_MoM:
             for i in range(1, 4):
                 self.V += V_EH[:,i] * CFIE[i]
         elif (FORMULATION == "PMCHWT"):
-            self.V = V_EH[:,0]
-            self.V[N_test:2*N_test] = V_EH[:N_test,2]
+            self.V = 1.0/eta_0 * V_EH[:,0]
+            self.V[N_test:2*N_test] = eta_0 * V_EH[:N_test,2]
         elif (FORMULATION == "JMCFIE"):
             coeff = CFIE_coeff
             self.V = zeros(2*N_test, 'D')
