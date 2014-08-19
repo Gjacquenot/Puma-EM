@@ -270,28 +270,28 @@ if __name__=="__main__":
     # second test: M * Z_bary * Mtranspose * I = Z*I
     #Z_RWG_bary
     #Z_RWG
-    I_RWG_bary_2 = zeros(N_RWG_bary, 'D')
-    ZI_RWG_bary = zeros(N_RWG_bary, 'D')
-    ZI_RWG, ZI_RWG_2 = zeros(N_RWG, 'D'), zeros(N_RWG, 'D')
-    # M_T * I_RWG
-    for i in range(N_RWG):
-        for j in range(14):
-            index = RWG_to_barycentricRWG[i, j]
-            I_RWG_bary_2[index] += RWG_to_barycentricRWG_coefficients[i, j] * I_RWG[i]
+    #I_RWG_bary_2 = zeros(N_RWG_bary, 'D')
+    #ZI_RWG_bary = zeros(N_RWG_bary, 'D')
+    #ZI_RWG, ZI_RWG_2 = zeros(N_RWG, 'D'), zeros(N_RWG, 'D')
+    ## M_T * I_RWG
+    #for i in range(N_RWG):
+        #for j in range(14):
+            #index = RWG_to_barycentricRWG[i, j]
+            #I_RWG_bary_2[index] += RWG_to_barycentricRWG_coefficients[i, j] * I_RWG[i]
 
-    # Z_bary * M_T * I_RWG
-    for i in range(N_RWG_bary):
-            ZI_RWG_bary[i] = sum(Z_RWG_bary[i,:] * I_RWG_bary_2)
+    ## Z_bary * M_T * I_RWG
+    #for i in range(N_RWG_bary):
+            #ZI_RWG_bary[i] = sum(Z_RWG_bary[i,:] * I_RWG_bary_2)
 
-    # M * Z_bary * M_T * I_RWG
-    for i in range(N_RWG):
-        for j in range(14):
-            index = RWG_to_barycentricRWG[i, j]
-            ZI_RWG_2[i] += RWG_to_barycentricRWG_coefficients[i, j] * ZI_RWG_bary[index]
+    ## M * Z_bary * M_T * I_RWG
+    #for i in range(N_RWG):
+        #for j in range(14):
+            #index = RWG_to_barycentricRWG[i, j]
+            #ZI_RWG_2[i] += RWG_to_barycentricRWG_coefficients[i, j] * ZI_RWG_bary[index]
 
-    for i in range(N_RWG):
-        ZI_RWG[i] = sum(Z_RWG[i,:] * I_RWG)    
+    #for i in range(N_RWG):
+        #ZI_RWG[i] = sum(Z_RWG[i,:] * I_RWG)    
 
-    for i in range(N_RWG):
-        print ZI_RWG[i], ZI_RWG_2[i], real(ZI_RWG_2[i]-ZI_RWG[i])/real(ZI_RWG[i]), imag(ZI_RWG_2[i]-ZI_RWG[i])/imag(ZI_RWG[i])
+    #for i in range(N_RWG):
+        #print ZI_RWG[i], ZI_RWG_2[i], real(ZI_RWG_2[i]-ZI_RWG[i])/real(ZI_RWG[i]), imag(ZI_RWG_2[i]-ZI_RWG[i])/imag(ZI_RWG[i])
 

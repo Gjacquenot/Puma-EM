@@ -524,7 +524,7 @@ def write_normals(name, triangles_centroids, triangles_normals, triangles_surfac
     f.write('};\n')
     f.close()
 
-
+# Functions for computing the barycentric mesh and the P (M for me) matrix from barycentric to original mesh
 def divide_triangles(RWGNumber_signedTriangles, RWGNumber_edgeVertexes, reordered_triangle_vertexes, vertexes_coord):
     N_RWG = RWGNumber_signedTriangles.shape[0]
     V = vertexes_coord.shape[0]
@@ -797,10 +797,36 @@ def compute_barycentric_RWG_CFIE_OK(RWGNumber_CFIE_OK, RWGNumber_M_CURRENT_OK, T
         pass
     return barycentric_RWGNumber_CFIE_OK, barycentric_RWGNumber_M_CURRENT_OK
 
+
+def create_BC_to_barycentricRWG(RWGNumber_edgeVertexes, RWGNumber_oppVertexes, RWGNumber_signedTriangles, vertexes_coord):
+    N_RWG = RWGNumber_edgeVertexes.shape[0]
+    V = vertexes_coord.shape[0]
+    T = reordered_triangle_vertexes.shape[0]
+    node_to_RWG = []
+    for i in range(V):
+        node_to_RWG.append([])
+    # we first find all the RWGs associated with each node
+    for i in range(N_RWG):
+        for j in range(2):
+            n = RWGNumber_edgeVertexes[i,j]
+            node_to_RWG[n].append(i)
+    # we then build for each RWG the list of associated RWGs that form the BC basis
+    BC_RWG_n0 = []
+    BC_RWG_n1 = []
+    for i in range(N_RWG):
+        n0 = RWGNumber_edgeVertexes[i,0]
+        RWGs = node_to_RWG[n0]
+        nRWGs = len(RWGs)
+        
+
+
+    return node_to_RWG
+
+
 if __name__=="__main__":
     path = './geo'
-    targetName = 'strip'
-    f = 1.12e9
+    targetName = 'sphere2'
+    f = .12e9
     write_geo(path, targetName, 'lc', c/f/10.0)
     write_geo(path, targetName, 'lx', .05)
     write_geo(path, targetName, 'ly', .05)
@@ -850,4 +876,7 @@ if __name__=="__main__":
     N_RWG_bary = barycentric_RWGNumber_signedTriangles.shape[0]
     print "N_RWG_bary =", N_RWG_bary
     RWG_to_barycentricRWG, RWG_to_barycentricRWG_coefficients = create_RWG_to_barycentricRWG(RWGNumber_signedTriangles, RWGNumber_edgeVertexes, divided_triangles_vertexes, vertexes_coord_barycentric)
-    print RWG_to_barycentricRWG_coefficients
+
+
+    node_to_RWG = create_BC_to_barycentricRWG(RWGNumber_edgeVertexes, vertexes_coord)
+    

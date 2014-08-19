@@ -8,13 +8,20 @@ INPUT_DIR="$DIR/run_in_out"
 SIMU_DIR="$DIR/simuDir"
 
 # parameters
-while getopts n:i:s: option
+while getopts n:i:s:h option
 do
         case "${option}"
         in
                 n) N_PROCESSES=$OPTARG;;
                 i) INPUT_DIR=$OPTARG;;
                 s) SIMU_DIR=$OPTARG;;
+                h)
+                        echo "Usage : ./run.sh [OPTION]..."
+                        echo "  -n  Number of processes to run (default: 1)"
+                        echo "  -i  Input-Output directory (default: ./run_in_out)"
+                        echo "  -s  Working directory (default: ./simuDir)"
+                        echo "  -h  Display this help message"
+                        exit;;
         esac
 done
 RESULT_DIR="$INPUT_DIR/result"
@@ -28,6 +35,9 @@ echo "result dir = $RESULT_DIR"
 rm -rf ${SIMU_DIR}/tmp*
 rm -rf ${SIMU_DIR}/geo/*.msh* ${SIMU_DIR}/geo/*.txt  
 mkdir -p ${SIMU_DIR}/result
+
+# JPA : debut de la partie qui sera redirigee vers le log
+{
 
 echo " "
 echo "Running Puma-EM on $N_PROCESSES processes. Writing in directory $SIMU_DIR."
@@ -76,6 +86,9 @@ ${MPI_CMD} ${PYTHON_CMD} code/assemble_Z_near.py --inputdir ${INPUT_DIR} --simud
 # and now the visualisation of the results
 ${PYTHON_CMD} code/RCS_MLFMA.py --inputdir ${INPUT_DIR} --simudir ${SIMU_DIR} 
 
+# JPA : on renvoie la sortie dans un log (en plus de l'afficher dans le terminal)
+} | tee ${SIMU_DIR}/result/output.log
+
 # copying the result in the puma-em directory
 [ ! -e "${RESULT_DIR}" ] && mkdir -p ${RESULT_DIR}
 cp -r ${SIMU_DIR}/tmp0/iterative_data ${RESULT_DIR}
@@ -96,3 +109,4 @@ do
 done
 
 exit 0
+
