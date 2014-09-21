@@ -25,7 +25,7 @@ params_simu.a_factor = 0.25
 
 # CFIE factor nu
 params_simu.nu = 0.2
-params_simu.CFIE = [params_simu.nu, 0, -(1.0-params_simu.nu) * 377, -(1.0-params_simu.nu) * 377]
+params_simu.CFIE = [params_simu.nu, 0, 0, -(1.0-params_simu.nu) * 377]
 
 # BE_BH_N_Gauss_points: the number of points for the leaf cubes radiation functions calculation
 # BE_BH_N_Gauss_points = 1, 3, 6, 9, 12, 13

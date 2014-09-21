@@ -43,6 +43,13 @@ class Target_MoM:
         for i in range(1, 4):
             self.V_CFIE += self.V_EH[:,i] * CFIE[i] * target_mesh.RWGNumber_CFIE_OK
 
+    def V_EH_plane_computation(self, CFIE_coeff, TENETHNH, target_mesh, E_0, k_hat, r_ref, w, eps_r, mu_r, list_of_test_edges_numbers):
+        V_EH_tmp = V_EH_plane(E_0, k_hat, r_ref, list_of_test_edges_numbers, target_mesh.RWGNumber_CFIE_OK, target_mesh.RWGNumber_signedTriangles, target_mesh.RWGNumber_edgeVertexes, target_mesh.RWGNumber_oppVertexes, target_mesh.vertexes_coord, w, eps_r, mu_r)
+        self.V_CFIE = V_EH_tmp[:,0] * CFIE[0]
+        for i in range(1, 4):
+            self.V_CFIE += V_EH_tmp[:,i] * CFIE[i] * target_mesh.RWGNumber_CFIE_OK
+
+
     def compute_Y_CFIE(self):
         self.Y_CFIE = linalg.inv(self.Z_CFIE_J)
 
@@ -219,10 +226,10 @@ if __name__=="__main__":
     # Frob-EFIE convergence is difficult or impossible at the corresponding frequencies,
     # especially for order 5.5, a = 0.3, for which f = 1487993627.3926289, tol = 1e-3
     # However, Frob-CFIE convergence is more than OK: it is guaranteed
-    f = 1.5e9
+    f = 0.3e9
     fileName = targetName
-    write_geo(path, fileName, 'lc', c/f/14.)
-    write_geo(path, fileName, 'lx', 0.075)
+    write_geo(path, fileName, 'lc', c/f/9.5)
+    write_geo(path, fileName, 'lx', 1.0)
     write_geo(path, fileName, 'ly', 0.07)
     write_geo(path, fileName, 'lz', 0.07)
     executeGmsh(path, targetName, 0)
@@ -236,6 +243,8 @@ if __name__=="__main__":
     N_RWG = target_mesh.N_RWG
 
     w = 2. * pi * f
+    k_out = w/c
+
     eps_r = 1.
     mu_r = 1.
     TDS_APPROX = 0
@@ -246,27 +255,81 @@ if __name__=="__main__":
     list_of_src_edges_numbers = arange(N_RWG,dtype='i')
     MOM_FULL_PRECISION = 1
     EXCITATION = 'dipole'
-    #CHOICE = "CFIE testing"
+    CHOICE = "CFIE testing"
     #CHOICE = "fields verification"
-    CHOICE = "dielectric target"
+    #CHOICE = "dielectric target"
     if CHOICE=="CFIE testing":
-        for coeff in [1.0, .8, 0.5, 0.2, 0.0]:
-        #for coeff in [0.2]:
+        #for coeff in [1.0, .8, 0.5, 0.2, 0.0]:
+        for coeff in [0.2]:
             #CFIE = array([coeff, coeff, -(1.0 - coeff) * sqrt(mu_0/eps_0), -(1.0 - coeff) * sqrt(mu_0/eps_0)], 'D')
             #CFIE = array([coeff, 0, -(1.0 - coeff) * sqrt(mu_0/eps_0), -(1.0 - coeff) * sqrt(mu_0/eps_0)], 'D')
-            CFIE = array([coeff* 1.0/sqrt(mu_0/eps_0), 0, -(1.0 - coeff), -(1.0 - coeff)], 'D')
+            CFIE = array([coeff* 1.0/sqrt(mu_0/eps_0), 0, 0, -(1.0 - coeff)], 'D')
             print "CFIE =", CFIE
             target_MoM = Target_MoM(CFIE, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh, w, eps_r, mu_r, TDS_APPROX, Z_s, MOM_FULL_PRECISION)
             # excitation computation
-            target_MoM.V_EH_computation(CFIE, target_mesh, J_dip, r_dip, w, eps_r, mu_r, list_of_test_edges_numbers, EXCITATION)
+            FORMULATIONS = ["CFIE", "PMCHWT", "JMCFIE"]
+            FORMULATION = FORMULATIONS[0]
+            CFIE_coeff = 0.2
+            TENETHNH = array([1., 0., 0., 1.], 'd')
+
+            E_0 = array([-1.0,0.0,0.0],'D')
+            k_hat = array([0.,0.,-1.0],'d')
+            r_ref = zeros(3, 'd') #sum(triangles_centroids, axis=0)/T
+            target_MoM.V_EH_plane_computation(CFIE, TENETHNH, target_mesh, E_0, k_hat, r_ref, w, eps_r, mu_r, list_of_test_edges_numbers)
+            #target_MoM.V_EH_computation(CFIE, target_mesh, J_dip, r_dip, w, eps_r, mu_r, list_of_test_edges_numbers, EXCITATION)
             #target_MoM.solveByInversion()
             target_MoM.solveByLUdecomposition()
-            print "inverted MoM RCS =", sum(target_MoM.I_CFIE*target_MoM.V_EH[:,0])
+            J_dip = array([1.0, 0.0, 0.], 'D')
+            r_dip = array([0., 0., 2.0], 'd')
+            target_MoM.V_EH_computation(CFIE, target_mesh, J_dip, r_dip, w, eps_r, mu_r, list_of_test_edges_numbers, EXCITATION)
+            print "inverted MoM RCS =", -sum(target_MoM.I_CFIE*target_MoM.V_EH[:,0])
             #computeCurrentsVisualization(w, target_mesh, target_MoM.I_CFIE)
             # now we try the iterative method
-            count = 0
-            I_CFIE_bicgstab = bicgstab(target_MoM.Z_CFIE_J, target_MoM.V_CFIE, x0=None, tol=1.0e-05, maxiter=1000, xtype=None, callback=itercount)
-            print "bicgstab MoM RCS =", sum(I_CFIE_bicgstab[0]*target_MoM.V_EH[:,0]), "# of iterations =", count
+            #count = 0
+            #I_CFIE_bicgstab = bicgstab(target_MoM.Z_CFIE_J, target_MoM.V_CFIE, x0=None, tol=1.0e-05, maxiter=1000, xtype=None, callback=itercount)
+            #V = V_EH_computation(self, CFIE_coeff, TENETHNH, target_mesh, J_dip, r_dip, w, eps_r, mu_r, list_of_test_edges_numbers, 'dipole', FORMULATION)
+
+            #print "bicgstab MoM RCS =", -sum(I_CFIE_bicgstab[0]*V[:,0]), "# of iterations =", count
+            ## computation of the scattered fields
+            E_0 = array([-1.0,0.0,0.0],'D')
+            k_hat = array([0.,0.,-1.0],'d')
+            r_ref = zeros(3, 'd') #sum(triangles_centroids, axis=0)/T
+            J_obs = array([1.0, 0.0, 0.0], 'D')
+            E_x, E_inc_x, E_tot_x = [], [], []
+            for z in arange(-3.,-2.,0.05):
+                r_obs = array([0.0, 0.0, z], 'd')
+                V_EH = computeV_EH(target_mesh, J_obs, r_obs, w, eps_r, mu_r, list_of_test_edges_numbers, 'dipole', 'F')
+                E_x.append(sum(-target_MoM.I_CFIE*V_EH[:,0]))
+                E_inc_x.append(E_0[0] * exp(-1.j * k_out * dot(k_hat, r_obs - r_ref)))
+                E_tot_x.append(E_x[-1] + E_inc_x[-1])
+                print z, E_x[-1], E_tot_x[-1]
+    
+            fr = open('E_tot_x_real.txt','w')
+            fi = open('E_tot_x_imag.txt','w')
+            for elem in E_tot_x:
+                fr.write(str(real(elem)) + '\n')
+                fi.write(str(imag(elem)) + '\n')
+            fr.close()
+            fi.close()
+            from pylab import rc, plot, show, xlabel, ylabel, xticks, yticks, grid, legend, title
+            #rc('text', usetex=True)
+            FontSize=18
+            LineWidth=2
+            LEGEND = []
+            plot(real(array(E_x)), 'bo-', linewidth = LineWidth)
+            plot(real(array(E_tot_x)), 'go-', linewidth = LineWidth)
+            LEGEND.append('E_x')
+            LEGEND.append('E_tot_x')
+            figureTitle = "Field E_x"
+            figureTitle += ", f = " + str(f/1.e9) + " GHz"
+            title(figureTitle,fontsize=FontSize+2)
+            xlabel('z',fontsize=FontSize+2)
+            ylabel('E_x',fontsize=FontSize+2)
+            legend(LEGEND)
+            xticks(fontsize=FontSize)
+            yticks(fontsize=FontSize)
+            grid(True)
+            show()
 
     if CHOICE=="fields verification":
         coeff = 0.2
