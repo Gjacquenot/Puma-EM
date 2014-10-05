@@ -1116,22 +1116,40 @@ void Octtree::computeSourceFarField(blitz::Array<std::complex<float>, 2>& e_thet
                                     blitz::Array<std::complex<float>, 2>& e_phi_far,
                                     const blitz::Array<float, 1>& octtreeXthetas_coarsest,
                                     const blitz::Array<float, 1>& octtreeXphis_coarsest,
+                                    const int J_DIPOLES_EXCITATION,
                                     const blitz::Array<std::complex<float>, 2>& J_dip,
-                                    const blitz::Array<float, 2>& r_J_dip)
+                                    const blitz::Array<float, 2>& r_J_dip,
+                                    const int M_DIPOLES_EXCITATION,
+                                    const blitz::Array<std::complex<float>, 2>& M_dip,
+                                    const blitz::Array<float, 2>& r_M_dip)
 {
   const int my_id = this->getProcNumber();
   if (my_id==0) cout << "\nSource Far field computation...";
   const int N_thetas = octtreeXthetas_coarsest.size(), N_phis = octtreeXphis_coarsest.size();
-  int N_dipoles = J_dip.rows();
 
   blitz::Array<std::complex<float>, 2> SupTmp(2, N_thetas*N_phis), Sup(2, N_thetas*N_phis);
   Sup = 0.0;
-  for (int i=0; i<N_dipoles; i++) {
-    const std::complex<float> J[3] = {J_dip(i, 0), J_dip(i, 1), J_dip(i, 2)};
-    const float r_dip[3] = {r_J_dip(i, 0), r_J_dip(i, 1), r_J_dip(i, 2)};
-    const float rCenter[3] = {big_cube_center_coord[0], big_cube_center_coord[1], big_cube_center_coord[2]};
-    computeDipoleSup(SupTmp, J, r_dip, rCenter, octtreeXthetas_coarsest, octtreeXphis_coarsest);
-    Sup += static_cast<std::complex<float> >(-I*mu_0)  * w * mu_r * SupTmp;
+  if (J_DIPOLES_EXCITATION==1) {
+    const int N_J_dipoles = J_dip.rows();
+    for (int i=0; i<N_J_dipoles; i++) {
+      const int IS_J_CURRENT = 1;
+      const std::complex<float> J[3] = {J_dip(i, 0), J_dip(i, 1), J_dip(i, 2)};
+      const float r_dip[3] = {r_J_dip(i, 0), r_J_dip(i, 1), r_J_dip(i, 2)};
+      const float rCenter[3] = {big_cube_center_coord[0], big_cube_center_coord[1], big_cube_center_coord[2]};
+      computeDipoleSup(SupTmp, J, IS_J_CURRENT, r_dip, rCenter, octtreeXthetas_coarsest, octtreeXphis_coarsest);
+      Sup += static_cast<std::complex<float> >(-I*mu_0)  * w * mu_r * SupTmp;
+    }
+  }
+  if (M_DIPOLES_EXCITATION==1) {
+    const int N_M_dipoles = M_dip.rows();
+    for (int i=0; i<N_M_dipoles; i++) {
+      const int IS_J_CURRENT = 0;
+      const std::complex<float> M[3] = {M_dip(i, 0), M_dip(i, 1), M_dip(i, 2)};
+      const float r_dip[3] = {r_M_dip(i, 0), r_M_dip(i, 1), r_M_dip(i, 2)};
+      const float rCenter[3] = {big_cube_center_coord[0], big_cube_center_coord[1], big_cube_center_coord[2]};
+      computeDipoleSup(SupTmp, M, IS_J_CURRENT, r_dip, rCenter, octtreeXthetas_coarsest, octtreeXphis_coarsest);
+      Sup += static_cast<std::complex<float> >(I*k) * SupTmp;
+    }
   }
   e_theta_far.resize(N_thetas, N_phis);
   e_phi_far.resize(N_thetas, N_phis);
@@ -1149,6 +1167,7 @@ void Octtree::computeSourceFarField(blitz::Array<std::complex<float>, 2>& e_thet
 
 void Octtree::computeDipoleSup(blitz::Array<std::complex<float>, 2> & Sup,
                                const std::complex<float> J_dipole[3],
+                               const int IS_J_CURRENT,
                                const float r_dipole[3],
                                const float rCenter[3],
                                const blitz::Array<float, 1>& thetas,
@@ -1193,9 +1212,16 @@ void Octtree::computeDipoleSup(blitz::Array<std::complex<float>, 2> & Sup,
       e = (a.real() == 0.0) ? 1.0 : exp(a.real());
       sincosf(a.imag(), &s, &c);
       const std::complex<float> EXP(e * c, e * s);
-      FC3Components(index, 0) += fj[0] * EXP;
-      FC3Components(index, 1) += fj[1] * EXP;
-      FC3Components(index, 2) += fj[2] * EXP;
+      if (IS_J_CURRENT==1) { // we have electric dipole
+        FC3Components(index, 0) += fj[0] * EXP;
+        FC3Components(index, 1) += fj[1] * EXP;
+        FC3Components(index, 2) += fj[2] * EXP;
+      }
+      else { // we have magnetic dipole
+        FC3Components(index, 0) += (kHats(index, 1)*fj[2] - kHats(index, 2)*fj[1]) * EXP;
+        FC3Components(index, 1) += (kHats(index, 2)*fj[0] - kHats(index, 0)*fj[2]) * EXP;
+        FC3Components(index, 2) += (kHats(index, 0)*fj[1] - kHats(index, 1)*fj[0]) * EXP;
+      }
     }
   } // end q loop
   // transformation from cartesian to spherical coordinates and assignation to Sup
