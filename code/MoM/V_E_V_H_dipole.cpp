@@ -31,7 +31,15 @@ void G_EJ_G_HJ (std::vector<std::vector< std::complex<double> > >& G_EJ,
   const std::complex<double> kRsquare = k*k*R*R;
   const std::complex<double> term_1 = 1.0 + 1.0/(I*k*R);
   const std::complex<double> term_2 = 1.0/R * term_1 + I*k/2.0 * (term_1 - 1.0/kRsquare);
-  const std::complex<double> exp_ikR = exp(-I*k*R), exp_ikR_R = sqrt(mu/eps)/(2.0*M_PI) * exp_ikR/R;
+  // JPA : tentative pour reduire le temps CPU lorsqu'on a beaucoup de dipoles en excitation
+  // On decompose la ligne suivante : const std::complex<double> exp_ikR = exp(-I*k*R);
+  const std::complex<double> minus_I_k_R = -I*k*R;
+  double c, s, e;
+  e = (minus_I_k_R.real() == 0.0) ? 1.0 : exp(minus_I_k_R.real());
+  sincos(minus_I_k_R.imag(), &s, &c);
+  const std::complex<double> exp_ikR = e * std::complex<double>(c, s);
+  // fin JPA
+  const std::complex<double> exp_ikR_R = sqrt(mu/eps)/(2.0*M_PI) * exp_ikR/R;
   const double x_xp = r_obs_r_dip[0], y_yp = r_obs_r_dip[1], z_zp = r_obs_r_dip[2];
   const double ONE_R_R = 1.0/(R*R);
   const double x_xp_R_square = (x_xp*x_xp) * ONE_R_R;

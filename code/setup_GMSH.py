@@ -16,6 +16,10 @@ if __name__=='__main__':
 
     sys.path.append(os.path.abspath(inputDirName))
     exec('from ' + simuParams + ' import *')
+    # JPA : si l'utilisateur n'a pas donne de chemin vers la geometrie, on cherche dans le repertoire de donnees
+    if params_simu.pathToTarget == "":
+        params_simu.pathToTarget = inputDirName;
+
     filename = 'GMSHcommand.sh'
     if params_simu.meshToMake:
         os.system("cp " + os.path.join(params_simu.pathToTarget, params_simu.targetName + '.geo') + ' ' + geoDirName)
