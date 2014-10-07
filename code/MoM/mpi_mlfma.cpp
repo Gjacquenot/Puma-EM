@@ -568,18 +568,25 @@ void computeForOneExcitation(Octtree & octtree,
   int ANTENNA_PATTERN;
   readIntFromASCIIFile(V_CFIE_DATA_PATH + "ANTENNA_PATTERN.txt", ANTENNA_PATTERN);
   if (ANTENNA_PATTERN==1) {
-    blitz::Array<std::complex<float>, 2> J_dip;
-    blitz::Array<float, 2> r_J_dip;
-    int J_DIPOLES_EXCITATION;
+    blitz::Array<std::complex<float>, 2> J_dip, M_dip;
+    blitz::Array<float, 2> r_J_dip, r_M_dip;
+    int J_DIPOLES_EXCITATION, M_DIPOLES_EXCITATION;
     readIntFromASCIIFile(V_CFIE_DATA_PATH + "J_DIPOLES_EXCITATION.txt", J_DIPOLES_EXCITATION);
+    readIntFromASCIIFile(V_CFIE_DATA_PATH + "M_DIPOLES_EXCITATION.txt", M_DIPOLES_EXCITATION);
     if (J_DIPOLES_EXCITATION==1) {
       readComplexFloatBlitzArray2DFromASCIIFile( V_CFIE_DATA_PATH + "J_dip.txt", J_dip);
       readFloatBlitzArray2DFromASCIIFile( V_CFIE_DATA_PATH + "r_J_dip.txt", r_J_dip);
+    }
+    if (M_DIPOLES_EXCITATION==1) {
+      readComplexFloatBlitzArray2DFromASCIIFile( V_CFIE_DATA_PATH + "M_dip.txt", M_dip);
+      readFloatBlitzArray2DFromASCIIFile( V_CFIE_DATA_PATH + "r_M_dip.txt", r_M_dip);
+    }
+    if ((J_DIPOLES_EXCITATION==1) || (M_DIPOLES_EXCITATION==1)) {
       blitz::Array<std::complex<float>, 2> e_theta_far_source, e_phi_far_source;
       if (my_id==master) {
         // the real fields at far-field distance R from target are obtained by:
         // (E_theta, E_phi) = exp(-j*k*R)/(4*pi*R) * (e_theta_far, e_phi_far)
-        octtree.computeSourceFarField(e_theta_far_source, e_phi_far_source, octtreeXthetas_coarsest, octtreeXphis_coarsest, J_dip, r_J_dip);
+        octtree.computeSourceFarField(e_theta_far_source, e_phi_far_source, octtreeXthetas_coarsest, octtreeXphis_coarsest, J_DIPOLES_EXCITATION, J_dip, r_J_dip, M_DIPOLES_EXCITATION, M_dip, r_M_dip);
         writeComplexFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "source_e_theta_far_ASCII.txt", e_theta_far_source);
         writeComplexFloatBlitzArray2DToBinaryFile(RESULT_DATA_PATH + "source_e_theta_far_Binary.txt", e_theta_far_source);
         writeComplexFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "source_e_phi_far_ASCII.txt", e_phi_far_source);
