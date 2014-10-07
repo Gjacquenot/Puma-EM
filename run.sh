@@ -55,6 +55,7 @@ ${PYTHON_CMD} code/setup_GMSH.py --inputdir ${INPUT_DIR} --simudir ${SIMU_DIR}
 # setup of the MLFMA simulation
 ${MPI_CMD} ${PYTHON_CMD} code/setup_MLFMA_folders.py --simudir ${SIMU_DIR}
 ${MPI_CMD} ${PYTHON_CMD} code/setup_MLFMA_excitation.py --inputdir ${INPUT_DIR} --simudir ${SIMU_DIR}
+${PYTHON_CMD} code/read_MLFMA_mesh.py --inputdir ${INPUT_DIR} --simudir ${SIMU_DIR}
 ${MPI_CMD} ${PYTHON_CMD} code/setup_MLFMA_mesh.py --inputdir ${INPUT_DIR} --simudir ${SIMU_DIR}
 ${MPI_CMD} ${PYTHON_CMD} code/setup_MLFMA_poles.py --inputdir ${INPUT_DIR} --simudir ${SIMU_DIR}
 
