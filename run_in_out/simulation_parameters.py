@@ -63,6 +63,13 @@ params_simu.COMPUTE_RCS_VH = 0
 if (params_simu.COMPUTE_RCS_HH==0) and (params_simu.COMPUTE_RCS_VV==0):
     params_simu.COMPUTE_RCS_VV = 1
 
+# the phase center. It is used for scattered far field computations in the bistatic case, 
+# as well as for the phase center for incoming plane wave excitation in the bistatic case.
+# It is used as the phase center for antenna problems (also bistatic case).
+# In the monostatic case, it is also used for the excitation and the far fields computation. 
+# Should be [0.0, 0.0, 0.0], unless you know what you do.
+params_simu.r_phase_center = [0.0, 0.0, 0.0]
+
 # Bistatic computation settings
 # 1. EXCITATION
 ###############

@@ -421,6 +421,9 @@ void computeForOneExcitation(Octtree & octtree,
   readIntFromASCIIFile(V_CFIE_DATA_PATH + "DIPOLES_EXCITATION.txt", DIPOLES_EXCITATION);
   readIntFromASCIIFile(V_CFIE_DATA_PATH + "PLANE_WAVE_EXCITATION.txt", PLANE_WAVE_EXCITATION);
   readIntFromASCIIFile(V_CFIE_DATA_PATH + "V_FULL_PRECISION.txt", V_FULL_PRECISION);
+  // phase center
+  blitz::Array<float, 1> r_phase_center(3);
+  readFloatBlitzArray1DFromASCIIFile( V_CFIE_DATA_PATH + "r_phase_center.txt", r_phase_center);
 
   if (DIPOLES_EXCITATION==1) {
     blitz::Array<std::complex<double>, 2> J_dip, M_dip;
@@ -461,7 +464,7 @@ void computeForOneExcitation(Octtree & octtree,
     theta_hat = cos(theta_inc)*cos(phi_inc), cos(theta_inc)*sin(phi_inc), -sin(theta_inc);
     phi_hat = -sin(phi_inc), cos(phi_inc), 0.0;
     blitz::Array<double, 1> k_hat(-1.0 * r_hat);
-    r_ref = 0.0;
+    for (int i=0; i<3; i++) r_ref(i) = r_phase_center(i);
     // excitation electric field
     // we now read the incoming field amplitude and phase and polarization
     // only 2 components are needed: E_theta and E_phi
@@ -529,9 +532,9 @@ void computeForOneExcitation(Octtree & octtree,
       // we now read the incoming field amplitude and phase and polarization
       blitz::Array<std::complex<double>, 1> E_inc_spherical_coord(2), E_inc_cart(3);
       readComplexDoubleBlitzArray1DFromASCIIFile( V_CFIE_DATA_PATH + "E_inc.txt", E_inc_spherical_coord);
-      // r_ref is where the plane wave has been defined. Assumed to be r = (0,0,0)
+      // r_ref is where the plane wave has been defined.
       blitz::Array<double, 1> r_ref(3);
-      r_ref = 0.0, 0.0, 0.0;
+      for (int i=0; i<3; i++) r_ref(i) = r_phase_center(i);
       // now computing the plane wave at all r_obs points, and adding it to E_obs_scatt
       const int N_obs = r_obs.extent(0);
       for (int i=0; i<N_obs; i++) {
@@ -551,7 +554,7 @@ void computeForOneExcitation(Octtree & octtree,
   readFloatBlitzArray1DFromASCIIFile(OCTTREE_DATA_PATH + "octtreeXphis_coarsest.txt", octtreeXphis_coarsest);
   readFloatBlitzArray1DFromASCIIFile(OCTTREE_DATA_PATH + "octtreeXthetas_coarsest.txt", octtreeXthetas_coarsest);
   blitz::Array<std::complex<float>, 2> e_theta_far, e_phi_far;
-  octtree.computeFarField(e_theta_far, e_phi_far, octtreeXthetas_coarsest, octtreeXphis_coarsest, ZI, OCTTREE_DATA_PATH);
+  octtree.computeFarField(e_theta_far, e_phi_far, r_phase_center, octtreeXthetas_coarsest, octtreeXphis_coarsest, ZI, OCTTREE_DATA_PATH);
   if (my_id==master) {
     // the real fields at far-field distance R from target are obtained by:
     // (E_theta, E_phi) = exp(-j*k*R)/(4*pi*R) * (e_theta_far, e_phi_far)
@@ -586,7 +589,7 @@ void computeForOneExcitation(Octtree & octtree,
       if (my_id==master) {
         // the real fields at far-field distance R from target are obtained by:
         // (E_theta, E_phi) = exp(-j*k*R)/(4*pi*R) * (e_theta_far, e_phi_far)
-        octtree.computeSourceFarField(e_theta_far_source, e_phi_far_source, octtreeXthetas_coarsest, octtreeXphis_coarsest, J_DIPOLES_EXCITATION, J_dip, r_J_dip, M_DIPOLES_EXCITATION, M_dip, r_M_dip);
+        octtree.computeSourceFarField(e_theta_far_source, e_phi_far_source, r_phase_center, octtreeXthetas_coarsest, octtreeXphis_coarsest, J_DIPOLES_EXCITATION, J_dip, r_J_dip, M_DIPOLES_EXCITATION, M_dip, r_M_dip);
         writeComplexFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "source_e_theta_far_ASCII.txt", e_theta_far_source);
         writeComplexFloatBlitzArray2DToBinaryFile(RESULT_DATA_PATH + "source_e_theta_far_Binary.txt", e_theta_far_source);
         writeComplexFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "source_e_phi_far_ASCII.txt", e_phi_far_source);
@@ -597,9 +600,6 @@ void computeForOneExcitation(Octtree & octtree,
         writeComplexFloatBlitzArray2DToBinaryFile(RESULT_DATA_PATH + "total_e_theta_far_Binary.txt", e_theta_far);
         writeComplexFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "total_e_phi_far_ASCII.txt", e_phi_far);
         writeComplexFloatBlitzArray2DToBinaryFile(RESULT_DATA_PATH + "total_e_phi_far_Binary.txt", e_phi_far);
-        blitz::Array<float, 1> rCenter(3);
-        for (int i=0; i<3; i++) rCenter(i) = octtree.big_cube_center_coord[i];
-        writeFloatBlitzArray1DToASCIIFile(RESULT_DATA_PATH + "big_cube_center_coord_ASCII.txt", rCenter); 
       }
     }
   }
@@ -680,9 +680,12 @@ void computeMonostaticRCS(Octtree & octtree,
   readIntFromASCIIFile(TMP + "/COMPUTE_RCS_HV.txt", COMPUTE_RCS_HV);
   readIntFromASCIIFile(TMP + "/COMPUTE_RCS_VH.txt", COMPUTE_RCS_VH);
   readIntFromASCIIFile(TMP + "/COMPUTE_RCS_VV.txt", COMPUTE_RCS_VV);
+  // the phase center
+  blitz::Array<float, 1> r_phase_center(3);
+  readFloatBlitzArray1DFromASCIIFile( V_CFIE_DATA_PATH + "r_phase_center.txt", r_phase_center);
   // r_ref for where the plane wave is evaluated
   blitz::Array<double, 1> r_ref(3);
-  for (int i=0 ; i<3 ; ++i) r_ref(i) = octtree.big_cube_center_coord[i];
+  for (int i=0 ; i<3 ; ++i) r_ref(i) = r_phase_center(i);
   // getting the angles at which monostatic RCS must be computed
   int ANGLES_FROM_FILE;
   readIntFromASCIIFile(V_CFIE_DATA_PATH + "ANGLES_FROM_FILE.txt", ANGLES_FROM_FILE);
@@ -748,7 +751,7 @@ void computeMonostaticRCS(Octtree & octtree,
           phis(0) = phi;
           // the real fields at far-field distance R from target are obtained by:
           // (E_theta, E_phi) = exp(-j*k*R)/(4*pi*R) * (e_theta_far, e_phi_far)
-          octtree.computeFarField(e_theta_far, e_phi_far, thetas, phis, ZI, OCTTREE_DATA_PATH);
+          octtree.computeFarField(e_theta_far, e_phi_far, r_phase_center, thetas, phis, ZI, OCTTREE_DATA_PATH);
           // filling of the RCS Arrays
           if (HH || HV) {
             RCS_HH(i) = real(e_phi_far(0, 0) * conj(e_phi_far(0, 0)))/real(sum(E_0 * conj(E_0)) * 4.0*M_PI);
@@ -855,7 +858,7 @@ void computeMonostaticRCS(Octtree & octtree,
                 phis(BetaPoints-1-j) = phi_inc + Beta - j * space;
               }
             }
-            octtree.computeFarField(e_theta_far, e_phi_far, thetas, phis, ZI, OCTTREE_DATA_PATH);
+            octtree.computeFarField(e_theta_far, e_phi_far, r_phase_center, thetas, phis, ZI, OCTTREE_DATA_PATH);
             // filling of the RCS Arrays
             if (HH || HV) {
               for (int j=0 ; j<BetaPoints ; ++j) {

@@ -108,12 +108,14 @@ class Octtree {
                        const blitz::Array<float, 1>& /*Wphi*/);
     void computeFarField (blitz::Array<std::complex<float>, 2>& e_theta_far,
                           blitz::Array<std::complex<float>, 2>& e_phi_far,
+                          const blitz::Array<float, 1>& r_phase_center,
                           const blitz::Array<float, 1>& octtreeXthetas_coarsest,
                           const blitz::Array<float, 1>& octtreeXphis_coarsest,
                           const blitz::Array<std::complex<float>, 1>& I_PQ,
                           const string octtree_data_path);
     void computeSourceFarField (blitz::Array<std::complex<float>, 2>& e_theta_far,
                                 blitz::Array<std::complex<float>, 2>& e_phi_far,
+                                const blitz::Array<float, 1>& r_phase_center,
                                 const blitz::Array<float, 1>& octtreeXthetas_coarsest,
                                 const blitz::Array<float, 1>& octtreeXphis_coarsest,
                                 const int J_DIPOLES_EXCITATION,

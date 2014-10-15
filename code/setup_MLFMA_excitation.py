@@ -7,9 +7,12 @@ from read_dipole_excitation import read_dipole_excitation, read_observation_poin
 def setup_excitation(params_simu, inputDirName, simuDirName):
     num_proc = MPI.COMM_WORLD.Get_size()
     my_id = MPI.COMM_WORLD.Get_rank()
+    tmpDirName = os.path.join(simuDirName, 'tmp' + str(my_id))
+
+    # phase center
+    writeASCIIBlitzArrayToDisk(array(params_simu.r_phase_center), os.path.join(tmpDirName,'V_CFIE/r_phase_center.txt'))
 
     # observation points
-    tmpDirName = os.path.join(simuDirName, 'tmp' + str(my_id))
     if (params_simu.BISTATIC_R_OBS == 1) and (params_simu.BISTATIC_R_OBS_FILENAME != ""):
         if (my_id==0): # this file is only on processor 0
             r_obs = read_observation_points(os.path.join(inputDirName, params_simu.BISTATIC_R_OBS_FILENAME))

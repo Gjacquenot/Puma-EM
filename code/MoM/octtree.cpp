@@ -985,6 +985,7 @@ void Octtree::ZIFarComputation(blitz::Array<std::complex<float>, 1>& ZI, /// res
 
 void Octtree::computeFarField(blitz::Array<std::complex<float>, 2>& e_theta_far,
                               blitz::Array<std::complex<float>, 2>& e_phi_far,
+                              const blitz::Array<float, 1>& r_phase_center,
                               const blitz::Array<float, 1>& octtreeXthetas_coarsest,
                               const blitz::Array<float, 1>& octtreeXphis_coarsest,
                               const blitz::Array<std::complex<float>, 1>& I_PQ,
@@ -1074,7 +1075,7 @@ void Octtree::computeFarField(blitz::Array<std::complex<float>, 2>& e_theta_far,
     interpolate2Dlfi(SupLastLevelTmp(1, all), levels[stopLevel].Sdown(indexLocalCube)(1, all), FarFieldInterpolator);
     // shifting
     double DRcenters[3];
-    for (int j=0 ; j<3 ; j++) DRcenters[j] = (this->big_cube_center_coord[j] - levels[stopLevel].cubes[indexLocalCube].rCenter[j]);
+    for (int j=0 ; j<3 ; j++) DRcenters[j] = (r_phase_center(j) - levels[stopLevel].cubes[indexLocalCube].rCenter[j]);
     blitz::Array<std::complex<float>, 1> shiftingArray(octtreeXthetas_coarsest.size() * octtreeXphis_coarsest.size());
     for (int m=0 ; m<N_thetaCoarseLevel ; ++m) {
       const float sinTheta = sin(octtreeXthetas_coarsest(m));
@@ -1114,6 +1115,7 @@ void Octtree::computeFarField(blitz::Array<std::complex<float>, 2>& e_theta_far,
 
 void Octtree::computeSourceFarField(blitz::Array<std::complex<float>, 2>& e_theta_far,
                                     blitz::Array<std::complex<float>, 2>& e_phi_far,
+                                    const blitz::Array<float, 1>& r_phase_center,
                                     const blitz::Array<float, 1>& octtreeXthetas_coarsest,
                                     const blitz::Array<float, 1>& octtreeXphis_coarsest,
                                     const int J_DIPOLES_EXCITATION,
@@ -1135,7 +1137,7 @@ void Octtree::computeSourceFarField(blitz::Array<std::complex<float>, 2>& e_thet
       const int IS_J_CURRENT = 1;
       const std::complex<float> J[3] = {J_dip(i, 0), J_dip(i, 1), J_dip(i, 2)};
       const float r_dip[3] = {r_J_dip(i, 0), r_J_dip(i, 1), r_J_dip(i, 2)};
-      const float rCenter[3] = {big_cube_center_coord[0], big_cube_center_coord[1], big_cube_center_coord[2]};
+      const float rCenter[3] = {r_phase_center(0), r_phase_center(1), r_phase_center(2)};
       computeDipoleSup(SupTmp, J, IS_J_CURRENT, r_dip, rCenter, octtreeXthetas_coarsest, octtreeXphis_coarsest);
       Sup += static_cast<std::complex<float> >(-I*mu_0)  * w * mu_r * SupTmp;
     }
@@ -1146,7 +1148,7 @@ void Octtree::computeSourceFarField(blitz::Array<std::complex<float>, 2>& e_thet
       const int IS_J_CURRENT = 0;
       const std::complex<float> M[3] = {M_dip(i, 0), M_dip(i, 1), M_dip(i, 2)};
       const float r_dip[3] = {r_M_dip(i, 0), r_M_dip(i, 1), r_M_dip(i, 2)};
-      const float rCenter[3] = {big_cube_center_coord[0], big_cube_center_coord[1], big_cube_center_coord[2]};
+      const float rCenter[3] = {r_phase_center(0), r_phase_center(1), r_phase_center(2)};
       computeDipoleSup(SupTmp, M, IS_J_CURRENT, r_dip, rCenter, octtreeXthetas_coarsest, octtreeXphis_coarsest);
       Sup += static_cast<std::complex<float> >(I*k) * SupTmp;
     }
