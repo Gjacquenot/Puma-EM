@@ -48,8 +48,8 @@ def bistatic_RCS(params_simu, inputDirName, simuDirName):
         P_inc += real(dot(E_inc, conj(E_inc)))            
     if (params_simu.BISTATIC_EXCITATION_DIPOLES == 1) and (params_simu.BISTATIC_EXCITATION_PLANE_WAVE == 1):
         print("WARNING: you have dipole and plane wave excitation simultaneously. Is it what you intended??")
-    sigma_phi = p_scatt_phi/(P_inc * 4.0 * pi)
-    sigma_theta = p_scatt_theta/(P_inc * 4.0 * pi)
+    sigma_phi = 4.0*pi * p_scatt_phi/P_inc
+    sigma_theta = 4.0*pi * p_scatt_theta/P_inc
     return sigma_theta, sigma_phi, thetas_far_field, phis_far_field
 
 def antenna_pattern(params_simu, simuDirName):

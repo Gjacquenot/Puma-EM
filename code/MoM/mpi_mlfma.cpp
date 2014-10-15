@@ -557,7 +557,7 @@ void computeForOneExcitation(Octtree & octtree,
   octtree.computeFarField(e_theta_far, e_phi_far, r_phase_center, octtreeXthetas_coarsest, octtreeXphis_coarsest, ZI, OCTTREE_DATA_PATH);
   if (my_id==master) {
     // the real fields at far-field distance R from target are obtained by:
-    // (E_theta, E_phi) = exp(-j*k*R)/(4*pi*R) * (e_theta_far, e_phi_far)
+    // (E_theta, E_phi) = exp(-j*k*R)/R * (e_theta_far, e_phi_far)
     writeComplexFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "scatt_e_theta_far_ASCII.txt", e_theta_far);
     writeComplexFloatBlitzArray2DToBinaryFile(RESULT_DATA_PATH + "scatt_e_theta_far_Binary.txt", e_theta_far);
     writeComplexFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "scatt_e_phi_far_ASCII.txt", e_phi_far);
@@ -588,7 +588,7 @@ void computeForOneExcitation(Octtree & octtree,
       blitz::Array<std::complex<float>, 2> e_theta_far_source, e_phi_far_source;
       if (my_id==master) {
         // the real fields at far-field distance R from target are obtained by:
-        // (E_theta, E_phi) = exp(-j*k*R)/(4*pi*R) * (e_theta_far, e_phi_far)
+        // (E_theta, E_phi) = exp(-j*k*R)/R * (e_theta_far, e_phi_far)
         octtree.computeSourceFarField(e_theta_far_source, e_phi_far_source, r_phase_center, octtreeXthetas_coarsest, octtreeXphis_coarsest, J_DIPOLES_EXCITATION, J_dip, r_J_dip, M_DIPOLES_EXCITATION, M_dip, r_M_dip);
         writeComplexFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "source_e_theta_far_ASCII.txt", e_theta_far_source);
         writeComplexFloatBlitzArray2DToBinaryFile(RESULT_DATA_PATH + "source_e_theta_far_Binary.txt", e_theta_far_source);
@@ -750,16 +750,16 @@ void computeMonostaticRCS(Octtree & octtree,
           thetas(0) = theta;
           phis(0) = phi;
           // the real fields at far-field distance R from target are obtained by:
-          // (E_theta, E_phi) = exp(-j*k*R)/(4*pi*R) * (e_theta_far, e_phi_far)
+          // (E_theta, E_phi) = exp(-j*k*R)/R * (e_theta_far, e_phi_far)
           octtree.computeFarField(e_theta_far, e_phi_far, r_phase_center, thetas, phis, ZI, OCTTREE_DATA_PATH);
           // filling of the RCS Arrays
           if (HH || HV) {
-            RCS_HH(i) = real(e_phi_far(0, 0) * conj(e_phi_far(0, 0)))/real(sum(E_0 * conj(E_0)) * 4.0*M_PI);
-            RCS_HV(i) = real(e_theta_far(0, 0) * conj(e_theta_far(0, 0)))/real(sum(E_0 * conj(E_0)) * 4.0*M_PI);
+            RCS_HH(i) = 4.0*M_PI * real(e_phi_far(0, 0) * conj(e_phi_far(0, 0)))/real(sum(E_0 * conj(E_0)));
+            RCS_HV(i) = 4.0*M_PI * real(e_theta_far(0, 0) * conj(e_theta_far(0, 0)))/real(sum(E_0 * conj(E_0)));
           }
           else {
-            RCS_VV(i) = real(e_theta_far(0, 0) * conj(e_theta_far(0, 0)))/real(sum(E_0 * conj(E_0)) * 4.0*M_PI);
-            RCS_VH(i) = real(e_phi_far(0, 0) * conj(e_phi_far(0, 0)))/real(sum(E_0 * conj(E_0)) * 4.0*M_PI);
+            RCS_VV(i) = 4.0*M_PI * real(e_theta_far(0, 0) * conj(e_theta_far(0, 0)))/real(sum(E_0 * conj(E_0)));
+            RCS_VH(i) = 4.0*M_PI * real(e_phi_far(0, 0) * conj(e_phi_far(0, 0)))/real(sum(E_0 * conj(E_0)));
           }
         }
       }
@@ -862,14 +862,14 @@ void computeMonostaticRCS(Octtree & octtree,
             // filling of the RCS Arrays
             if (HH || HV) {
               for (int j=0 ; j<BetaPoints ; ++j) {
-                RCS_HH(t, startIndexPhi + j) = real(e_phi_far(0, j) * conj(e_phi_far(0, j)))/real(sum(E_0 * conj(E_0)) * 4.0*M_PI);
-                RCS_HV(t, startIndexPhi + j) = real(e_theta_far(0, j) * conj(e_theta_far(0, j)))/real(sum(E_0 * conj(E_0)) * 4.0*M_PI);
+                RCS_HH(t, startIndexPhi + j) = 4.0*M_PI * real(e_phi_far(0, j) * conj(e_phi_far(0, j)))/real(sum(E_0 * conj(E_0)));
+                RCS_HV(t, startIndexPhi + j) = 4.0*M_PI * real(e_theta_far(0, j) * conj(e_theta_far(0, j)))/real(sum(E_0 * conj(E_0)));
               }
             }
             else {
               for (int j=0 ; j<BetaPoints ; ++j) {
-                RCS_VV(t, startIndexPhi + j) = real(e_theta_far(0, j) * conj(e_theta_far(0, j)))/real(sum(E_0 * conj(E_0)) * 4.0*M_PI);
-                RCS_VH(t, startIndexPhi + j) = real(e_phi_far(0, j) * conj(e_phi_far(0, j)))/real(sum(E_0 * conj(E_0)) * 4.0*M_PI);
+                RCS_VV(t, startIndexPhi + j) = 4.0*M_PI * real(e_theta_far(0, j) * conj(e_theta_far(0, j)))/real(sum(E_0 * conj(E_0)));
+                RCS_VH(t, startIndexPhi + j) = 4.0*M_PI * real(e_phi_far(0, j) * conj(e_phi_far(0, j)))/real(sum(E_0 * conj(E_0)));
               }
             }
             // phi update
