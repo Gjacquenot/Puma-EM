@@ -1086,7 +1086,7 @@ void Octtree::computeFarField(blitz::Array<std::complex<float>, 2>& e_theta_far,
       }
     }
     shiftExp( SupLastLevelTmp, shiftingArray );
-    SupLastLevel += static_cast<std::complex<float> >(-I*mu_0) * w/static_cast<float>(4.0*M_PI) * mu_r * SupLastLevelTmp;
+    SupLastLevel += (static_cast<std::complex<float> >(-I*mu_0) * w/static_cast<float>(4.0*M_PI) * mu_r) * SupLastLevelTmp;
   }
   // we now gather all
   ierror = MPI_Barrier(MPI_COMM_WORLD);
@@ -1139,7 +1139,7 @@ void Octtree::computeSourceFarField(blitz::Array<std::complex<float>, 2>& e_thet
       const float r_dip[3] = {r_J_dip(i, 0), r_J_dip(i, 1), r_J_dip(i, 2)};
       const float rCenter[3] = {r_phase_center(0), r_phase_center(1), r_phase_center(2)};
       computeDipoleSup(SupTmp, J, IS_J_CURRENT, r_dip, rCenter, octtreeXthetas_coarsest, octtreeXphis_coarsest);
-      Sup += static_cast<std::complex<float> >(-I*mu_0) * w/static_cast<float>(4.0*M_PI) * mu_r * SupTmp;
+      Sup += (static_cast<std::complex<float> >(-I*mu_0) * w/static_cast<float>(4.0*M_PI) * mu_r) * SupTmp;
     }
   }
   if (M_DIPOLES_EXCITATION==1) {
