@@ -867,14 +867,14 @@ if __name__=="__main__":
 
     divided_triangles_vertexes, MAX_V = divide_triangles(RWGNumber_signedTriangles, RWGNumber_edgeVertexes, triangle_vertexes, vertexes_coord)
     vertexes_coord_barycentric, barycentric_triangles_vertexes = create_barycentric_triangles(divided_triangles_vertexes, vertexes_coord, MAX_V)
-    print "number of original triangles = ", triangle_vertexes.shape[0]
-    print "number of barycentric triangles = ", barycentric_triangles_vertexes.shape[0]
-    print vertexes_coord_barycentric.shape
+    print("number of original triangles = ", triangle_vertexes.shape[0])
+    print("number of barycentric triangles = ", barycentric_triangles_vertexes.shape[0])
+    print(vertexes_coord_barycentric.shape)
 
     barycentric_RWGNumber_signedTriangles, barycentric_RWGNumber_edgeVertexes, barycentric_RWGNumber_oppVertexes = create_barycentric_RWGs(RWGNumber_signedTriangles, RWGNumber_edgeVertexes, divided_triangles_vertexes, barycentric_triangles_vertexes)
     T = divided_triangles_vertexes.shape[0]
     N_RWG_bary = barycentric_RWGNumber_signedTriangles.shape[0]
-    print "N_RWG_bary =", N_RWG_bary
+    print("N_RWG_bary =", N_RWG_bary)
     RWG_to_barycentricRWG, RWG_to_barycentricRWG_coefficients = create_RWG_to_barycentricRWG(RWGNumber_signedTriangles, RWGNumber_edgeVertexes, divided_triangles_vertexes, vertexes_coord_barycentric)
 
 
