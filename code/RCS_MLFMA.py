@@ -1,11 +1,26 @@
 import sys, os, argparse
-from MLFMA import getField, print_times
+from MLFMA import print_times
 from scipy import cos, sin, conj, log10, real, sum, dot, pi, sqrt, exp
 from scipy import array, arange, zeros, ones, amax
 from V_EH import G_EJ_G_HJ
 from EM_constants import *
 from ReadWriteBlitzArray import *
 from read_dipole_excitation import read_dipole_excitation, read_input_angles
+
+def getField(filename):
+    f = open(filename, 'r')
+    f.readline()
+    data = f.readlines()
+    f.close()
+    r_tmp, E_tmp = [], []
+    for elem in data:
+        e = elem.split()
+        r_tmp.append(list(map(float, e[:3])))
+        E_tmp.append(list(map(float, e[3:])))
+    r_obs = array(r_tmp, 'd')
+    E_tmp2 = array(E_tmp, 'd')
+    E_obs = array(E_tmp2[:,0:6:2], 'd') + array(E_tmp2[:,1:6:2], 'd') * 1.j
+    return r_obs, E_obs
 
 def monostatic_SAR(params_simu, simuDirName):
     r_SAR = readASCIIBlitzFloatArray2DFromDisk(os.path.join(simuDirName, 'result/r_SAR.txt'))
@@ -122,8 +137,7 @@ if __name__=='__main__':
         params_simu.VERBOSE = 1
         # user supplied R_OBS
         if params_simu.BISTATIC_R_OBS==1:
-            E_field = getField(os.path.join(simuDirName, "result", "E_obs_scatt.txt"))
-            r_obs = readASCIIBlitzFloatArray2DFromDisk(os.path.join(simuDirName, "result", "r_obs.txt"))
+            r_obs, E_field = getField(os.path.join(simuDirName, "result", "E_obs_scatt.txt"))
             print('\r')
             print("MLFMA scattered E_field = ") 
             print(E_field)

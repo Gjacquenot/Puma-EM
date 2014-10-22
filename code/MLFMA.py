@@ -146,11 +146,4 @@ def saveCurrentsCentroids(params_simu, simuDirName):
             write_VectorFieldTrianglesCentroids(os.path.join(simuDirName, 'result', 'J_centroids_triangles.txt'), J_centroids_triangles, target_mesh)
             print("............end of saving of currents. Located in result directory.")
 
-def getField(filename):
-    my_id = MPI.COMM_WORLD.Get_rank()
-    E_obs = zeros(3, 'F')
-    if (my_id == 0):
-        E_obs = readASCIIBlitzComplexFloatArray2DFromDisk(filename)
-    return E_obs
-
 

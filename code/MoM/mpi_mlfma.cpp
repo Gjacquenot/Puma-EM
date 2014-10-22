@@ -522,8 +522,17 @@ void computeForOneExcitation(Octtree & octtree,
     local_target_mesh.setLocalMeshFromFile(MESH_DATA_PATH);
     computeE_obs(E_obs, H_obs, r_obs, local_target_mesh, ZI, eps_r, mu_r, w);
     local_target_mesh.resizeToZero();
-    if (my_id==master) writeComplexDoubleBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "E_obs_scatt.txt", E_obs);
-    if (my_id==master) writeDoubleBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "r_obs.txt", r_obs);
+    if (my_id==master) {
+      ofstream ofs ((RESULT_DATA_PATH + "E_obs_scatt.txt").c_str());
+      ofs << "r_obs_x[m] r_obs_y[m] r_obs_z[m] re(Ex)[V/m] im(Ex)[V/m] re(Ey)[V/m] im(Ey)[V/m] re(Ez)[V/m] im(Ez)[V/m]\n";
+      for (int i=0 ; i<r_obs.extent(0) ; i++) {
+        ofs << r_obs(i,0) << " " << r_obs(i,1) << " " << r_obs(i,2) << " ";
+        ofs << real(E_obs(i,0)) << " " << imag(E_obs(i,0)) << " ";
+        ofs << real(E_obs(i,1)) << " " << imag(E_obs(i,1)) << " ";
+        ofs << real(E_obs(i,2)) << " " << imag(E_obs(i,2)) << "\n";
+      }
+      ofs.close();
+    }
     // now we compute the total field in the case of plane wave excitation. We could for dipole as well.
     if (PLANE_WAVE_EXCITATION==1) {
       double theta_inc, phi_inc;
@@ -541,7 +550,17 @@ void computeForOneExcitation(Octtree & octtree,
         E_plane (E_inc_cart, E_inc_spherical_coord, theta_inc, phi_inc, r_ref, r_obs(i, all), k);
         E_obs(i, all) += E_inc_cart;
       }
-      if (my_id==master) writeComplexDoubleBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "E_obs_tot.txt", E_obs);
+      if (my_id==master) {
+        ofstream ofs ((RESULT_DATA_PATH + "E_obs_tot.txt").c_str());
+        ofs << "r_obs_x[m] r_obs_y[m] r_obs_z[m] re(Ex)[V/m] im(Ex)[V/m] re(Ey)[V/m] im(Ey)[V/m] re(Ez)[V/m] im(Ez)[V/m]\n";
+        for (int i=0 ; i<r_obs.extent(0) ; i++) {
+          ofs << r_obs(i,0) << " " << r_obs(i,1) << " " << r_obs(i,2) << " ";
+          ofs << real(E_obs(i,0)) << " " << imag(E_obs(i,0)) << " ";
+          ofs << real(E_obs(i,1)) << " " << imag(E_obs(i,1)) << " ";
+          ofs << real(E_obs(i,2)) << " " << imag(E_obs(i,2)) << "\n";
+        }
+        ofs.close();
+      }
     }
   }
   // now computing the far fields at the user-supplied angles
