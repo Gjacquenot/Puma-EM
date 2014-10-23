@@ -715,6 +715,7 @@ void computeMonostaticRCS(Octtree & octtree,
     angles *= M_PI/180.0;
     const int N_angles = angles.size()/2;
     blitz::Array<float, 1> RCS_VV(N_angles), RCS_HH(N_angles), RCS_HV(N_angles), RCS_VH(N_angles);
+    blitz::Array<std::complex<float>, 1> E_VV(N_angles), E_HH(N_angles), E_HV(N_angles), E_VH(N_angles);
     RCS_VV = 1.0;
     RCS_HH = 1.0;
     RCS_HV = 1.0;
@@ -747,8 +748,8 @@ void computeMonostaticRCS(Octtree & octtree,
 
           // excitation field
           blitz::Array<std::complex<double>, 1> E_0(3);
-          if (HH || HV) E_0 = 100.0 * (phi_hat + I * 0.0);
-          else E_0 = -100.0 * (theta_hat + I * 0.0);
+          if (HH || HV) E_0 = 1.0 * (phi_hat + I * 0.0);
+          else E_0 = -1.0 * (theta_hat + I * 0.0);
           blitz::Array<std::complex<float>, 1> V_CFIE;
           local_target_mesh.setLocalMeshFromFile(MESH_DATA_PATH);
           local_V_CFIE_plane (V_CFIE, E_0, k_hat, r_ref, local_target_mesh, octtree.w, octtree.eps_r, octtree.mu_r, octtree.CFIE, V_FULL_PRECISION);
@@ -775,10 +776,18 @@ void computeMonostaticRCS(Octtree & octtree,
           if (HH || HV) {
             RCS_HH(i) = 4.0*M_PI * real(e_phi_far(0, 0) * conj(e_phi_far(0, 0)))/real(sum(E_0 * conj(E_0)));
             RCS_HV(i) = 4.0*M_PI * real(e_theta_far(0, 0) * conj(e_theta_far(0, 0)))/real(sum(E_0 * conj(E_0)));
+            // JPA : we also keep the monostatic fields
+            E_HH(i) = e_phi_far(0, 0) / static_cast<float>( sqrt(real(sum(E_0 * conj(E_0)))) );
+            E_HV(i) = e_theta_far(0, 0) / static_cast<float>( sqrt(real(sum(E_0 * conj(E_0)))) );
+            // end JPA
           }
           else {
             RCS_VV(i) = 4.0*M_PI * real(e_theta_far(0, 0) * conj(e_theta_far(0, 0)))/real(sum(E_0 * conj(E_0)));
             RCS_VH(i) = 4.0*M_PI * real(e_phi_far(0, 0) * conj(e_phi_far(0, 0)))/real(sum(E_0 * conj(E_0)));
+            // JPA : we also keep the monostatic fields
+            E_VV(i) = e_theta_far(0, 0) / static_cast<float>( sqrt(real(sum(E_0 * conj(E_0)))) );
+            E_VH(i) = e_phi_far(0, 0) / static_cast<float>( sqrt(real(sum(E_0 * conj(E_0)))) );
+            // end JPA
           }
         }
       }
@@ -788,6 +797,12 @@ void computeMonostaticRCS(Octtree & octtree,
       writeFloatBlitzArray1DToASCIIFile(RESULT_DATA_PATH + "RCS_HV_ASCII.txt", RCS_HV);
       writeFloatBlitzArray1DToASCIIFile(RESULT_DATA_PATH + "RCS_VH_ASCII.txt", RCS_VH);
       writeFloatBlitzArray1DToASCIIFile(RESULT_DATA_PATH + "RCS_VV_ASCII.txt", RCS_VV);
+      // JPA : we write the monostatic diffracted fields
+      writeComplexFloatBlitzArray1DToASCIIFile(RESULT_DATA_PATH + "E_HH_ASCII.txt", E_HH);
+      writeComplexFloatBlitzArray1DToASCIIFile(RESULT_DATA_PATH + "E_HV_ASCII.txt", E_HV);
+      writeComplexFloatBlitzArray1DToASCIIFile(RESULT_DATA_PATH + "E_VH_ASCII.txt", E_VH);
+      writeComplexFloatBlitzArray1DToASCIIFile(RESULT_DATA_PATH + "E_VV_ASCII.txt", E_VV);
+      // end JPA
       // thetas, phis
       writeFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "monostatic_angles_ASCII.txt", angles);
       // final writes
@@ -801,6 +816,7 @@ void computeMonostaticRCS(Octtree & octtree,
     readFloatBlitzArray1DFromASCIIFile(OCTTREE_DATA_PATH + "octtreeXthetas_coarsest.txt", octtreeXthetas_coarsest);
     const int N_theta(octtreeXthetas_coarsest.size()), N_phi(octtreeXphis_coarsest.size());
     blitz::Array<float, 2> RCS_VV(N_theta, N_phi), RCS_HH(N_theta, N_phi), RCS_HV(N_theta, N_phi), RCS_VH(N_theta, N_phi);
+    blitz::Array<std::complex<float>, 2> E_VV(N_theta, N_phi), E_HH(N_theta, N_phi), E_HV(N_theta, N_phi), E_VH(N_theta, N_phi);
     RCS_VV = 1.0;
     RCS_HH = 1.0;
     RCS_HV = 1.0;
@@ -883,12 +899,20 @@ void computeMonostaticRCS(Octtree & octtree,
               for (int j=0 ; j<BetaPoints ; ++j) {
                 RCS_HH(t, startIndexPhi + j) = 4.0*M_PI * real(e_phi_far(0, j) * conj(e_phi_far(0, j)))/real(sum(E_0 * conj(E_0)));
                 RCS_HV(t, startIndexPhi + j) = 4.0*M_PI * real(e_theta_far(0, j) * conj(e_theta_far(0, j)))/real(sum(E_0 * conj(E_0)));
+                // JPA : we also keep the monostatic fields
+                E_HH(t, startIndexPhi + j) = e_phi_far(0, j) / static_cast<float>( sqrt(real(sum(E_0 * conj(E_0)))) );
+                E_HV(t, startIndexPhi + j) = e_theta_far(0, j) / static_cast<float>( sqrt(real(sum(E_0 * conj(E_0)))) );
+                // end JPA
               }
             }
             else {
               for (int j=0 ; j<BetaPoints ; ++j) {
                 RCS_VV(t, startIndexPhi + j) = 4.0*M_PI * real(e_theta_far(0, j) * conj(e_theta_far(0, j)))/real(sum(E_0 * conj(E_0)));
                 RCS_VH(t, startIndexPhi + j) = 4.0*M_PI * real(e_phi_far(0, j) * conj(e_phi_far(0, j)))/real(sum(E_0 * conj(E_0)));
+                // JPA : we also keep the monostatic fields
+                E_VV(t, startIndexPhi + j) = e_theta_far(0, j) / static_cast<float>( sqrt(real(sum(E_0 * conj(E_0)))) );
+                E_VH(t, startIndexPhi + j) = e_phi_far(0, j) / static_cast<float>( sqrt(real(sum(E_0 * conj(E_0)))) );
+                // end JPA
               }
             }
             // phi update
@@ -909,6 +933,12 @@ void computeMonostaticRCS(Octtree & octtree,
       writeFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "RCS_HV_ASCII.txt", RCS_HV);
       writeFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "RCS_VH_ASCII.txt", RCS_VH);
       writeFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "RCS_VV_ASCII.txt", RCS_VV);
+      // JPA : we write the monostatic diffracted fields
+      writeComplexFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "E_HH_ASCII.txt", E_HH);
+      writeComplexFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "E_HV_ASCII.txt", E_HV);
+      writeComplexFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "E_VH_ASCII.txt", E_VH);
+      writeComplexFloatBlitzArray2DToASCIIFile(RESULT_DATA_PATH + "E_VV_ASCII.txt", E_VV);
+      // end JPA
       // thetas, phis
       writeFloatBlitzArray1DToASCIIFile(RESULT_DATA_PATH + "phis_far_field_ASCII.txt", octtreeXphis_coarsest);
       writeFloatBlitzArray1DToASCIIFile(RESULT_DATA_PATH + "thetas_far_field_ASCII.txt", octtreeXthetas_coarsest);
