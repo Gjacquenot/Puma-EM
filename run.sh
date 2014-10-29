@@ -88,7 +88,7 @@ ${MPI_CMD} ${PYTHON_CMD} code/assemble_Z_near.py --inputdir ${INPUT_DIR} --simud
 ${PYTHON_CMD} code/RCS_MLFMA.py --inputdir ${INPUT_DIR} --simudir ${SIMU_DIR} 
 
 # JPA : on renvoie la sortie dans un log (en plus de l'afficher dans le terminal)
-} | tee ${SIMU_DIR}/result/output.log
+} 2>&1 | tee ${SIMU_DIR}/result/output.log
 
 # copying the result in the puma-em directory
 [ ! -e "${RESULT_DIR}" ] && mkdir -p ${RESULT_DIR}
