@@ -37,11 +37,11 @@ mpi_mlfma: mpi_mlfma.o $(OBJECTS_LIBMLFMA)
 distribute_Z_cubes: distribute_Z_cubes.o $(OBJECTS_LIBMLFMA)
 	$(MPICC) $(INCLUDE_PATH) distribute_Z_cubes.o -L$(WORKING_DIR_PATH) -lMLFMA -L$(WORKING_DIR_PATH)/amos/zbesh -lAMOS -l$(G2C) $(LIB_SEARCH_PATH) -lblitz -lm -o distribute_Z_cubes
 
-mesh_functions_seb: mesh_functions_seb.o mesh.o
-	$(MPICC) $(INCLUDE_PATH) mesh_functions_seb.o mesh.o readWriteBlitzArrayFromFile.o $(LIB_SEARCH_PATH) -lblitz -lm -o mesh_functions_seb
+mesh_functions_seb: mesh_functions_seb.o mesh.o readWriteBlitzArrayFromFile.o
+	$(CC) $(INCLUDE_PATH) mesh_functions_seb.o mesh.o readWriteBlitzArrayFromFile.o $(LIB_SEARCH_PATH) -lblitz -lm -o mesh_functions_seb
 
 mesh_cubes: mesh_cubes.o
-	$(MPICC) $(INCLUDE_PATH) mesh_cubes.o readWriteBlitzArrayFromFile.o $(LIB_SEARCH_PATH) -lblitz -lm -o mesh_cubes
+	$(CC) $(INCLUDE_PATH) mesh_cubes.o readWriteBlitzArrayFromFile.o $(LIB_SEARCH_PATH) -lblitz -lm -o mesh_cubes
 
 libs: libMoM libMLFMA libAMOS libITERATIVE libZGELS libLOCAL_LAPACK
 
@@ -79,16 +79,16 @@ mpi_mlfma.o: mpi_mlfma.cpp  Z_sparse_MLFMA.h mesh.h octtree.h octtree.cpp level.
 	$(MPICC) $(INCLUDE_PATH) $(CFLAGS) mpi_mlfma.cpp
 distribute_Z_cubes.o: distribute_Z_cubes.cpp octtree.h octtree.cpp level.h level.cpp EMConstants.h
 	$(MPICC) $(INCLUDE_PATH) $(CFLAGS) distribute_Z_cubes.cpp
-mesh_functions_seb.o: mesh_functions_seb.cpp mesh.cpp mesh.h readWriteBlitzArrayFromFile.cpp readWriteBlitzArrayFromFile.h
-	$(MPICC) $(INCLUDE_PATH) $(CFLAGS) mesh_functions_seb.cpp
-mesh_cubes.o: mesh_cubes.cpp readWriteBlitzArrayFromFile.cpp readWriteBlitzArrayFromFile.h
-	$(MPICC) $(INCLUDE_PATH) $(CFLAGS) mesh_cubes.cpp
 octtree.o: octtree.cpp interpolation.h level.h level.cpp mesh.h octtree.h alpha_computation.h readWriteBlitzArrayFromFile.h
 	$(MPICC) $(INCLUDE_PATH) $(CFLAGS) octtree.cpp
 level.o: level.cpp interpolation.h level.h dictionary.h cube.h cube.cpp readWriteBlitzArrayFromFile.h alpha_computation.h
 	$(MPICC) $(INCLUDE_PATH) $(CFLAGS) level.cpp
 cube.o: cube.cpp EMConstants.h GK_triangle.h cube.h readWriteBlitzArrayFromFile.h dictionary.h
 	$(MPICC) $(INCLUDE_PATH) $(CFLAGS) cube.cpp
+mesh_cubes.o: mesh_cubes.cpp readWriteBlitzArrayFromFile.cpp readWriteBlitzArrayFromFile.h
+	$(CC) $(INCLUDE_PATH) $(CFLAGS) mesh_cubes.cpp
+mesh_functions_seb.o: mesh_functions_seb.cpp mesh.cpp mesh.h readWriteBlitzArrayFromFile.cpp readWriteBlitzArrayFromFile.h
+	$(CC) $(INCLUDE_PATH) $(CFLAGS) mesh_functions_seb.cpp
 FMM.o: FMM.cpp EMConstants.h FMM.h integr_1D_X_W.h GK_triangle.h $(LIBAMOS_ZBESH_PATH)zbesh_interface.h
 	$(CC) $(INCLUDE_PATH) $(CFLAGS) FMM.cpp
 integr_1D_X_W.o: integr_1D_X_W.cpp GL.h GL.cpp

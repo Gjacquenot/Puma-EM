@@ -526,8 +526,8 @@ void Octtree::findAlphaTransParticipantsIndexes(const int l)
     }
     levels[l].listOfFcToBeReceived = listOfFcToBeReceivedTmp;
     // we now eliminate the redundant radiations functions numbers in listOfFcToBeSent
-    for (int i=0 ; i<listOfFcToBeSentTmp.size() ; ++i) {
-      if (i!= this->getProcNumber()) {
+    for (unsigned int i=0 ; i<listOfFcToBeSentTmp.size() ; ++i) {
+      if ((int)i!= this->getProcNumber()) {
         if (listOfFcToBeSentTmp[i].size() > 0) {
           listOfFcTmp = listOfFcToBeSentTmp[i];
           sort(listOfFcTmp.begin(), listOfFcTmp.end());
@@ -608,7 +608,7 @@ void Octtree::SupAlphaMultiplicationDirections(blitz::Array<std::complex<float>,
                                                const int alphaCartesianCoord[3])
 {
   if ((abs(alphaCartesianCoord[0]) > 1) || (abs(alphaCartesianCoord[1]) > 1) || (abs(alphaCartesianCoord[2]) > 1)) {
-    if ( (alphaTranslationIndexesNonZeros.size()==0) && (Sup.extent(1)==alphaTranslation.size()) ) {
+    if ( (alphaTranslationIndexesNonZeros.size()==0) && (Sup.extent(1)==(int)alphaTranslation.size()) ) {
       const int N_alpha = alphaTranslation.size();
       for (int i=0 ; i<N_alpha ; ++i) {
         SupAlpha(0, i) += Sup(0, i) * alphaTranslation(i);
@@ -659,7 +659,6 @@ void Octtree::alphaTranslationsToCube(blitz::Array<std::complex<float>, 2>& S_tm
 void Octtree::updateSup(const blitz::Array<std::complex<float>, 1>& I_PQ) /// coefficients of RWG functions
 {
   blitz::Range all = blitz::Range::all();
-  int ierror;
   const int num_procs = getTotalNumProcs();
   numberOfUpdates += 1;
   if (this->getProcNumber()==0) cout << "\rTree update " << numberOfUpdates << ": level ";
@@ -708,7 +707,7 @@ void Octtree::updateSup(const blitz::Array<std::complex<float>, 1>& I_PQ) /// co
       std::vector<int> localCubesIndexesSonLevel(levels[sonLevel].getLocalCubesIndexes());
       int N_local_cubes_sonLevel = localCubesIndexesSonLevel.size(), max_N_local_cubes_sonLevel;
       blitz::Array<int, 1> FatherIndexes(num_procs), Array_N_local_cubes_sonLevel(num_procs);
-      ierror = MPI_Allgather(&N_local_cubes_sonLevel, 1, MPI::INT, Array_N_local_cubes_sonLevel.data(), 1, MPI::INT, MPI_COMM_WORLD);
+      MPI_Allgather(&N_local_cubes_sonLevel, 1, MPI::INT, Array_N_local_cubes_sonLevel.data(), 1, MPI::INT, MPI_COMM_WORLD);
       max_N_local_cubes_sonLevel = max(Array_N_local_cubes_sonLevel);
       // initialization of the Sdowns Arrays
       for (int i=0 ; i<N_local_cubes ; ++i) {
@@ -741,12 +740,12 @@ void Octtree::updateSup(const blitz::Array<std::complex<float>, 1>& I_PQ) /// co
         }
         else S_tmp = 0.0;
         // we now "explode" the radiation functions...
-        ierror = MPI_Alltoallv( S_tmp(0, all).data(), scounts.data(), sdispls.data(), MPI::COMPLEX, S_tmp2(0, all).data(), rcounts.data(), rdispls.data(), MPI::COMPLEX, MPI_COMM_WORLD);
-        ierror = MPI_Alltoallv( S_tmp(1, all).data(), scounts.data(), sdispls.data(), MPI::COMPLEX, S_tmp2(1, all).data(), rcounts.data(), rdispls.data(), MPI::COMPLEX, MPI_COMM_WORLD);
+        MPI_Alltoallv( S_tmp(0, all).data(), scounts.data(), sdispls.data(), MPI::COMPLEX, S_tmp2(0, all).data(), rcounts.data(), rdispls.data(), MPI::COMPLEX, MPI_COMM_WORLD);
+        MPI_Alltoallv( S_tmp(1, all).data(), scounts.data(), sdispls.data(), MPI::COMPLEX, S_tmp2(1, all).data(), rcounts.data(), rdispls.data(), MPI::COMPLEX, MPI_COMM_WORLD);
         // we also need to pass the father indexes...
-        ierror = MPI_Allgather(&fatherIndex, 1, MPI::INT, FatherIndexes.data(), 1, MPI::INT, MPI_COMM_WORLD);
+        MPI_Allgather(&fatherIndex, 1, MPI::INT, FatherIndexes.data(), 1, MPI::INT, MPI_COMM_WORLD);
         // we now perform aggregation at the parallelized-by-directions level...
-        for (int j=0 ; j<FatherIndexes.size() ; ++j) {
+        for (unsigned int j=0 ; j<FatherIndexes.size() ; ++j) {
           int fatherIndex = FatherIndexes(j);
           levels[l].Sdown(fatherIndex) += S_tmp2( all, blitz::Range(j*N_directions, (j+1)*N_directions - 1) );
         }
@@ -788,7 +787,7 @@ void Octtree::updateSup(const blitz::Array<std::complex<float>, 1>& I_PQ) /// co
         alphaTranslationsToCube(levels[l].Sdown(indexLocalCube), SupThisLevel, l, indexLocalCube, levels[l].cubes[indexLocalCube].getLocalAlphaTransParticipantsIndexes(), levels[l].DIRECTIONS_PARALLELIZATION);
       }
     }
-    ierror = MPI_Barrier(MPI::COMM_WORLD);
+    MPI_Barrier(MPI::COMM_WORLD);
   }
 }
 
@@ -800,7 +799,7 @@ void Octtree::exchangeSupsIndividually(blitz::Array< blitz::Array<std::complex<f
   irecv_request.resize(getTotalNumProcs());
   isend_status.resize(getTotalNumProcs());
   irecv_status.resize(getTotalNumProcs());
-  int ierror = MPI_Barrier(MPI::COMM_WORLD);
+  MPI_Barrier(MPI::COMM_WORLD);
   for (int i=0 ; i<getTotalNumProcs() ; ++i) {
     if (this->getProcNumber()!=i) {
       const int BUF_SIZE = N_theta * N_phi * N_coord;
@@ -815,11 +814,11 @@ void Octtree::exchangeSupsIndividually(blitz::Array< blitz::Array<std::complex<f
       for (int j=0 ; j<NToReceive ; ++j) {
         const int indexRecv = levels[l].cubesIndexesAfterReduction[listOfFcToBeReceived[j]];
         SupThisLevel(indexRecv).resize(N_coord, N_theta*N_phi);
-        ierror = MPI_Irecv(SupThisLevel(indexRecv).data(), BUF_SIZE, MPI::COMPLEX, i, listOfFcToBeReceived[j], MPI::COMM_WORLD, &irecv_request[i][j]);
+        MPI_Irecv(SupThisLevel(indexRecv).data(), BUF_SIZE, MPI::COMPLEX, i, listOfFcToBeReceived[j], MPI::COMM_WORLD, &irecv_request[i][j]);
       }
       for (int j=0 ; j<NToSend ; ++j) {
         const int indexSend = levels[l].cubesIndexesAfterReduction[listOfFcToBeSent[j]];
-        ierror = MPI_Isend(SupThisLevel(indexSend).data(), BUF_SIZE, MPI::COMPLEX, i, listOfFcToBeSent[j], MPI::COMM_WORLD, &isend_request[i][j]);
+        MPI_Isend(SupThisLevel(indexSend).data(), BUF_SIZE, MPI::COMPLEX, i, listOfFcToBeSent[j], MPI::COMM_WORLD, &isend_request[i][j]);
       }
     }
   }
@@ -832,8 +831,8 @@ void Octtree::exchangeSupsIndividually(blitz::Array< blitz::Array<std::complex<f
   // wait operation
   for (int i=0 ; i<getTotalNumProcs() ; ++i) {
     if (this->getProcNumber()!=i) {
-      for (unsigned int j=0 ; j<irecv_request[i].size() ; ++j) ierror = MPI_Wait(&irecv_request[i][j], &irecv_status[i][j]);
-      for (unsigned int j=0 ; j<isend_request[i].size() ; ++j) ierror = MPI_Wait(&isend_request[i][j], &isend_status[i][j]);
+      for (unsigned int j=0 ; j<irecv_request[i].size() ; ++j) MPI_Wait(&irecv_request[i][j], &irecv_status[i][j]);
+      for (unsigned int j=0 ; j<isend_request[i].size() ; ++j) MPI_Wait(&isend_request[i][j], &isend_status[i][j]);
     }
   }
 }
@@ -848,7 +847,7 @@ void Octtree::exchangeSupsInBlocks(blitz::Array< blitz::Array<std::complex<float
   irecv_request.resize(getTotalNumProcs());
   isend_status.resize(getTotalNumProcs());
   irecv_status.resize(getTotalNumProcs());
-  int ierror = MPI_Barrier(MPI::COMM_WORLD);
+  MPI_Barrier(MPI::COMM_WORLD);
   // creation of the message buffers
   blitz::Array< blitz::Array<std::complex<float>, 2>, 1> buffToSend, buffToRecv;
   buffToSend.resize(getTotalNumProcs());
@@ -859,7 +858,7 @@ void Octtree::exchangeSupsInBlocks(blitz::Array< blitz::Array<std::complex<float
     // copying the Fc's to be sent in the send buffer
     std::vector<int> listOfFcToBeSent(levels[l].getListOfFcToBeSent()[i]);
     int startIndex = 0, stopIndex, FcIndex;
-    for (int j=0 ; j<listOfFcToBeSent.size() ; ++j) {
+    for (unsigned int j=0 ; j<listOfFcToBeSent.size() ; ++j) {
       stopIndex = startIndex + N_theta*N_phi - 1;
       FcIndex = levels[l].cubesIndexesAfterReduction[listOfFcToBeSent[j]];
       buffToSend(i)(all, blitz::Range(startIndex, stopIndex)) = SupThisLevel(FcIndex);
@@ -870,13 +869,13 @@ void Octtree::exchangeSupsInBlocks(blitz::Array< blitz::Array<std::complex<float
   for (int i=0 ; i<getTotalNumProcs() ; ++i) {
     if (this->getProcNumber()!=i) {
       int BUF_SIZE = buffToRecv(i).size(), FLAG = 22;
-      ierror = MPI_Irecv(buffToRecv(i).data(), BUF_SIZE, MPI::COMPLEX, i, FLAG, MPI::COMM_WORLD, &irecv_request[i]);
+      MPI_Irecv(buffToRecv(i).data(), BUF_SIZE, MPI::COMPLEX, i, FLAG, MPI::COMM_WORLD, &irecv_request[i]);
     }
   }
   for (int i=0 ; i<getTotalNumProcs() ; ++i) {
     if (this->getProcNumber()!=i) {
       int BUF_SIZE = buffToSend(i).size(), FLAG = 22;
-      ierror = MPI_Isend(buffToSend(i).data(), BUF_SIZE, MPI::COMPLEX, i, FLAG, MPI::COMM_WORLD, &isend_request[i]);
+      MPI_Isend(buffToSend(i).data(), BUF_SIZE, MPI::COMPLEX, i, FLAG, MPI::COMM_WORLD, &isend_request[i]);
     }
   }
   // we then perform all the necessary alpha translations at level l
@@ -888,8 +887,8 @@ void Octtree::exchangeSupsInBlocks(blitz::Array< blitz::Array<std::complex<float
   // wait operation
   for (int i=0 ; i<getTotalNumProcs() ; ++i) {
     if (this->getProcNumber()!=i) {
-      ierror = MPI_Wait(&irecv_request[i], &irecv_status[i]);
-      ierror = MPI_Wait(&isend_request[i], &isend_status[i]);
+      MPI_Wait(&irecv_request[i], &irecv_status[i]);
+      MPI_Wait(&isend_request[i], &isend_status[i]);
     }
   }
   buffToSend.free();
@@ -898,7 +897,7 @@ void Octtree::exchangeSupsInBlocks(blitz::Array< blitz::Array<std::complex<float
     if (this->getProcNumber()!=i) {
       std::vector<int> listOfFcToBeReceived(levels[l].getListOfFcToBeReceived()[i]);
       int startIndex = 0, stopIndex, FcIndex;
-      for (int j=0 ; j<listOfFcToBeReceived.size() ; ++j) {
+      for (unsigned int j=0 ; j<listOfFcToBeReceived.size() ; ++j) {
         stopIndex = startIndex + N_theta*N_phi - 1;
         FcIndex = levels[l].cubesIndexesAfterReduction[listOfFcToBeReceived[j]];
         SupThisLevel(FcIndex).resize(N_coord, N_theta * N_phi);
@@ -917,7 +916,7 @@ void Octtree::ZIFarComputation(blitz::Array<std::complex<float>, 1>& ZI, /// res
   updateSup(I_PQ);
   if (this->getProcNumber()==0) cout << "tree descent"; flush(cout);
   const int N_levels = levels.size(), L = N_levels-1;
-  int ierror, my_id = getProcNumber(), thisLevel = L;
+  int my_id = getProcNumber(), thisLevel = L;
 
   if (levels[thisLevel].DIRECTIONS_PARALLELIZATION==1) {
     const int sonLevel = thisLevel-1;
@@ -926,8 +925,8 @@ void Octtree::ZIFarComputation(blitz::Array<std::complex<float>, 1>& ZI, /// res
     blitz::Array<std::complex<float>, 2> Stmp(2, sum(levels[thisLevel].MPI_Scatterv_scounts)), Stmp2(2, sum(levels[thisLevel].MPI_Scatterv_scounts)), Stmp3(2, levels[sonLevel].thetas.size() * levels[sonLevel].phis.size());
     for (int i=0 ; i<N_local_Cubes ; ++i) {
       int indexLocalCube = levels[thisLevel].cubesIndexesAfterReduction[localCubesIndexes[i]];
-      ierror = MPI_Allgatherv ( levels[thisLevel].Sdown(indexLocalCube)(0, all).data(), levels[thisLevel].Sdown(indexLocalCube)(0, all).size(), MPI::COMPLEX, Stmp(0, all).data(), levels[thisLevel].MPI_Scatterv_scounts.data(), levels[thisLevel].MPI_Scatterv_displs.data(), MPI::COMPLEX, MPI::COMM_WORLD );
-      ierror = MPI_Allgatherv ( levels[thisLevel].Sdown(indexLocalCube)(1, all).data(), levels[thisLevel].Sdown(indexLocalCube)(1, all).size(), MPI::COMPLEX, Stmp(1, all).data(), levels[thisLevel].MPI_Scatterv_scounts.data(), levels[thisLevel].MPI_Scatterv_displs.data(), MPI::COMPLEX, MPI::COMM_WORLD );
+      MPI_Allgatherv ( levels[thisLevel].Sdown(indexLocalCube)(0, all).data(), levels[thisLevel].Sdown(indexLocalCube)(0, all).size(), MPI::COMPLEX, Stmp(0, all).data(), levels[thisLevel].MPI_Scatterv_scounts.data(), levels[thisLevel].MPI_Scatterv_displs.data(), MPI::COMPLEX, MPI::COMM_WORLD );
+      MPI_Allgatherv ( levels[thisLevel].Sdown(indexLocalCube)(1, all).data(), levels[thisLevel].Sdown(indexLocalCube)(1, all).size(), MPI::COMPLEX, Stmp(1, all).data(), levels[thisLevel].MPI_Scatterv_scounts.data(), levels[thisLevel].MPI_Scatterv_displs.data(), MPI::COMPLEX, MPI::COMM_WORLD );
 
       std::vector<int> sonsIndexes = levels[thisLevel].cubes[indexLocalCube].sonsIndexes;
       std::vector<int> sonsProcNumbers = levels[thisLevel].cubes[indexLocalCube].sonsProcNumbers;
@@ -992,7 +991,6 @@ void Octtree::computeFarField(blitz::Array<std::complex<float>, 2>& e_theta_far,
                               const string octtree_data_path) /// coefficients of RWG functions
 {
   blitz::Range all = blitz::Range::all();
-  int ierror;
   if (this->getProcNumber()==0) cout << "\nFar field computation" << ": level ";
 
   const int N_levels = levels.size(), my_id = this->getProcNumber();
@@ -1089,9 +1087,9 @@ void Octtree::computeFarField(blitz::Array<std::complex<float>, 2>& e_theta_far,
     SupLastLevel += (static_cast<std::complex<float> >(-I*mu_0) * w/static_cast<float>(4.0*M_PI) * mu_r) * SupLastLevelTmp;
   }
   // we now gather all
-  ierror = MPI_Barrier(MPI_COMM_WORLD);
+  MPI_Barrier(MPI_COMM_WORLD);
   SupLastLevelTmp = 0.0;
-  ierror = MPI_Allreduce(SupLastLevel.data(), SupLastLevelTmp.data(), SupLastLevelTmp.size(), MPI_COMPLEX, MPI_SUM, MPI_COMM_WORLD);
+  MPI_Allreduce(SupLastLevel.data(), SupLastLevelTmp.data(), SupLastLevelTmp.size(), MPI_COMPLEX, MPI_SUM, MPI_COMM_WORLD);
   SupLastLevel = SupLastLevelTmp;
   e_theta_far.resize(N_thetaCoarseLevel, N_phiCoarseLevel);
   e_phi_far.resize(N_thetaCoarseLevel, N_phiCoarseLevel);

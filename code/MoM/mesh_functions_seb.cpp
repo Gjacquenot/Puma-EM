@@ -131,6 +131,8 @@ int main(int argc, char *argv[]) {
   vertexes_coord.free();
 
   // computation of opposite vertexes of RWGs in triangles
+  std::cout << "RWGNumber_oppVertexes_computation" << std::endl;
+  std::flush(std::cout);
   blitz::Array<int, 2> RWGNumber_oppVertexes;
   RWGNumber_oppVertexes_computation(RWGNumber_oppVertexes, RWGNumber_signedTriangles, RWGNumber_edgeVertexes, triangle_vertexes);
 

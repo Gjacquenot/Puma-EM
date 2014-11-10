@@ -24,8 +24,8 @@ int main(int argc, char* argv[]) {
      if( string(argv[1]) == "--simudir" ) simuDir = argv[2];
   }
 
-  MPI_Status isend_status, irecv_status, isend_status_1, irecv_status_1;
-  MPI_Request isend_request, irecv_request, isend_request_1, irecv_request_1;
+  MPI_Status irecv_status, isend_status_1, irecv_status_1;
+  MPI_Request isend_request_1, irecv_request_1;
   
   //  general variables
   const string Z_BLOCKS_PATH = simuDir + "/tmp" + intToString(my_id) + "/Z_tmp/";
@@ -34,7 +34,7 @@ int main(int argc, char* argv[]) {
 
   if (my_id==0) cout << "Exchanging Z_near blocks for preconditioner construction......" << endl;
   flush(cout);
-  int ierror = MPI_Barrier(MPI_COMM_WORLD), ierror_1;
+  MPI_Barrier(MPI_COMM_WORLD);
 
   // we loop on the process numbers
   for (int recv_proc_number = 0; recv_proc_number<num_procs; recv_proc_number++) {
@@ -86,36 +86,36 @@ int main(int argc, char* argv[]) {
             readIntBlitzArray1DFromBinaryFile(File_IntArray, IntArraysToSend(i));
           }
           // we now send the sizes arrays to the receiving process
-          ierror_1 = MPI_Isend(N_IntArraysToSend.data(), N_IntArraysToSend.size(), MPI_INT, recv_proc_number, 23, MPI_COMM_WORLD, &isend_request_1);
+          MPI_Isend(N_IntArraysToSend.data(), N_IntArraysToSend.size(), MPI_INT, recv_proc_number, 23, MPI_COMM_WORLD, &isend_request_1);
         }
         // the receives of the arrays sizes
         if (my_id==recv_proc_number) {
-          ierror_1 = MPI_Irecv(N_IntArraysToReceive.data(), N_IntArraysToReceive.size(), MPI_INT, send_proc_number, 23, MPI_COMM_WORLD, &irecv_request_1);
+          MPI_Irecv(N_IntArraysToReceive.data(), N_IntArraysToReceive.size(), MPI_INT, send_proc_number, 23, MPI_COMM_WORLD, &irecv_request_1);
         }
-        if (my_id == recv_proc_number) ierror_1 = MPI_Wait(&irecv_request_1, &irecv_status_1);
-        if (my_id == send_proc_number) ierror_1 = MPI_Wait(&isend_request_1, &isend_status_1);
+        if (my_id == recv_proc_number) MPI_Wait(&irecv_request_1, &irecv_status_1);
+        if (my_id == send_proc_number) MPI_Wait(&isend_request_1, &isend_status_1);
 
         // we can now post the arrays themselves
         if (my_id == send_proc_number)  {
           for (int i=0 ; i<NCubesToSend ; ++i) {
              int cubeNumber = CubesNumbersToSend(i);
-             ierror = MPI_Isend(IntArraysToSend(i).data(), IntArraysToSend(i).size(), MPI_INT, recv_proc_number, cubeNumber, MPI_COMM_WORLD, &Array_isend_request(i));
+             MPI_Isend(IntArraysToSend(i).data(), IntArraysToSend(i).size(), MPI_INT, recv_proc_number, cubeNumber, MPI_COMM_WORLD, &Array_isend_request(i));
           }
         }
         if (my_id == recv_proc_number) {
           for (int i=0 ; i<NCubesToReceive ; ++i) {
             int cubeNumber = CubesNumbersToReceive(i);
             IntArraysToReceive(i).resize(N_IntArraysToReceive(i));
-            ierror = MPI_Irecv(IntArraysToReceive(i).data(), IntArraysToReceive(i).size(), MPI_INT, send_proc_number, cubeNumber, MPI_COMM_WORLD, &Array_irecv_request(i));
+            MPI_Irecv(IntArraysToReceive(i).data(), IntArraysToReceive(i).size(), MPI_INT, send_proc_number, cubeNumber, MPI_COMM_WORLD, &Array_irecv_request(i));
           }
         }
         if (my_id == recv_proc_number) {
-          for (int i=0 ; i<NCubesToReceive ; ++i) ierror = MPI_Wait(&Array_irecv_request(i), &Array_irecv_status(i));
+          for (int i=0 ; i<NCubesToReceive ; ++i) MPI_Wait(&Array_irecv_request(i), &Array_irecv_status(i));
         }
         if (my_id == send_proc_number) {
-          for (int i=0 ; i<NCubesToSend ; ++i) ierror = MPI_Wait(&Array_isend_request(i), &Array_isend_status(i));
+          for (int i=0 ; i<NCubesToSend ; ++i) MPI_Wait(&Array_isend_request(i), &Array_isend_status(i));
         }
-        ierror = MPI_Barrier(MPI_COMM_WORLD);
+        MPI_Barrier(MPI_COMM_WORLD);
 
         // finally we write the communicated files to disk
         if (my_id == recv_proc_number) {
@@ -142,7 +142,7 @@ int main(int argc, char* argv[]) {
             const string fileToRead = Z_BLOCKS_PATH + CHUNK_PATH + "/" + filename;
             if (itemsize==8) readComplexFloatBlitzArray2DFromBinaryFile(fileToRead, send_buff(i));
             int BUF_SIZE = send_buff(i).size();
-            ierror = MPI_Isend(send_buff(i).data(), BUF_SIZE, MPI_COMPLEX, dest, cubeNumber, MPI_COMM_WORLD, &Array_isend_request(i));
+            MPI_Isend(send_buff(i).data(), BUF_SIZE, MPI_COMPLEX, dest, cubeNumber, MPI_COMM_WORLD, &Array_isend_request(i));
           }
         }
         // we post the receives of recv_proc_number
@@ -156,17 +156,17 @@ int main(int argc, char* argv[]) {
             // all the receives at the same time, which could deadlock
             // because of too many communications
             int BUF_SIZE = recv_buff(i).size();
-            ierror = MPI_Irecv(recv_buff(i).data(), BUF_SIZE, MPI_COMPLEX, src, cubeNumber, MPI_COMM_WORLD, &Array_irecv_request(i));
+            MPI_Irecv(recv_buff(i).data(), BUF_SIZE, MPI_COMPLEX, src, cubeNumber, MPI_COMM_WORLD, &Array_irecv_request(i));
           }
         }
 
         //if (my_id == recv_proc_number) cout << "Receiving Process " << recv_proc_number << ", Sending Process " << send_proc_number << ": All commands posted. Waiting to achieve......" << endl;
         // we wait for all the communications to finish
         if (my_id == recv_proc_number) {
-          for (int i=0 ; i<NCubesToReceive ; ++i) ierror = MPI_Wait(&Array_irecv_request(i), &Array_irecv_status(i));
+          for (int i=0 ; i<NCubesToReceive ; ++i) MPI_Wait(&Array_irecv_request(i), &Array_irecv_status(i));
         }
         if (my_id == send_proc_number) {
-          for (int i=0 ; i<NCubesToSend ; ++i) ierror = MPI_Wait(&Array_isend_request(i), &Array_isend_status(i));
+          for (int i=0 ; i<NCubesToSend ; ++i) MPI_Wait(&Array_isend_request(i), &Array_isend_status(i));
         }
         //if (my_id == recv_proc_number) cout << "Receiving Process " << recv_proc_number << ", Sending Process " << send_proc_number << ": Achieved!!!......" << endl;
 
@@ -186,7 +186,7 @@ int main(int argc, char* argv[]) {
       }
     }
   }
-  ierror = MPI_Barrier(MPI_COMM_WORLD);
+  MPI_Barrier(MPI_COMM_WORLD);
 
   // Get peak memory usage of each rank
   long memusage_local = MemoryUsageGetPeak();

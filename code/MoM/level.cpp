@@ -30,7 +30,6 @@ Level::Level(const int l,
   cubeSideLength = leaf_side_length;
   maxNumberCubes1D = static_cast<int>(pow(2.0, level));
   int N_cubes_level_L = cubes_centroids.extent(0);
-  const int leaf = 1;
   cubes.reserve(N_cubes_level_L);
   for (int j=0 ; j<N_cubes_level_L ; ++j) {
     const double r_c[3] = {cubes_centroids(j, 0), cubes_centroids(j, 1), cubes_centroids(j, 2)};
@@ -399,9 +398,9 @@ void Level::alphaTranslationsComputation(const int VERBOSE,
           // we then seek the max of alpha_all_directions
           double max_abs_alpha_local = max(abs(alpha));
           double max_abs_alpha = max_abs_alpha_local;
-          if ( this->DIRECTIONS_PARALLELIZATION==1 ) int ierror = MPI_Allreduce(&max_abs_alpha_local, &max_abs_alpha, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+          if ( this->DIRECTIONS_PARALLELIZATION==1 ) MPI_Allreduce(&max_abs_alpha_local, &max_abs_alpha, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
           int countNonZeroLocal = 0, countNonZero;
-          for (int kkk=0 ; kkk<alpha.size() ; ++kkk) {
+          for (unsigned int kkk=0 ; kkk<alpha.size() ; ++kkk) {
             if (abs(alpha(kkk)) >= cutting_coefficient * max_abs_alpha) {
               countNonZeroLocal++;
               isAlphaNonZero(kkk) = 1;
@@ -413,14 +412,14 @@ void Level::alphaTranslationsComputation(const int VERBOSE,
           }
           /* To be erased */
           countNonZero = countNonZeroLocal;
-          if ( this->DIRECTIONS_PARALLELIZATION==1 ) int ierror = MPI_Allreduce(&countNonZeroLocal, &countNonZero, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+          if ( this->DIRECTIONS_PARALLELIZATION==1 ) MPI_Allreduce(&countNonZeroLocal, &countNonZero, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
           if (countNonZero * 1.0/N_total_directions < alphaTranslation_RelativeCountAboveThreshold) {
             if ((my_id==0) && (this->cubeSideLength>= 16.0*lambda) && (VERBOSE==1) ) cout << "level " << this->getLevel() << ", cube side length = " << this->cubeSideLength/lambda << " lambdas, rel. count for r_mn = [" << r_mn[0]/this->cubeSideLength << ", " << r_mn[1]/this->cubeSideLength << ", " << r_mn[2]/this->cubeSideLength << "] is = " << countNonZero * 100.0/N_total_directions << endl;
             flush(cout);
             this->alphaTranslations(x, y, z).resize(countNonZeroLocal);
             this->alphaTranslationsIndexesNonZeros(x, y, z).resize(countNonZeroLocal);
             int index = 0;
-            for (int kkk=0 ; kkk<alpha.size() ; ++kkk) {
+            for (unsigned int kkk=0 ; kkk<alpha.size() ; ++kkk) {
               if (isAlphaNonZero(kkk) == 1) {
                 this->alphaTranslations(x, y, z)(index) = alpha(kkk);
                 this->alphaTranslationsIndexesNonZeros(x, y, z)(index) = kkk;
@@ -964,7 +963,7 @@ void Level::sphericalIntegration(blitz::Array<std::complex<float>, 1>& ZI,
                                  const blitz::Array<std::complex<float>, 1>& CFIE)
 {
   const std::complex<float> ZZERO(0.0, 0.0);
-  const bool tE_tmp = (CFIE(0)!=ZZERO), nE_tmp = (CFIE(1)!=ZZERO); 
+  const bool nE_tmp = (CFIE(1)!=ZZERO); 
   const bool tH_tmp = (CFIE(2)!=ZZERO), nH_tmp = (CFIE(3)!=ZZERO);
   const std::complex<float> tJEFIE_factor(static_cast<std::complex<float> >(-I*mu_0)  * w * mu_r * CFIE(0)); // k²/(j*w*eps) factor
   const std::complex<float> nJEFIE_factor(static_cast<std::complex<float> >(-I*mu_0)  * w * mu_r * CFIE(1)); // k²/(j*w*eps) factor

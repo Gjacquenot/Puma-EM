@@ -441,8 +441,6 @@ void V_CFIE_dipole_array (blitz::Array<std::complex<float>, 1> V_CFIE,
   }
   double rDip[3];
   std::complex<double> JDip[3];
-  for (int i=0 ; i<3 ; ++i) rDip[i] = r_dip(i);
-  for (int i=0 ; i<3 ; ++i) JDip[i] = J_dip(i);
 
   V_CFIE = 0.0;
 

@@ -198,7 +198,7 @@ void triangleUpSolve(blitz::Array<T, 1>& x, /**< output 1D array */
   for (int i=0 ; i<N ; ++i) {
     for (int j=0 ; j<N ; ++j) E(i, j) = sum(A(i, all) * B(all, j));
   }
-    int ierror, num_procs = MPI::COMM_WORLD.Get_size(), my_id = MPI::COMM_WORLD.Get_rank();
+    int num_procs = MPI::COMM_WORLD.Get_size(), my_id = MPI::COMM_WORLD.Get_rank();
   if (my_id==0) {
     cout << "OK HERE " << endl;
     //cout << "E = " << E << endl;
@@ -206,9 +206,9 @@ void triangleUpSolve(blitz::Array<T, 1>& x, /**< output 1D array */
     //cout << "B = " << B << endl;
   }
   flush(cout);
-    ierror = MPI_Barrier(MPI::COMM_WORLD);
+    MPI_Barrier(MPI::COMM_WORLD);
 
-/*  x = 0.0;
+  x = 0.0;
   for (int i=0 ; i<N ; i++) {
     for (int j=0 ; j<N ; ++j) x(i) += static_cast< std::complex<float> >(B(i, j)) * y(j);
   }*/
@@ -221,7 +221,7 @@ void rotmat(T & cs,
             T & b)
 /** compute the Givens rotation matrix parameters for a and b */
 {
-  const T ONE = static_cast<T>(1.0);
+//  const T ONE = static_cast<T>(1.0);
   T temp;
   if (abs(a)==0.0) {
     cs = 0.0;
@@ -346,8 +346,6 @@ void gmres(blitz::Array<T, 1>& x, /**< OUTPUT: converged solution */
   blitz::Range all = blitz::Range::all();
   flag = 0;
   iter = 0;
-  int ierror;
-  bool is_return = false;
   const int N_local = x.extent(0), m = RESTRT; // size of the system
   // dimensions and other checks
   if (RESTRT < 1) {
@@ -361,7 +359,7 @@ void gmres(blitz::Array<T, 1>& x, /**< OUTPUT: converged solution */
 
   double bnorm2, local_bnorm2, rnorm2, local_rnorm2, wnorm2, local_wnorm2;
   local_bnorm2 = squareNorm2(b);
-  ierror = MPI_Allreduce(&local_bnorm2, &bnorm2, 1, MPI::DOUBLE, MPI::SUM, MPI::COMM_WORLD);
+  MPI_Allreduce(&local_bnorm2, &bnorm2, 1, MPI::DOUBLE, MPI::SUM, MPI::COMM_WORLD);
   bnorm2 = sqrt(abs(bnorm2));
   if (bnorm2==0.0) bnorm2 = 1.0;
 
@@ -376,7 +374,7 @@ void gmres(blitz::Array<T, 1>& x, /**< OUTPUT: converged solution */
     rTmp = b - matvec(x);
     r = psolve(rTmp);
     local_rnorm2 = squareNorm2(r);
-    ierror = MPI_Allreduce(&local_rnorm2, &rnorm2, 1, MPI::DOUBLE, MPI::SUM, MPI::COMM_WORLD);
+    MPI_Allreduce(&local_rnorm2, &rnorm2, 1, MPI::DOUBLE, MPI::SUM, MPI::COMM_WORLD);
     rnorm2 = sqrt(abs(rnorm2));
     V(all, 0) = r/static_cast<T>(rnorm2);
     s = 0.0;
@@ -395,14 +393,14 @@ void gmres(blitz::Array<T, 1>& x, /**< OUTPUT: converged solution */
       T dloo = 0.0;
       for (int j=1 ; j<jH+1 ; ++j) {
         complex<double> H_local = sum(w * conjArray(V(all, j-1))), H_global;
-        ierror = MPI_Allreduce(&H_local, &H_global, 1, MPI::DOUBLE_COMPLEX, MPI::SUM, MPI::COMM_WORLD);
+        MPI_Allreduce(&H_local, &H_global, 1, MPI::DOUBLE_COMPLEX, MPI::SUM, MPI::COMM_WORLD);
         H(j, jH) = H_global;
         w -= H(j, jH) * V(all, j-1);
         dloo += abs(H_global)*abs(H_global);
       }
       dloo = sqrt(dloo);
       local_wnorm2 = squareNorm2(w);
-      ierror = MPI_Allreduce(&local_wnorm2, &wnorm2, 1, MPI::DOUBLE, MPI::SUM, MPI::COMM_WORLD);
+      MPI_Allreduce(&local_wnorm2, &wnorm2, 1, MPI::DOUBLE, MPI::SUM, MPI::COMM_WORLD);
       wnorm2 = sqrt(abs(wnorm2));
 
       H(jH+1, jH) = wnorm2;
@@ -458,7 +456,7 @@ void gmres(blitz::Array<T, 1>& x, /**< OUTPUT: converged solution */
     rTmp = b - matvec(x);
     r = psolve(rTmp);
     local_rnorm2 = squareNorm2(r);
-    ierror = MPI_Allreduce(&local_rnorm2, &rnorm2, 1, MPI::DOUBLE, MPI::SUM, MPI::COMM_WORLD);
+    MPI_Allreduce(&local_rnorm2, &rnorm2, 1, MPI::DOUBLE, MPI::SUM, MPI::COMM_WORLD);
     rnorm2 = sqrt(abs(rnorm2));
     s(m) = abs(rnorm2);
     // check convergence
@@ -505,8 +503,6 @@ void fgmres(blitz::Array<T, 1>& x, /**< OUTPUT: converged solution */
   blitz::Range all = blitz::Range::all();
   flag = 0;
   iter = 0;
-  int ierror;
-  bool is_return = false;
   const int N_local = x.extent(0), m = RESTRT; // size of the system
   // dimensions and other checks
   if (RESTRT < 1) {
@@ -520,7 +516,7 @@ void fgmres(blitz::Array<T, 1>& x, /**< OUTPUT: converged solution */
 
   double bnorm2, local_bnorm2, rnorm2, local_rnorm2, wnorm2, local_wnorm2;
   local_bnorm2 = squareNorm2(b);
-  ierror = MPI_Allreduce(&local_bnorm2, &bnorm2, 1, MPI::DOUBLE, MPI::SUM, MPI::COMM_WORLD);
+  MPI_Allreduce(&local_bnorm2, &bnorm2, 1, MPI::DOUBLE, MPI::SUM, MPI::COMM_WORLD);
   bnorm2 = sqrt(abs(bnorm2));
   if (bnorm2==0.0) bnorm2 = 1.0;
 
@@ -534,7 +530,7 @@ void fgmres(blitz::Array<T, 1>& x, /**< OUTPUT: converged solution */
   for (iter=0 ; iter<MAXITER ; iter++) {
     r = b - matvec(x);
     local_rnorm2 = squareNorm2(r);
-    ierror = MPI_Allreduce(&local_rnorm2, &rnorm2, 1, MPI::DOUBLE, MPI::SUM, MPI::COMM_WORLD);
+    MPI_Allreduce(&local_rnorm2, &rnorm2, 1, MPI::DOUBLE, MPI::SUM, MPI::COMM_WORLD);
     rnorm2 = sqrt(abs(rnorm2));
     V(all, 0) = r/static_cast<T>(rnorm2);
     s = 0.0;
@@ -554,14 +550,14 @@ void fgmres(blitz::Array<T, 1>& x, /**< OUTPUT: converged solution */
       T dloo = 0.0;
       for (int j=1 ; j<jH+1 ; ++j) {
         complex<double> H_local = sum(w * conjArray(V(all, j-1))), H_global;
-        ierror = MPI_Allreduce(&H_local, &H_global, 1, MPI::DOUBLE_COMPLEX, MPI::SUM, MPI::COMM_WORLD);
+        MPI_Allreduce(&H_local, &H_global, 1, MPI::DOUBLE_COMPLEX, MPI::SUM, MPI::COMM_WORLD);
         H(j, jH) = H_global;
         w -= H(j, jH) * V(all, j-1);
         dloo += abs(H_global)*abs(H_global);
       }
       dloo = sqrt(dloo);
       local_wnorm2 = squareNorm2(w);
-      ierror = MPI_Allreduce(&local_wnorm2, &wnorm2, 1, MPI::DOUBLE, MPI::SUM, MPI::COMM_WORLD);
+      MPI_Allreduce(&local_wnorm2, &wnorm2, 1, MPI::DOUBLE, MPI::SUM, MPI::COMM_WORLD);
       wnorm2 = sqrt(abs(wnorm2));
 
       H(jH+1, jH) = wnorm2;
@@ -616,7 +612,7 @@ void fgmres(blitz::Array<T, 1>& x, /**< OUTPUT: converged solution */
     x += matrixMultiply(Z(all, blitz::Range(0, m-1)), y);
     r = b - matvec(x);
     local_rnorm2 = squareNorm2(r);
-    ierror = MPI_Allreduce(&local_rnorm2, &rnorm2, 1, MPI::DOUBLE, MPI::SUM, MPI::COMM_WORLD);
+    MPI_Allreduce(&local_rnorm2, &rnorm2, 1, MPI::DOUBLE, MPI::SUM, MPI::COMM_WORLD);
     rnorm2 = sqrt(abs(rnorm2));
     s(m) = abs(rnorm2);
     // check convergence
@@ -659,11 +655,8 @@ void bicgstab(blitz::Array<T, 1>& x, /**< OUTPUT: converged solution */
   ofs << "# BiCGSTAB algorithm" << endl;
   ofs << "# output showing the convergence for tol = " << tol << endl;
 
-  blitz::Range all = blitz::Range::all();
   flag = 0;
   iter = 0;
-  int ierror;
-  bool is_return = false;
   const int N_local = x.extent(0); // size of the system
   // dimensions and other checks
   if (MAXITER < 1) {
@@ -675,13 +668,13 @@ void bicgstab(blitz::Array<T, 1>& x, /**< OUTPUT: converged solution */
   // local arrays
   blitz::Array<T, 1> p(N_local), p_hat(N_local), r_tld(N_local), r(N_local), v(N_local), s(N_local), s_hat(N_local), t(N_local);
   local_bnorm2 = squareNorm2(b);
-  ierror = MPI_Allreduce(&local_bnorm2, &bnorm2, 1, MPI::DOUBLE, MPI::SUM, MPI::COMM_WORLD);
+  MPI_Allreduce(&local_bnorm2, &bnorm2, 1, MPI::DOUBLE, MPI::SUM, MPI::COMM_WORLD);
   bnorm2 = sqrt(abs(bnorm2));
   if (bnorm2==0.0) bnorm2 = 1.0;
   v = matvec(x); // v is used as a temporary vector here
   r = b - v;
   local_error = squareNorm2(r);
-  ierror = MPI_Allreduce(&local_error, &error, 1, MPI::DOUBLE, MPI::SUM, MPI::COMM_WORLD);
+  MPI_Allreduce(&local_error, &error, 1, MPI::DOUBLE, MPI::SUM, MPI::COMM_WORLD);
   error = sqrt( abs(error) ) / bnorm2;
   ofs << error << endl;
 
@@ -691,7 +684,7 @@ void bicgstab(blitz::Array<T, 1>& x, /**< OUTPUT: converged solution */
   // beginning of the iterations
   for (iter=1 ; iter<=MAXITER ; iter++) {
     rho_local = sum(conjArray(r_tld) * r);
-    ierror = MPI_Allreduce(&rho_local, &rho, 1, MPI::COMPLEX, MPI::SUM, MPI::COMM_WORLD);
+    MPI_Allreduce(&rho_local, &rho, 1, MPI::COMPLEX, MPI::SUM, MPI::COMM_WORLD);
     
     if (rho==ZZERO) {ofs.close(); return;}
     if (iter==1) p = r;
@@ -699,16 +692,16 @@ void bicgstab(blitz::Array<T, 1>& x, /**< OUTPUT: converged solution */
       T beta  = ( rho/rho_1 )*( alpha/omega );
       p = r + beta*( p - omega*v );
     }
-    ierror = MPI_Barrier(MPI::COMM_WORLD);
+    MPI_Barrier(MPI::COMM_WORLD);
     p_hat = psolve(p);
     v = matvec(p_hat);
     T alpha_denom_local, alpha_denom;
     alpha_denom_local = sum( conjArray(r_tld) * v );
-    ierror = MPI_Allreduce(&alpha_denom_local, &alpha_denom, 1, MPI::COMPLEX, MPI::SUM, MPI::COMM_WORLD);
+    MPI_Allreduce(&alpha_denom_local, &alpha_denom, 1, MPI::COMPLEX, MPI::SUM, MPI::COMM_WORLD);
     alpha = rho / alpha_denom;
     s = r - alpha*v;
     local_snorm2 = squareNorm2(s);
-    ierror = MPI_Allreduce(&local_snorm2, &snorm2, 1, MPI::DOUBLE, MPI::SUM, MPI::COMM_WORLD);
+    MPI_Allreduce(&local_snorm2, &snorm2, 1, MPI::DOUBLE, MPI::SUM, MPI::COMM_WORLD);
     snorm2 = sqrt(abs(snorm2));
     if ( snorm2 / bnorm2 < tol ) {
       x += alpha*p_hat;
@@ -723,13 +716,13 @@ void bicgstab(blitz::Array<T, 1>& x, /**< OUTPUT: converged solution */
     T local_omega_num, omega_num, local_omega_denom, omega_denom;
     local_omega_num = sum(conjArray(t) * s);
     local_omega_denom = sum(conjArray(t) * t);
-    ierror = MPI_Allreduce(&local_omega_num, &omega_num, 1, MPI::COMPLEX, MPI::SUM, MPI::COMM_WORLD);
-    ierror = MPI_Allreduce(&local_omega_denom, &omega_denom, 1, MPI::COMPLEX, MPI::SUM, MPI::COMM_WORLD);
+    MPI_Allreduce(&local_omega_num, &omega_num, 1, MPI::COMPLEX, MPI::SUM, MPI::COMM_WORLD);
+    MPI_Allreduce(&local_omega_denom, &omega_denom, 1, MPI::COMPLEX, MPI::SUM, MPI::COMM_WORLD);
     omega = omega_num/omega_denom;
     x += alpha*p_hat + omega*s_hat;
     r = s - omega*t;
     local_error = squareNorm2(r);
-    ierror = MPI_Allreduce(&local_error, &error, 1, MPI::DOUBLE, MPI::SUM, MPI::COMM_WORLD);
+    MPI_Allreduce(&local_error, &error, 1, MPI::DOUBLE, MPI::SUM, MPI::COMM_WORLD);
     error = sqrt( abs(error) ) / bnorm2;
     ofs << error << endl;
 
@@ -738,7 +731,7 @@ void bicgstab(blitz::Array<T, 1>& x, /**< OUTPUT: converged solution */
     rho_1 = rho;
   } // end for
   local_snorm2 = squareNorm2(s);
-  ierror = MPI_Allreduce(&local_snorm2, &snorm2, 1, MPI::DOUBLE, MPI::SUM, MPI::COMM_WORLD);
+  MPI_Allreduce(&local_snorm2, &snorm2, 1, MPI::DOUBLE, MPI::SUM, MPI::COMM_WORLD);
   snorm2 = sqrt(abs(snorm2));
   if ( ( error <= tol ) || ( norm2( s ) <= tol ) ) { // converged
     if ( snorm2 / bnorm2 <= tol ) {

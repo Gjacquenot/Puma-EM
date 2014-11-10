@@ -26,12 +26,12 @@ using namespace std;
 /****************************************************************************/
 void gatherAndRedistribute(blitz::Array<std::complex<float>, 1>& x, const int my_id, const int num_procs)
 {
-  int ierror, N_RWG = x.size();
+  int N_RWG = x.size();
   blitz::Array<std::complex<float>, 1> recvBuf;
   if (my_id==0) recvBuf.resize(N_RWG);
-  ierror = MPI_Reduce(x.data(), recvBuf.data(), N_RWG, MPI_COMPLEX, MPI_SUM, 0, MPI_COMM_WORLD);
+  MPI_Reduce(x.data(), recvBuf.data(), N_RWG, MPI_COMPLEX, MPI_SUM, 0, MPI_COMM_WORLD);
   if (my_id==0) x = recvBuf;
-  ierror = MPI_Bcast(x.data(), N_RWG, MPI_COMPLEX, 0, MPI_COMM_WORLD);
+  MPI_Bcast(x.data(), N_RWG, MPI_COMPLEX, 0, MPI_COMM_WORLD);
 }
 
 class MatvecMLFMA {
@@ -111,7 +111,7 @@ void MatvecMLFMA::matvecZnear(blitz::Array<std::complex<float>, 1> & y, const bl
   blitz::Array<int, 1> chunkNumbers;
   readIntBlitzArray1DFromASCIIFile(pathToReadFrom + "chunkNumbers.txt", chunkNumbers);
   Z_sparse_MLFMA Z_near;
-  for (int i=0 ; i<chunkNumbers.size() ; i++) {
+  for (unsigned int i=0 ; i<chunkNumbers.size() ; i++) {
     int number = chunkNumbers(i);
     Z_near.setZ_sparse_MLFMAFromFile(pathToReadFrom, Z_name, number);
     Z_near.matvec_Z_PQ_near(y, x);
@@ -130,7 +130,7 @@ blitz::Array<std::complex<float>, 1> MatvecMLFMA::matvec(const blitz::Array<std:
   // distribution of x among processes
   blitz::Array<std::complex<float>, 1> x_global(this->N_RWG);
   x_global = 0.0;
-  for (int i=0 ; i<this->localRWGnumbers.size() ; ++i) x_global(this->localRWGnumbers(i)) = x(i);
+  for (unsigned int i=0 ; i<this->localRWGnumbers.size() ; ++i) x_global(this->localRWGnumbers(i)) = x(i);
   // we should now gather and redistribute the result among the processes
   gatherAndRedistribute(x_global, getProcNumber(), getTotalProcNumber());
 
@@ -163,12 +163,12 @@ blitz::Array<std::complex<float>, 1> MatvecMLFMA::matvec(const blitz::Array<std:
   y_global = 0.0;
   for (int i=0; i<local_N_test_RWG; i++) y_global(local_test_RWG_numbers(i)) += y_local_Z(i);
   y_local_Z.free();
-  for (int i=0 ; i<this->localRWGnumbers.size() ; ++i) y_global(this->localRWGnumbers(i)) += y_local_MLFMA(i);
+  for (unsigned int i=0 ; i<this->localRWGnumbers.size() ; ++i) y_global(this->localRWGnumbers(i)) += y_local_MLFMA(i);
   y_local_MLFMA.free();
   gatherAndRedistribute(y_global, getProcNumber(), getTotalProcNumber());
   // we now select only the elements to return
   blitz::Array<std::complex<float>, 1> yTmp(this->localRWGnumbers.size());
-  for (int i=0 ; i<this->localRWGnumbers.size() ; ++i) yTmp(i) = y_global(this->localRWGnumbers(i));
+  for (unsigned int i=0 ; i<this->localRWGnumbers.size() ; ++i) yTmp(i) = y_global(this->localRWGnumbers(i));
   return yTmp;
 }
 
@@ -237,7 +237,7 @@ blitz::Array<std::complex<float>, 1> LeftFrobPsolveMLFMA::psolve(const blitz::Ar
   const int my_id = MPI::COMM_WORLD.Get_rank();
   blitz::Array<std::complex<float>, 1> x_global(this->N_RWG);
   x_global = 0.0;
-  for (int i=0 ; i<localRWGnumbers.size() ; ++i) x_global(localRWGnumbers(i)) = x(i);
+  for (unsigned int i=0 ; i<localRWGnumbers.size() ; ++i) x_global(localRWGnumbers(i)) = x(i);
   gatherAndRedistribute(x_global, procNumber, totalProcNumber);
 
   const string pathToReadFrom = simuDir + "/tmp" + intToString(my_id) + "/Mg_LeftFrob/", Z_name = "Mg_LeftFrob";
@@ -262,7 +262,7 @@ blitz::Array<std::complex<float>, 1> LeftFrobPsolveMLFMA::psolve(const blitz::Ar
   blitz::Array<int, 1> chunkNumbers;
   readIntBlitzArray1DFromASCIIFile(pathToReadFrom + "chunkNumbers.txt", chunkNumbers);
   Z_sparse_MLFMA Mg_LeftFrob;
-  for (int i=0 ; i<chunkNumbers.size() ; i++) {
+  for (unsigned int i=0 ; i<chunkNumbers.size() ; i++) {
     int number = chunkNumbers(i);
     Mg_LeftFrob.setZ_sparse_MLFMAFromFile(pathToReadFrom, Z_name, number);
     //Mg_LeftFrob.printZ_CFIE_near();
@@ -277,7 +277,7 @@ blitz::Array<std::complex<float>, 1> LeftFrobPsolveMLFMA::psolve(const blitz::Ar
   gatherAndRedistribute(y_global, procNumber, totalProcNumber);
   // we now select only the elements to return
   blitz::Array<std::complex<float>, 1> yTmp(localRWGnumbers.size());
-  for (int i=0 ; i<localRWGnumbers.size() ; ++i) yTmp(i) = y_global(localRWGnumbers(i));
+  for (unsigned int i=0 ; i<localRWGnumbers.size() ; ++i) yTmp(i) = y_global(localRWGnumbers(i));
   return yTmp;
 }
 
@@ -364,7 +364,7 @@ void computeE_obs(blitz::Array<std::complex<double>, 2>& E_obs,
                   const std::complex<float> mu_r,
                   const float w)
 {
-  int ierror, FULL_PRECISION = 1;
+  int FULL_PRECISION = 1;
   blitz::Range all = blitz::Range::all();
   E_obs.resize(r_obs.extent(0), r_obs.extent(1));
   H_obs.resize(r_obs.extent(0), r_obs.extent(1));
@@ -374,11 +374,11 @@ void computeE_obs(blitz::Array<std::complex<double>, 2>& E_obs,
     for (int i=0 ; i<3 ; ++i) {
       // E field
       std::complex<float> local_e_tmp(E_tmp(i)), e_tmp(0.0);
-      ierror = MPI_Allreduce(&local_e_tmp, &e_tmp, 1, MPI_COMPLEX, MPI_SUM, MPI_COMM_WORLD);
+      MPI_Allreduce(&local_e_tmp, &e_tmp, 1, MPI_COMPLEX, MPI_SUM, MPI_COMM_WORLD);
       E_obs(j, i) = e_tmp;
       // H field
       std::complex<float> local_h_tmp(H_tmp(i)), h_tmp(0.0);
-      ierror = MPI_Allreduce(&local_h_tmp, &h_tmp, 1, MPI_COMPLEX, MPI_SUM, MPI_COMM_WORLD);
+      MPI_Allreduce(&local_h_tmp, &h_tmp, 1, MPI_COMPLEX, MPI_SUM, MPI_COMM_WORLD);
       H_obs(j, i) = h_tmp;
     }
   }
@@ -630,8 +630,8 @@ void computeForOneExcitation(Octtree & octtree,
     recvBuf.resize(N_RWG);
     recvBuf = 0.0;
   }
-  for (int i=0 ; i<localRWGNumbers.size() ; ++i) ZI_global(localRWGNumbers(i)) = ZI(i);
-  int ierror = MPI_Reduce(ZI_global.data(), recvBuf.data(), N_RWG, MPI_COMPLEX, MPI_SUM, 0, MPI_COMM_WORLD);
+  for (unsigned int i=0 ; i<localRWGNumbers.size() ; ++i) ZI_global(localRWGNumbers(i)) = ZI(i);
+  MPI_Reduce(ZI_global.data(), recvBuf.data(), N_RWG, MPI_COMPLEX, MPI_SUM, 0, MPI_COMM_WORLD);
   if ( my_id == master ) {
     string filename = TMP + "/ZI/ZI.txt";
     ofstream ofs(filename.c_str(), blitz::ios::binary);
@@ -654,11 +654,9 @@ void computeMonostaticRCS(Octtree & octtree,
                           const string RESULT_DATA_PATH,
                           const string ITERATIVE_DATA_PATH)
 {
-  blitz::Range all = blitz::Range::all();
   int num_procs = MPI::COMM_WORLD.Get_size(), my_id = MPI::COMM_WORLD.Get_rank();
   const int master = 0, N_local_RWG = local_target_mesh.N_local_RWG;
   
-  const std::complex<float> eps_r = octtree.eps_r, mu_r = octtree.mu_r;
   blitz::Array<int, 1> localRWGNumbers(local_target_mesh.localRWGNumbers.size());
   localRWGNumbers = local_target_mesh.localRWGNumbers;
 
@@ -971,8 +969,8 @@ void computeMonostaticSAR(Octtree & octtree,
 
   // functors declarations
   const string PRECOND = "FROB";
-  int N_RWG, iter, flag, RESTART, MAXITER, USE_PREVIOUS_SOLUTION, MONOSTATIC_BY_BISTATIC_APPROX, V_FULL_PRECISION;
-  double error, TOL, MAX_DELTA_PHASE;
+  int N_RWG, iter, flag, RESTART, MAXITER, USE_PREVIOUS_SOLUTION, V_FULL_PRECISION;
+  double error, TOL;
   readIntFromASCIIFile(V_CFIE_DATA_PATH + "V_FULL_PRECISION.txt", V_FULL_PRECISION);
   readIntFromASCIIFile(OCTTREE_DATA_PATH + "N_RWG.txt", N_RWG);
   readDoubleFromASCIIFile(ITERATIVE_DATA_PATH + "TOL.txt", TOL);
@@ -1042,7 +1040,7 @@ void computeMonostaticSAR(Octtree & octtree,
     const bool HV = ((excitation==0) && (COMPUTE_RCS_HV==1));
     const bool VH = ((excitation==1) && (COMPUTE_RCS_VH==1));
     const bool VV = ((excitation==1) && (COMPUTE_RCS_VV==1));
-    const bool cond = (HH || HV || VV);
+    const bool cond = (HH || HV || VH || VV);
     if (cond) {
       for (int t=0 ; t<SAR_N_y_points ; ++t) {
         blitz::Array<std::complex<float>, 1> ZI(N_local_RWG);
@@ -1145,7 +1143,6 @@ void computeMonostaticSAR(Octtree & octtree,
 int main(int argc, char* argv[]) {
 
   MPI::Init();
-  int ierror;
   const int num_procs = MPI::COMM_WORLD.Get_size();
   const int my_id = MPI::COMM_WORLD.Get_rank();
   const int master = 0;
@@ -1240,7 +1237,7 @@ int main(int argc, char* argv[]) {
   
   blitz::Array<int, 1> NumberOfCubesPerProcess;
   if (my_id==0) NumberOfCubesPerProcess.resize(num_procs);
-  ierror = MPI_Gather(&N_local_cubes, 1, MPI_INT, NumberOfCubesPerProcess.data(), 1, MPI_INT, 0, MPI_COMM_WORLD);
+  MPI_Gather(&N_local_cubes, 1, MPI_INT, NumberOfCubesPerProcess.data(), 1, MPI_INT, 0, MPI_COMM_WORLD);
 
   blitz::Array<int, 1> MPI_Gatherv_displs; // it only matters for process 0
   if (my_id==0) {
@@ -1255,7 +1252,7 @@ int main(int argc, char* argv[]) {
   // Only master process has complete overview of these cubes
   blitz::Array<int, 1> process_OldIndexesOfCubes;
   if (my_id==0) process_OldIndexesOfCubes.resize(C);
-  ierror = MPI_Gatherv( oldIndexesOfCubes.data(), oldIndexesOfCubes.size(), MPI_INT, process_OldIndexesOfCubes.data(), NumberOfCubesPerProcess.data(), MPI_Gatherv_displs.data(), MPI_INT, 0,  MPI_COMM_WORLD);
+  MPI_Gatherv( oldIndexesOfCubes.data(), oldIndexesOfCubes.size(), MPI_INT, process_OldIndexesOfCubes.data(), NumberOfCubesPerProcess.data(), MPI_Gatherv_displs.data(), MPI_INT, 0,  MPI_COMM_WORLD);
   oldIndexesOfCubes.free();
   // now we need to scatter the RWG numbers and arrays, according to their original cubes, to each process
   // we have to begin by the end, to retain the good values for process 0!
@@ -1282,14 +1279,14 @@ int main(int argc, char* argv[]) {
       blitz::Array<int, 2> localRWGNumber_signedTriangles;
       blitz::Array<float, 2> localRWGNumber_trianglesCoord;
       localRWGNumbers.resize(RWG_numbersTmp.size());
-      for (int i=0; i<localRWGNumbers.size(); i++) localRWGNumbers(i) = RWG_numbersTmp[i];
+      for (unsigned int i=0; i<localRWGNumbers.size(); i++) localRWGNumbers(i) = RWG_numbersTmp[i];
       RWG_numbersTmp.clear();
       // RWG_numbers and cube_NRWG contains all the info about the repartition of RWGs in cubes of process number="receive_id"
       // we've got to communicate these arrays, and also an array containing the coordinates of the RWGs.
       localRWGNumber_CFIE_OK.resize(localRWGNumbers.size());
       localRWGNumber_trianglesCoord.resize(localRWGNumbers.size(), 12);
       localRWGNumber_signedTriangles.resize(localRWGNumbers.size(), 2);
-      for (int i=0; i<localRWGNumbers.size(); i++) {
+      for (int i=0; i<(int)localRWGNumbers.size(); i++) {
         const int RWG = localRWGNumbers(i);
         const int n0 = RWGNumber_oppVertexes(RWG, 0);
         const int n1 = RWGNumber_edgeVertexes(RWG, 0);
@@ -1342,14 +1339,14 @@ int main(int argc, char* argv[]) {
     MPI_Recv(local_target_mesh.localRWGNumber_trianglesCoord.data(), local_target_mesh.localRWGNumber_trianglesCoord.size(), MPI_FLOAT, 0, my_id+4, MPI_COMM_WORLD, &status);
   }
      
-  ierror = MPI_Barrier(MPI_COMM_WORLD);
+  MPI_Barrier(MPI_COMM_WORLD);
 
   // now let's construct the octtree cubes local meshes!
   octtree.computeGaussLocatedArguments(local_cubes_NRWG, local_target_mesh.localRWGNumbers, local_target_mesh.localRWGNumber_CFIE_OK, local_target_mesh.localRWGNumber_signedTriangles, local_target_mesh.localRWGNumber_trianglesCoord);
   octtree.RWGs_renumbering();
   // final moves
   local_target_mesh.reallyLocalRWGNumbers.resize(local_target_mesh.localRWGNumbers.size());
-  for (int i=0 ; i<local_target_mesh.localRWGNumbers.size() ; ++i) local_target_mesh.reallyLocalRWGNumbers(i) = i;
+  for (unsigned int i=0 ; i<local_target_mesh.localRWGNumbers.size() ; ++i) local_target_mesh.reallyLocalRWGNumbers(i) = i;
   local_target_mesh.writeLocalMeshToFile(MESH_DATA_PATH);
   // OK, what kind of simulation do we want to run?
   octtree.constructArrays();
@@ -1360,7 +1357,7 @@ int main(int argc, char* argv[]) {
   string SOLVER;
   readStringFromASCIIFile(ITERATIVE_DATA_PATH + "SOLVER.txt", SOLVER);
   if (my_id==0) cout << "SOLVER IS = " << SOLVER << endl;
-  ierror = MPI_Barrier(MPI_COMM_WORLD);
+  MPI_Barrier(MPI_COMM_WORLD);
   // bistatic computation
   if (BISTATIC==1) computeForOneExcitation(octtree, local_target_mesh, SOLVER, SIMU_DIR, TMP, OCTTREE_DATA_PATH, MESH_DATA_PATH, V_CFIE_DATA_PATH, RESULT_DATA_PATH, ITERATIVE_DATA_PATH);
   // monostatic RCS computation

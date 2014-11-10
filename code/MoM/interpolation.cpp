@@ -108,7 +108,7 @@ void decimate_2D (blitz::Array<std::complex<double>, 2> Y,
                   const blitz::Array<double, 1>& X2_i, // the abscissas following 2nd dimension
                   const int n) 
 {
-  int N_X1_i = Y_i.extent(0), N_X2_i = Y_i.extent(1);
+  unsigned int N_X1_i = Y_i.extent(0), N_X2_i = Y_i.extent(1);
   if ( (N_X1_i != X1_i.size()) || (N_X2_i != X2_i.size()) ) {
     cout << "decimate_2D() : (N_X1_i != X1_i.size()) || (N_X2_i != X2_i.size())" << endl;
     exit(1);
@@ -126,7 +126,7 @@ void decimate_2D (blitz::Array<std::complex<double>, 2> Y,
   Lagrangian_regular_matrix(n, M);
   // we first interpolate following phi
   y_tmp.resize(N_X2_i-1);
-  for (int j=0 ; j<2*N_X1_i - 1 ; j=j+2) {
+  for (unsigned int j=0 ; j<2*N_X1_i - 1 ; j=j+2) {
     Lagrange_vector_fixedstep_interpolation(y_tmp, X2(blitz::Range(1, blitz::toEnd, 2)), X2(blitz::Range(0, blitz::toEnd, 2)), Y(j, blitz::Range(0, blitz::toEnd, 2)), M);
     Y(j, blitz::Range(1, blitz::toEnd, 2)) = y_tmp;
   }
@@ -134,7 +134,7 @@ void decimate_2D (blitz::Array<std::complex<double>, 2> Y,
   // that we now have (2*N_X2_i - 1) values following X1!!
   // Therefore we do not use Y_i for interpolation anymore.
   y_tmp.resize(N_X1_i-1);
-  for (int j=0 ; j<2*N_X2_i-1 ; j++) {
+  for (unsigned int j=0 ; j<2*N_X2_i-1 ; j++) {
     Lagrange_vector_fixedstep_interpolation(y_tmp, X1(blitz::Range(1, blitz::toEnd, 2)), X1(blitz::Range(0, blitz::toEnd, 2)), Y(blitz::Range(0, blitz::toEnd, 2), j), M);
     Y(blitz::Range(1, blitz::toEnd, 2), j) = y_tmp;
   }

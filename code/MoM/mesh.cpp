@@ -629,7 +629,7 @@ void RWGNumber_signedTriangles_computation(blitz::Array<int, 2>& RWGNumber_signe
       if (edgeNumber_triangles(i, j) == -1) break;
       else triangles.push_back(edgeNumber_triangles(i, j));
     }
-    const int numberOfTriangles = triangles.size();
+    const unsigned int numberOfTriangles = triangles.size();
     // if (numberOfTriangles==2) we have a classic RWG
     if (numberOfTriangles==2) {
       RWGNumber_signedTrianglesTmp(i, 0) = triangles[0];
@@ -648,7 +648,7 @@ void RWGNumber_signedTriangles_computation(blitz::Array<int, 2>& RWGNumber_signe
       // construction of the edge local coordinate system: it is based on the first triangle
       // this is for sorting the triangles wrt their respective angles
       // because we cannot have a RWG which is bisected by another RWG
-      for (int j=0 ; j<numberOfTriangles ; j++) {
+      for (unsigned int j=0 ; j<numberOfTriangles ; j++) {
         const int tr = triangles[j];
         const blitz::Array<int, 1> tr_nodes(triangle_vertexes(tr, all));
         // for each triangle we find the corner opposite to the edge
@@ -680,12 +680,12 @@ void RWGNumber_signedTriangles_computation(blitz::Array<int, 2>& RWGNumber_signe
       // we need an argsort type function, given by the Dictionary class (see mesh.h)
       std::vector< Dictionary<double, int> > triangles_anglesToIndexes;
       triangles_anglesToIndexes.reserve(numberOfTriangles);
-      for (int j=0 ; j<numberOfTriangles ; j++) triangles_anglesToIndexes.push_back(Dictionary<double, int> (triangles_angles(j), j));
+      for (unsigned int j=0 ; j<numberOfTriangles ; j++) triangles_anglesToIndexes.push_back(Dictionary<double, int> (triangles_angles(j), j));
       sort(triangles_anglesToIndexes.begin(), triangles_anglesToIndexes.end());
       std::vector<int> sortedTriangles, sortedTrianglesSurfaces;
       sortedTriangles.reserve(numberOfTriangles);
       sortedTrianglesSurfaces.reserve(numberOfTriangles);
-      for (int j=0 ; j<numberOfTriangles ; j++) {
+      for (unsigned int j=0 ; j<numberOfTriangles ; j++) {
         sortedTriangles.push_back(triangles[triangles_anglesToIndexes[j].getVal()]);
         sortedTrianglesSurfaces.push_back(triangles_surfaces(sortedTriangles.back()));
       }
@@ -693,7 +693,7 @@ void RWGNumber_signedTriangles_computation(blitz::Array<int, 2>& RWGNumber_signe
       // Normally none of these RWGs can be bisected by a triangle now
       // THE FOLLOWING ONLY WORKS FOR METAL-METAL JUNCTIONS
       std::vector<std::vector<int> >possibleTrianglesPairsForRWGs;
-      for (int j=1 ; j<numberOfTriangles ; j++) {
+      for (unsigned int j=1 ; j<numberOfTriangles ; j++) {
         if (sortedTrianglesSurfaces[j] != sortedTrianglesSurfaces[j-1]) {
           std::vector<int> temp;
           temp.push_back(sortedTriangles[j-1]);

@@ -199,7 +199,7 @@ void MgPreconditionerComputationPerCube(blitz::Array<std::complex<float>, 1>& Mg
         if (set_cubeNeighborsIndexes.find(val) != set_cubeNeighborsIndexes.end()) common_neighborsNumbers.push_back(val);
       }
       std::vector<int> src_tmp;
-      for (int i=0; i<common_neighborsNumbers.size(); i++) {
+      for (unsigned int i=0; i<common_neighborsNumbers.size(); i++) {
         const int commonNeighbor = common_neighborsNumbers[i];
         CubeArraysMapIterator it_commonNeighbor = ListCubes.find(commonNeighbor);
         for (int kk=0; kk<(*it_commonNeighbor).second.N_RWG_test; kk++) {
@@ -215,13 +215,13 @@ void MgPreconditionerComputationPerCube(blitz::Array<std::complex<float>, 1>& Mg
       }
       std::vector<int> Z_local_columns_indexes;
       Z_local_columns_indexes.resize(src_tmp.size());
-      for (int i=0; i<src_tmp.size(); i++) {
+      for (unsigned int i=0; i<src_tmp.size(); i++) {
         const int RWG_number = src_tmp[i];
         Z_local_columns_indexes[i] = src_edges_numbers_local_src_edges_numbers[RWG_number];
       }
       // we construct Z_local
-      for (int i=0; i<Z_local_lines_indexes.size(); i++) {
-        for (int j=0; j<Z_local_columns_indexes.size(); j++) {
+      for (int i=0; i<(int)Z_local_lines_indexes.size(); i++) {
+        for (unsigned int j=0; j<Z_local_columns_indexes.size(); j++) {
           const int index_line = Z_local_lines_indexes[i];
           const int index_column = Z_local_columns_indexes[j];
           Z_local(index_line, index_column) = (*it_neighbor).second.Z_CFIE_J(i, columnsOfNeighborCubeToBeConsidered[j]);
@@ -257,11 +257,7 @@ void MgPreconditionerComputationPerCube(blitz::Array<std::complex<float>, 1>& Mg
 int main(int argc, char* argv[]) {
 
   MPI::Init();
-  int ierror;
-  const int num_procs = MPI::COMM_WORLD.Get_size();
   const int my_id = MPI::COMM_WORLD.Get_rank();
-  const int master = 0;
-  MPI_Status status;
 
   string simuDir = ".";
   if ( argc > 2 ) {
@@ -312,7 +308,7 @@ int main(int argc, char* argv[]) {
       // then we need to construct a series of indexes and offsets
       N_RWG += cube.N_RWG_test;
       int N_isEdgeInCartesianRadius = 0;
-      for (int kk=0; kk<cube.isEdgeInCartesianRadius.size(); kk++) N_isEdgeInCartesianRadius += cube.isEdgeInCartesianRadius[kk];
+      for (unsigned int kk=0; kk<cube.isEdgeInCartesianRadius.size(); kk++) N_isEdgeInCartesianRadius += cube.isEdgeInCartesianRadius[kk];
       N_ColumnsPerCube[j] = N_isEdgeInCartesianRadius;
       // N_precond = number of elements in the preconditioner chunk
       N_precond += N_isEdgeInCartesianRadius * cube.N_RWG_test;
@@ -342,10 +338,10 @@ int main(int argc, char* argv[]) {
       blitz::Array<std::complex<float>, 1> Mg_tmp;
       MgPreconditionerComputationPerCube(Mg_tmp, Mg_q_array, cubeNumber, ListCubes);
       // filling Mg
-      for (int kk=0; kk<Mg_tmp.size(); kk++) Mg(kk + startIndex) = Mg_tmp(kk);
+      for (unsigned int kk=0; kk<Mg_tmp.size(); kk++) Mg(kk + startIndex) = Mg_tmp(kk);
       startIndex += Mg_tmp.size();
       // filling src_RWG_numbers
-      for (int kk=0; kk<Mg_q_array.size(); kk++) src_RWG_numbers(kk + startIndexInQArray) = Mg_q_array(kk);
+      for (unsigned int kk=0; kk<Mg_q_array.size(); kk++) src_RWG_numbers(kk + startIndexInQArray) = Mg_q_array(kk);
       // the rest
       CubeArraysMapIterator it = ListCubes.find(cubeNumber);
       const int indInf = index_in_rowIndexToColumnIndexes;

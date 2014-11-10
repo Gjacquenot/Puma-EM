@@ -260,9 +260,9 @@ void Cube::copyCube(const Cube& cubeToCopy) // copy member function
   TriangleToRWGweight = cubeToCopy.TriangleToRWGweight;
   TriangleToRWG_ropp = cubeToCopy.TriangleToRWG_ropp;
 
-  const int T = Triangle_numberOfRWGs.size();
-  triangle_GaussCoord.resize(T, cubeToCopy.triangle_GaussCoord.extent(1));
-  triangle_nHat.resize(T, 3);
+  // JPA : shape est plus propre que de le faire dans les 2 dimensions separement
+  triangle_GaussCoord.resize(cubeToCopy.triangle_GaussCoord.shape());
+  triangle_nHat.resize(cubeToCopy.triangle_nHat.shape());
   triangle_GaussCoord = cubeToCopy.triangle_GaussCoord;
   triangle_nHat = cubeToCopy.triangle_nHat;
 }

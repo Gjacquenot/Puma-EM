@@ -206,7 +206,7 @@ void findCubeNeighbors(blitz::Array<int, 1>& cubes_neighborsIndexes,
     }
   }
   cubes_neighborsIndexes.resize(cubes_neighborsIndexes_tmp.size());
-  for (int i=0 ; i<cubes_neighborsIndexes.size() ; i++) cubes_neighborsIndexes(i) = cubes_neighborsIndexes_tmp[i];
+  for (unsigned int i=0 ; i<cubes_neighborsIndexes.size() ; i++) cubes_neighborsIndexes(i) = cubes_neighborsIndexes_tmp[i];
 }
 
 int main(int argc, char *argv[]) {

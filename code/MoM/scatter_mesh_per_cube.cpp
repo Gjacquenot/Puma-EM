@@ -177,7 +177,6 @@ void compute_cube_arrays_from_mesh(blitz::Array<int, 1>& cubeIntArrays,
   const int num_procs = MPI::COMM_WORLD.Get_size();
   const int my_id = MPI::COMM_WORLD.Get_rank();
   const int master = 0;
-  int ierror;
 
   // we will need a multimap
   multimap <int, int> local_cubes, neighbor_cubes;
@@ -256,7 +255,6 @@ void scatter_mesh_per_cube(blitz::Array<blitz::Array<int, 1>, 1>& allCubeIntArra
                            const blitz::Array<int, 1>& local_chunkNumber_to_cubesNumbers,
                            const blitz::Array<int, 1>& local_cubeNumber_to_chunkNumbers)
 {
-  int ierror;
   const int num_procs = MPI::COMM_WORLD.Get_size();
   const int my_id = MPI::COMM_WORLD.Get_rank();
   const int master = 0;
@@ -364,13 +362,12 @@ void scatter_mesh_per_cube(blitz::Array<blitz::Array<int, 1>, 1>& allCubeIntArra
 
   // now we have to read the local chunks numbers, and the local cubes numbers. 
   // They will be communicated to the master process. Copy beginning of mpi_mlfma.cpp for this.
-  int N_local_Chunks = local_ChunksNumbers.size();
   int N_local_cubes = local_chunkNumber_to_cubesNumbers.size();
 
   // preparing the terrain for gathering the cubes numbers for each process  
   blitz::Array<int, 1> NumberOfCubesPerProcess;
   if (my_id==0) NumberOfCubesPerProcess.resize(num_procs);
-  ierror = MPI_Gather(&N_local_cubes, 1, MPI_INT, NumberOfCubesPerProcess.data(), 1, MPI_INT, 0, MPI_COMM_WORLD);
+  MPI_Gather(&N_local_cubes, 1, MPI_INT, NumberOfCubesPerProcess.data(), 1, MPI_INT, 0, MPI_COMM_WORLD);
 
   // we prepare the scounts and displacements for gathering the cubes numbers
   blitz::Array<int, 1> MPI_Gatherv_scounts, MPI_Gatherv_displs; // it only matters for process 0
@@ -388,7 +385,7 @@ void scatter_mesh_per_cube(blitz::Array<blitz::Array<int, 1>, 1>& allCubeIntArra
   blitz::Array<int, 1> process_cubesNumbers;
   if (my_id==0) process_cubesNumbers.resize(C);
   blitz::Array<int, 1> local_cubes(local_chunkNumber_to_cubesNumbers);
-  ierror = MPI_Gatherv(local_cubes.data(), N_local_cubes, MPI_INT, process_cubesNumbers.data(), MPI_Gatherv_scounts.data(), MPI_Gatherv_displs.data(), MPI_INT, 0,  MPI_COMM_WORLD);
+  MPI_Gatherv(local_cubes.data(), N_local_cubes, MPI_INT, process_cubesNumbers.data(), MPI_Gatherv_scounts.data(), MPI_Gatherv_displs.data(), MPI_INT, 0,  MPI_COMM_WORLD);
   
   blitz::Array<int, 1> cubeArraysSizes(2);
   allCubeIntArrays.resize(N_local_cubes);

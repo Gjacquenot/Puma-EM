@@ -161,11 +161,8 @@ void compute_cubeSmallIntArray(blitz::Array<int, 1>& cubeSmallIntArray,
 int main(int argc, char* argv[]) {
 
   MPI::Init();
-  int ierror;
-  const int num_procs = MPI::COMM_WORLD.Get_size();
   const int my_id = MPI::COMM_WORLD.Get_rank();
   const int master = 0;
-  MPI_Status status;
 
   string simuDir = ".";
   if ( argc > 2 ) {

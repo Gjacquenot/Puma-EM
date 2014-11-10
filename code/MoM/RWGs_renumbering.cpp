@@ -23,7 +23,7 @@ void RWG_renumber(const string pathToReadFrom, const string RWG_type)
   multimap <int, int>::iterator itr;
   int local_index = 0;
   // first pass to fill in the multimap
-  for (int i=0 ; i<chunkNumbers.size() ; i++) {
+  for (unsigned int i=0 ; i<chunkNumbers.size() ; i++) {
     int N_RWG;
     const int chunkNumber = chunkNumbers(i);
     const string chunkNumberString = intToString(chunkNumber);
@@ -64,7 +64,7 @@ void RWG_renumber(const string pathToReadFrom, const string RWG_type)
   writeIntToASCIIFile(filename, N_RWG_local);
 
   // second pass to re-index the chunk arrays
-  for (int i=0 ; i<chunkNumbers.size() ; i++) {
+  for (unsigned int i=0 ; i<chunkNumbers.size() ; i++) {
     int N_RWG;
     const int chunkNumber = chunkNumbers(i);
     const string chunkNumberString = intToString(chunkNumber);
@@ -95,10 +95,7 @@ void RWG_renumber(const string pathToReadFrom, const string RWG_type)
 int main(int argc, char* argv[]) {
 
   MPI::Init();
-  int ierror;
   const int my_id = MPI::COMM_WORLD.Get_rank();
-  const int master = 0;
-  MPI_Status status;
 
   string simuDir = ".";
   if ( argc > 2 ) {

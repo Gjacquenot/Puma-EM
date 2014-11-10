@@ -17,7 +17,6 @@ using namespace blitz;
 int main(int argc, char* argv[]) {
 
   MPI::Init();
-  int ierror;
   int num_procs = MPI::COMM_WORLD.Get_size();
   int my_id = MPI::COMM_WORLD.Get_rank();
 
@@ -41,7 +40,7 @@ int main(int argc, char* argv[]) {
 
     Octtree octtree(OCTTREE_DATA_PATH, cubes_centroids, my_id, num_procs);
   }
-  ierror = MPI_Barrier(MPI_COMM_WORLD);
+  MPI_Barrier(MPI_COMM_WORLD);
   // we write 0 on the file
   writeIntToASCIIFile(OCTTREE_DATA_PATH + "CUBES_DISTRIBUTION.txt", 0);
 
