@@ -1,14 +1,14 @@
 CC:= g++
 MPICC:= mpiCC
 # safe flags
-CFLAGS:= -c -O2 -fPIC -march=native
+CFLAGS:= -c -O2 -fPIC -pthread -march=native -mfpmath=both
 # potentially faster flags
-#CFLAGS:= -c -O2 -fPIC -ffast-math -mfpmath=both -march=native
+#CFLAGS:= -c -O2 -fPIC -pthread -march=native -mfpmath=both -ffast-math
 # debug flags
 #CFLAGS:= -c -g -DBZ_DEBUG -Wall -fPIC
 F77:= gfortran
 G2C:= gfortran
-F_FLAGS:= -c -O3 -fPIC -pthread -ffast-math -mfpmath=both
+F_FLAGS:= -c -O2 -fPIC -pthread -march=native -mfpmath=both -ffast-math
 
 # we can use vendor-supplied lapack. If empty, puma-em lapack is used
 #LIBLAPACK:= -L/usr/lib/ -llapack
