@@ -522,7 +522,7 @@ void computeForOneExcitation(Octtree & octtree,
     local_target_mesh.setLocalMeshFromFile(MESH_DATA_PATH);
     computeE_obs(E_obs, H_obs, r_obs, local_target_mesh, ZI, eps_r, mu_r, w);
     local_target_mesh.resizeToZero();
-    if (my_id==master) {
+    if (my_id==master) { // we write the scattered electric field to a file
       ofstream ofs ((RESULT_DATA_PATH + "E_obs_scatt.txt").c_str());
       ofs << "r_obs_x[m] r_obs_y[m] r_obs_z[m] re(Ex)[V/m] im(Ex)[V/m] re(Ey)[V/m] im(Ey)[V/m] re(Ez)[V/m] im(Ez)[V/m]\n";
       for (int i=0 ; i<r_obs.extent(0) ; i++) {
@@ -533,7 +533,7 @@ void computeForOneExcitation(Octtree & octtree,
       }
       ofs.close();
     }
-    // now we compute the total field in the case of plane wave excitation. We could for dipole as well.
+    // now we compute the total field in the case of plane wave excitation.
     if (PLANE_WAVE_EXCITATION==1) {
       double theta_inc, phi_inc;
       readDoubleFromASCIIFile(V_CFIE_DATA_PATH + "theta_inc.txt", theta_inc);
@@ -550,19 +550,68 @@ void computeForOneExcitation(Octtree & octtree,
         E_plane (E_inc_cart, E_inc_spherical_coord, theta_inc, phi_inc, r_ref, r_obs(i, all), k);
         E_obs(i, all) += E_inc_cart;
       }
-      if (my_id==master) {
-        ofstream ofs ((RESULT_DATA_PATH + "E_obs_tot.txt").c_str());
-        ofs << "r_obs_x[m] r_obs_y[m] r_obs_z[m] re(Ex)[V/m] im(Ex)[V/m] re(Ey)[V/m] im(Ey)[V/m] re(Ez)[V/m] im(Ez)[V/m]\n";
-        for (int i=0 ; i<r_obs.extent(0) ; i++) {
-          ofs << r_obs(i,0) << " " << r_obs(i,1) << " " << r_obs(i,2) << " ";
-          ofs << real(E_obs(i,0)) << " " << imag(E_obs(i,0)) << " ";
-          ofs << real(E_obs(i,1)) << " " << imag(E_obs(i,1)) << " ";
-          ofs << real(E_obs(i,2)) << " " << imag(E_obs(i,2)) << "\n";
-        }
-        ofs.close();
+    } // end if (PLANE_WAVE_EXCITATION==1)
+    // now we compute the total field in the case of dipole(s) excitation.
+    if (DIPOLES_EXCITATION==1) {
+      std::vector< std::vector < std::complex<double> > > G_EJ, G_HJ;
+      G_EJ.resize(3); G_HJ.resize(3);
+      for (int i=0; i<3; i++) {
+        G_EJ[i].resize(3); G_HJ[i].resize(3);
       }
+      blitz::Array<std::complex<double>, 2> J_dip, M_dip;
+      blitz::Array<double, 2> r_J_dip, r_M_dip;
+      int J_DIPOLES_EXCITATION, M_DIPOLES_EXCITATION;
+      // electric dipoles
+      readIntFromASCIIFile(V_CFIE_DATA_PATH + "J_DIPOLES_EXCITATION.txt", J_DIPOLES_EXCITATION);
+      if (J_DIPOLES_EXCITATION==1) {
+        readComplexDoubleBlitzArray2DFromASCIIFile( V_CFIE_DATA_PATH + "J_dip.txt", J_dip);
+        readDoubleBlitzArray2DFromASCIIFile( V_CFIE_DATA_PATH + "r_J_dip.txt", r_J_dip);
+        const int N_J_dipoles = J_dip.rows(), N_obs = r_obs.extent(0);
+        for (int i=0; i<N_J_dipoles; i++) {
+          const double r_dip[3] = {r_J_dip(i, 0), r_J_dip(i, 1), r_J_dip(i, 2)};
+          const std::complex<double> JDip[3] = {J_dip(i, 0), J_dip(i, 1), J_dip(i, 2)};
+          for (int j=0; j<N_obs; j++) {
+            const double r_obs_tmp[3] = {r_obs(j, 0), r_obs(j, 1), r_obs(j, 2)};
+            G_EJ_G_HJ (G_EJ, G_HJ, r_dip, r_obs_tmp, eps, mu, k);
+            std::complex<double> E_inc_i[3];
+            for (int m=0 ; m<3 ; m++) E_inc_i[m] = (G_EJ [m][0] * JDip[0] + G_EJ [m][1] * JDip[1] + G_EJ [m][2] * JDip[2]);
+            for (int m=0 ; m<3 ; m++) E_obs(j, m) += E_inc_i[m];
+          }
+        }
+      }
+      // magnetic dipoles
+      readIntFromASCIIFile(V_CFIE_DATA_PATH + "M_DIPOLES_EXCITATION.txt", M_DIPOLES_EXCITATION);
+      if (M_DIPOLES_EXCITATION==1) {
+        readComplexDoubleBlitzArray2DFromASCIIFile( V_CFIE_DATA_PATH + "M_dip.txt", M_dip);
+        readDoubleBlitzArray2DFromASCIIFile( V_CFIE_DATA_PATH + "r_M_dip.txt", r_M_dip);
+        const int N_M_dipoles = M_dip.rows(), N_obs = r_obs.extent(0);
+        for (int i=0; i<N_M_dipoles; i++) {
+          const double r_dip[3] = {r_M_dip(i, 0), r_M_dip(i, 1), r_M_dip(i, 2)};
+          const std::complex<double> MDip[3] = {M_dip(i, 0), M_dip(i, 1), M_dip(i, 2)};
+          for (int j=0; j<N_obs; j++) {
+            const double r_obs_tmp[3] = {r_obs(j, 0), r_obs(j, 1), r_obs(j, 2)};
+            G_EJ_G_HJ (G_EJ, G_HJ, r_dip, r_obs_tmp, eps, mu, k);
+            std::complex<double> E_inc_i[3];
+            // we use reciprocity: G_EM = -G_HJ
+            for (int m=0 ; m<3 ; m++) E_inc_i[m] = -(G_HJ [m][0] * MDip[0] + G_HJ [m][1] * MDip[1] + G_HJ [m][2] * MDip[2]);
+            for (int m=0 ; m<3 ; m++) E_obs(j, m) += E_inc_i[m];
+          }
+        }
+      }
+    } // end if (DIPOLES_EXCITATION==1)
+    if (my_id==master) { // we write the total electric field to a file
+      ofstream ofs ((RESULT_DATA_PATH + "E_obs_tot.txt").c_str());
+      ofs << "r_obs_x[m] r_obs_y[m] r_obs_z[m] re(Ex)[V/m] im(Ex)[V/m] re(Ey)[V/m] im(Ey)[V/m] re(Ez)[V/m] im(Ez)[V/m]\n";
+      for (int i=0 ; i<r_obs.extent(0) ; i++) {
+        ofs << r_obs(i,0) << " " << r_obs(i,1) << " " << r_obs(i,2) << " ";
+        ofs << real(E_obs(i,0)) << " " << imag(E_obs(i,0)) << " ";
+        ofs << real(E_obs(i,1)) << " " << imag(E_obs(i,1)) << " ";
+        ofs << real(E_obs(i,2)) << " " << imag(E_obs(i,2)) << "\n";
+      }
+      ofs.close();
     }
-  }
+  } // end if (BISTATIC_R_OBS==1)
+
   // now computing the far fields at the user-supplied angles
   int BISTATIC_ANGLES_OBS;
   readIntFromASCIIFile(V_CFIE_DATA_PATH + "BISTATIC_ANGLES_OBS.txt", BISTATIC_ANGLES_OBS);
