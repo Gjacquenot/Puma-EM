@@ -12,15 +12,24 @@ using namespace std;
 int main(int argc, char *argv[]) {
   
   int V, T;
-  const string READING_PATH = argv[1];
-  cout << "mesh_functions_seb.cpp: reading in " << READING_PATH << endl;
-  string filename;
-
-  readIntFromASCIIFile(READING_PATH + "T.txt", T);
-  readIntFromASCIIFile(READING_PATH + "V.txt", V);
+  const int my_id = 0;
   
+  string simuDir = ".";
+  if ( argc > 2 ) {
+     if( string(argv[1]) == "--simudir" ) simuDir = argv[2];
+  }
+  // general variables
+  const string SIMU_DIR = simuDir;
+  const string TMP = SIMU_DIR + "/tmp" + intToString(my_id);
+  const string MESH_DATA_PATH = TMP + "/mesh/";
+
+  cout << "mesh_functions_seb.cpp: reading in " << MESH_DATA_PATH << endl;
+
+  readIntFromASCIIFile(MESH_DATA_PATH + "T.txt", T);
+  readIntFromASCIIFile(MESH_DATA_PATH + "V.txt", V);
+
   blitz::Array<int, 2> triangle_vertexes(T, 3);
-  readIntBlitzArray2DFromBinaryFile(READING_PATH + "triangle_vertexes.txt", triangle_vertexes);
+  readIntBlitzArray2DFromBinaryFile(MESH_DATA_PATH + "triangle_vertexes.txt", triangle_vertexes);
   
   const int E = 3 * T; // there are 3 edges per triangles
   blitz::Array<int, 2> col_sorted_e_v(E, 2);
@@ -73,8 +82,7 @@ int main(int argc, char *argv[]) {
   indexesEqualPrecedingTmp.clear();
   std::vector<int> (indexesEqualPrecedingTmp).swap(indexesEqualPrecedingTmp);
 
-  std::string SaveDir = READING_PATH;
-  std::cout << std::endl;
+  std::string SaveDir = MESH_DATA_PATH;
   // compute_indexesEqualEdges
   std::cout << "compute_indexesEqualEdges" << std::endl;
   std::flush(std::cout);
@@ -109,7 +117,7 @@ int main(int argc, char *argv[]) {
   blitz::Array<int, 1> triangles_surfaces(T);
   for (int j=0 ; j<T ; j++) triangles_surfaces(j) = -1;
   blitz::Array<double, 2> vertexes_coord(V, 3);
-  readDoubleBlitzArray2DFromBinaryFile(READING_PATH + "vertexes_coord.txt", vertexes_coord);
+  readDoubleBlitzArray2DFromBinaryFile(MESH_DATA_PATH + "vertexes_coord.txt", vertexes_coord);
   reorder_triangle_vertexes(triangle_vertexes, triangles_surfaces, vertexes_coord, triangle_adjacentTriangles);
   triangle_adjacentTriangles.clear();
   std::vector<std::vector<int> > (triangle_adjacentTriangles).swap(triangle_adjacentTriangles);
@@ -128,6 +136,16 @@ int main(int argc, char *argv[]) {
   RWGNumber_signedTriangles_computation(RWGNumber_signedTriangles, RWGNumber_edgeVertexes, edgeNumber_triangles, edgeNumber_vertexes, triangles_surfaces, is_closed_surface, triangle_vertexes, vertexes_coord);
   edgeNumber_triangles.free();
   edgeNumber_vertexes.free();
+
+  const int N_RWG = RWGNumber_edgeVertexes.extent(0);
+  double mean_RWG_length = 0.0;
+  for (int i=0; i<N_RWG; i++) {
+    double RWG_length = 0.0;
+    const int node0 = RWGNumber_edgeVertexes(i, 0), node1 = RWGNumber_edgeVertexes(i, 1);
+    for (int j=0; j<3; j++) RWG_length += (vertexes_coord(node0, j)-vertexes_coord(node1, j)) * (vertexes_coord(node0, j)-vertexes_coord(node1, j));
+    mean_RWG_length += sqrt(RWG_length);
+  }
+  mean_RWG_length = mean_RWG_length/N_RWG;
   vertexes_coord.free();
 
   // computation of opposite vertexes of RWGs in triangles
@@ -137,14 +155,15 @@ int main(int argc, char *argv[]) {
   RWGNumber_oppVertexes_computation(RWGNumber_oppVertexes, RWGNumber_signedTriangles, RWGNumber_edgeVertexes, triangle_vertexes);
 
   // writing to files
-  writeIntToASCIIFile(READING_PATH + "N_edges.txt", N_edges);
-  writeIntToASCIIFile(READING_PATH + "N_RWG.txt", RWGNumber_signedTriangles.extent(0));
-  writeIntBlitzArray2DToBinaryFile(READING_PATH + "triangle_vertexes.txt", triangle_vertexes);
-  writeIntBlitzArray2DToBinaryFile(READING_PATH + "RWGNumber_signedTriangles.txt", RWGNumber_signedTriangles);
-  writeIntBlitzArray2DToBinaryFile(READING_PATH + "RWGNumber_edgeVertexes.txt", RWGNumber_edgeVertexes);
-  writeIntBlitzArray2DToBinaryFile(READING_PATH + "RWGNumber_oppVertexes.txt", RWGNumber_oppVertexes);
-  writeIntBlitzArray1DToASCIIFile(READING_PATH + "is_closed_surface.txt", is_closed_surface);
-  writeIntBlitzArray1DToASCIIFile(READING_PATH + "triangles_surfaces.txt", triangles_surfaces);
+  writeIntToASCIIFile(MESH_DATA_PATH + "N_edges.txt", N_edges);
+  writeIntToASCIIFile(MESH_DATA_PATH + "N_RWG.txt", N_RWG);
+  writeDoubleToASCIIFile(MESH_DATA_PATH + "average_RWG_length.txt", mean_RWG_length);
+  writeIntBlitzArray2DToBinaryFile(MESH_DATA_PATH + "triangle_vertexes.txt", triangle_vertexes);
+  writeIntBlitzArray2DToBinaryFile(MESH_DATA_PATH + "RWGNumber_signedTriangles.txt", RWGNumber_signedTriangles);
+  writeIntBlitzArray2DToBinaryFile(MESH_DATA_PATH + "RWGNumber_edgeVertexes.txt", RWGNumber_edgeVertexes);
+  writeIntBlitzArray2DToBinaryFile(MESH_DATA_PATH + "RWGNumber_oppVertexes.txt", RWGNumber_oppVertexes);
+  writeIntBlitzArray1DToASCIIFile(MESH_DATA_PATH + "is_closed_surface.txt", is_closed_surface);
+  writeIntBlitzArray1DToASCIIFile(MESH_DATA_PATH + "triangles_surfaces.txt", triangles_surfaces);
 
   // Get peak memory usage of each rank
   long memusage_local = MemoryUsageGetPeak();
