@@ -109,7 +109,6 @@ class Level {
       \param big_cube_lower_coord the lower coordinate of the father of all cubes
       \param cubes_centroids the coordinates of the centroids for each cube
       \param wavenumber the wavenumber
-      \param N_coord the number of coordinates (2 for spherical, 3 for cartesian. 2 is the default).
       \param A_theta the lower limit for \f$ \theta \f$ interval : \f$ 0 \f$ 
       \param B_theta the upper limit for \f$ \theta \f$ interval : \f$ \pi \f$ 
       \param Xthetas the \f$ \theta \f$  sampling abscissas
@@ -140,7 +139,6 @@ class Level {
           const double big_cube_lower_coord[3],
           const blitz::Array<double, 2>& cubes_centroids,
           const std::complex<double>& wavenumber,
-          const int N_coord,
           const float A_theta,
           const float B_theta,
           const blitz::Array<float, 1>& Xthetas,
@@ -174,7 +172,6 @@ class Level {
       \param sonLevel the child level
       \param N_expansion the number of terms in the expansion of the Green's function
       \param big_cube_lower_coord the lower coordinate of the father of all cubes
-      \param N_coord the number of coordinates (2 for spherical, 3 for cartesian. 2 is the default).
       \param A_theta the lower limit for \f$ \theta \f$ interval : \f$ 0 \f$ 
       \param B_theta the upper limit for \f$ \theta \f$ interval : \f$ \pi \f$ 
       \param Xthetas the \f$ \theta \f$  sampling abscissas
@@ -202,7 +199,6 @@ class Level {
     Level(const Level & sonLevel,
           const int N_expansion,
           const double big_cube_lower_coord[3],
-          const int N_coord,
           const float A_theta,
           const float B_theta,
           const blitz::Array<float, 1>& Xthetas,

@@ -69,11 +69,8 @@ Octtree::Octtree(const string octtree_data_path, const blitz::Array<double, 2>& 
   readFloatBlitzArray2DFromASCIIFile(octtree_data_path + "octtreeXphis.txt", octtreeXphis);
   readFloatBlitzArray2DFromASCIIFile(octtree_data_path + "octtreeWphis.txt", octtreeWphis);
 
-  const int N_coord = 2;
-
   double leaf_side_length;
   readDoubleFromASCIIFile(octtree_data_path + "leaf_side_length.txt", leaf_side_length);
-
 
   blitz::Array<int, 1> LExpansion;
   readIntBlitzArray1DFromASCIIFile(octtree_data_path + "LExpansion.txt", LExpansion);
@@ -120,7 +117,6 @@ Octtree::Octtree(const string octtree_data_path, const blitz::Array<double, 2>& 
                             this->big_cube_lower_coord,
                             cubes_centroids,
                             k,
-                            N_coord,
                             A_theta,
                             B_theta,
                             octtreeXthetas(0, blitz::Range(0, octtreeNthetas(0)-1)),
@@ -164,7 +160,6 @@ Octtree::Octtree(const string octtree_data_path, const blitz::Array<double, 2>& 
     levels.push_back( Level( levels[j-1],
                              LExpansion(j),
                              this->big_cube_lower_coord,
-                             N_coord,
                              A_theta,
                              B_theta,
                              octtreeXthetas(j, blitz::Range(0, octtreeNthetas(j)-1)),
@@ -550,7 +545,6 @@ void Octtree::shiftExp(blitz::Array<std::complex<float>, 2> S,
                        const blitz::Array<std::complex<float>, 1>& shiftingArray)
 {
   const int N = shiftingArray.size();
-  //const int N_coord = 2;
   for (int i=0; i<N; i++) {
     S(0, i) *= shiftingArray(i);  
     S(1, i) *= shiftingArray(i);  
