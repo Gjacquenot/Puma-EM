@@ -110,7 +110,7 @@ Level::Level(const int l,
     MPI_Scatterv_displs(i) = displacement;
     displacement += MPI_Scatterv_scounts(i);
   }
-  if ( (my_id==0) ) cout << "The total number of directions at level " << getLevel() << " is N_directions = " << N_directions << endl << endl;
+  if ( (my_id==0) ) cout << "The total number of directions at level " << getLevel() << " is N_theta*N_phi = " << N_theta << "*" << N_phi << " = " << N_directions << endl << endl;
 }
 
 void Level::copyLevel(const Level & levelToCopy) // copy constructor
@@ -261,7 +261,7 @@ Level::Level(const Level & sonLevel,
     MPI_Scatterv_displs(i) = displacement;
     displacement += MPI_Scatterv_scounts(i);
   }
-  if ( (my_id==0) ) cout << "The total number of directions at level " << getLevel() << " is N_directions = " << N_directions << endl << endl;
+  if ( (my_id==0) ) cout << "The total number of directions at level " << getLevel() << " is N_theta*N_phi = " << N_theta << "*" << N_phi << " = " << N_directions << endl << endl;
 }
 
 Level::~Level()

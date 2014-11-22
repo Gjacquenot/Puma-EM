@@ -87,9 +87,9 @@ void RWG_renumber(const string pathToReadFrom, const string RWG_type)
     writeIntBlitzArray1DToBinaryFile(filename, RWG_numbers);
   }
   
-  const int my_id = MPI::COMM_WORLD.Get_rank();
-  std::cout << "Process " << my_id << " : local_index = " << local_index << endl;
-  flush(std::cout);
+  //const int my_id = MPI::COMM_WORLD.Get_rank();
+  //std::cout << "Process " << my_id << " : local_index = " << local_index << endl;
+  //flush(std::cout);
 }
 
 int main(int argc, char* argv[]) {
