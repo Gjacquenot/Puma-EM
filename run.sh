@@ -55,9 +55,9 @@ ${PYTHON_CMD} code/setup_GMSH.py --inputdir ${INPUT_DIR} --simudir ${SIMU_DIR}
 # setup of the MLFMA simulation
 ${MPI_CMD} ${PYTHON_CMD} code/setup_MLFMA_folders.py --simudir ${SIMU_DIR}
 ${MPI_CMD} ${PYTHON_CMD} code/setup_MLFMA_excitation.py --inputdir ${INPUT_DIR} --simudir ${SIMU_DIR}
-${PYTHON_CMD} code/read_MLFMA_mesh_part1.py --inputdir ${INPUT_DIR} --simudir ${SIMU_DIR}
+{ time -p ${PYTHON_CMD} code/read_MLFMA_mesh_part1.py --inputdir ${INPUT_DIR} --simudir ${SIMU_DIR}; } 2> ${SIMU_DIR}/result/CPU_time_read_MLFMA_mesh_part1.txt
 { time -p ./code/MoM/mesh_functions_seb --simudir ${SIMU_DIR}; } 2> ${SIMU_DIR}/result/CPU_time_mesh_functions_seb.txt
-${PYTHON_CMD} code/read_MLFMA_mesh_part2.py --inputdir ${INPUT_DIR} --simudir ${SIMU_DIR}
+{ time -p ${PYTHON_CMD} code/read_MLFMA_mesh_part2.py --inputdir ${INPUT_DIR} --simudir ${SIMU_DIR}; } 2> ${SIMU_DIR}/result/CPU_time_read_MLFMA_mesh_part2.txt
 ${MPI_CMD} ${PYTHON_CMD} code/setup_MLFMA_mesh.py --inputdir ${INPUT_DIR} --simudir ${SIMU_DIR}
 ${MPI_CMD} ${PYTHON_CMD} code/setup_MLFMA_poles.py --inputdir ${INPUT_DIR} --simudir ${SIMU_DIR}
 

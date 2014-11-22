@@ -138,9 +138,9 @@ params_simu.BISTATIC_ANGLES_OBS_FILENAME = "bistatic_angles_obs.txt"
 # for example), set AUTOMATIC to False. If you chose 1 point only, and AUTOMATIC is False,
 # then the point will correspond to START_THETA for thetas and START_PHI for phis.
 # thetas
-params_simu.START_THETA = 0.0
+params_simu.START_THETA = pi/2.0
 params_simu.STOP_THETA = pi
-params_simu.AUTOMATIC_THETAS = True
+params_simu.AUTOMATIC_THETAS = False
 params_simu.USER_DEFINED_NB_THETA = 1
 # phis
 params_simu.START_PHI = 0.0
