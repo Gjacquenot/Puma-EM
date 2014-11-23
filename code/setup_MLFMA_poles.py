@@ -86,7 +86,6 @@ def computeTreeParameters(my_id, tmpDirName, a, k, N_levels, params_simu):
     writeASCIIBlitzArrayToDisk(L, os.path.join(tmpDirName, 'octtree_data/LExpansion.txt') )
     # we need the following line as a workaround for a weave compilation issue
     # that arises sometimes in FMM_precond.py, when not all the weave modules have been compiled
-    writeASCIIBlitzArrayToDisk(zeros((2,2), 'i'), os.path.join(tmpDirName, 'octtree_data/nothing.txt') )
     writeScalarToDisk(params_simu.alphaTranslation_smoothing_factor, os.path.join(tmpDirName, 'octtree_data/alphaTranslation_smoothing_factor.txt') )
     writeScalarToDisk(params_simu.alphaTranslation_thresholdRelValueMax, os.path.join(tmpDirName, 'octtree_data/alphaTranslation_thresholdRelValueMax.txt') )
     writeScalarToDisk(params_simu.alphaTranslation_RelativeCountAboveThreshold, os.path.join(tmpDirName, 'octtree_data/alphaTranslation_RelativeCountAboveThreshold.txt') )

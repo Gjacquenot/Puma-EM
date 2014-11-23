@@ -228,6 +228,8 @@ void index2DtoIndex1D(int & index1D,
  *     F(-theta, phi) = -F(theta, phi+pi)      if phi <= pi
  *                    = -F(theta, phi-pi)      if phi > pi
  *
+ * from (equation (31) from "Optimal Interpolation of Radiated Fields over a Sphere", IEEE AP november 1991)
+ *
  * a requirement that, in terms of indexes, translates into:
  *
  * 1) BOUNDARIES_THETA == 0, i>=1
