@@ -1186,45 +1186,27 @@ void computeMonostaticSAR(Octtree & octtree,
 }
 
 /****************************************************************************/
-/******************************* main ***************************************/
+/*************************** mesh distribution ******************************/
 /****************************************************************************/
-
-int main(int argc, char* argv[]) {
-
-  MPI::Init();
-  const int num_procs = MPI::COMM_WORLD.Get_size();
-  const int my_id = MPI::COMM_WORLD.Get_rank();
+void mesh_distribution(LocalMesh & local_target_mesh,
+                       blitz::Array<int, 1>& local_cubes_NRWG,
+                       blitz::Array<int, 1>& oldIndexesOfCubes,
+                       const int C,
+                       const string MESH_DATA_PATH)
+{
+  int num_procs = MPI::COMM_WORLD.Get_size(), my_id = MPI::COMM_WORLD.Get_rank();
   const int master = 0;
   MPI_Status status;
-
-  string simuDir = ".";
-  if ( argc > 2 ) {
-     if( string(argv[1]) == "--simudir" ) simuDir = argv[2];
-  }
-
-  // general variables
-  const string SIMU_DIR = simuDir;
-  const string RESULT_DATA_PATH = SIMU_DIR + "/result/";
-  const string TMP = SIMU_DIR + "/tmp" + intToString(my_id);
-  const string OCTTREE_DATA_PATH = TMP + "/octtree_data/";
-  const string MESH_DATA_PATH = TMP + "/mesh/";
-  const string V_CFIE_DATA_PATH = TMP + "/V_CFIE/";
-  const string ITERATIVE_DATA_PATH = TMP + "/iterative_data/";
-
-  // reading and broadcasting mesh data
-  int C, N_RWG, V;
+  blitz::Array<double, 2> vertexes_coord;
   blitz::Array<int, 1> RWGNumber_CFIE_OK, cubes_RWGsNumbers, cube_N_RWGs, cube_startIndex_RWGs;
   blitz::Array<int, 2> RWGNumber_edgeVertexes, RWGNumber_oppVertexes, RWGNumber_signedTriangles;
-  blitz::Array<double, 2> cubes_centroids, vertexes_coord;
   if (my_id==0)
   {
     // reading the arrays sizes
-    string filename = MESH_DATA_PATH + "C.txt";
-    readIntFromASCIIFile(filename, C);
-    
-    filename = MESH_DATA_PATH + "N_RWG.txt";
+    int N_RWG;
+    string filename = MESH_DATA_PATH + "N_RWG.txt";
     readIntFromASCIIFile(filename, N_RWG);
-    
+    int V;
     filename = MESH_DATA_PATH + "V.txt";
     readIntFromASCIIFile(filename, V);
 
@@ -1233,15 +1215,10 @@ int main(int argc, char* argv[]) {
     cube_N_RWGs.resize(C);
     cube_startIndex_RWGs.resize(C);
     cubes_RWGsNumbers.resize(N_RWG);
-    cubes_centroids.resize(C, 3);
     RWGNumber_edgeVertexes.resize(N_RWG, 2);
     RWGNumber_oppVertexes.resize(N_RWG, 2);
     RWGNumber_signedTriangles.resize(N_RWG, 2);
     RWGNumber_CFIE_OK.resize(N_RWG);
-
-    // reading the arrays
-    filename = MESH_DATA_PATH + "cubes_centroids.txt";
-    readDoubleBlitzArray2DFromBinaryFile(filename, cubes_centroids);
     
     filename = MESH_DATA_PATH + "cubes_RWGsNumbers.txt";
     readIntBlitzArray1DFromBinaryFile(filename, cubes_RWGsNumbers);
@@ -1271,17 +1248,6 @@ int main(int argc, char* argv[]) {
     filename = MESH_DATA_PATH + "RWGNumber_CFIE_OK.txt";
     readIntBlitzArray1DFromBinaryFile(filename, RWGNumber_CFIE_OK);
   }
-  MPI_Bcast(&N_RWG, 1, MPI_INT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(&C, 1, MPI_INT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(&V, 1, MPI_INT, 0, MPI_COMM_WORLD);
-  if (my_id!=0) cubes_centroids.resize(C, 3);
-  MPI_Bcast(cubes_centroids.data(), cubes_centroids.size(), MPI_DOUBLE, 0, MPI_COMM_WORLD);
-  // Octtree creation based upon the cubes_centroids
-  Octtree octtree(OCTTREE_DATA_PATH, cubes_centroids, my_id, num_procs);
-
-  // partitioning of mesh
-  blitz::Array<int, 1> oldIndexesOfCubes;
-  octtree.computeIndexesOfCubesInOriginalMesh(oldIndexesOfCubes);
   int N_local_cubes = oldIndexesOfCubes.size();
   
   blitz::Array<int, 1> NumberOfCubesPerProcess;
@@ -1302,12 +1268,10 @@ int main(int argc, char* argv[]) {
   blitz::Array<int, 1> process_OldIndexesOfCubes;
   if (my_id==0) process_OldIndexesOfCubes.resize(C);
   MPI_Gatherv( oldIndexesOfCubes.data(), oldIndexesOfCubes.size(), MPI_INT, process_OldIndexesOfCubes.data(), NumberOfCubesPerProcess.data(), MPI_Gatherv_displs.data(), MPI_INT, 0,  MPI_COMM_WORLD);
-  oldIndexesOfCubes.free();
+
   // now we need to scatter the RWG numbers and arrays, according to their original cubes, to each process
   // we have to begin by the end, to retain the good values for process 0!
 
-  LocalMesh local_target_mesh;
-  blitz::Array<int, 1> local_cubes_NRWG;
   if (my_id==master) {// only the master process works here
     for (int receive_id=num_procs-1; receive_id>-1; receive_id--) {
       // first we find the RWGs for each cube of process receive_id
@@ -1387,11 +1351,70 @@ int main(int argc, char* argv[]) {
     MPI_Recv(local_target_mesh.localRWGNumber_signedTriangles.data(), local_target_mesh.localRWGNumber_signedTriangles.size(), MPI_INT, 0, my_id+3, MPI_COMM_WORLD, &status);
     MPI_Recv(local_target_mesh.localRWGNumber_trianglesCoord.data(), local_target_mesh.localRWGNumber_trianglesCoord.size(), MPI_FLOAT, 0, my_id+4, MPI_COMM_WORLD, &status);
   }
-     
   MPI_Barrier(MPI_COMM_WORLD);
+  vertexes_coord.free();
+  RWGNumber_CFIE_OK.free();
+  cubes_RWGsNumbers.free();
+  cube_N_RWGs.free();
+  cube_startIndex_RWGs.free();
+  RWGNumber_edgeVertexes.free();
+  RWGNumber_oppVertexes.free();
+  RWGNumber_signedTriangles.free();
+}
+
+/****************************************************************************/
+/******************************* main ***************************************/
+/****************************************************************************/
+
+int main(int argc, char* argv[]) {
+
+  MPI::Init();
+  const int num_procs = MPI::COMM_WORLD.Get_size();
+  const int my_id = MPI::COMM_WORLD.Get_rank();
+
+  string simuDir = ".";
+  if ( argc > 2 ) {
+     if( string(argv[1]) == "--simudir" ) simuDir = argv[2];
+  }
+
+  // general variables
+  const string SIMU_DIR = simuDir;
+  const string RESULT_DATA_PATH = SIMU_DIR + "/result/";
+  const string TMP = SIMU_DIR + "/tmp" + intToString(my_id);
+  const string OCTTREE_DATA_PATH = TMP + "/octtree_data/";
+  const string MESH_DATA_PATH = TMP + "/mesh/";
+  const string V_CFIE_DATA_PATH = TMP + "/V_CFIE/";
+  const string ITERATIVE_DATA_PATH = TMP + "/iterative_data/";
+
+  // reading and broadcasting cubes data
+  int C;
+  blitz::Array<double, 2> cubes_centroids;
+  if (my_id==0)
+  {
+    string filename = MESH_DATA_PATH + "C.txt";
+    readIntFromASCIIFile(filename, C);
+    cubes_centroids.resize(C, 3);
+    filename = MESH_DATA_PATH + "cubes_centroids.txt";
+    readDoubleBlitzArray2DFromBinaryFile(filename, cubes_centroids);
+  }
+  MPI_Bcast(&C, 1, MPI_INT, 0, MPI_COMM_WORLD);
+  if (my_id!=0) cubes_centroids.resize(C, 3);
+  MPI_Bcast(cubes_centroids.data(), cubes_centroids.size(), MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  // Octtree creation based upon the cubes_centroids
+  Octtree octtree(OCTTREE_DATA_PATH, cubes_centroids, my_id, num_procs);
+  cubes_centroids.free();
+  // partitioning of mesh
+  blitz::Array<int, 1> oldIndexesOfCubes;
+  octtree.computeIndexesOfCubesInOriginalMesh(oldIndexesOfCubes);
+  LocalMesh local_target_mesh;
+  blitz::Array<int, 1> local_cubes_NRWG;
+
+  mesh_distribution(local_target_mesh, local_cubes_NRWG, oldIndexesOfCubes, C, MESH_DATA_PATH);
+  oldIndexesOfCubes.free();
 
   // now let's construct the octtree cubes local meshes!
   octtree.computeGaussLocatedArguments(local_cubes_NRWG, local_target_mesh.localRWGNumbers, local_target_mesh.localRWGNumber_CFIE_OK, local_target_mesh.localRWGNumber_signedTriangles, local_target_mesh.localRWGNumber_trianglesCoord);
+  local_cubes_NRWG.free();
   octtree.RWGs_renumbering();
   // final moves
   local_target_mesh.reallyLocalRWGNumbers.resize(local_target_mesh.localRWGNumbers.size());
