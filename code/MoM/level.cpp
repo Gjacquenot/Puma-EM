@@ -44,8 +44,6 @@ Level::Level(const int l,
              const double big_cube_lower_coord[3],
              const blitz::Array<double, 2>& cubes_centroids,
              const std::complex<double>& waveNumber,
-             const float A_theta,
-             const float B_theta,
              const blitz::Array<float, 1>& Xthetas,
              const blitz::Array<float, 1>& Wthetas,
              const int INCLUDED_THETA_BOUNDARIES,
@@ -53,8 +51,6 @@ Level::Level(const int l,
              const int PERIODIC_Theta,
              const int CYCLIC_Theta,
              const int NOrderInterpolatorTheta,
-             const float A_phi,
-             const float B_phi,
              const blitz::Array<float, 1>& Xphis,
              const blitz::Array<float, 1>& Wphis,
              const int INCLUDED_PHI_BOUNDARIES,
@@ -97,7 +93,9 @@ Level::Level(const int l,
   weightsPhis = Wphis;
 
   // Lagrange Fast Interpolator
-  lfi2D.setLfi2D(LagrangeFastInterpolator2D (XthetasNextLevel, Xthetas, A_theta, B_theta, INCLUDED_THETA_BOUNDARIES, NOrderInterpolatorTheta, PERIODIC_Theta, CYCLIC_Theta, XphisNextLevel, Xphis, A_phi, B_phi, INCLUDED_PHI_BOUNDARIES, NOrderInterpolatorPhi, PERIODIC_Phi, CYCLIC_Phi));
+  const float THETA_MIN = 0., THETA_MAX = M_PI;
+  const float PHI_MIN = 0., PHI_MAX = 2.0*M_PI;
+  lfi2D.setLfi2D(LagrangeFastInterpolator2D (XthetasNextLevel, Xthetas, THETA_MIN, THETA_MAX, INCLUDED_THETA_BOUNDARIES, NOrderInterpolatorTheta, PERIODIC_Theta, CYCLIC_Theta, XphisNextLevel, Xphis, PHI_MIN, PHI_MAX, INCLUDED_PHI_BOUNDARIES, NOrderInterpolatorPhi, PERIODIC_Phi, CYCLIC_Phi));
 
   // computation of the MPI_Scatterv_scounts / MPI_Scatterv_displs
   MPI_Scatterv_scounts.resize(num_procs);
@@ -197,8 +195,6 @@ Level& Level::operator=(const Level& levelToCopy) { // copy assignment
 Level::Level(const Level & sonLevel,
              const int N_expansion,
              const double big_cube_lower_coord[3],
-             const float A_theta,
-             const float B_theta,
              const blitz::Array<float, 1>& Xthetas,
              const blitz::Array<float, 1>& Wthetas,
              const int INCLUDED_THETA_BOUNDARIES,
@@ -206,8 +202,6 @@ Level::Level(const Level & sonLevel,
              const int PERIODIC_Theta,
              const int CYCLIC_Theta,
              const int NOrderInterpolatorTheta,
-             const float A_phi,
-             const float B_phi,
              const blitz::Array<float, 1>& Xphis,
              const blitz::Array<float, 1>& Wphis,
              const int INCLUDED_PHI_BOUNDARIES,
@@ -249,7 +243,9 @@ Level::Level(const Level & sonLevel,
   weightsPhis.resize(N_phi);
   weightsPhis = Wphis;
   // Lagrange Fast Interpolator. The coarsest level does not need one...
-  if (level>2) lfi2D.setLfi2D(LagrangeFastInterpolator2D (XthetasNextLevel, Xthetas, A_theta, B_theta, INCLUDED_THETA_BOUNDARIES, NOrderInterpolatorTheta, PERIODIC_Theta, CYCLIC_Theta, XphisNextLevel, Xphis, A_phi, B_phi, INCLUDED_PHI_BOUNDARIES, NOrderInterpolatorPhi, PERIODIC_Phi, CYCLIC_Phi));
+  const float THETA_MIN = 0., THETA_MAX = M_PI;
+  const float PHI_MIN = 0., PHI_MAX = 2.0*M_PI;
+  if (level>2) lfi2D.setLfi2D(LagrangeFastInterpolator2D (XthetasNextLevel, Xthetas, THETA_MIN, THETA_MAX, INCLUDED_THETA_BOUNDARIES, NOrderInterpolatorTheta, PERIODIC_Theta, CYCLIC_Theta, XphisNextLevel, Xphis, PHI_MIN, PHI_MAX, INCLUDED_PHI_BOUNDARIES, NOrderInterpolatorPhi, PERIODIC_Phi, CYCLIC_Phi));
   // computation of the MPI_Scatterv_scounts / MPI_Scatterv_displs
   MPI_Scatterv_scounts.resize(num_procs);
   MPI_Scatterv_displs.resize(num_procs);

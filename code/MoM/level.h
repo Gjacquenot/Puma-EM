@@ -109,8 +109,6 @@ class Level {
       \param big_cube_lower_coord the lower coordinate of the father of all cubes
       \param cubes_centroids the coordinates of the centroids for each cube
       \param wavenumber the wavenumber
-      \param A_theta the lower limit for \f$ \theta \f$ interval : \f$ 0 \f$ 
-      \param B_theta the upper limit for \f$ \theta \f$ interval : \f$ \pi \f$ 
       \param Xthetas the \f$ \theta \f$  sampling abscissas
       \param Wthetas the \f$ \theta \f$  sampling weights
       \param INCLUDED_THETA_BOUNDARIES 1 if \f$ \theta \f$ interval boundaries are included in the sampling, 0 otherwise
@@ -118,8 +116,6 @@ class Level {
       \param PERIODIC_Theta 1 if we use Gaussian interpolator, 0 if we want to use the Lagrangian interpolator
       \param CYCLIC_Theta 1 if we use cyclic interpolation for the radiation functions, 0 otherwise
       \param NOrderInterpolatorTheta the order of the interpolator
-      \param A_phi the lower limit for \f$ \phi \f$ interval : \f$ 0 \f$ 
-      \param B_phi the upper limit for \f$ \phi \f$ interval : \f$ 2 \pi \f$ 
       \param Xphis the \f$ \phi \f$ sampling abscissas
       \param Wphis the \f$ \phi \f$ sampling weights
       \param INCLUDED_PHI_BOUNDARIES 1 if \f$ \phi \f$ boundaries are included in the sampling, 0 otherwise
@@ -139,8 +135,6 @@ class Level {
           const double big_cube_lower_coord[3],
           const blitz::Array<double, 2>& cubes_centroids,
           const std::complex<double>& wavenumber,
-          const float A_theta,
-          const float B_theta,
           const blitz::Array<float, 1>& Xthetas,
           const blitz::Array<float, 1>& Wthetas,
           const int INCLUDED_THETA_BOUNDARIES,
@@ -148,8 +142,6 @@ class Level {
           const int PERIODIC_Theta,
           const int CYCLIC_Theta,
           const int NOrderInterpolatorTheta,
-          const float A_phi,
-          const float B_phi,
           const blitz::Array<float, 1>& Xphis,
           const blitz::Array<float, 1>& Wphis,
           const int INCLUDED_PHI_BOUNDARIES,
@@ -172,8 +164,6 @@ class Level {
       \param sonLevel the child level
       \param N_expansion the number of terms in the expansion of the Green's function
       \param big_cube_lower_coord the lower coordinate of the father of all cubes
-      \param A_theta the lower limit for \f$ \theta \f$ interval : \f$ 0 \f$ 
-      \param B_theta the upper limit for \f$ \theta \f$ interval : \f$ \pi \f$ 
       \param Xthetas the \f$ \theta \f$  sampling abscissas
       \param Wthetas the \f$ \theta \f$  sampling weights
       \param INCLUDED_THETA_BOUNDARIES 1 if \f$ \theta \f$ interval boundaries are included in the sampling, 0 otherwise
@@ -181,8 +171,6 @@ class Level {
       \param PERIODIC_Theta 1 if we use Gaussian interpolator, 0 if we want to use the Lagrangian interpolator
       \param CYCLIC_Theta 1 if we use cyclic interpolation for the radiation functions, 0 otherwise
       \param NOrderInterpolatorTheta the order of the interpolator
-      \param A_phi the lower limit for \f$ \phi \f$ interval : \f$ 0 \f$ 
-      \param B_phi the upper limit for \f$ \phi \f$ interval : \f$ 2 \pi \f$ 
       \param Xphis the \f$ \phi \f$ sampling abscissas
       \param Wphis the \f$ \phi \f$ sampling weights
       \param INCLUDED_PHI_BOUNDARIES 1 if \f$ \phi \f$ boundaries are included in the sampling, 0 otherwise
@@ -199,8 +187,6 @@ class Level {
     Level(const Level & sonLevel,
           const int N_expansion,
           const double big_cube_lower_coord[3],
-          const float A_theta,
-          const float B_theta,
           const blitz::Array<float, 1>& Xthetas,
           const blitz::Array<float, 1>& Wthetas,
           const int INCLUDED_THETA_BOUNDARIES,
@@ -208,8 +194,6 @@ class Level {
           const int PERIODIC_Theta,
           const int CYCLIC_Theta,
           const int NOrderInterpolatorTheta,
-          const float A_phi,
-          const float B_phi,
           const blitz::Array<float, 1>& Xphis,
           const blitz::Array<float, 1>& Wphis,
           const int INCLUDED_PHI_BOUNDARIES,

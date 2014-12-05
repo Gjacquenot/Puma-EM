@@ -40,9 +40,6 @@ Octtree::Octtree(const string octtree_data_path, const blitz::Array<double, 2>& 
   if ( (proc_id==0) && (VERBOSE==1) ) cout << "N_GaussOnTriangle = " << N_GaussOnTriangle << endl;
 
   // theta data
-  float A_theta, B_theta;
-  readFloatFromASCIIFile(octtree_data_path + "A_theta.txt", A_theta);
-  readFloatFromASCIIFile(octtree_data_path + "B_theta.txt", B_theta);
   int INCLUDED_THETA_BOUNDARIES, PERIODIC_Theta, CYCLIC_Theta, NOrderInterpTheta;
   readIntFromASCIIFile(octtree_data_path + "INCLUDED_THETA_BOUNDARIES.txt", INCLUDED_THETA_BOUNDARIES);
   readIntFromASCIIFile(octtree_data_path + "PERIODIC_Theta.txt", PERIODIC_Theta);
@@ -55,9 +52,6 @@ Octtree::Octtree(const string octtree_data_path, const blitz::Array<double, 2>& 
   readFloatBlitzArray2DFromASCIIFile(octtree_data_path + "octtreeWthetas.txt", octtreeWthetas);
 
   // phi data
-  float A_phi, B_phi;
-  readFloatFromASCIIFile(octtree_data_path + "A_phi.txt", A_phi);
-  readFloatFromASCIIFile(octtree_data_path + "B_phi.txt", B_phi);
   int INCLUDED_PHI_BOUNDARIES, PERIODIC_Phi, CYCLIC_Phi, NOrderInterpPhi;
   readIntFromASCIIFile(octtree_data_path + "INCLUDED_PHI_BOUNDARIES.txt", INCLUDED_PHI_BOUNDARIES);
   readIntFromASCIIFile(octtree_data_path + "PERIODIC_Phi.txt", PERIODIC_Phi);
@@ -117,8 +111,6 @@ Octtree::Octtree(const string octtree_data_path, const blitz::Array<double, 2>& 
                             this->big_cube_lower_coord,
                             cubes_centroids,
                             k,
-                            A_theta,
-                            B_theta,
                             octtreeXthetas(0, blitz::Range(0, octtreeNthetas(0)-1)),
                             octtreeWthetas(0, blitz::Range(0, octtreeNthetas(0)-1)),
                             INCLUDED_THETA_BOUNDARIES,
@@ -126,8 +118,6 @@ Octtree::Octtree(const string octtree_data_path, const blitz::Array<double, 2>& 
                             PERIODIC_Theta,
                             CYCLIC_Theta,
                             NOrderInterpTheta,
-                            A_phi,
-                            B_phi,
                             octtreeXphis(0, blitz::Range(0, octtreeNphis(0)-1)),
                             octtreeWphis(0, blitz::Range(0, octtreeNphis(0)-1)),
                             INCLUDED_PHI_BOUNDARIES,
@@ -160,8 +150,6 @@ Octtree::Octtree(const string octtree_data_path, const blitz::Array<double, 2>& 
     levels.push_back( Level( levels[j-1],
                              LExpansion(j),
                              this->big_cube_lower_coord,
-                             A_theta,
-                             B_theta,
                              octtreeXthetas(j, blitz::Range(0, octtreeNthetas(j)-1)),
                              octtreeWthetas(j, blitz::Range(0, octtreeNthetas(j)-1)),
                              INCLUDED_THETA_BOUNDARIES,
@@ -169,8 +157,6 @@ Octtree::Octtree(const string octtree_data_path, const blitz::Array<double, 2>& 
                              PERIODIC_Theta,
                              CYCLIC_Theta,
                              NOrderInterpTheta,
-                             A_phi,
-                             B_phi,
                              octtreeXphis(j, blitz::Range(0, octtreeNphis(j)-1)),
                              octtreeWphis(j, blitz::Range(0, octtreeNphis(j)-1)),
                              INCLUDED_PHI_BOUNDARIES,
@@ -1034,26 +1020,21 @@ void Octtree::computeFarField(blitz::Array<std::complex<float>, 2>& e_theta_far,
 
   // we now define an interpolator from the last level we went through to the coarsest level.
   const int N_thetaCoarseLevel(octtreeXthetas_coarsest.size()), N_phiCoarseLevel(octtreeXphis_coarsest.size());
-  // theta data
-  float A_theta, B_theta;
-  readFloatFromASCIIFile(octtree_data_path + "A_theta.txt", A_theta);
-  readFloatFromASCIIFile(octtree_data_path + "B_theta.txt", B_theta);
   int INCLUDED_THETA_BOUNDARIES, PERIODIC_Theta, CYCLIC_Theta, NOrderInterpTheta;
   readIntFromASCIIFile(octtree_data_path + "INCLUDED_THETA_BOUNDARIES.txt", INCLUDED_THETA_BOUNDARIES);
   readIntFromASCIIFile(octtree_data_path + "PERIODIC_Theta.txt", PERIODIC_Theta);
   readIntFromASCIIFile(octtree_data_path + "CYCLIC_Theta.txt", CYCLIC_Theta);
   readIntFromASCIIFile(octtree_data_path + "NOrderInterpTheta.txt", NOrderInterpTheta);
   // phi data
-  float A_phi, B_phi;
-  readFloatFromASCIIFile(octtree_data_path + "A_phi.txt", A_phi);
-  readFloatFromASCIIFile(octtree_data_path + "B_phi.txt", B_phi);
   int INCLUDED_PHI_BOUNDARIES, PERIODIC_Phi, CYCLIC_Phi, NOrderInterpPhi;
   readIntFromASCIIFile(octtree_data_path + "INCLUDED_PHI_BOUNDARIES.txt", INCLUDED_PHI_BOUNDARIES);
   readIntFromASCIIFile(octtree_data_path + "PERIODIC_Phi.txt", PERIODIC_Phi);
   readIntFromASCIIFile(octtree_data_path + "CYCLIC_Phi.txt", CYCLIC_Phi);
   readIntFromASCIIFile(octtree_data_path + "NOrderInterpPhi.txt", NOrderInterpPhi);
 
-  LagrangeFastInterpolator2D FarFieldInterpolator(octtreeXthetas_coarsest, levels[stopLevel].thetas, A_theta, B_theta, INCLUDED_THETA_BOUNDARIES, NOrderInterpTheta, PERIODIC_Theta, CYCLIC_Theta, octtreeXphis_coarsest, levels[stopLevel].phis, A_phi, B_phi, INCLUDED_PHI_BOUNDARIES, NOrderInterpPhi, PERIODIC_Phi, CYCLIC_Phi);
+  const float THETA_MIN = 0., THETA_MAX = M_PI;
+  const float PHI_MIN = 0., PHI_MAX = 2.0*M_PI;
+  LagrangeFastInterpolator2D FarFieldInterpolator(octtreeXthetas_coarsest, levels[stopLevel].thetas, THETA_MIN, THETA_MAX, INCLUDED_THETA_BOUNDARIES, NOrderInterpTheta, PERIODIC_Theta, CYCLIC_Theta, octtreeXphis_coarsest, levels[stopLevel].phis, PHI_MIN, PHI_MAX, INCLUDED_PHI_BOUNDARIES, NOrderInterpPhi, PERIODIC_Phi, CYCLIC_Phi);
 
   // actual radiation pattern computation
   blitz::Array<std::complex<float>, 2> SupLastLevel(2, octtreeXthetas_coarsest.size() * octtreeXphis_coarsest.size()), SupLastLevelTmp(2, octtreeXthetas_coarsest.size() * octtreeXphis_coarsest.size());

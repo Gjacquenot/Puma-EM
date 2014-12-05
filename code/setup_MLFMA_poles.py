@@ -96,10 +96,6 @@ def computeTreeParameters(my_id, tmpDirName, a, k, N_levels, params_simu):
     writeASCIIBlitzArrayToDisk(octtreeWthetas, os.path.join(tmpDirName, 'octtree_data/octtreeWthetas.txt') )
     writeASCIIBlitzArrayToDisk(octtreeWphis, os.path.join(tmpDirName, 'octtree_data/octtreeWphis.txt') )
     A_theta, B_theta, A_phi, B_phi = 0., pi, 0., 2.*pi
-    writeScalarToDisk(A_theta, os.path.join(tmpDirName, 'octtree_data/A_theta.txt') )
-    writeScalarToDisk(B_theta, os.path.join(tmpDirName, 'octtree_data/B_theta.txt') )
-    writeScalarToDisk(A_phi, os.path.join(tmpDirName, 'octtree_data/A_phi.txt') )
-    writeScalarToDisk(B_phi, os.path.join(tmpDirName, 'octtree_data/B_phi.txt') )
     N_theta, N_phi = octtreeNthetas[0], octtreeNphis[0]
     INCLUDED_THETA_BOUNDARIES, INCLUDED_PHI_BOUNDARIES = 0, 0
     if (abs(octtreeXthetas[0,0]-A_theta)<=1.e-8) and (abs(octtreeXthetas[0,N_theta-1]-B_theta)<=1.e-8):
