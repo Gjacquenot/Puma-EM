@@ -202,7 +202,7 @@ Level::Level(const Level & sonLevel,
              const blitz::Array<float, 1>& XphisNextLevel,
              const int VERBOSE)
 {
-  const int my_id = MPI::COMM_WORLD.Get_rank(), num_procs = MPI::COMM_WORLD.Get_size();
+  const int my_id = MPI::COMM_WORLD.Get_rank();
   numberTimesCopied = 0;
   N = N_expansion;
   k = sonLevel.getK();
@@ -235,18 +235,8 @@ Level::Level(const Level & sonLevel,
   const float THETA_MIN = 0., THETA_MAX = M_PI;
   const float PHI_MIN = 0., PHI_MAX = 2.0*M_PI;
   if (level>2) lfi2D.setLfi2D(LagrangeFastInterpolator2D (XthetasNextLevel, Xthetas, THETA_MIN, THETA_MAX, INCLUDED_THETA_BOUNDARIES, NOrderInterpolatorTheta, PERIODIC_Theta, CYCLIC_Theta, XphisNextLevel, Xphis, PHI_MIN, PHI_MAX, INCLUDED_PHI_BOUNDARIES, NOrderInterpolatorPhi, PERIODIC_Phi, CYCLIC_Phi));
-  // computation of the MPI_Scatterv_scounts / MPI_Scatterv_displs
-  MPI_Scatterv_scounts.resize(num_procs);
-  MPI_Scatterv_displs.resize(num_procs);
-  const int N_directions = N_theta * N_phi;
-  int displacement = 0;
-  for (int i=0 ; i<num_procs ; ++i) {
-    if (i<num_procs-1) MPI_Scatterv_scounts(i) = N_directions/num_procs;
-    else MPI_Scatterv_scounts(i) = N_directions - displacement;
-    MPI_Scatterv_displs(i) = displacement;
-    displacement += MPI_Scatterv_scounts(i);
-  }
-  if ( (my_id==0) ) cout << "The total number of directions at level " << getLevel() << " is N_theta*N_phi = " << N_theta << "*" << N_phi << " = " << N_directions << endl << endl;
+
+  if (my_id==0) cout << "The total number of directions at level " << getLevel() << " is N_theta*N_phi = " << N_theta << "*" << N_phi << " = " << N_theta*N_phi << endl << endl;
 }
 
 Level::~Level()

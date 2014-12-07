@@ -219,6 +219,19 @@ void Octtree::assignCubesToProcessors(const int num_procs, const int CUBES_DISTR
   if (N_levels==1) this->DIRECTIONS_PARALLELIZATION = 0; // get rid of a border case
   if ( (this->DIRECTIONS_PARALLELIZATION==1)&&(CUBES_DISTRIBUTION==0) ) { // we parallelize the last level by directions
     levels[L].DIRECTIONS_PARALLELIZATION = 1;
+    // computation of the MPI_Scatterv_scounts / MPI_Scatterv_displs
+    const int num_procs = MPI::COMM_WORLD.Get_size();
+    levels[L].MPI_Scatterv_scounts.resize(num_procs);
+    levels[L].MPI_Scatterv_displs.resize(num_procs);
+    const int N_directions = levels[L].thetas.size() * levels[L].phis.size();
+    int displacement = 0;
+    for (int i=0 ; i<num_procs ; ++i) {
+      if (i<num_procs-1) levels[L].MPI_Scatterv_scounts(i) = N_directions/num_procs;
+      else levels[L].MPI_Scatterv_scounts(i) = N_directions - displacement;
+      levels[L].MPI_Scatterv_displs(i) = displacement;
+      displacement += levels[L].MPI_Scatterv_scounts(i);
+    }
+    // assignment of top level cubes to all processes because DIRECTIONS_PARALLELIZATION==1
     NCubes = levels[L].getLevelSize();
     for (int i=0 ; i<NCubes ; ++i) levels[L].cubes[i].procNumber = -1; // -1 means cube belongs to all processes
     if ( (my_id==0) && (VERBOSE==1) ) {
