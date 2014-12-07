@@ -176,16 +176,15 @@ Octtree::Octtree(const string octtree_data_path, const blitz::Array<double, 2>& 
     if (j==N_levels-1) levels[j].setCeiling(1); // we have reached the top level
   }
   if (CUBES_DISTRIBUTION==1) {
-    // we are distributing the leaf cubes among the processors
+    // we are distributing the leaf cubes among the processors for Z_near
     // we want a fair distribution, i.e. leaf cubes evenly partitioned between processes
     // therefore, we have to have a top level having a sufficient number of cubes
     // assignation for the near field computation
-    int Z_NEAR_CUBES_DISTRIBUTION = 1;
     while ( (levels[(levels.size() - 1)].getLevelSize() < 25*num_procs) && (levels.size()>1) ) levels.pop_back();
     N_levels = levels.size();
     levels[N_levels-1].setCeiling(1);
     if ( (proc_id==0) && (VERBOSE==1) ) cout << "level chosen for Z_NEAR leaf cubes distribution = " << levels[N_levels-1].getLevel() << endl;
-    assignCubesToProcessors(num_procs, Z_NEAR_CUBES_DISTRIBUTION);
+    assignCubesToProcessors(num_procs, CUBES_DISTRIBUTION);
     writeAssignedLeafCubesToDisk(octtree_data_path, "cubesIndexAndNumberToProcessNumber_FOR_Z_NEAR.txt");
   }
   else if (ALLOW_CEILING_LEVEL==1) { //we remove the non-necessary levels

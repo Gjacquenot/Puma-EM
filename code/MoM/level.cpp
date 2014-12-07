@@ -62,7 +62,7 @@ Level::Level(const int l,
              const blitz::Array<float, 1>& XphisNextLevel,
              const int VERBOSE) // leaf level constructor: no sons needed
 {
-  const int my_id = MPI::COMM_WORLD.Get_rank(), num_procs = MPI::COMM_WORLD.Get_size();
+  const int my_id = MPI::COMM_WORLD.Get_rank();
   numberTimesCopied = 0;
   k = waveNumber;
   level = l;
