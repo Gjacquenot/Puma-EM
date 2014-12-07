@@ -220,7 +220,6 @@ void Octtree::assignCubesToProcessors(const int num_procs, const int CUBES_DISTR
   if ( (this->DIRECTIONS_PARALLELIZATION==1)&&(CUBES_DISTRIBUTION==0) ) { // we parallelize the last level by directions
     levels[L].DIRECTIONS_PARALLELIZATION = 1;
     // computation of the MPI_Scatterv_scounts / MPI_Scatterv_displs
-    const int num_procs = MPI::COMM_WORLD.Get_size();
     levels[L].MPI_Scatterv_scounts.resize(num_procs);
     levels[L].MPI_Scatterv_displs.resize(num_procs);
     const int N_directions = levels[L].thetas.size() * levels[L].phis.size();
