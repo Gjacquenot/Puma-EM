@@ -97,18 +97,7 @@ Level::Level(const int l,
   const float PHI_MIN = 0., PHI_MAX = 2.0*M_PI;
   lfi2D.setLfi2D(LagrangeFastInterpolator2D (XthetasNextLevel, Xthetas, THETA_MIN, THETA_MAX, INCLUDED_THETA_BOUNDARIES, NOrderInterpolatorTheta, PERIODIC_Theta, CYCLIC_Theta, XphisNextLevel, Xphis, PHI_MIN, PHI_MAX, INCLUDED_PHI_BOUNDARIES, NOrderInterpolatorPhi, PERIODIC_Phi, CYCLIC_Phi));
 
-  // computation of the MPI_Scatterv_scounts / MPI_Scatterv_displs
-  MPI_Scatterv_scounts.resize(num_procs);
-  MPI_Scatterv_displs.resize(num_procs);
-  const int N_directions = N_theta * N_phi;
-  int displacement = 0;
-  for (int i=0 ; i<num_procs ; ++i) {
-    if (i<num_procs-1) MPI_Scatterv_scounts(i) = N_directions/num_procs;
-    else MPI_Scatterv_scounts(i) = N_directions - displacement;
-    MPI_Scatterv_displs(i) = displacement;
-    displacement += MPI_Scatterv_scounts(i);
-  }
-  if ( (my_id==0) ) cout << "The total number of directions at level " << getLevel() << " is N_theta*N_phi = " << N_theta << "*" << N_phi << " = " << N_directions << endl << endl;
+  if (my_id==0) cout << "The total number of directions at level " << getLevel() << " is N_theta*N_phi = " << N_theta << "*" << N_phi << " = " << N_theta * N_phi << endl << endl;
 }
 
 void Level::copyLevel(const Level & levelToCopy) // copy constructor
