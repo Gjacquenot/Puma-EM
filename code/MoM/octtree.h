@@ -27,14 +27,15 @@ class Octtree {
     int procNumber;
     int totalNumProcs;
   public:
-    complex<double> k;
-    complex<float> eps_r;
-    complex<float> mu_r;
     float w;
     int VERBOSE;
     int N_GaussOnTriangle;
     int DIRECTIONS_PARALLELIZATION, N_levels, ALLOW_CEILING_LEVEL;
-    vector<Level> levels;
+    int Ntheta_zones, Nphi_zones;
+    std::complex<double> k;
+    std::complex<float> eps_r;
+    std::complex<float> mu_r;
+    std::vector<Level> levels;
     double big_cube_lower_coord[3];
     double big_cube_center_coord[3];
     blitz::Array<std::complex<float>, 1> CFIE;
@@ -68,9 +69,9 @@ class Octtree {
     void setTotalNumProcs (const int n) {totalNumProcs = n;}
     int getTotalNumProcs (void) const {return totalNumProcs;}
     int getLevelsSize (void) const {return levels.size();}
-    complex<double> getK(void) const {return k;}
-    complex<float> getEps_r(void) const {return eps_r;}
-    complex<float> getMu_r(void) const {return mu_r;}
+    std::complex<double> getK(void) const {return k;}
+    std::complex<float> getEps_r(void) const {return eps_r;}
+    std::complex<float> getMu_r(void) const {return mu_r;}
     float getW(void) const {return w;}
     Level getLevel(const int l) const {return levels[l];}
     Cube getCubeLevel(const int i, const int l) const {return levels[l].getCube(i);} 
@@ -133,5 +134,5 @@ class Octtree {
                           const blitz::Array<float, 1>& phis);
     void resizeSdownLevelsToZero(void) {for (unsigned int i=0 ; i<levels.size() ; ++i) levels[i].Sdown.resize(0);}
 };
-
 #endif
+

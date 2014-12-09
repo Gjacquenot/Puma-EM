@@ -36,6 +36,9 @@ Octtree::Octtree(const string octtree_data_path, const blitz::Array<double, 2>& 
   if ( (proc_id==0) && (VERBOSE==1) ) cout << "ALLOW_CEILING_LEVEL = " << ALLOW_CEILING_LEVEL << endl;
   readIntFromASCIIFile(octtree_data_path + "DIRECTIONS_PARALLELIZATION.txt", DIRECTIONS_PARALLELIZATION);
   if ( (proc_id==0) && (VERBOSE==1) ) cout << "DIRECTIONS_PARALLELIZATION = " << DIRECTIONS_PARALLELIZATION << endl;
+  readIntFromASCIIFile(octtree_data_path + "Ntheta_zones.txt", Ntheta_zones);
+  readIntFromASCIIFile(octtree_data_path + "Nphi_zones.txt", Nphi_zones);
+  if ( (proc_id==0) && (VERBOSE==1) ) cout << "Ntheta_zones, Nphi_zones = " << Ntheta_zones << ", " << Nphi_zones << endl;
   readIntFromASCIIFile(octtree_data_path + "N_GaussOnTriangle.txt", N_GaussOnTriangle);
   if ( (proc_id==0) && (VERBOSE==1) ) cout << "N_GaussOnTriangle = " << N_GaussOnTriangle << endl;
 
@@ -79,7 +82,6 @@ Octtree::Octtree(const string octtree_data_path, const blitz::Array<double, 2>& 
     big_cube_lower_coord[i] = bigCubeLowerCoord(i);
     big_cube_center_coord[i] = bigCubeCenterCoord(i);
   }
-
 
   readFloatFromASCIIFile(octtree_data_path + "w.txt", this->w);
   readComplexDoubleFromASCIIFile(octtree_data_path + "k.txt", this->k);
@@ -198,14 +200,14 @@ Octtree::Octtree(const string octtree_data_path, const blitz::Array<double, 2>& 
     N_levels = levels.size();
   }
   if (CUBES_DISTRIBUTION==0) {
-    for (int j=1 ; j<N_levels ; ++j) levels[j].searchCubesNeighborsIndexes();
+    for (int j=1 ; j<N_levels ; j++) levels[j].searchCubesNeighborsIndexes();
     assignCubesToProcessors(num_procs, CUBES_DISTRIBUTION);
-    for (int j=0 ; j<N_levels ; ++j) levels[j].computeLocalCubesIndexes(this->getProcNumber());
+    for (int j=0 ; j<N_levels ; j++) levels[j].computeLocalCubesIndexes(this->getProcNumber());
     // alpha translations 
     if ( (proc_id==0) && (VERBOSE==1) ) cout << "Searching the indexes of the possible cubes for alpha translations.........." << endl;
-    for (int l=0; l<N_levels; ++l) findAlphaTransParticipantsIndexes(l);
+    for (int l=0; l<N_levels; l++) findAlphaTransParticipantsIndexes(l);
     // level reduction computation...
-    for (int j=0 ; j<N_levels ; ++j) levels[j].computeLevelReduction();
+    for (int j=0 ; j<N_levels ; j++) levels[j].computeLevelReduction();
   }
   N_levels = levels.size();
   if ( (proc_id==0) && (VERBOSE==1) ) cout << "Tree construction terminated." << endl;
@@ -218,6 +220,7 @@ void Octtree::assignCubesToProcessors(const int num_procs, const int CUBES_DISTR
   int L = N_levels-1, NCubes, my_id = MPI::COMM_WORLD.Get_rank();
   if (N_levels==1) this->DIRECTIONS_PARALLELIZATION = 0; // get rid of a border case
   if ( (this->DIRECTIONS_PARALLELIZATION==1)&&(CUBES_DISTRIBUTION==0) ) { // we parallelize the last level by directions
+    const int NUMBER_PARALLELIZED_LEVELS = static_cast<int>(round(N_levels/3.0));
     levels[L].DIRECTIONS_PARALLELIZATION = 1;
     // computation of the MPI_Scatterv_scounts / MPI_Scatterv_displs
     levels[L].MPI_Scatterv_scounts.resize(num_procs);
@@ -230,14 +233,31 @@ void Octtree::assignCubesToProcessors(const int num_procs, const int CUBES_DISTR
       levels[L].MPI_Scatterv_displs(i) = displacement;
       displacement += levels[L].MPI_Scatterv_scounts(i);
     }
+    // computation of the distribution of the directions among the processes
+    levels[L].N_theta_per_HZ.resize(this->Ntheta_zones);
+    levels[L].N_phi_per_VZ.resize(this->Nphi_zones);
+    for (int i=0; i<this->Ntheta_zones; i++) levels[L].N_theta_per_HZ[i] = levels[L].thetas.size()/this->Ntheta_zones;
+    for (int i=0; i<this->Nphi_zones; i++) levels[L].N_phi_per_VZ[i] = levels[L].phis.size()/this->Nphi_zones;
+    const int remaining_thetas = levels[L].thetas.size()%this->Ntheta_zones;
+    for (int i=0; i<remaining_thetas; i++) levels[L].N_theta_per_HZ[i] += 1;
+    const int remaining_phis = levels[L].phis.size()%this->Nphi_zones;
+    for (int i=0; i<remaining_phis; i++) levels[L].N_phi_per_VZ[i] += 1;
     // assignment of top level cubes to all processes because DIRECTIONS_PARALLELIZATION==1
     NCubes = levels[L].getLevelSize();
     for (int i=0 ; i<NCubes ; ++i) levels[L].cubes[i].procNumber = -1; // -1 means cube belongs to all processes
     if ( (my_id==0) && (VERBOSE==1) ) {
+      cout << "Process " << my_id << ". The total number of parallelized levels is " << NUMBER_PARALLELIZED_LEVELS << endl;
       cout << "Process " << my_id << ". The total number of directions at level " << levels[L].getLevel() << " is N_directions = " << sum(levels[L].MPI_Scatterv_scounts) << endl;
       cout << "Process " << my_id << ". The sharing of directions between processes is as follows:" << endl; 
       cout << "Process " << my_id << "    levels[L].MPI_Scatterv_scounts = " << levels[L].MPI_Scatterv_scounts << endl;
       cout << "Process " << my_id << "    levels[L].MPI_Scatterv_displs = "<< levels[L].MPI_Scatterv_displs << endl;
+      cout << "Process " << my_id << ". The future sharing of directions between processes is as follows:" << endl; 
+      cout << "  Number of Thetas per horizontal zone (" << this->Ntheta_zones << " zones) : [ ";
+      for (int i=0; i<this->Ntheta_zones; i++) cout << levels[L].N_theta_per_HZ[i] << " ";
+      cout << "]" << endl;
+      cout << "  Number of phis per vertical zone (" << this->Nphi_zones << " zones) : [ ";
+      for (int i=0; i<this->Nphi_zones; i++) cout << levels[L].N_phi_per_VZ[i] << " ";
+      cout << "]" << endl;
     }
     L = L-1;
   }
@@ -328,7 +348,6 @@ void Octtree::constructArrays(void)
   if (alphaTranslation_RelativeCountAboveThreshold > 1.0) alphaTranslation_RelativeCountAboveThreshold = 1.0;
   if (alphaTranslation_RelativeCountAboveThreshold < 0.0) alphaTranslation_RelativeCountAboveThreshold = 0.0;
   for (int j=0 ; j<N_levels ; ++j) {
-    
     levels[j].NCubesXYZComputation(VERBOSE);
     levels[j].alphaTranslationsComputation(VERBOSE, alphaTranslation_smoothing_factor, alphaTranslation_thresholdRelValueMax, alphaTranslation_RelativeCountAboveThreshold);
     levels[j].shiftingArraysComputation();
@@ -368,6 +387,8 @@ void Octtree::copyOcttree(const Octtree& octtreeTocopy) /// copy constructor
   octtreeDataPath = octtreeTocopy.octtreeDataPath;
   int NLevels = octtreeTocopy.getLevelsSize();
   cout << "The number of Levels is " << NLevels << endl;
+  Ntheta_zones = octtreeTocopy.Ntheta_zones;
+  Nphi_zones = octtreeTocopy.Nphi_zones;
   levels.resize(NLevels);
   for (int j=0 ; j<NLevels ; j++) levels[j].copyLevel(octtreeTocopy.getLevel(j));
   for (int i=0 ; i<3 ; i++) big_cube_lower_coord[i] = octtreeTocopy.big_cube_lower_coord[i];
@@ -412,130 +433,138 @@ std::vector<int> Octtree::getNeighborsSonsIndexes(const int index, const int l) 
 void Octtree::findAlphaTransParticipantsIndexes(const int l)
 /* we only fill in the cubes that are local, i.e. located on the same process as the octtree */
 {
-  //const int N_levels = levels.size();
-  //for (int l=0; l<N_levels; ++l) {
-    /* Each level has a "listOfFcToBeSent" and a "listOfFcToBeReceived".
-     * Each list is as long as the number of processes,
-     * and each element is accessed by the process number with which the communication will be 
-     * established. Each element consists of a list of indexes corresponding to the radiation 
-     * functions to be sent or received by the current process at the current level. 
-     */
-    std::vector< std::vector<int> > listOfFcToBeReceivedTmp, listOfFcToBeSentTmp;
-    //levels[l].listOfFcToBeReceived.resize(this->getTotalNumProcs());
-    //levels[l].listOfFcToBeSent.resize(this->getTotalNumProcs());
-    listOfFcToBeReceivedTmp.resize(this->getTotalNumProcs());
-    listOfFcToBeSentTmp.resize(this->getTotalNumProcs());
-    
-    std::vector<int> localCubesIndexes(levels[l].getLocalCubesIndexes());
-    const int N_local_cubes = localCubesIndexes.size();
-    const int N_cubes = levels[l].getLevelSize();
-    int N_to_send(0), N_to_receive(0);
-    // we treat the ceiling level differently than the regular levels
-    // hereafter is the code for the ceiling level
-    if (l==N_levels-1) { // if we are at the ceiling level
-      for (int i=0; i<N_local_cubes; ++i) { // loop on the local cubes
-        int indexLocalCube = localCubesIndexes[i];
-        std::vector<int> localAlphaTransParticipantsIndexes, nonLocalAlphaTransParticipantsIndexes, nonLocalAlphaTransParticipantsProcNumbers;
-        for (int j=0; j<N_cubes; ++j) { // loop on all the cubes (because ceiling level)
-          const float * diffAbsCartCoord_1(levels[l].cubes[indexLocalCube].absoluteCartesianCoord); 
-          const float * diffAbsCartCoord_2(levels[l].cubes[j].absoluteCartesianCoord);
-          const float diffAbsCartCoord[3] = {diffAbsCartCoord_1[0]-diffAbsCartCoord_2[0], diffAbsCartCoord_1[1]-diffAbsCartCoord_2[1], diffAbsCartCoord_1[2]-diffAbsCartCoord_2[2]};
-          bool condition = false;
-          // condition = true if cubes are not touching
-          for (int mm=0; mm<3; ++mm) condition = (condition || (abs(diffAbsCartCoord[mm]) > 1.0) );
-          if (condition) {
-            if ( levels[l].cubes[j].getProcNumber()==levels[l].cubes[indexLocalCube].getProcNumber() )
-              localAlphaTransParticipantsIndexes.push_back(j);
-            else { // the alphaTransPArticipant is not local
-              nonLocalAlphaTransParticipantsIndexes.push_back(j);
-              nonLocalAlphaTransParticipantsProcNumbers.push_back(j);
-              listOfFcToBeReceivedTmp[levels[l].cubes[j].getProcNumber()].push_back(j);
-              listOfFcToBeSentTmp[levels[l].cubes[j].getProcNumber()].push_back(indexLocalCube);
-              N_to_send++;
-              N_to_receive++;
-            }
-          }
-        } // end for
-        // we now trim the excess capacity of alphaTransParticipantsIndexes
-        levels[l].cubes[indexLocalCube].localAlphaTransParticipantsIndexes.resize(localAlphaTransParticipantsIndexes.size());
-        for (unsigned int j=0 ; j<localAlphaTransParticipantsIndexes.size() ; ++j) levels[l].cubes[indexLocalCube].localAlphaTransParticipantsIndexes[j] = localAlphaTransParticipantsIndexes[j];
-        levels[l].cubes[indexLocalCube].nonLocalAlphaTransParticipantsIndexes.resize(nonLocalAlphaTransParticipantsIndexes.size());
-        for (unsigned int j=0 ; j<nonLocalAlphaTransParticipantsIndexes.size() ; ++j) levels[l].cubes[indexLocalCube].nonLocalAlphaTransParticipantsIndexes[j] = nonLocalAlphaTransParticipantsIndexes[j];
-      }
-    }
-    else { // for the NON-CEILING level
-      for (int i=0; i<N_local_cubes; ++i) {
-        int indexLocalCube = localCubesIndexes[i];
-        std::vector<int> localAlphaTransParticipantsIndexes, nonLocalAlphaTransParticipantsIndexes, nonLocalAlphaTransParticipantsProcNumbers;
-        const std::vector<int> possibleIndexes(getNeighborsSonsIndexes(levels[l].cubes[indexLocalCube].getFatherIndex(), l+1));
-        for (unsigned int j=0; j<possibleIndexes.size(); j++) {// possible indexes of the alpha trans participants
-          const int possibleIndex = possibleIndexes[j];
-          const float * diffAbsCartCoord_1(levels[l].cubes[indexLocalCube].absoluteCartesianCoord);
-          const float * diffAbsCartCoord_2(levels[l].cubes[possibleIndex].absoluteCartesianCoord);
-          const float diffAbsCartCoord[3] = {diffAbsCartCoord_1[0]-diffAbsCartCoord_2[0], diffAbsCartCoord_1[1]-diffAbsCartCoord_2[1], diffAbsCartCoord_1[2]-diffAbsCartCoord_2[2]};
-          bool condition = false;
-          // condition = true if cubes are not touching
-          for (int mm=0; mm<3; ++mm) condition = (condition || (abs(diffAbsCartCoord[mm]) > 1.0) );
-          if (condition) {
-            if ( levels[l].cubes[possibleIndex].getProcNumber()==levels[l].cubes[indexLocalCube].getProcNumber() )
-              localAlphaTransParticipantsIndexes.push_back(possibleIndex);
-            else { // the alphaTransPArticipant is not local
-              nonLocalAlphaTransParticipantsIndexes.push_back(possibleIndex);
-              nonLocalAlphaTransParticipantsProcNumbers.push_back(levels[l].cubes[possibleIndex].getProcNumber());
-              listOfFcToBeReceivedTmp[levels[l].cubes[possibleIndex].getProcNumber()].push_back(possibleIndex);
-              listOfFcToBeSentTmp[levels[l].cubes[possibleIndex].getProcNumber()].push_back(indexLocalCube);
-              N_to_send++;
-              N_to_receive++;
-            }
+  /* Each level has a "listOfFcToBeSent" and a "listOfFcToBeReceived".
+   * Each list is as long as the number of processes,
+   * and each element is accessed by the process number with which the communication will be 
+   * established. Each element consists of a list of indexes corresponding to the radiation 
+   * functions to be sent or received by the current process at the current level. 
+   */
+  std::vector< std::vector<int> > listOfFcToBeReceivedTmp, listOfFcToBeSentTmp;
+  //levels[l].listOfFcToBeReceived.resize(this->getTotalNumProcs());
+  //levels[l].listOfFcToBeSent.resize(this->getTotalNumProcs());
+  listOfFcToBeReceivedTmp.resize(this->getTotalNumProcs());
+  listOfFcToBeSentTmp.resize(this->getTotalNumProcs());
+  
+  std::vector<int> localCubesIndexes(levels[l].getLocalCubesIndexes());
+  const int N_local_cubes = localCubesIndexes.size();
+  const int N_cubes = levels[l].getLevelSize();
+  int N_to_send(0), N_to_receive(0);
+  // we treat the ceiling level differently than the regular levels
+  // hereafter is the code for the ceiling level
+  if (l==N_levels-1) { // if we are at the ceiling level
+    for (int i=0; i<N_local_cubes; ++i) { // loop on the local cubes
+      int indexLocalCube = localCubesIndexes[i];
+      std::vector<int> localAlphaTransParticipantsIndexes, nonLocalAlphaTransParticipantsIndexes, nonLocalAlphaTransParticipantsProcNumbers;
+      for (int j=0; j<N_cubes; ++j) { // loop on all the cubes (because ceiling level)
+        const float * diffAbsCartCoord_1(levels[l].cubes[indexLocalCube].absoluteCartesianCoord); 
+        const float * diffAbsCartCoord_2(levels[l].cubes[j].absoluteCartesianCoord);
+        const float diffAbsCartCoord[3] = {diffAbsCartCoord_1[0]-diffAbsCartCoord_2[0], diffAbsCartCoord_1[1]-diffAbsCartCoord_2[1], diffAbsCartCoord_1[2]-diffAbsCartCoord_2[2]};
+        bool condition = false;
+        // condition = true if cubes are not touching
+        for (int mm=0; mm<3; ++mm) condition = (condition || (abs(diffAbsCartCoord[mm]) > 1.0) );
+        if (condition) {
+          if ( levels[l].cubes[j].getProcNumber()==levels[l].cubes[indexLocalCube].getProcNumber() )
+            localAlphaTransParticipantsIndexes.push_back(j);
+          else { // the alphaTransPArticipant is not local
+            nonLocalAlphaTransParticipantsIndexes.push_back(j);
+            nonLocalAlphaTransParticipantsProcNumbers.push_back(j);
+            listOfFcToBeReceivedTmp[levels[l].cubes[j].getProcNumber()].push_back(j);
+            listOfFcToBeSentTmp[levels[l].cubes[j].getProcNumber()].push_back(indexLocalCube);
+            N_to_send++;
+            N_to_receive++;
           }
         }
-        // we now trim the excess capacity of alphaTransParticipantsIndexes
-        levels[l].cubes[indexLocalCube].localAlphaTransParticipantsIndexes.resize(localAlphaTransParticipantsIndexes.size());
-        for (unsigned int j=0 ; j<localAlphaTransParticipantsIndexes.size() ; ++j) levels[l].cubes[indexLocalCube].localAlphaTransParticipantsIndexes[j] = localAlphaTransParticipantsIndexes[j];
-        levels[l].cubes[indexLocalCube].nonLocalAlphaTransParticipantsIndexes.resize(nonLocalAlphaTransParticipantsIndexes.size());
-        for (unsigned int j=0 ; j<nonLocalAlphaTransParticipantsIndexes.size() ; ++j) levels[l].cubes[indexLocalCube].nonLocalAlphaTransParticipantsIndexes[j] = nonLocalAlphaTransParticipantsIndexes[j];
-      }
+      } // end for
+      // we now trim the excess capacity of alphaTransParticipantsIndexes
+      levels[l].cubes[indexLocalCube].localAlphaTransParticipantsIndexes.resize(localAlphaTransParticipantsIndexes.size());
+      for (unsigned int j=0 ; j<localAlphaTransParticipantsIndexes.size() ; ++j) levels[l].cubes[indexLocalCube].localAlphaTransParticipantsIndexes[j] = localAlphaTransParticipantsIndexes[j];
+      levels[l].cubes[indexLocalCube].nonLocalAlphaTransParticipantsIndexes.resize(nonLocalAlphaTransParticipantsIndexes.size());
+      for (unsigned int j=0 ; j<nonLocalAlphaTransParticipantsIndexes.size() ; ++j) levels[l].cubes[indexLocalCube].nonLocalAlphaTransParticipantsIndexes[j] = nonLocalAlphaTransParticipantsIndexes[j];
     }
-    //if (VERBOSE==1) cout << "on process " << getProcNumber() << ", for level " << levels[l].getLevel() << ", the total number of radiation functions to be sent/received is N_to_send/N_to_receive = " << N_to_send << " / " << N_to_receive << endl;
-    // we now eliminate the redundant radiations functions numbers in listOfFcToBeReceived
-    // by sorting and eliminating redundant entries
-    std::vector<int> listOfFcTmp;
-    N_to_send = (N_to_receive = 0);
-    for (int i=0 ; i<this->getTotalNumProcs() ; ++i) {
-      if (i!= this->getProcNumber()) {
-        if (listOfFcToBeReceivedTmp[i].size() > 0) {
-          listOfFcTmp = listOfFcToBeReceivedTmp[i];
-          sort(listOfFcTmp.begin(), listOfFcTmp.end());
-          listOfFcToBeReceivedTmp[i].resize(0);
-          listOfFcToBeReceivedTmp[i].push_back(listOfFcTmp[0]);
-          for (unsigned int j=1 ; j<listOfFcTmp.size() ; ++j) {
-            if (listOfFcTmp[j] != listOfFcToBeReceivedTmp[i].back()) listOfFcToBeReceivedTmp[i].push_back(listOfFcTmp[j]);
+  }
+  else { // for the NON-CEILING level
+    for (int i=0; i<N_local_cubes; ++i) {
+      int indexLocalCube = localCubesIndexes[i];
+      std::vector<int> localAlphaTransParticipantsIndexes, nonLocalAlphaTransParticipantsIndexes, nonLocalAlphaTransParticipantsProcNumbers;
+      const std::vector<int> possibleIndexes(getNeighborsSonsIndexes(levels[l].cubes[indexLocalCube].getFatherIndex(), l+1));
+      for (unsigned int j=0; j<possibleIndexes.size(); j++) {// possible indexes of the alpha trans participants
+        const int possibleIndex = possibleIndexes[j];
+        const float * diffAbsCartCoord_1(levels[l].cubes[indexLocalCube].absoluteCartesianCoord);
+        const float * diffAbsCartCoord_2(levels[l].cubes[possibleIndex].absoluteCartesianCoord);
+        const float diffAbsCartCoord[3] = {diffAbsCartCoord_1[0]-diffAbsCartCoord_2[0], diffAbsCartCoord_1[1]-diffAbsCartCoord_2[1], diffAbsCartCoord_1[2]-diffAbsCartCoord_2[2]};
+        bool condition = false;
+        // condition = true if cubes are not touching
+        for (int mm=0; mm<3; ++mm) condition = (condition || (abs(diffAbsCartCoord[mm]) > 1.0) );
+        if (condition) {
+          if ( levels[l].cubes[possibleIndex].getProcNumber()==levels[l].cubes[indexLocalCube].getProcNumber() )
+            localAlphaTransParticipantsIndexes.push_back(possibleIndex);
+          else { // the alphaTransPArticipant is not local
+            nonLocalAlphaTransParticipantsIndexes.push_back(possibleIndex);
+            nonLocalAlphaTransParticipantsProcNumbers.push_back(levels[l].cubes[possibleIndex].getProcNumber());
+            listOfFcToBeReceivedTmp[levels[l].cubes[possibleIndex].getProcNumber()].push_back(possibleIndex);
+            listOfFcToBeSentTmp[levels[l].cubes[possibleIndex].getProcNumber()].push_back(indexLocalCube);
+            N_to_send++;
+            N_to_receive++;
           }
-          std::vector<int>(listOfFcToBeReceivedTmp[i]).swap(listOfFcToBeReceivedTmp[i]);
-          N_to_receive += listOfFcToBeReceivedTmp[i].size();
         }
       }
+      // we now trim the excess capacity of alphaTransParticipantsIndexes
+      levels[l].cubes[indexLocalCube].localAlphaTransParticipantsIndexes.resize(localAlphaTransParticipantsIndexes.size());
+      for (unsigned int j=0 ; j<localAlphaTransParticipantsIndexes.size() ; ++j) levels[l].cubes[indexLocalCube].localAlphaTransParticipantsIndexes[j] = localAlphaTransParticipantsIndexes[j];
+      levels[l].cubes[indexLocalCube].nonLocalAlphaTransParticipantsIndexes.resize(nonLocalAlphaTransParticipantsIndexes.size());
+      for (unsigned int j=0 ; j<nonLocalAlphaTransParticipantsIndexes.size() ; ++j) levels[l].cubes[indexLocalCube].nonLocalAlphaTransParticipantsIndexes[j] = nonLocalAlphaTransParticipantsIndexes[j];
     }
-    levels[l].listOfFcToBeReceived = listOfFcToBeReceivedTmp;
-    // we now eliminate the redundant radiations functions numbers in listOfFcToBeSent
-    for (unsigned int i=0 ; i<listOfFcToBeSentTmp.size() ; ++i) {
-      if ((int)i!= this->getProcNumber()) {
-        if (listOfFcToBeSentTmp[i].size() > 0) {
-          listOfFcTmp = listOfFcToBeSentTmp[i];
-          sort(listOfFcTmp.begin(), listOfFcTmp.end());
-          listOfFcToBeSentTmp[i].resize(0);
-          listOfFcToBeSentTmp[i].push_back(listOfFcTmp[0]);
-          for (unsigned int j=1 ; j<listOfFcTmp.size() ; ++j) {
-            if (listOfFcTmp[j] != listOfFcToBeSentTmp[i].back()) listOfFcToBeSentTmp[i].push_back(listOfFcTmp[j]);
-          }
-          std::vector<int>(listOfFcToBeSentTmp[i]).swap(listOfFcToBeSentTmp[i]);
-          N_to_send += listOfFcToBeSentTmp[i].size();
+  }
+  // we now eliminate the redundant radiations functions numbers in listOfFcToBeReceived
+  // by sorting and eliminating redundant entries
+  std::vector<int> listOfFcTmp;
+  N_to_send = (N_to_receive = 0);
+  for (int i=0 ; i<this->getTotalNumProcs() ; ++i) {
+    if (i!= this->getProcNumber()) {
+      if (listOfFcToBeReceivedTmp[i].size() > 0) {
+        listOfFcTmp = listOfFcToBeReceivedTmp[i];
+        sort(listOfFcTmp.begin(), listOfFcTmp.end());
+        listOfFcToBeReceivedTmp[i].resize(0);
+        listOfFcToBeReceivedTmp[i].push_back(listOfFcTmp[0]);
+        for (unsigned int j=1 ; j<listOfFcTmp.size() ; ++j) {
+          if (listOfFcTmp[j] != listOfFcToBeReceivedTmp[i].back()) listOfFcToBeReceivedTmp[i].push_back(listOfFcTmp[j]);
         }
+        std::vector<int>(listOfFcToBeReceivedTmp[i]).swap(listOfFcToBeReceivedTmp[i]);
+        N_to_receive += listOfFcToBeReceivedTmp[i].size();
       }
     }
-    levels[l].listOfFcToBeSent = listOfFcToBeSentTmp;
-    if (VERBOSE==1) cout << "on process " << getProcNumber() << ", for level " << levels[l].getLevel() << ", the total number of Fc to be sent/received is N_to_send/N_to_receive = " << N_to_send << " / " << N_to_receive << endl;
-  //} // for (int l=0; l<N_levels; ++l)
+  }
+  levels[l].listOfFcToBeReceived = listOfFcToBeReceivedTmp;
+  // we now eliminate the redundant radiations functions numbers in listOfFcToBeSent
+  for (unsigned int i=0 ; i<listOfFcToBeSentTmp.size() ; ++i) {
+    if ((int)i!= this->getProcNumber()) {
+      if (listOfFcToBeSentTmp[i].size() > 0) {
+        listOfFcTmp = listOfFcToBeSentTmp[i];
+        sort(listOfFcTmp.begin(), listOfFcTmp.end());
+        listOfFcToBeSentTmp[i].resize(0);
+        listOfFcToBeSentTmp[i].push_back(listOfFcTmp[0]);
+        for (unsigned int j=1 ; j<listOfFcTmp.size() ; ++j) {
+          if (listOfFcTmp[j] != listOfFcToBeSentTmp[i].back()) listOfFcToBeSentTmp[i].push_back(listOfFcTmp[j]);
+        }
+        std::vector<int>(listOfFcToBeSentTmp[i]).swap(listOfFcToBeSentTmp[i]);
+        N_to_send += listOfFcToBeSentTmp[i].size();
+      }
+    }
+  }
+  levels[l].listOfFcToBeSent = listOfFcToBeSentTmp;
+  const int num_procs = MPI::COMM_WORLD.Get_size();
+  int tot_N_send = 0, tot_N_recv = 0, max_N_send = 0, max_N_recv = 0;
+  MPI_Allreduce(&N_to_send, &tot_N_send, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+  MPI_Allreduce(&N_to_receive, &tot_N_recv, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+  MPI_Allreduce(&N_to_send, &max_N_send, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
+  MPI_Allreduce(&N_to_receive, &max_N_recv, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
+  const float avg_N_send = static_cast<float>(tot_N_send)/static_cast<float>(num_procs);
+  const float avg_N_recv = static_cast<float>(tot_N_recv)/static_cast<float>(num_procs);
+  if ((VERBOSE==1) && (getProcNumber()==0)) {
+    std::cout << "For level " << levels[l].getLevel() << ", the total number of Fc to be sent/received is = " << tot_N_send << " / " << tot_N_recv << std::endl;
+    std::cout << "For level " << levels[l].getLevel() << ", the average number per process of Fc to be sent/received is = " << avg_N_send << " / " << avg_N_recv << std::endl;
+    std::cout << "For level " << levels[l].getLevel() << ", the maximum number per process of Fc to be sent/received is = " << max_N_send << " / " << max_N_recv << std::endl;
+  }
 }
 
 void Octtree::shiftExp(blitz::Array<std::complex<float>, 2> S,

@@ -60,6 +60,31 @@ def octtreeXWN_computation(boundary_inf, boundary_sup, L, N_levels, int_method, 
             print("Error: integration method must be GAUSSL, TRAP or PONCELET.")
     return octtreeX, octtreeW, octtreeN
 
+def directions_zones_calculation(P):
+    HZ, VZ = 1, P
+    if P<8:
+        HZ, VZ = 1, P
+    elif (P%2==0):
+        HALF_P = P/2
+        diviseur = int(floor(sqrt(HALF_P)))
+        while diviseur>0:
+            if (HALF_P%diviseur==0):
+                HZ, VZ = int(diviseur), int(P/diviseur)
+                break
+            else:
+                diviseur -= 1
+        if diviseur == 1:
+            HZ, VZ = 2, P/2
+    else:
+        diviseur = int(floor(sqrt(P)))
+        while diviseur>0:
+            if (P%diviseur==0):
+                HZ, VZ = int(diviseur), int(P/diviseur)
+                break
+            else:
+                diviseur -= 1
+    return HZ, VZ
+
 def computeTreeParameters(my_id, tmpDirName, a, k, N_levels, params_simu):
     # L computation
     NB_DIGITS = params_simu.NB_DIGITS
@@ -78,14 +103,18 @@ def computeTreeParameters(my_id, tmpDirName, a, k, N_levels, params_simu):
     #if (my_id==0):
     #    print "Nthetas =", octtreeNthetas
     #    print "Nphis =", octtreeNphis
+    # order of interpolation
     NOrderInterpTheta = L[0]
     NOrderInterpPhi = L[0]
+    # number of zones per theta
+    num_proc = MPI.COMM_WORLD.Get_size()
+    Ntheta_zones, Nphi_zones = directions_zones_calculation(num_proc)
     # now we write the info to disk
     writeScalarToDisk(NOrderInterpTheta, os.path.join(tmpDirName, 'octtree_data/NOrderInterpTheta.txt') )
     writeScalarToDisk(NOrderInterpPhi, os.path.join(tmpDirName, 'octtree_data/NOrderInterpPhi.txt') )
+    writeScalarToDisk(Ntheta_zones, os.path.join(tmpDirName, 'octtree_data/Ntheta_zones.txt') )
+    writeScalarToDisk(Nphi_zones, os.path.join(tmpDirName, 'octtree_data/Nphi_zones.txt') )
     writeASCIIBlitzArrayToDisk(L, os.path.join(tmpDirName, 'octtree_data/LExpansion.txt') )
-    # we need the following line as a workaround for a weave compilation issue
-    # that arises sometimes in FMM_precond.py, when not all the weave modules have been compiled
     writeScalarToDisk(params_simu.alphaTranslation_smoothing_factor, os.path.join(tmpDirName, 'octtree_data/alphaTranslation_smoothing_factor.txt') )
     writeScalarToDisk(params_simu.alphaTranslation_thresholdRelValueMax, os.path.join(tmpDirName, 'octtree_data/alphaTranslation_thresholdRelValueMax.txt') )
     writeScalarToDisk(params_simu.alphaTranslation_RelativeCountAboveThreshold, os.path.join(tmpDirName, 'octtree_data/alphaTranslation_RelativeCountAboveThreshold.txt') )

@@ -11,7 +11,6 @@ from scipy import array
 
 def compute_SAIpreconditioner(tmpDirName, C, chunkNumber_to_cubesNumbers, cubeNumber_to_chunkNumber, chunkNumber_to_processNumber, processNumber_to_ChunksNumbers, MAX_BLOCK_SIZE):
     my_id = MPI.COMM_WORLD.Get_rank()
-    num_proc = MPI.COMM_WORLD.Get_size()
     # computation of near interactions matrix
     ELEM_TYPE = 'F'
     Z_TMP_ELEM_TYPE = 'F'
@@ -43,7 +42,6 @@ def compute_SAIpreconditioner(tmpDirName, C, chunkNumber_to_cubesNumbers, cubeNu
 
 
 def compute_SAI(params_simu, simuDirName):
-    num_proc = MPI.COMM_WORLD.Get_size()
     my_id = MPI.COMM_WORLD.Get_rank()
     tmpDirName = os.path.join(simuDirName, 'tmp' + str(my_id))
     pathToReadFrom = os.path.join(tmpDirName, 'Z_tmp')

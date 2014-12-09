@@ -169,6 +169,11 @@ void Level::copyLevel(const Level & levelToCopy) // copy constructor
   MPI_Scatterv_displs.resize(levelToCopy.MPI_Scatterv_displs.size());
   MPI_Scatterv_scounts = levelToCopy.MPI_Scatterv_scounts;
   MPI_Scatterv_displs = levelToCopy.MPI_Scatterv_displs;
+
+  N_theta_per_HZ.resize(levelToCopy.N_theta_per_HZ.size());
+  for (unsigned int i=0; i<N_theta_per_HZ.size(); i++) N_theta_per_HZ[i] = levelToCopy.N_theta_per_HZ[i];
+  N_phi_per_VZ.resize(levelToCopy.N_phi_per_VZ.size());
+  for (unsigned int i=0; i<N_phi_per_VZ.size(); i++) N_phi_per_VZ[i] = levelToCopy.N_phi_per_VZ[i];
 }
 
 Level::Level(const Level& levelToCopy) // copy constructor
@@ -258,6 +263,8 @@ Level::~Level()
   Sdown.free();
   MPI_Scatterv_scounts.free();
   MPI_Scatterv_displs.free();
+  N_theta_per_HZ.clear();
+  N_phi_per_VZ.clear();
 }
 
 void Level::NCubesXYZComputation(const int VERBOSE)
@@ -483,6 +490,7 @@ void Level::alphaTranslationIndexConstructionZ(blitz::Array<int, 1>& newAlphaInd
   }
   else newAlphaIndex = oldAlphaIndex;
 }
+
 void Level::alphaTranslationIndexConstructionY(blitz::Array<int, 1>& newAlphaIndex,
                                                const blitz::Array<int, 1>& oldAlphaIndex,
                                                const int alphaCartesianCoordY,
@@ -507,6 +515,7 @@ void Level::alphaTranslationIndexConstructionY(blitz::Array<int, 1>& newAlphaInd
   }
   else newAlphaIndex = oldAlphaIndex;
 }
+
 void Level::alphaTranslationIndexConstructionX(blitz::Array<int, 1>& newAlphaIndex,
                                                const blitz::Array<int, 1>& oldAlphaIndex,
                                                const int alphaCartesianCoordX,

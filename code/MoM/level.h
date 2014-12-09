@@ -85,6 +85,7 @@ class Level {
     //! tells if we have parallelization by directions (currently only for the ceiling level)
     int DIRECTIONS_PARALLELIZATION;
     blitz::Array<int, 1> MPI_Scatterv_scounts, MPI_Scatterv_displs;
+    std::vector<int> N_theta_per_HZ, N_phi_per_VZ;
 
 //  public:
     // constructors
