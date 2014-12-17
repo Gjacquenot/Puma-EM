@@ -31,7 +31,6 @@ class Octtree {
     int VERBOSE;
     int N_GaussOnTriangle;
     int DIRECTIONS_PARALLELIZATION, N_levels, ALLOW_CEILING_LEVEL;
-    int Ntheta_zones, Nphi_zones;
     std::complex<double> k;
     std::complex<float> eps_r;
     std::complex<float> mu_r;
@@ -78,6 +77,7 @@ class Octtree {
     void assignCubesToProcessors(const int /*num_procs*/, const int /*CUBES_DISTRIBUTION*/);
     void writeAssignedLeafCubesToDisk(const string /*path*/, const string /*filename*/);
     void updateSup(const blitz::Array<std::complex<float>, 1>&); // coefficients of RWG functions
+    void alphaTranslations(void);
     void exchangeSupsIndividually(blitz::Array< blitz::Array<std::complex<float>, 2>, 1>& /*SupThisLevel*/, const int /*l*/, const vector<int> & /*localCubesIndexes*/);
     void exchangeSupsInBlocks(blitz::Array< blitz::Array<std::complex<float>, 2>, 1>& /*SupThisLevel*/, const int /*l*/, const vector<int> & /*localCubesIndexes*/);
     void ZIFarComputation(blitz::Array<std::complex<float>, 1>& /*ZI*/, // result of matrix-vector multiplication

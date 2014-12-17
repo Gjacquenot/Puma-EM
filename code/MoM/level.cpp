@@ -169,11 +169,6 @@ void Level::copyLevel(const Level & levelToCopy) // copy constructor
   MPI_Scatterv_displs.resize(levelToCopy.MPI_Scatterv_displs.size());
   MPI_Scatterv_scounts = levelToCopy.MPI_Scatterv_scounts;
   MPI_Scatterv_displs = levelToCopy.MPI_Scatterv_displs;
-
-  N_theta_per_HZ.resize(levelToCopy.N_theta_per_HZ.size());
-  for (unsigned int i=0; i<N_theta_per_HZ.size(); i++) N_theta_per_HZ[i] = levelToCopy.N_theta_per_HZ[i];
-  N_phi_per_VZ.resize(levelToCopy.N_phi_per_VZ.size());
-  for (unsigned int i=0; i<N_phi_per_VZ.size(); i++) N_phi_per_VZ[i] = levelToCopy.N_phi_per_VZ[i];
 }
 
 Level::Level(const Level& levelToCopy) // copy constructor
@@ -263,8 +258,6 @@ Level::~Level()
   Sdown.free();
   MPI_Scatterv_scounts.free();
   MPI_Scatterv_displs.free();
-  N_theta_per_HZ.clear();
-  N_phi_per_VZ.clear();
 }
 
 void Level::NCubesXYZComputation(const int VERBOSE)
@@ -303,12 +296,12 @@ void Level::alphaTranslationsComputation(const int VERBOSE,
                                          const float alphaTranslation_thresholdRelValueMax,
                                          const float alphaTranslation_RelativeCountAboveThreshold)
 {
-  Range all = Range::all();
+  blitz::Range all = blitz::Range::all();
   const int translationOrder = getN(), NThetas = getNThetas(), NPhis = getNPhis();
+  const int translationOrder_prime = static_cast<int>(ceil(translationOrder * alphaTranslation_smoothing_factor));
   const double lambda = static_cast<double>(2.0*M_PI/abs(getK()));
-  int translationOrder_prime = static_cast<int>(ceil(translationOrder * alphaTranslation_smoothing_factor));
-  const float cutting_coefficient = alphaTranslation_thresholdRelValueMax;
-  int my_id = MPI::COMM_WORLD.Get_rank();
+
+  const int my_id = MPI::COMM_WORLD.Get_rank();
   int Nx = (this->getCeiling()) ? NCubesX : min(NCubesX, 4);
   int Ny = (this->getCeiling()) ? NCubesY : min(NCubesY, 4);
   int Nz = (this->getCeiling()) ? NCubesZ : min(NCubesZ, 4);
@@ -328,7 +321,7 @@ void Level::alphaTranslationsComputation(const int VERBOSE,
       weightsThetasPhis_all_directions(i + j*NThetas) = weightsThetas(i) * weightsPhis(j);
     }
   }
-  int N_directions, N_total_directions = NThetas * NPhis;
+  int N_directions;
   if ( this->DIRECTIONS_PARALLELIZATION==1 ) {
     N_directions = this->MPI_Scatterv_scounts(my_id);
     thetasPhis.resize(N_directions, 2);
@@ -340,7 +333,7 @@ void Level::alphaTranslationsComputation(const int VERBOSE,
     }
   }
   else {
-    N_directions = N_total_directions;
+    N_directions = NThetas * NPhis;
     thetasPhis.resize(N_directions, 2);
     thetasPhis = thetasPhis_all_directions;
     weightsThetasPhis.resize(N_directions);
@@ -352,8 +345,7 @@ void Level::alphaTranslationsComputation(const int VERBOSE,
   this->alphaTranslations.resize(Nx, Ny, Nz);
   this->alphaTranslationsIndexesNonZeros.resize(Nx, Ny, Nz);
   blitz::Array<std::complex<float>, 1> alpha(N_directions);
-  //blitz::Array<std::complex<float>, 1> alpha_all_directions(N_total_directions);
-  blitz::Array<int, 1> isAlphaNonZero(N_total_directions);
+  blitz::Array<int, 1> isAlphaNonZero(N_directions);
   if ( (my_id==0) && (VERBOSE==1) ) {
     cout << "\n    Process " << my_id << ", Level " << this->level << " alpha translations computation" << endl;
     cout << "    alpha.shape() = " << Nx << ", " << Ny << ", " << Nz << ", " << N_directions << endl;
@@ -381,7 +373,7 @@ void Level::alphaTranslationsComputation(const int VERBOSE,
           if ( this->DIRECTIONS_PARALLELIZATION==1 ) MPI_Allreduce(&max_abs_alpha_local, &max_abs_alpha, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
           int countNonZeroLocal = 0, countNonZero;
           for (unsigned int kkk=0 ; kkk<alpha.size() ; ++kkk) {
-            if (abs(alpha(kkk)) >= cutting_coefficient * max_abs_alpha) {
+            if (abs(alpha(kkk)) >= alphaTranslation_thresholdRelValueMax * max_abs_alpha) {
               countNonZeroLocal++;
               isAlphaNonZero(kkk) = 1;
             }
@@ -393,8 +385,8 @@ void Level::alphaTranslationsComputation(const int VERBOSE,
           /* To be erased */
           countNonZero = countNonZeroLocal;
           if ( this->DIRECTIONS_PARALLELIZATION==1 ) MPI_Allreduce(&countNonZeroLocal, &countNonZero, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
-          if (countNonZero * 1.0/N_total_directions < alphaTranslation_RelativeCountAboveThreshold) {
-            if ((my_id==0) && (this->cubeSideLength>= 16.0*lambda) && (VERBOSE==1) ) cout << "level " << this->getLevel() << ", cube side length = " << this->cubeSideLength/lambda << " lambdas, rel. count for r_mn = [" << r_mn[0]/this->cubeSideLength << ", " << r_mn[1]/this->cubeSideLength << ", " << r_mn[2]/this->cubeSideLength << "] is = " << countNonZero * 100.0/N_total_directions << endl;
+          if (countNonZero * 1.0/(NThetas * NPhis) < alphaTranslation_RelativeCountAboveThreshold) {
+            if ((my_id==0) && (this->cubeSideLength>= 16.0*lambda) && (VERBOSE==1) ) cout << "level " << this->getLevel() << ", cube side length = " << this->cubeSideLength/lambda << " lambdas, rel. count for r_mn = [" << r_mn[0]/this->cubeSideLength << ", " << r_mn[1]/this->cubeSideLength << ", " << r_mn[2]/this->cubeSideLength << "] is = " << countNonZero * 100.0/(NThetas * NPhis) << endl;
             flush(cout);
             this->alphaTranslations(x, y, z).resize(countNonZeroLocal);
             this->alphaTranslationsIndexesNonZeros(x, y, z).resize(countNonZeroLocal);
@@ -427,11 +419,10 @@ void Level::alphaTranslationsComputation(const int VERBOSE,
   // in less computation time and less memory consumption for exactly the
   // same precision.
   if (this->DIRECTIONS_PARALLELIZATION!=1) {
-    N_directions = NThetas * NPhis;
-    alphaTranslationsIndexes.resize(2, 2, 2, N_directions);
+    alphaTranslationsIndexes.resize(2, 2, 2, NThetas * NPhis);
     // if r_p < 0, then corresponding index in alphaTranslationsIndexes is 0.
     // for example, only r_y < 0: coordinates in alphaTranslationsIndexes are: (1, 0, 1)
-    blitz::Array<int, 1> oldAlphaIndex(N_directions), newAlphaIndexZ(N_directions), newAlphaIndexY(N_directions), newAlphaIndexX(N_directions);
+    blitz::Array<int, 1> oldAlphaIndex(NThetas * NPhis), newAlphaIndexZ(NThetas * NPhis), newAlphaIndexY(NThetas * NPhis), newAlphaIndexX(NThetas * NPhis);
     for (int i=0; i<NThetas; ++i) {
       for (int j=0; j<NPhis; ++j) {
         const int index = i + j*NThetas;
@@ -638,14 +629,6 @@ void Level::printCubesRWG_numbers(void)
     for (unsigned int i=0 ; i<cubes[j].RWG_numbers.size() ; ++i) cout << cubes[j].RWG_numbers[i] << ", ";
     cout << endl;
   }
-}
-
-void Level::printThetaPhi(void) 
-{
-  cout << "thetas = " << thetas << endl;
-  cout << "weightsThetas = " << weightsThetas << endl;
-  cout << "phis = " << phis << endl;
-  cout << "weightsPhis = " << weightsPhis << endl;
 }
 
 void Level::updateFatherIndexes(const Level& fatherLevel)

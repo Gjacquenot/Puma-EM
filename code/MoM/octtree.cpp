@@ -36,9 +36,6 @@ Octtree::Octtree(const string octtree_data_path, const blitz::Array<double, 2>& 
   if ( (proc_id==0) && (VERBOSE==1) ) cout << "ALLOW_CEILING_LEVEL = " << ALLOW_CEILING_LEVEL << endl;
   readIntFromASCIIFile(octtree_data_path + "DIRECTIONS_PARALLELIZATION.txt", DIRECTIONS_PARALLELIZATION);
   if ( (proc_id==0) && (VERBOSE==1) ) cout << "DIRECTIONS_PARALLELIZATION = " << DIRECTIONS_PARALLELIZATION << endl;
-  readIntFromASCIIFile(octtree_data_path + "Ntheta_zones.txt", Ntheta_zones);
-  readIntFromASCIIFile(octtree_data_path + "Nphi_zones.txt", Nphi_zones);
-  if ( (proc_id==0) && (VERBOSE==1) ) cout << "Ntheta_zones, Nphi_zones = " << Ntheta_zones << ", " << Nphi_zones << endl;
   readIntFromASCIIFile(octtree_data_path + "N_GaussOnTriangle.txt", N_GaussOnTriangle);
   if ( (proc_id==0) && (VERBOSE==1) ) cout << "N_GaussOnTriangle = " << N_GaussOnTriangle << endl;
 
@@ -233,15 +230,6 @@ void Octtree::assignCubesToProcessors(const int num_procs, const int CUBES_DISTR
       levels[L].MPI_Scatterv_displs(i) = displacement;
       displacement += levels[L].MPI_Scatterv_scounts(i);
     }
-    // computation of the distribution of the directions among the processes
-    levels[L].N_theta_per_HZ.resize(this->Ntheta_zones);
-    levels[L].N_phi_per_VZ.resize(this->Nphi_zones);
-    for (int i=0; i<this->Ntheta_zones; i++) levels[L].N_theta_per_HZ[i] = levels[L].thetas.size()/this->Ntheta_zones;
-    for (int i=0; i<this->Nphi_zones; i++) levels[L].N_phi_per_VZ[i] = levels[L].phis.size()/this->Nphi_zones;
-    const int remaining_thetas = levels[L].thetas.size()%this->Ntheta_zones;
-    for (int i=0; i<remaining_thetas; i++) levels[L].N_theta_per_HZ[i] += 1;
-    const int remaining_phis = levels[L].phis.size()%this->Nphi_zones;
-    for (int i=0; i<remaining_phis; i++) levels[L].N_phi_per_VZ[i] += 1;
     // assignment of top level cubes to all processes because DIRECTIONS_PARALLELIZATION==1
     NCubes = levels[L].getLevelSize();
     for (int i=0 ; i<NCubes ; ++i) levels[L].cubes[i].procNumber = -1; // -1 means cube belongs to all processes
@@ -251,13 +239,6 @@ void Octtree::assignCubesToProcessors(const int num_procs, const int CUBES_DISTR
       cout << "Process " << my_id << ". The sharing of directions between processes is as follows:" << endl; 
       cout << "Process " << my_id << "    levels[L].MPI_Scatterv_scounts = " << levels[L].MPI_Scatterv_scounts << endl;
       cout << "Process " << my_id << "    levels[L].MPI_Scatterv_displs = "<< levels[L].MPI_Scatterv_displs << endl;
-      cout << "Process " << my_id << ". The future sharing of directions between processes is as follows:" << endl; 
-      cout << "  Number of Thetas per horizontal zone (" << this->Ntheta_zones << " zones) : [ ";
-      for (int i=0; i<this->Ntheta_zones; i++) cout << levels[L].N_theta_per_HZ[i] << " ";
-      cout << "]" << endl;
-      cout << "  Number of phis per vertical zone (" << this->Nphi_zones << " zones) : [ ";
-      for (int i=0; i<this->Nphi_zones; i++) cout << levels[L].N_phi_per_VZ[i] << " ";
-      cout << "]" << endl;
     }
     L = L-1;
   }
@@ -387,8 +368,6 @@ void Octtree::copyOcttree(const Octtree& octtreeTocopy) /// copy constructor
   octtreeDataPath = octtreeTocopy.octtreeDataPath;
   int NLevels = octtreeTocopy.getLevelsSize();
   cout << "The number of Levels is " << NLevels << endl;
-  Ntheta_zones = octtreeTocopy.Ntheta_zones;
-  Nphi_zones = octtreeTocopy.Nphi_zones;
   levels.resize(NLevels);
   for (int j=0 ; j<NLevels ; j++) levels[j].copyLevel(octtreeTocopy.getLevel(j));
   for (int i=0 ; i<3 ; i++) big_cube_lower_coord[i] = octtreeTocopy.big_cube_lower_coord[i];
@@ -772,7 +751,12 @@ void Octtree::updateSup(const blitz::Array<std::complex<float>, 1>& I_PQ) /// co
       }
     }
   }
+}
+
+void Octtree::alphaTranslations(void)
+{
   // now the translation stage!!!
+  const int my_id = this->getProcNumber();
   if (this->getProcNumber()==0) cout << "alpha Translations..."; flush(cout);
   for (int l=0 ; l<N_levels ; ++l) {
     std::vector<int> localCubesIndexes(levels[l].getLocalCubesIndexes());
@@ -933,7 +917,8 @@ void Octtree::ZIFarComputation(blitz::Array<std::complex<float>, 1>& ZI, /// res
 {
   // update of all the Sup of the tree
   blitz::Range all = blitz::Range::all();
-  updateSup(I_PQ);
+  this->updateSup(I_PQ);
+  this->alphaTranslations();
   if (this->getProcNumber()==0) cout << "tree descent"; flush(cout);
   const int N_levels = levels.size(), L = N_levels-1;
   int my_id = getProcNumber(), thisLevel = L;

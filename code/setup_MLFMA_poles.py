@@ -107,13 +107,13 @@ def computeTreeParameters(my_id, tmpDirName, a, k, N_levels, params_simu):
     NOrderInterpTheta = L[0]
     NOrderInterpPhi = L[0]
     # number of zones per theta
-    num_proc = MPI.COMM_WORLD.Get_size()
-    Ntheta_zones, Nphi_zones = directions_zones_calculation(num_proc)
+    #num_proc = MPI.COMM_WORLD.Get_size()
+    #Ntheta_zones, Nphi_zones = directions_zones_calculation(num_proc)
     # now we write the info to disk
     writeScalarToDisk(NOrderInterpTheta, os.path.join(tmpDirName, 'octtree_data/NOrderInterpTheta.txt') )
     writeScalarToDisk(NOrderInterpPhi, os.path.join(tmpDirName, 'octtree_data/NOrderInterpPhi.txt') )
-    writeScalarToDisk(Ntheta_zones, os.path.join(tmpDirName, 'octtree_data/Ntheta_zones.txt') )
-    writeScalarToDisk(Nphi_zones, os.path.join(tmpDirName, 'octtree_data/Nphi_zones.txt') )
+    #writeScalarToDisk(Ntheta_zones, os.path.join(tmpDirName, 'octtree_data/Ntheta_zones.txt') )
+    #writeScalarToDisk(Nphi_zones, os.path.join(tmpDirName, 'octtree_data/Nphi_zones.txt') )
     writeASCIIBlitzArrayToDisk(L, os.path.join(tmpDirName, 'octtree_data/LExpansion.txt') )
     writeScalarToDisk(params_simu.alphaTranslation_smoothing_factor, os.path.join(tmpDirName, 'octtree_data/alphaTranslation_smoothing_factor.txt') )
     writeScalarToDisk(params_simu.alphaTranslation_thresholdRelValueMax, os.path.join(tmpDirName, 'octtree_data/alphaTranslation_thresholdRelValueMax.txt') )
@@ -174,7 +174,6 @@ def computeTreeParameters(my_id, tmpDirName, a, k, N_levels, params_simu):
     MPI.COMM_WORLD.Barrier()
 
 if __name__=='__main__':
-    my_id = MPI.COMM_WORLD.Get_rank()
     parser = argparse.ArgumentParser(description='...')
     parser.add_argument('--inputdir')
     parser.add_argument('--simudir')
