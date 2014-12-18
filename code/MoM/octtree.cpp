@@ -220,13 +220,15 @@ void Octtree::assignCubesToProcessors(const int num_procs, const int CUBES_DISTR
     const int NUMBER_PARALLELIZED_LEVELS = static_cast<int>(round(N_levels/3.0));
     levels[L].DIRECTIONS_PARALLELIZATION = 1;
     // computation of the MPI_Scatterv_scounts / MPI_Scatterv_displs
+    std::vector<int> N_phi_per_process(num_procs);
+    for (int i=0; i<num_procs; i++) N_phi_per_process[i] = levels[L].phis.size()/num_procs;
+    const int remaining_phis = levels[L].phis.size()%num_procs;
+    for (int i=0; i<remaining_phis; i++) N_phi_per_process[i] += 1;
     levels[L].MPI_Scatterv_scounts.resize(num_procs);
     levels[L].MPI_Scatterv_displs.resize(num_procs);
-    const int N_directions = levels[L].thetas.size() * levels[L].phis.size();
     int displacement = 0;
     for (int i=0 ; i<num_procs ; ++i) {
-      if (i<num_procs-1) levels[L].MPI_Scatterv_scounts(i) = N_directions/num_procs;
-      else levels[L].MPI_Scatterv_scounts(i) = N_directions - displacement;
+      levels[L].MPI_Scatterv_scounts(i) = N_phi_per_process[i] * levels[L].thetas.size();
       levels[L].MPI_Scatterv_displs(i) = displacement;
       displacement += levels[L].MPI_Scatterv_scounts(i);
     }
@@ -235,10 +237,12 @@ void Octtree::assignCubesToProcessors(const int num_procs, const int CUBES_DISTR
     for (int i=0 ; i<NCubes ; ++i) levels[L].cubes[i].procNumber = -1; // -1 means cube belongs to all processes
     if ( (my_id==0) && (VERBOSE==1) ) {
       cout << "Process " << my_id << ". The total number of parallelized levels is " << NUMBER_PARALLELIZED_LEVELS << endl;
-      cout << "Process " << my_id << ". The total number of directions at level " << levels[L].getLevel() << " is N_directions = " << sum(levels[L].MPI_Scatterv_scounts) << endl;
+      cout << "Process " << my_id << ". The sharing of phi strips between processes at level " << levels[L].getLevel() << " is as follows:" << endl;
+      cout << "Process " << my_id << "    N_phi_per_process = [";
+      for (int i=0; i<num_procs; i++) cout << " " << N_phi_per_process[i];
+      cout << " ]" << endl;
       cout << "Process " << my_id << ". The sharing of directions between processes is as follows:" << endl; 
       cout << "Process " << my_id << "    levels[L].MPI_Scatterv_scounts = " << levels[L].MPI_Scatterv_scounts << endl;
-      cout << "Process " << my_id << "    levels[L].MPI_Scatterv_displs = "<< levels[L].MPI_Scatterv_displs << endl;
     }
     L = L-1;
   }
