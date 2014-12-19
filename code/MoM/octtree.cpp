@@ -437,7 +437,7 @@ void Octtree::findAlphaTransParticipantsIndexes(const int l)
   if (l==N_levels-1) { // if we are at the ceiling level
     for (int i=0; i<N_local_cubes; ++i) { // loop on the local cubes
       int indexLocalCube = localCubesIndexes[i];
-      std::vector<int> localAlphaTransParticipantsIndexes, nonLocalAlphaTransParticipantsIndexes, nonLocalAlphaTransParticipantsProcNumbers;
+      std::vector<int> localAlphaTransParticipantsIndexes, nonLocalAlphaTransParticipantsIndexes;
       for (int j=0; j<N_cubes; ++j) { // loop on all the cubes (because ceiling level)
         const float * diffAbsCartCoord_1(levels[l].cubes[indexLocalCube].absoluteCartesianCoord); 
         const float * diffAbsCartCoord_2(levels[l].cubes[j].absoluteCartesianCoord);
@@ -450,7 +450,6 @@ void Octtree::findAlphaTransParticipantsIndexes(const int l)
             localAlphaTransParticipantsIndexes.push_back(j);
           else { // the alphaTransPArticipant is not local
             nonLocalAlphaTransParticipantsIndexes.push_back(j);
-            nonLocalAlphaTransParticipantsProcNumbers.push_back(j);
             listOfFcToBeReceivedTmp[levels[l].cubes[j].getProcNumber()].push_back(j);
             listOfFcToBeSentTmp[levels[l].cubes[j].getProcNumber()].push_back(indexLocalCube);
             N_to_send++;
@@ -468,7 +467,7 @@ void Octtree::findAlphaTransParticipantsIndexes(const int l)
   else { // for the NON-CEILING level
     for (int i=0; i<N_local_cubes; ++i) {
       int indexLocalCube = localCubesIndexes[i];
-      std::vector<int> localAlphaTransParticipantsIndexes, nonLocalAlphaTransParticipantsIndexes, nonLocalAlphaTransParticipantsProcNumbers;
+      std::vector<int> localAlphaTransParticipantsIndexes, nonLocalAlphaTransParticipantsIndexes;
       const std::vector<int> possibleIndexes(getNeighborsSonsIndexes(levels[l].cubes[indexLocalCube].getFatherIndex(), l+1));
       for (unsigned int j=0; j<possibleIndexes.size(); j++) {// possible indexes of the alpha trans participants
         const int possibleIndex = possibleIndexes[j];
@@ -483,7 +482,6 @@ void Octtree::findAlphaTransParticipantsIndexes(const int l)
             localAlphaTransParticipantsIndexes.push_back(possibleIndex);
           else { // the alphaTransPArticipant is not local
             nonLocalAlphaTransParticipantsIndexes.push_back(possibleIndex);
-            nonLocalAlphaTransParticipantsProcNumbers.push_back(levels[l].cubes[possibleIndex].getProcNumber());
             listOfFcToBeReceivedTmp[levels[l].cubes[possibleIndex].getProcNumber()].push_back(possibleIndex);
             listOfFcToBeSentTmp[levels[l].cubes[possibleIndex].getProcNumber()].push_back(indexLocalCube);
             N_to_send++;
