@@ -78,6 +78,8 @@ def createChunkDirs(ZprocessNumber_to_ChunksNumbers, tmpDirName, my_id):
         os.mkdir(pathToSaveToChunk)
 
 def distribute_Chunks(params_simu, simuDirName):
+    Wall_t0 = time.time()
+    CPU_t0 = time.clock()
     num_procs = MPI.COMM_WORLD.Get_size()
     my_id = MPI.COMM_WORLD.Get_rank()
     tmpDirName = os.path.join(simuDirName, 'tmp' + str(my_id))
@@ -123,6 +125,11 @@ def distribute_Chunks(params_simu, simuDirName):
     variables['cubeNumber_to_chunkNumber'] = cubeNumber_to_chunkNumber
     variables['chunkNumber_to_processNumber'] = chunkNumber_to_processNumber
     variables['processNumber_to_ChunksNumbers'] = processNumber_to_ChunksNumbers
+    CPU_time_distribute_ZChunks_and_cubes = time.clock() - CPU_t0
+    Wall_time_distribute_ZChunks_and_cubes = time.time() - Wall_t0
+    variables['Wall_time_distribute_ZChunks_and_cubes'] = Wall_time_distribute_ZChunks_and_cubes
+    variables['CPU_time_distribute_ZChunks_and_cubes'] = CPU_time_distribute_ZChunks_and_cubes
+
     file = open(os.path.join(tmpDirName, 'pickle', 'variables.txt'), 'wb')
     cPickle.dump(variables, file)
     file.close()
@@ -139,12 +146,7 @@ if __name__=='__main__':
     sys.path.append(os.path.abspath(inputDirName))
     exec('from ' + simuParams + ' import *')
     if (params_simu.MONOSTATIC_RCS==1) or (params_simu.MONOSTATIC_SAR==1) or (params_simu.BISTATIC==1):
-        my_id = MPI.COMM_WORLD.Get_rank()
-        CPU_time, Wall_time = time.clock(), time.time()
         distribute_Chunks(params_simu, simuDirName)
-        CPU_time, Wall_time = time.clock() - CPU_time, time.time() - Wall_time
-        print("Process " + str(my_id) + " chunks numbers distribution/folders creation: CPU time = " + str(CPU_time) + " sec")
-        print("Process " + str(my_id) + " chunks numbers distribution/folders creation: Wall time = " + str(Wall_time) + " sec")
     else:
         print("you should select monostatic RCS or monostatic SAR or bistatic computation, or a combination of these computations. Check the simulation settings.")
         sys.exit(1)

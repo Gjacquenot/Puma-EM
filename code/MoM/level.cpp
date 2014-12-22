@@ -299,7 +299,6 @@ void Level::alphaTranslationsComputation(const int VERBOSE,
   blitz::Range all = blitz::Range::all();
   const int translationOrder = getN(), NThetas = getNThetas(), NPhis = getNPhis();
   const int translationOrder_prime = static_cast<int>(ceil(translationOrder * alphaTranslation_smoothing_factor));
-  const double lambda = static_cast<double>(2.0*M_PI/abs(getK()));
 
   const int my_id = MPI::COMM_WORLD.Get_rank();
   int Nx = (this->getCeiling()) ? NCubesX : min(NCubesX, 4);
@@ -386,8 +385,6 @@ void Level::alphaTranslationsComputation(const int VERBOSE,
           countNonZero = countNonZeroLocal;
           if ( this->DIRECTIONS_PARALLELIZATION==1 ) MPI_Allreduce(&countNonZeroLocal, &countNonZero, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
           if (countNonZero * 1.0/(NThetas * NPhis) < alphaTranslation_RelativeCountAboveThreshold) {
-            if ((my_id==0) && (this->cubeSideLength>= 16.0*lambda) && (VERBOSE==1) ) cout << "level " << this->getLevel() << ", cube side length = " << this->cubeSideLength/lambda << " lambdas, rel. count for r_mn = [" << r_mn[0]/this->cubeSideLength << ", " << r_mn[1]/this->cubeSideLength << ", " << r_mn[2]/this->cubeSideLength << "] is = " << countNonZero * 100.0/(NThetas * NPhis) << endl;
-            flush(cout);
             this->alphaTranslations(x, y, z).resize(countNonZeroLocal);
             this->alphaTranslationsIndexesNonZeros(x, y, z).resize(countNonZeroLocal);
             int index = 0;
