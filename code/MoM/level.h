@@ -211,7 +211,6 @@ class Level {
     bool getLeaf(void) const {return leaf;}
     void setCeiling(bool l) {ceiling = l;}
     bool getCeiling(void) const {return ceiling;}
-    void setLevel(int l) {level = l;}
     int getLevel(void) const {return level;}
     //! maxNumberCubes1D = static_cast<int> pow(2.0, level)
     int getMaxNumberCubes1D(void) const {return maxNumberCubes1D;}
@@ -229,9 +228,7 @@ class Level {
     std::complex<double> getK(void) const {return k;}
     void addNode(Cube cube) {cubes.push_back(cube);}
     Cube getCube(const int i) const {return cubes[i];}
-    std::vector<Cube> getCubes(void) const {return cubes;}
     double getCubesSizeMB(void) const {return cubes.size() * (thetas.size()*phis.size()) *  2 * 2.0*4.0/(1024.0*1024.0);}
-    std::vector<int> getCubeNeighbors(const int i) const {return cubes[i].getNeighborsIndexes();}
     std::vector< Dictionary<int, int> > getNumbersToIndexes(void) const {return numbersToIndexes;}
     std::vector<int> getLocalCubesIndexes(void) const {return localCubesIndexes;}
     std::vector< std::vector<int> > getListOfFcToBeReceived(void) const {return listOfFcToBeReceived;}
@@ -298,7 +295,6 @@ class Level {
     void sortNumbersToIndexes(void);
     void printNumbersToIndexes(void);
     void searchCubesNeighborsIndexes(void);
-    void printCubesNeighborsIndexes(void);
     void computeLocalCubesIndexes(const int /*procNumber*/);
 
     void computeSup(blitz::Array<std::complex<float>, 2> & /*Sup*/,

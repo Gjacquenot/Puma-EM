@@ -606,7 +606,7 @@ void Level::printCubesSonsIndexes(void)
   vector<int> sonsIndexes;
   for (j=0 ; j<N ; ++j) {
     cout << "Level " << l << " : sons indexes of cube " << j << " = ";
-    sonsIndexes = getCube(j).getSonsIndexes();
+    sonsIndexes = getCube(j).sonsIndexes;
     for (unsigned int i=0; i<sonsIndexes.size(); ++i) cout << sonsIndexes[i] << " ";
     cout << endl;
   }
@@ -632,7 +632,7 @@ void Level::updateFatherIndexes(const Level& fatherLevel)
 {
   vector<int> sonsIndexes;
   for (int i=0 ; i<fatherLevel.getLevelSize() ; ++i) {
-    sonsIndexes = fatherLevel.getCube(i).getSonsIndexes();
+    sonsIndexes = fatherLevel.getCube(i).sonsIndexes;
     for (unsigned int j=0 ; j<sonsIndexes.size() ; ++j) {
       if (cubes[sonsIndexes[j]].getFatherNumber() != fatherLevel.getCube(i).getNumber()) {
         cout << "Level::updateFatherIndexes: father number in sons and father do not match!" << endl;
@@ -665,16 +665,6 @@ void Level::printNumbersToIndexes(void)
   const int l = getLevel();
   for (int i=0 ; i<N_cubes ; ++i) {
     cout << "Level " << l << " : numbersToIndexes[" << i << "] = " << numbersToIndexes[i].getKey() << ", " << numbersToIndexes[i].getVal() << endl;
-  }
-}
-
-void Level::printCubesNeighborsIndexes(void)
-{
-  int NCubes = getLevelSize(), l = getLevel();
-  for (int j=0 ; j<NCubes ; ++j) {
-    std::cout << "Level " << l << " : neighbors indexes of cube " << j << " = ";
-    for (unsigned int i=0 ; i<getCubeNeighbors(j).size() ; ++i) cout << getCubeNeighbors(j)[i] << ", ";
-    cout << endl;
   }
 }
 
@@ -713,7 +703,7 @@ void Level::searchCubesNeighborsIndexes(void)
 }
 
 int Level::getIndexOfNumber(const int number) const // "numbersToIndexes" must be ordered
-                                                          // this is done in the calling function...
+                                                    // this is done in the calling function...
 {
   int ind_inf, ind_sup, ind_mid, index;
   const int N = getNumbersToIndexesSize();
@@ -744,11 +734,11 @@ void Level::computeLocalCubesIndexes(const int procNumber) {
       if (cubes[j].getProcNumber() == procNumber) localCubesIndexes.push_back(j);
     }
   }
-  vector<int>(localCubesIndexes).swap(localCubesIndexes); // trick for trimming exceeding capacity
+  std::vector<int>(localCubesIndexes).swap(localCubesIndexes); // trick for trimming exceeding capacity
 }
 
 void Level::computeLevelReduction(void) {
-  // this function aims at computing a new level, bookeeping only the 
+  // this function aims at computing a new level, bookkeeping only the 
   // (1) local cubes and (2) cubes whose Fc are to be received, so
   // that the original level can be copied and shrunk to a new level.
   const int NCubes = cubes.size();
@@ -756,12 +746,12 @@ void Level::computeLevelReduction(void) {
   // initialization
   for (int i=0 ; i<NCubes ; ++i) cubesIndexesAfterReduction[i] = i; // this alone is no reduction!
   // now fill-in: we create a temporary list containing all the cubes we wanna keep
-  vector<int> cubesToKeep;
+  std::vector<int> cubesToKeep;
   // first the really local cubes
   for (unsigned int i=0 ; i<localCubesIndexes.size() ; ++i) cubesToKeep.push_back(localCubesIndexes[i]);
   // then those whose Fc's are to be received
   for (unsigned int i=0 ; i<listOfFcToBeReceived.size() ; ++i) {
-    vector<int> tmpList = listOfFcToBeReceived[i];
+    std::vector<int> tmpList = listOfFcToBeReceived[i];
     for (unsigned int j=0 ; j<tmpList.size() ; ++j) {
       cubesToKeep.push_back(tmpList[j]);
     }
@@ -769,7 +759,7 @@ void Level::computeLevelReduction(void) {
   // now sorting
   sort(cubesToKeep.begin(), cubesToKeep.end());
   // now filling the interesting vectors!
-  vector<Cube> newCubes;
+  std::vector<Cube> newCubes;
   newCubes.resize(cubesToKeep.size());
   int newIndex = 0;
   for (unsigned int i=0 ; i<cubesToKeep.size() ; ++i) {

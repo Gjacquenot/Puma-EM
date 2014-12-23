@@ -45,7 +45,7 @@ Cube::Cube(const Cube& sonCube,
   for (int i=0; i<3; i++) sonCartesianCoordInFathers[i] = floor( (sonCube.rCenter[i] - bigCubeLowerCoord[i]) / sideLength );
   for (int i=0; i<3; i++) rCenter[i] = bigCubeLowerCoord[i] + sonCartesianCoordInFathers[i] * sideLength + sideLength/2.0;
   // we compute the absolute cartesian coordinates
-  for (int i=0 ; i<3 ; ++i) absoluteCartesianCoord[i] = floor( (rCenter[i]-bigCubeLowerCoord[i])/sideLength );
+  for (int i=0; i<3; i++) absoluteCartesianCoord[i] = floor( (rCenter[i]-bigCubeLowerCoord[i])/sideLength );
 
   // we compute the number of the father of _this_ cube
   // (i.e. grandfather of sonCube)
@@ -132,7 +132,6 @@ void Cube::computeGaussLocatedArguments(const blitz::Array<int, 1>& local_RWG_nu
       exit(1);
     }
   } 
-
   // construction of triangle_GaussCoord
   triangle_GaussCoord.resize(T, N_Gauss*3);
   triangle_nHat.resize(T, 3);
@@ -225,7 +224,6 @@ void Cube::computeGaussLocatedArguments(const blitz::Array<int, 1>& local_RWG_nu
   }
 }
 
-
 void Cube::copyCube(const Cube& cubeToCopy) // copy member function
 {
   number = cubeToCopy.getNumber();
@@ -233,33 +231,22 @@ void Cube::copyCube(const Cube& cubeToCopy) // copy member function
   oldIndex = cubeToCopy.getOldIndex();
   procNumber = cubeToCopy.getProcNumber();
   fatherNumber = cubeToCopy.getFatherNumber();
-  fatherProcNumber = cubeToCopy.getFatherProcNumber();
   fatherIndex = cubeToCopy.getFatherIndex();
-  sonsIndexes = cubeToCopy.getSonsIndexes();
-  sonsProcNumbers = cubeToCopy.getSonsProcNumbers();
-  neighborsIndexes.resize(cubeToCopy.neighborsIndexes.size());
+  fatherProcNumber = cubeToCopy.fatherProcNumber;
+  sonsIndexes = cubeToCopy.sonsIndexes;
+  sonsProcNumbers = cubeToCopy.sonsProcNumbers;
   neighborsIndexes = cubeToCopy.neighborsIndexes;
-  localAlphaTransParticipantsIndexes.resize(cubeToCopy.localAlphaTransParticipantsIndexes.size());
   localAlphaTransParticipantsIndexes = cubeToCopy.localAlphaTransParticipantsIndexes;
-  nonLocalAlphaTransParticipantsIndexes.resize(cubeToCopy.nonLocalAlphaTransParticipantsIndexes.size());
   nonLocalAlphaTransParticipantsIndexes = cubeToCopy.nonLocalAlphaTransParticipantsIndexes;
   for (int i=0; i<3; i++) rCenter[i] = cubeToCopy.rCenter[i];
   for (int i=0; i<3; i++) absoluteCartesianCoord[i] = cubeToCopy.absoluteCartesianCoord[i];
-  RWG_numbers.resize(cubeToCopy.RWG_numbers.size());
   RWG_numbers = cubeToCopy.RWG_numbers;
-  RWG_numbers_CFIE_OK.resize(cubeToCopy.RWG_numbers_CFIE_OK.size());
   RWG_numbers_CFIE_OK = cubeToCopy.RWG_numbers_CFIE_OK;
-  // resize
-  Triangle_numberOfRWGs.resize(cubeToCopy.Triangle_numberOfRWGs.size());
-  TriangleToRWGindex.resize(cubeToCopy.TriangleToRWGindex.size());
-  TriangleToRWGweight.resize(cubeToCopy.TriangleToRWGweight.size());
-  TriangleToRWG_ropp.resize(cubeToCopy.TriangleToRWG_ropp.size());
   // copy
   Triangle_numberOfRWGs = cubeToCopy.Triangle_numberOfRWGs;
   TriangleToRWGindex = cubeToCopy.TriangleToRWGindex;
   TriangleToRWGweight = cubeToCopy.TriangleToRWGweight;
   TriangleToRWG_ropp = cubeToCopy.TriangleToRWG_ropp;
-
   // JPA : shape est plus propre que de le faire dans les 2 dimensions separement
   triangle_GaussCoord.resize(cubeToCopy.triangle_GaussCoord.shape());
   triangle_nHat.resize(cubeToCopy.triangle_nHat.shape());
@@ -301,7 +288,6 @@ void Cube::addSon(const Cube& sonCube)
     exit(1);
   }
 }
-
 
 bool Cube::operator== (const Cube & right) const {
   if ( this->getFatherNumber() == right.getFatherNumber() ) return 1;

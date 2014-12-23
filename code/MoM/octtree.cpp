@@ -202,7 +202,7 @@ Octtree::Octtree(const string octtree_data_path, const blitz::Array<double, 2>& 
     for (int j=0 ; j<N_levels ; j++) levels[j].computeLocalCubesIndexes(this->getProcNumber());
     // alpha translations 
     if ( (proc_id==0) && (VERBOSE==1) ) cout << "Searching the indexes of the possible cubes for alpha translations.........." << endl;
-    for (int l=0; l<N_levels; l++) findAlphaTransParticipantsIndexes(l);
+    for (int l=0; l<N_levels; l++) this->findAlphaTransParticipantsIndexes(l);
     // level reduction computation...
     for (int j=0 ; j<N_levels ; j++) levels[j].computeLevelReduction();
   }
@@ -263,7 +263,7 @@ void Octtree::assignCubesToProcessors(const int num_procs, const int CUBES_DISTR
   if ( (this->DIRECTIONS_PARALLELIZATION==1)&&(CUBES_DISTRIBUTION==0) ) {
     NCubes = levels[L+1].getLevelSize();
     for (int i=0 ; i<NCubes ; ++i) {
-      std::vector<int> sonsIndexes = levels[L+1].cubes[i].getSonsIndexes();
+      std::vector<int> sonsIndexes = levels[L+1].cubes[i].sonsIndexes;
       const int N_sons = sonsIndexes.size();
       levels[L+1].cubes[i].sonsProcNumbers.resize(N_sons);
       for (int j=0 ; j<N_sons ; j++) {
@@ -277,7 +277,7 @@ void Octtree::assignCubesToProcessors(const int num_procs, const int CUBES_DISTR
   for (int l=L ; l>0 ; l--) { // we go down the levels
     NCubes = levels[l].getLevelSize();
     for (int i=0 ; i<NCubes ; ++i) {
-      std::vector<int> sonsIndexes = levels[l].cubes[i].getSonsIndexes();
+      std::vector<int> sonsIndexes = levels[l].cubes[i].sonsIndexes;
       const int N_sons = sonsIndexes.size();
       levels[l].cubes[i].sonsProcNumbers.resize(N_sons);
       for (int j=0 ; j<N_sons ; j++) {
@@ -404,10 +404,10 @@ Octtree::~Octtree()
 std::vector<int> Octtree::getNeighborsSonsIndexes(const int index, const int l) const
 {
   std::vector<int> sonsOfNeighbors, sonsOfNeighborsTmp;
-  const std::vector<int> neighborsIndexes(getCubeLevel(index, l).getNeighborsIndexes());
+  const std::vector<int> neighborsIndexes(getCubeLevel(index, l).neighborsIndexes);
   for (unsigned int m=0 ; m<neighborsIndexes.size() ; ++m)
   {
-    sonsOfNeighborsTmp = getCubeLevel(neighborsIndexes[m], l).getSonsIndexes();
+    sonsOfNeighborsTmp = getCubeLevel(neighborsIndexes[m], l).sonsIndexes;
     for (unsigned int n=0 ; n<sonsOfNeighborsTmp.size() ; ++n) sonsOfNeighbors.push_back(sonsOfNeighborsTmp[n]);
   }
   return sonsOfNeighbors;
@@ -466,7 +466,7 @@ void Octtree::findAlphaTransParticipantsIndexes(const int l)
   }
   else { // for the NON-CEILING level
     for (int i=0; i<N_local_cubes; ++i) {
-      int indexLocalCube = localCubesIndexes[i];
+      const int indexLocalCube = localCubesIndexes[i];
       std::vector<int> localAlphaTransParticipantsIndexes, nonLocalAlphaTransParticipantsIndexes;
       const std::vector<int> possibleIndexes(getNeighborsSonsIndexes(levels[l].cubes[indexLocalCube].getFatherIndex(), l+1));
       for (unsigned int j=0; j<possibleIndexes.size(); j++) {// possible indexes of the alpha trans participants
@@ -555,105 +555,6 @@ void Octtree::shiftExp(blitz::Array<std::complex<float>, 2> S,
   for (int i=0; i<N; i++) {
     S(0, i) *= shiftingArray(i);  
     S(1, i) *= shiftingArray(i);  
-  }
-}
-
-void Octtree::S2DWeighting(blitz::Array<std::complex<float>, 2> S,
-                           const blitz::Array<float, 1>& Wtheta,
-                           const blitz::Array<float, 1>& Wphi)
-{
-  const int N_theta = Wtheta.size(), N_phi = Wphi.size();
-  for (int i=0 ; i<N_theta ; ++i) {
-    for (int j=0 ; j<N_phi ; ++j) {
-      int index(i + j*N_theta);
-      float W(Wtheta(i) * Wphi(j));
-      S(0, index) *= W;
-      S(1, index) *= W;
-    }
-  }
-}
-
-void Octtree::SupAlphaMultiplication(blitz::Array<std::complex<float>, 2>& SupAlpha,
-                                     const blitz::Array<std::complex<float>, 2>& Sup,
-                                     const blitz::Array<std::complex<float>, 1>& alphaTranslation,
-                                     const blitz::Array<int, 1>& alphaTranslationIndexesNonZeros,
-                                     const blitz::Array<int, 1>& alphaTranslationIndexes,
-                                     const int alphaCartesianCoord[3])
-{
-  if ((abs(alphaCartesianCoord[0]) > 1) || (abs(alphaCartesianCoord[1]) > 1) || (abs(alphaCartesianCoord[2]) > 1)) {
-    if (alphaTranslationIndexesNonZeros.size()==0) {
-      const int N_alpha( alphaTranslationIndexes.size() );
-      for (int i=0 ; i<N_alpha ; ++i) {
-        const int newIndex(alphaTranslationIndexes(i));
-        SupAlpha(0, i) += Sup(0, i) * alphaTranslation(newIndex);
-        SupAlpha(1, i) += Sup(1, i) * alphaTranslation(newIndex);
-      }
-    }
-
-    else {
-      const int N_alpha(alphaTranslationIndexesNonZeros.size());
-      for (int i=0 ; i<N_alpha ; ++i) {
-        const int oldIndex = alphaTranslationIndexesNonZeros(i);
-        const int newIndex = alphaTranslationIndexes(oldIndex);
-        SupAlpha(0, newIndex) += Sup(0, newIndex) * alphaTranslation(i);
-        SupAlpha(1, newIndex) += Sup(1, newIndex) * alphaTranslation(i);
-      }
-    }
-  }
-}
-
-void Octtree::SupAlphaMultiplicationDirections(blitz::Array<std::complex<float>, 2>& SupAlpha,
-                                               const blitz::Array<std::complex<float>, 2>& Sup,
-                                               const blitz::Array<std::complex<float>, 1>& alphaTranslation,
-                                               const blitz::Array<int, 1>& alphaTranslationIndexesNonZeros,
-                                               const int alphaCartesianCoord[3])
-{
-  if ((abs(alphaCartesianCoord[0]) > 1) || (abs(alphaCartesianCoord[1]) > 1) || (abs(alphaCartesianCoord[2]) > 1)) {
-    if ( (alphaTranslationIndexesNonZeros.size()==0) && (Sup.extent(1)==(int)alphaTranslation.size()) ) {
-      const int N_alpha = alphaTranslation.size();
-      for (int i=0 ; i<N_alpha ; ++i) {
-        SupAlpha(0, i) += Sup(0, i) * alphaTranslation(i);
-        SupAlpha(1, i) += Sup(1, i) * alphaTranslation(i);
-      }
-    }
-    else {
-      const int N_alpha(alphaTranslationIndexesNonZeros.size());
-      for (int i=0 ; i<N_alpha ; ++i) {
-        const int index = alphaTranslationIndexesNonZeros(i);
-        SupAlpha(0, index) += Sup(0, index) * alphaTranslation(i);
-        SupAlpha(1, index) += Sup(1, index) * alphaTranslation(i);
-      }
-    }
-  }
-}
-
-void Octtree::alphaTranslationsToCube(blitz::Array<std::complex<float>, 2>& S_tmp,
-                                      const blitz::Array< blitz::Array<std::complex<float>, 2>, 1>& LevelSup,
-                                      const int l,
-                                      const int cubeIndex,
-                                      const std::vector<int>& indexesAlphaParticipants,
-                                      const int DIRECTIONS_PARALLELIZATION)
-{
-  blitz::Range all = blitz::Range::all();
-  const float * cartCoord_1(levels[l].cubes[cubeIndex].absoluteCartesianCoord);
-  S_tmp = 0.0;
-  const int N_part = indexesAlphaParticipants.size();
-  for (int j=0; j<N_part ; ++j) {
-    const int indexParticipant = levels[l].cubesIndexesAfterReduction[indexesAlphaParticipants[j]];
-    const float * cartCoord_2(levels[l].cubes[indexParticipant].absoluteCartesianCoord);
-    const float DRcenters[3] = {cartCoord_1[0]-cartCoord_2[0], cartCoord_1[1]-cartCoord_2[1], cartCoord_1[2]-cartCoord_2[2]};
-    const int alphaCartesianCoord[3] = { static_cast<int>( round(DRcenters[0]) ), static_cast<int>(  round(DRcenters[1]) ), static_cast<int>( round(DRcenters[2]) ) };
-    if (DIRECTIONS_PARALLELIZATION!=1) {
-      const int X = 1 * (alphaCartesianCoord[0]>=0), Y = 1 * (alphaCartesianCoord[1]>=0), Z = 1 * (alphaCartesianCoord[2]>=0);
-      const int m = abs(alphaCartesianCoord[0]), n = abs(alphaCartesianCoord[1]), p = abs(alphaCartesianCoord[2]);
-      SupAlphaMultiplication(S_tmp, LevelSup(indexParticipant), levels[l].alphaTranslations(m,n,p), levels[l].alphaTranslationsIndexesNonZeros(m, n, p), levels[l].alphaTranslationsIndexes(X, Y, Z, all), alphaCartesianCoord);
-    }
-    else {
-      const int m = alphaCartesianCoord[0] + levels[l].getOffsetAlphaIndexX();
-      const int n = alphaCartesianCoord[1] + levels[l].getOffsetAlphaIndexY();
-      const int p = alphaCartesianCoord[2] + levels[l].getOffsetAlphaIndexZ();
-      SupAlphaMultiplicationDirections(S_tmp, LevelSup(indexParticipant), levels[l].alphaTranslations(m,n,p), levels[l].alphaTranslationsIndexesNonZeros(m, n, p), alphaCartesianCoord);
-    }
   }
 }
 
@@ -755,9 +656,91 @@ void Octtree::updateSup(const blitz::Array<std::complex<float>, 1>& I_PQ) /// co
   }
 }
 
-void Octtree::alphaTranslations(void)
+void Octtree::SupAlphaMultiplication(blitz::Array<std::complex<float>, 2>& SupAlpha,
+                                     const blitz::Array<std::complex<float>, 2>& Sup,
+                                     const blitz::Array<std::complex<float>, 1>& alphaTranslation,
+                                     const blitz::Array<int, 1>& alphaTranslationIndexesNonZeros,
+                                     const blitz::Array<int, 1>& alphaTranslationIndexes,
+                                     const int alphaCartesianCoord[3])
 {
-  // now the translation stage!!!
+  if ((abs(alphaCartesianCoord[0]) > 1) || (abs(alphaCartesianCoord[1]) > 1) || (abs(alphaCartesianCoord[2]) > 1)) {
+    if (alphaTranslationIndexesNonZeros.size()==0) {
+      const int N_alpha( alphaTranslationIndexes.size() );
+      for (int i=0 ; i<N_alpha ; ++i) {
+        const int newIndex(alphaTranslationIndexes(i));
+        SupAlpha(0, i) += Sup(0, i) * alphaTranslation(newIndex);
+        SupAlpha(1, i) += Sup(1, i) * alphaTranslation(newIndex);
+      }
+    }
+    else {
+      const int N_alpha(alphaTranslationIndexesNonZeros.size());
+      for (int i=0 ; i<N_alpha ; ++i) {
+        const int oldIndex = alphaTranslationIndexesNonZeros(i);
+        const int newIndex = alphaTranslationIndexes(oldIndex);
+        SupAlpha(0, newIndex) += Sup(0, newIndex) * alphaTranslation(i);
+        SupAlpha(1, newIndex) += Sup(1, newIndex) * alphaTranslation(i);
+      }
+    }
+  }
+}
+
+void Octtree::SupAlphaMultiplicationDirections(blitz::Array<std::complex<float>, 2>& SupAlpha,
+                                               const blitz::Array<std::complex<float>, 2>& Sup,
+                                               const blitz::Array<std::complex<float>, 1>& alphaTranslation,
+                                               const blitz::Array<int, 1>& alphaTranslationIndexesNonZeros,
+                                               const int alphaCartesianCoord[3])
+{
+  if ((abs(alphaCartesianCoord[0]) > 1) || (abs(alphaCartesianCoord[1]) > 1) || (abs(alphaCartesianCoord[2]) > 1)) {
+    if ( (alphaTranslationIndexesNonZeros.size()==0) && (Sup.extent(1)==(int)alphaTranslation.size()) ) {
+      const int N_alpha = alphaTranslation.size();
+      for (int i=0 ; i<N_alpha ; ++i) {
+        SupAlpha(0, i) += Sup(0, i) * alphaTranslation(i);
+        SupAlpha(1, i) += Sup(1, i) * alphaTranslation(i);
+      }
+    }
+    else {
+      const int N_alpha(alphaTranslationIndexesNonZeros.size());
+      for (int i=0 ; i<N_alpha ; ++i) {
+        const int index = alphaTranslationIndexesNonZeros(i);
+        SupAlpha(0, index) += Sup(0, index) * alphaTranslation(i);
+        SupAlpha(1, index) += Sup(1, index) * alphaTranslation(i);
+      }
+    }
+  }
+}
+
+void Octtree::alphaTranslationsToCube(blitz::Array<std::complex<float>, 2>& S_tmp,
+                                      const blitz::Array< blitz::Array<std::complex<float>, 2>, 1>& LevelSup,
+                                      const int l,
+                                      const int cubeIndex,
+                                      const std::vector<int>& indexesAlphaParticipants,
+                                      const int DIRECTIONS_PARALLELIZATION)
+{
+  blitz::Range all = blitz::Range::all();
+  const float * cartCoord_1(levels[l].cubes[cubeIndex].absoluteCartesianCoord);
+  S_tmp = 0.0;
+  const int N_part = indexesAlphaParticipants.size();
+  for (int j=0; j<N_part ; ++j) {
+    const int indexParticipant = levels[l].cubesIndexesAfterReduction[indexesAlphaParticipants[j]];
+    const float * cartCoord_2(levels[l].cubes[indexParticipant].absoluteCartesianCoord);
+    const float DRcenters[3] = {cartCoord_1[0]-cartCoord_2[0], cartCoord_1[1]-cartCoord_2[1], cartCoord_1[2]-cartCoord_2[2]};
+    const int alphaCartesianCoord[3] = { static_cast<int>( round(DRcenters[0]) ), static_cast<int>(  round(DRcenters[1]) ), static_cast<int>( round(DRcenters[2]) ) };
+    if (DIRECTIONS_PARALLELIZATION!=1) {
+      const int X = 1 * (alphaCartesianCoord[0]>=0), Y = 1 * (alphaCartesianCoord[1]>=0), Z = 1 * (alphaCartesianCoord[2]>=0);
+      const int m = abs(alphaCartesianCoord[0]), n = abs(alphaCartesianCoord[1]), p = abs(alphaCartesianCoord[2]);
+      SupAlphaMultiplication(S_tmp, LevelSup(indexParticipant), levels[l].alphaTranslations(m,n,p), levels[l].alphaTranslationsIndexesNonZeros(m, n, p), levels[l].alphaTranslationsIndexes(X, Y, Z, all), alphaCartesianCoord);
+    }
+    else {
+      const int m = alphaCartesianCoord[0] + levels[l].getOffsetAlphaIndexX();
+      const int n = alphaCartesianCoord[1] + levels[l].getOffsetAlphaIndexY();
+      const int p = alphaCartesianCoord[2] + levels[l].getOffsetAlphaIndexZ();
+      SupAlphaMultiplicationDirections(S_tmp, LevelSup(indexParticipant), levels[l].alphaTranslations(m,n,p), levels[l].alphaTranslationsIndexesNonZeros(m, n, p), alphaCartesianCoord);
+    }
+  }
+}
+
+void Octtree::alphaTranslations(void)
+{ // now the translation stage!!!
   const int my_id = this->getProcNumber();
   if (this->getProcNumber()==0) cout << "alpha Translations..."; flush(cout);
   for (int l=0 ; l<N_levels ; ++l) {
@@ -778,11 +761,12 @@ void Octtree::alphaTranslations(void)
     if (levels[l].DIRECTIONS_PARALLELIZATION!=1) {
       if (l<3) exchangeSupsInBlocks(SupThisLevel, l, localCubesIndexes);
       else exchangeSupsIndividually(SupThisLevel, l, localCubesIndexes);
-      // non local alpha translations
+      // Local translations are done in the above two calls, while waiting for communications to finish. 
+      // Hereunder only alpha translations from non-local radiation functions Fc.
       blitz::Array<std::complex<float>, 2> S_tmp(2, N_theta*N_phi);
       for (int i=0 ; i<N_local_cubes ; ++i) {
         int indexLocalCube = levels[l].cubesIndexesAfterReduction[localCubesIndexes[i]];
-        alphaTranslationsToCube(S_tmp, SupThisLevel, l, indexLocalCube, levels[l].cubes[indexLocalCube].getNonLocalAlphaTransParticipantsIndexes(), levels[l].DIRECTIONS_PARALLELIZATION);
+        alphaTranslationsToCube(S_tmp, SupThisLevel, l, indexLocalCube, levels[l].cubes[indexLocalCube].nonLocalAlphaTransParticipantsIndexes, levels[l].DIRECTIONS_PARALLELIZATION);
         levels[l].Sdown(indexLocalCube) += S_tmp;
       }
     }
@@ -790,7 +774,7 @@ void Octtree::alphaTranslations(void)
     else {
       for (int i=0 ; i<N_local_cubes ; ++i) {
         int indexLocalCube = levels[l].cubesIndexesAfterReduction[localCubesIndexes[i]];
-        alphaTranslationsToCube(levels[l].Sdown(indexLocalCube), SupThisLevel, l, indexLocalCube, levels[l].cubes[indexLocalCube].getLocalAlphaTransParticipantsIndexes(), levels[l].DIRECTIONS_PARALLELIZATION);
+        alphaTranslationsToCube(levels[l].Sdown(indexLocalCube), SupThisLevel, l, indexLocalCube, levels[l].cubes[indexLocalCube].localAlphaTransParticipantsIndexes, levels[l].DIRECTIONS_PARALLELIZATION);
       }
     }
     MPI_Barrier(MPI::COMM_WORLD);
@@ -828,11 +812,11 @@ void Octtree::exchangeSupsIndividually(blitz::Array< blitz::Array<std::complex<f
       }
     }
   }
-  // we then perform all the necessary local alpha translations at level l
+  // we then perform all the _local_ alpha translations at level l while waiting for the communication to finish
   const int N_local_cubes = localCubesIndexes.size();
   for (int i=0 ; i<N_local_cubes ; ++i) {
     int indexLocalCube = levels[l].cubesIndexesAfterReduction[localCubesIndexes[i]];
-    alphaTranslationsToCube(levels[l].Sdown(indexLocalCube), SupThisLevel, l, indexLocalCube, levels[l].cubes[indexLocalCube].getLocalAlphaTransParticipantsIndexes(), levels[l].DIRECTIONS_PARALLELIZATION);
+    alphaTranslationsToCube(levels[l].Sdown(indexLocalCube), SupThisLevel, l, indexLocalCube, levels[l].cubes[indexLocalCube].localAlphaTransParticipantsIndexes, levels[l].DIRECTIONS_PARALLELIZATION);
   }
   // wait operation
   for (int i=0 ; i<getTotalNumProcs() ; ++i) {
@@ -884,11 +868,11 @@ void Octtree::exchangeSupsInBlocks(blitz::Array< blitz::Array<std::complex<float
       MPI_Isend(buffToSend(i).data(), BUF_SIZE, MPI::COMPLEX, i, FLAG, MPI::COMM_WORLD, &isend_request[i]);
     }
   }
-  // we then perform all the necessary alpha translations at level l
+  // we then perform all the _local_ alpha translations at level l while waiting for the communication to finish
   const int N_local_cubes = localCubesIndexes.size();
   for (int i=0 ; i<N_local_cubes ; ++i) {
     int indexLocalCube = levels[l].cubesIndexesAfterReduction[localCubesIndexes[i]];
-    alphaTranslationsToCube(levels[l].Sdown(indexLocalCube), SupThisLevel, l, indexLocalCube, levels[l].cubes[indexLocalCube].getLocalAlphaTransParticipantsIndexes(), levels[l].DIRECTIONS_PARALLELIZATION);
+    alphaTranslationsToCube(levels[l].Sdown(indexLocalCube), SupThisLevel, l, indexLocalCube, levels[l].cubes[indexLocalCube].localAlphaTransParticipantsIndexes, levels[l].DIRECTIONS_PARALLELIZATION);
   }
   // wait operation
   for (int i=0 ; i<getTotalNumProcs() ; ++i) {
@@ -955,7 +939,6 @@ void Octtree::ZIFarComputation(blitz::Array<std::complex<float>, 1>& ZI, /// res
     }
     thisLevel--;
   }
-
   // now the descent towards the bottom
   while (thisLevel>0) {
     const int sonLevel = thisLevel-1;
