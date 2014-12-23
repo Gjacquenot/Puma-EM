@@ -35,19 +35,12 @@ if [ $DISTRIB_TYPE = "1" ]; then
 
 elif [ $DISTRIB_TYPE = "2" ]; then
     echo "What is the version of your Ubuntu distribution?"
-    echo "  (1) Ubuntu 13.10"
-    echo "  (2) Ubuntu 14.04"
+    echo "  (1) Ubuntu 14.04"
     echo " "
     echo "Enter the correct number here: "
     read DISTRIB
 
     if [ $DISTRIB = "1" ]; then
-        echo " OK, running install script for Ubuntu 13.10: $DIR_INSTALL_SCRIPTS/UBUNTU_13.10_INSTALL.sh"
-        echo " read the file if you want more info about what will be installed..."
-        cd $DIR_INSTALL_SCRIPTS
-        ./UBUNTU_13.10_INSTALL.sh
-        cd ..
-    elif [ $DISTRIB = "2" ]; then
         echo " OK, running install script for Ubuntu 14.04: $DIR_INSTALL_SCRIPTS/UBUNTU_14.04_INSTALL.sh"
         echo " read the file if you want more info about what will be installed..."
         cd $DIR_INSTALL_SCRIPTS
