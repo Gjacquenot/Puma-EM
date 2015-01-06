@@ -405,14 +405,14 @@ LagrangeFastInterpolator2D::LagrangeFastInterpolator2D(const blitz::Array<float,
 
 LagrangeFastInterpolator2D::LagrangeFastInterpolator2D (const LagrangeFastInterpolator2D & lfi) // copy
 {
-  coefficientsForLinesInterp.resize(lfi.getNCoefficientsForLinesInterp(), lfi.getNOrderCoefficientsForLinesInterp());
-  coefficientsForColumnsInterp.resize(lfi.getNCoefficientsForColumnsInterp(), lfi.getNOrderCoefficientsForColumnsInterp());
-  indexesForLinesInterp.resize(lfi.getNCoefficientsForLinesInterp(), lfi.getNOrderCoefficientsForLinesInterp());
-  indexesForColumnsInterp.resize(lfi.getNCoefficientsForColumnsInterp(), lfi.getNOrderCoefficientsForColumnsInterp());
-  coefficientsForLinesInterp = lfi.getCoefficientsForLinesInterp();
-  coefficientsForColumnsInterp = lfi.getCoefficientsForColumnsInterp();
-  indexesForLinesInterp = lfi.getIndexesForLinesInterp();
-  indexesForColumnsInterp = lfi.getIndexesForColumnsInterp();
+  coefficientsForLinesInterp.resize(lfi.coefficientsForLinesInterp.extent(0), lfi.coefficientsForLinesInterp.extent(1));
+  coefficientsForColumnsInterp.resize(lfi.coefficientsForColumnsInterp.extent(0), lfi.coefficientsForColumnsInterp.extent(1));
+  indexesForLinesInterp.resize(lfi.indexesForLinesInterp.extent(0), lfi.indexesForLinesInterp.extent(1));
+  indexesForColumnsInterp.resize(lfi.indexesForColumnsInterp.extent(0), lfi.indexesForColumnsInterp.extent(1));
+  coefficientsForLinesInterp = lfi.coefficientsForLinesInterp;
+  coefficientsForColumnsInterp = lfi.coefficientsForColumnsInterp;
+  indexesForLinesInterp = lfi.indexesForLinesInterp;
+  indexesForColumnsInterp = lfi.indexesForColumnsInterp;
 }
 
 LagrangeFastInterpolator2D::~LagrangeFastInterpolator2D()
@@ -425,37 +425,33 @@ LagrangeFastInterpolator2D::~LagrangeFastInterpolator2D()
 
 void LagrangeFastInterpolator2D::setLfi2D(const LagrangeFastInterpolator2D & lfi)
 {
-  coefficientsForLinesInterp.resize(lfi.getNCoefficientsForLinesInterp(), lfi.getNOrderCoefficientsForLinesInterp());
-  coefficientsForColumnsInterp.resize(lfi.getNCoefficientsForColumnsInterp(), lfi.getNOrderCoefficientsForColumnsInterp());
-  indexesForLinesInterp.resize(lfi.getNCoefficientsForLinesInterp(), lfi.getNOrderCoefficientsForLinesInterp());
-  indexesForColumnsInterp.resize(lfi.getNCoefficientsForColumnsInterp(), lfi.getNOrderCoefficientsForColumnsInterp());
-  coefficientsForLinesInterp = lfi.getCoefficientsForLinesInterp();
-  coefficientsForColumnsInterp = lfi.getCoefficientsForColumnsInterp();
-  indexesForLinesInterp = lfi.getIndexesForLinesInterp();
-  indexesForColumnsInterp = lfi.getIndexesForColumnsInterp();
+  coefficientsForLinesInterp.resize(lfi.coefficientsForLinesInterp.extent(0), lfi.coefficientsForLinesInterp.extent(1));
+  coefficientsForColumnsInterp.resize(lfi.coefficientsForColumnsInterp.extent(0), lfi.coefficientsForColumnsInterp.extent(1));
+  indexesForLinesInterp.resize(lfi.indexesForLinesInterp.extent(0), lfi.indexesForLinesInterp.extent(1));
+  indexesForColumnsInterp.resize(lfi.indexesForColumnsInterp.extent(0), lfi.indexesForColumnsInterp.extent(1));
+  coefficientsForLinesInterp = lfi.coefficientsForLinesInterp;
+  coefficientsForColumnsInterp = lfi.coefficientsForColumnsInterp;
+  indexesForLinesInterp = lfi.indexesForLinesInterp;
+  indexesForColumnsInterp = lfi.indexesForColumnsInterp;
 }
 
 void interpolate2Dlfi(blitz::Array<std::complex<float>, 1> YInterp,
                       const blitz::Array<std::complex<float>, 1>& Y,
                       const LagrangeFastInterpolator2D& lfi2D)
 {
-  const blitz::Array<float, 2> coefficientsForLinesInterp(lfi2D.getCoefficientsForLinesInterp());
-  const blitz::Array<float, 2> coefficientsForColumnsInterp(lfi2D.getCoefficientsForColumnsInterp());
-  const blitz::Array<int, 2> indexesForLinesInterp(lfi2D.getIndexesForLinesInterp());
-  const blitz::Array<int, 2> indexesForColumnsInterp(lfi2D.getIndexesForColumnsInterp());
-  blitz::Array<std::complex<float>, 1> YInterpTmp(coefficientsForColumnsInterp.extent(0));
+  blitz::Array<std::complex<float>, 1> YInterpTmp(lfi2D.coefficientsForColumnsInterp.extent(0));
   YInterp = 0.0;
   YInterpTmp = 0.0;
   // interpolation following dimension 0
-  for (int i=0 ; i<coefficientsForColumnsInterp.extent(0) ; i++) {
-    for (int j=0 ; j<coefficientsForColumnsInterp.extent(1) ; j++) {
-      YInterpTmp(i) += coefficientsForColumnsInterp(i, j) * Y(indexesForColumnsInterp(i, j));
+  for (int i=0 ; i<lfi2D.coefficientsForColumnsInterp.extent(0) ; i++) {
+    for (int j=0 ; j<lfi2D.coefficientsForColumnsInterp.extent(1) ; j++) {
+      YInterpTmp(i) += lfi2D.coefficientsForColumnsInterp(i, j) * Y(lfi2D.indexesForColumnsInterp(i, j));
     }
   }
   // interpolation following dimension 1
-  for (int i=0 ; i<coefficientsForLinesInterp.extent(0) ; i++) {
-    for (int j=0 ; j<coefficientsForLinesInterp.extent(1) ; j++) {
-      YInterp(i) += coefficientsForLinesInterp(i, j) * YInterpTmp(indexesForLinesInterp(i, j));
+  for (int i=0 ; i<lfi2D.coefficientsForLinesInterp.extent(0) ; i++) {
+    for (int j=0 ; j<lfi2D.coefficientsForLinesInterp.extent(1) ; j++) {
+      YInterp(i) += lfi2D.coefficientsForLinesInterp(i, j) * YInterpTmp(lfi2D.indexesForLinesInterp(i, j));
     }
   }
 }
@@ -464,21 +460,17 @@ void anterpolate2Dlfi(blitz::Array<std::complex<float>, 1> YAnterp,
                       const blitz::Array<std::complex<float>, 1>& Y,
                       const LagrangeFastInterpolator2D& lfi2D)
 {
-  const blitz::Array<float, 2> coefficientsForLinesInterp(lfi2D.getCoefficientsForLinesInterp());
-  const blitz::Array<float, 2> coefficientsForColumnsInterp(lfi2D.getCoefficientsForColumnsInterp());
-  const blitz::Array<int, 2> indexesForLinesInterp(lfi2D.getIndexesForLinesInterp());
-  const blitz::Array<int, 2> indexesForColumnsInterp(lfi2D.getIndexesForColumnsInterp());
-  blitz::Array<std::complex<float>, 1> YAnterpTmp(coefficientsForColumnsInterp.extent(0));
+  blitz::Array<std::complex<float>, 1> YAnterpTmp(lfi2D.coefficientsForColumnsInterp.extent(0));
   YAnterp = 0.0;
   YAnterpTmp = 0.0;
-  for (int i=0 ; i<coefficientsForLinesInterp.extent(0) ; i++) {
-    for (int j=0 ; j<coefficientsForLinesInterp.extent(1) ; j++) {
-      YAnterpTmp(indexesForLinesInterp(i, j)) += coefficientsForLinesInterp(i, j) * Y(i);
+  for (int i=0 ; i<lfi2D.coefficientsForLinesInterp.extent(0) ; i++) {
+    for (int j=0 ; j<lfi2D.coefficientsForLinesInterp.extent(1) ; j++) {
+      YAnterpTmp(lfi2D.indexesForLinesInterp(i, j)) += lfi2D.coefficientsForLinesInterp(i, j) * Y(i);
     }
   }
- for (int i=0 ; i<coefficientsForColumnsInterp.extent(0) ; i++) {
-    for (int j=0 ; j<coefficientsForColumnsInterp.extent(1) ; j++) {
-      YAnterp(indexesForColumnsInterp(i, j)) += coefficientsForColumnsInterp(i, j) * YAnterpTmp(i);
+ for (int i=0 ; i<lfi2D.coefficientsForColumnsInterp.extent(0) ; i++) {
+    for (int j=0 ; j<lfi2D.coefficientsForColumnsInterp.extent(1) ; j++) {
+      YAnterp(lfi2D.indexesForColumnsInterp(i, j)) += lfi2D.coefficientsForColumnsInterp(i, j) * YAnterpTmp(i);
     }
   }
 }

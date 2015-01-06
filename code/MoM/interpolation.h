@@ -22,12 +22,13 @@ void decimate_2D (blitz::Array<complex<double>, 2> Y,
                   const int n);
 */
 class LagrangeFastInterpolator2D {
+
+  public:
     blitz::Array<float, 2> coefficientsForLinesInterp;
     blitz::Array<float, 2> coefficientsForColumnsInterp;
     blitz::Array<int, 2> indexesForLinesInterp;
     blitz::Array<int, 2> indexesForColumnsInterp;
 
-  public:
     // constructors and destructor
     LagrangeFastInterpolator2D(void);
     LagrangeFastInterpolator2D(const blitz::Array<float, 1>& /*x*/,
@@ -50,14 +51,6 @@ class LagrangeFastInterpolator2D {
     ~LagrangeFastInterpolator2D();
 
     // functions
-    int getNCoefficientsForLinesInterp() const {return coefficientsForLinesInterp.extent(0);}
-    int getNOrderCoefficientsForLinesInterp() const {return coefficientsForLinesInterp.extent(1);}
-    int getNCoefficientsForColumnsInterp() const {return coefficientsForColumnsInterp.extent(0);}
-    int getNOrderCoefficientsForColumnsInterp() const {return coefficientsForColumnsInterp.extent(1);}
-    blitz::Array<float, 2> getCoefficientsForLinesInterp() const {return coefficientsForLinesInterp;}
-    blitz::Array<float, 2> getCoefficientsForColumnsInterp() const {return coefficientsForColumnsInterp;}
-    blitz::Array<int, 2> getIndexesForLinesInterp() const {return indexesForLinesInterp;}
-    blitz::Array<int, 2> getIndexesForColumnsInterp() const {return indexesForColumnsInterp;}
     void setLfi2D(const LagrangeFastInterpolator2D &);
 };
 
