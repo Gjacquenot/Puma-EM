@@ -6,13 +6,8 @@
 
 using namespace std;
 
-void Lagrangian_regular_matrix(const int n, 
+/*void Lagrangian_regular_matrix(const int n,
                                blitz::Array<double, 2>& M);
-
-void LagrangeVariableStepInterpolationCoeffs(blitz::Array<double, 1>& coeffs, 
-                                             const double x, 
-                                             const blitz::Array<double, 1>& x_i,
-                                             const int PERIODIC);
 
 void Lagrange_vector_fixedstep_interpolation(blitz::Array<complex<double>, 1>& y, 
                                              const blitz::Array<double, 1>& x, 
@@ -25,7 +20,7 @@ void decimate_2D (blitz::Array<complex<double>, 2> Y,
                   const blitz::Array<double, 1>& X1_i, // the abscissas following 1st dimension
                   const blitz::Array<double, 1>& X2_i, // the abscissas following 2nd dimension
                   const int n);
-
+*/
 class LagrangeFastInterpolator2D {
     blitz::Array<float, 2> coefficientsForLinesInterp;
     blitz::Array<float, 2> coefficientsForColumnsInterp;
