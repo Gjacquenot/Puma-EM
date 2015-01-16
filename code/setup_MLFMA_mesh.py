@@ -4,7 +4,7 @@ try:
 except ImportError:
     import pickle as cPickle
 from mpi4py import MPI
-from scipy import array, sqrt
+from scipy import array, sqrt, pi
 from ReadWriteBlitzArray import readIntFromDisk, writeScalarToDisk, writeASCIIBlitzArrayToDisk, read1DBlitzArrayFromDisk
 
 def setup_mesh(params_simu, simuDirName):
@@ -19,7 +19,7 @@ def setup_mesh(params_simu, simuDirName):
     meshPath = os.path.join(tmpDirName, "mesh")
 
     # size of cube at finest level
-    a = c/params_simu.f * params_simu.a_factor
+    a = params_simu.c/params_simu.f * params_simu.a_factor
     if (my_id==0):
         N_RWG = readIntFromDisk(os.path.join(meshPath, "N_RWG.txt"))
         N_levels = readIntFromDisk(os.path.join(meshPath,'N_levels.txt'))
@@ -47,7 +47,7 @@ def setup_mesh(params_simu, simuDirName):
     C = MPI.COMM_WORLD.bcast(C)
 
     w = 2. * pi * params_simu.f
-    k = w * sqrt(eps_0*params_simu.eps_r*mu_0*params_simu.mu_r) + 1.j * 0.
+    k = w * sqrt(params_simu.eps_0*params_simu.eps_r*params_simu.mu_0*params_simu.mu_r) + 1.j * 0.
     CFIE = array(params_simu.CFIE).astype('D')
 
     writeScalarToDisk( num_procs, os.path.join(tmpDirName,'octtree_data/num_procs.txt') )
@@ -109,7 +109,6 @@ def setup_mesh(params_simu, simuDirName):
 
 
 if __name__=='__main__':
-    my_id = MPI.COMM_WORLD.Get_rank()
     parser = argparse.ArgumentParser(description='...')
     parser.add_argument('--inputdir')
     parser.add_argument('--simudir')
@@ -119,8 +118,16 @@ if __name__=='__main__':
     simuParams = 'simulation_parameters'
 
     # the simulation itself
-    sys.path.append(os.path.abspath(inputDirName))
-    exec('from ' + simuParams + ' import *')
+    my_id = MPI.COMM_WORLD.Get_rank()
+    if (my_id==0):
+        sys.path.append(os.path.abspath(inputDirName))
+        exec('from ' + simuParams + ' import *')
+        params_simu.c = c
+        params_simu.eps_0 = eps_0
+        params_simu.mu_0 = mu_0
+    else:
+        params_simu = ['blabla']
+    params_simu = MPI.COMM_WORLD.bcast(params_simu)
     if (params_simu.MONOSTATIC_RCS==1) or (params_simu.MONOSTATIC_SAR==1) or (params_simu.BISTATIC==1):
         setup_mesh(params_simu, simuDirName)
     else:

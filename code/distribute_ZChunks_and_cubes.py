@@ -143,8 +143,13 @@ if __name__=='__main__':
     inputDirName = cmdline.inputdir
     simuParams = 'simulation_parameters'
 
-    sys.path.append(os.path.abspath(inputDirName))
-    exec('from ' + simuParams + ' import *')
+    my_id = MPI.COMM_WORLD.Get_rank()
+    if (my_id==0):
+        sys.path.append(os.path.abspath(inputDirName))
+        exec('from ' + simuParams + ' import *')
+    else:
+        params_simu = ['blabla']
+    params_simu = MPI.COMM_WORLD.bcast(params_simu)
     if (params_simu.MONOSTATIC_RCS==1) or (params_simu.MONOSTATIC_SAR==1) or (params_simu.BISTATIC==1):
         distribute_Chunks(params_simu, simuDirName)
     else:
