@@ -3,7 +3,6 @@
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <complex>
 #include <blitz/array.h>
 #include <map>
 #include <mpi.h>
@@ -15,6 +14,7 @@ using namespace std;
 
 void RWG_renumber(const string pathToReadFrom, const string RWG_type)
 {
+  const int my_id = MPI::COMM_WORLD.Get_rank();
   blitz::Array<int, 1> chunkNumbers;
   string filename = pathToReadFrom + "chunkNumbers.txt";
   readIntBlitzArray1DFromASCIIFile(filename, chunkNumbers);
@@ -45,7 +45,6 @@ void RWG_renumber(const string pathToReadFrom, const string RWG_type)
       }
     }
   }
-
   // we now re-index the RWGs of the multimap by order of magnitude of their key. 
   // Simply traverse the multimap and assign an increasing counter to its second field. 
   // We also create an array of all the locally needed RWGs
@@ -86,16 +85,12 @@ void RWG_renumber(const string pathToReadFrom, const string RWG_type)
     filename = pathToReadFrom + RWG_type + "_RWG_numbers" + chunkNumberString + ".txt";
     writeIntBlitzArray1DToBinaryFile(filename, RWG_numbers);
   }
-  
-  //const int my_id = MPI::COMM_WORLD.Get_rank();
-  //std::cout << "Process " << my_id << " : local_index = " << local_index << endl;
-  //flush(std::cout);
 }
 
 int main(int argc, char* argv[]) {
 
   MPI::Init();
-  const int my_id = MPI::COMM_WORLD.Get_rank();
+  const int my_id = MPI::COMM_WORLD.Get_rank(), num_procs = MPI::COMM_WORLD.Get_size();
 
   string simuDir = ".";
   if ( argc > 2 ) {
@@ -125,7 +120,6 @@ int main(int argc, char* argv[]) {
   float tot_memusage_MB, max_memusage_MB;
   MPI_Reduce(&memusage_local_MB, &max_memusage_MB, 1, MPI_FLOAT, MPI_MAX, 0, MPI_COMM_WORLD);
   MPI_Reduce(&memusage_local_MB, &tot_memusage_MB, 1, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD);
-  int num_procs = MPI::COMM_WORLD.Get_size();
   if (my_id==0) {
     std::cout << "MEMINFO " << argv[0] << " : max mem = " << max_memusage_MB << " MB, tot mem = " << tot_memusage_MB << " MB, avg mem = " << tot_memusage_MB/num_procs << " MB" << std::endl;
   }
