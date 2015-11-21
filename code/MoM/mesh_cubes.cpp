@@ -4,6 +4,7 @@
 #include <vector>
 #include <algorithm>
 #include <math.h> 
+#include <map>
 
 using namespace std;
 
@@ -73,15 +74,15 @@ void cubeIndex_RWGNumbers_computation(blitz::Array<int, 1>& cubes_RWGsNumbers,
 {
   // This function finds for each edge the cube to which it belongs.
   // a is the length of the side of a cube
-  std::vector< Dictionary<int, int> > CubeNumber_RWGnumber;
+  std::vector< Dictionary<unsigned long int, int> > CubeNumber_RWGnumber;
   CubeNumber_RWGnumber.reserve(N_RWG);
   for (int i=0; i<N_RWG; i++) {
-    const int RWGNumber_cube0 = static_cast<int>(floor((RWGNumber_edgeCentroidCoord(i, 0) - cube_lower_coord[0])/a));
-    const int RWGNumber_cube1 = static_cast<int>(floor((RWGNumber_edgeCentroidCoord(i, 1) - cube_lower_coord[1])/a));
-    const int RWGNumber_cube2 = static_cast<int>(floor((RWGNumber_edgeCentroidCoord(i, 2) - cube_lower_coord[2])/a));    
-    int cubeNumber = RWGNumber_cube0 * max_N_cubes_1D*max_N_cubes_1D;
+    const unsigned long int RWGNumber_cube0 = static_cast<unsigned long int>(floor((RWGNumber_edgeCentroidCoord(i, 0) - cube_lower_coord[0])/a));
+    const unsigned long int RWGNumber_cube1 = static_cast<unsigned long int>(floor((RWGNumber_edgeCentroidCoord(i, 1) - cube_lower_coord[1])/a));
+    const unsigned long int RWGNumber_cube2 = static_cast<unsigned long int>(floor((RWGNumber_edgeCentroidCoord(i, 2) - cube_lower_coord[2])/a));    
+    unsigned long int cubeNumber = (RWGNumber_cube0 * max_N_cubes_1D) * max_N_cubes_1D;
     cubeNumber += RWGNumber_cube1 * max_N_cubes_1D + RWGNumber_cube2;
-    CubeNumber_RWGnumber.push_back(Dictionary<int, int>(cubeNumber, i));
+    CubeNumber_RWGnumber.push_back(Dictionary<unsigned long int, int>(cubeNumber, i));
   }
   sort(CubeNumber_RWGnumber.begin(), CubeNumber_RWGnumber.end());
   int index = 0;
@@ -133,28 +134,22 @@ void findCubeNeighbors(blitz::Array<int, 1>& cubes_neighborsIndexes,
 {
   // for each cubes finds its neighbors.
   // We use a code similar to Level::searchCubesNeighborsIndexes() from octtree.cpp
-  std::vector< Dictionary<int, int> > CubeNumber_CubeIndex;
-  CubeNumber_CubeIndex.reserve(C);
-  blitz::Array<double, 2> absoluteCartesianCoord(C, 3);
+  std::map<unsigned long int, int> CubeNumber_CubeIndex;
+  std::map<unsigned long int, int>::iterator itr;
+  blitz::Array<unsigned long int, 2> absoluteCartesianCoord(C, 3);
   for (int i=0; i<C; i++) {
-    absoluteCartesianCoord(i, 0) = floor( (cubes_centroids(i, 0) - big_cube_lower_coord(0))/a );
-    absoluteCartesianCoord(i, 1) = floor( (cubes_centroids(i, 1) - big_cube_lower_coord(1))/a );
-    absoluteCartesianCoord(i, 2) = floor( (cubes_centroids(i, 2) - big_cube_lower_coord(2))/a );
-    int cubeNumber = absoluteCartesianCoord(i, 0) * max_N_cubes_1D * max_N_cubes_1D;
+    absoluteCartesianCoord(i, 0) = static_cast<unsigned long int>(floor( (cubes_centroids(i, 0) - big_cube_lower_coord(0))/a ));
+    absoluteCartesianCoord(i, 1) = static_cast<unsigned long int>(floor( (cubes_centroids(i, 1) - big_cube_lower_coord(1))/a ));
+    absoluteCartesianCoord(i, 2) = static_cast<unsigned long int>(floor( (cubes_centroids(i, 2) - big_cube_lower_coord(2))/a ));
+    unsigned long int cubeNumber = (absoluteCartesianCoord(i, 0) * max_N_cubes_1D) * max_N_cubes_1D;
     cubeNumber += absoluteCartesianCoord(i, 1) * max_N_cubes_1D + absoluteCartesianCoord(i, 2);
-    CubeNumber_CubeIndex.push_back(Dictionary<int, int>(cubeNumber, i));
-  }
-  sort(CubeNumber_CubeIndex.begin(), CubeNumber_CubeIndex.end());
-  blitz::Array<int, 2> CubesSortedNumbersToIndexes(C, 2);
-  for (int i=0; i<C; i++) {
-    CubesSortedNumbersToIndexes(i, 0) = CubeNumber_CubeIndex[i].getKey();
-    CubesSortedNumbersToIndexes(i, 1) = CubeNumber_CubeIndex[i].getVal();
+    CubeNumber_CubeIndex.insert( std::pair<unsigned long int, int>(cubeNumber, i) );
   }
   cubesNeighborsIndexesTmp2.resize(C, 28);
   cubesNeighborsIndexesTmp2 = -1;
   int counter;
   for (int i=0 ; i<C ; ++i) {
-    blitz::Array<double, 1> absCartCoord(3);
+    blitz::Array<unsigned long int, 1> absCartCoord(3);
     absCartCoord = absoluteCartesianCoord(i, 0), absoluteCartesianCoord(i, 1), absoluteCartesianCoord(i, 2);
     counter = 1;
     cubesNeighborsIndexesTmp2(i, 0) = i; // we first consider the cube itself
@@ -172,21 +167,10 @@ void findCubeNeighbors(blitz::Array<int, 1>& cubes_neighborsIndexes,
           // we also do not want to consider the cube itself
           condition *= !((x==0) && (y==0) && (z==0));
           if (condition>0) {
-            double candidate_number = (CandidateAbsCartCoord(0) * max_N_cubes_1D)*max_N_cubes_1D + CandidateAbsCartCoord(1) * max_N_cubes_1D + CandidateAbsCartCoord(2);
-            { // index search
-              if ( (candidate_number < CubesSortedNumbersToIndexes(0, 0)) || (candidate_number > CubesSortedNumbersToIndexes(C-1, 0)) ) index = -1;
-              else {
-                int ind_inf = 0, ind_sup = C-1, ind_mid;
-                while(ind_sup-ind_inf > 1) {
-                  ind_mid = (ind_sup+ind_inf)/2;
-                  if (candidate_number > CubesSortedNumbersToIndexes(ind_mid, 0)) ind_inf = ind_mid;
-                  else ind_sup = ind_mid;
-                }
-                if (candidate_number == CubesSortedNumbersToIndexes(ind_inf, 0)) index = CubesSortedNumbersToIndexes(ind_inf, 1);
-                else if (candidate_number == CubesSortedNumbersToIndexes(ind_sup, 0)) index = CubesSortedNumbersToIndexes(ind_sup, 1);
-                else index = -1;
-              }
-            } // end of index search
+            const unsigned long candidate_number = (CandidateAbsCartCoord(0) * max_N_cubes_1D)*max_N_cubes_1D + CandidateAbsCartCoord(1) * max_N_cubes_1D + CandidateAbsCartCoord(2);
+            itr = CubeNumber_CubeIndex.find(candidate_number);
+            if ( itr == CubeNumber_CubeIndex.end() ) index = -1;
+            else index = (*itr).second;
           }
           if (index>-1) {cubesNeighborsIndexesTmp2(i, counter) = index; counter++;}
         } // z

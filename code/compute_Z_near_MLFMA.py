@@ -4,20 +4,12 @@ try:
 except ImportError:
     import pickle as cPickle
 from mpi4py import MPI
-from scipy import array, ones, compress
+from scipy import array
 from ReadWriteBlitzArray import writeASCIIBlitzArrayToDisk, writeScalarToDisk
 from meshClass import CubeClass
 
 def reduceListRedundancy(listToReduce):
-    if len(listToReduce) > 1:
-        listToReduce.sort()
-        tmp = array(listToReduce, 'i')
-        tmp2 = ones(len(tmp), 'i')
-        tmp2[1:] = tmp[1:] - tmp[:-1]
-        newList = compress(tmp2!=0, listToReduce, axis=0).astype('i')
-    else:
-        newList = array(listToReduce, 'i')
-    return newList
+    return array(sorted(list(set(listToReduce))), 'i')
 
 def Mg_listsOfZnearBlocks_ToTransmitAndReceive(ZnearChunkNumber_to_cubesNumbers, ZnearCubeNumber_to_chunkNumber, ZnearChunkNumber_to_processNumber, ZnearProcessNumber_to_ChunksNumbers, pathToReadFrom, Z_TMP_ELEM_TYPE):
     """this function creates 2 lists: Mg_listsOfZ_nearToTransmit and Mg_listsOfZ_nearToReceive"""
@@ -48,10 +40,8 @@ def Mg_listsOfZnearBlocks_ToTransmitAndReceive(ZnearChunkNumber_to_cubesNumbers,
     # we now reduce the redundancy of the lists
     listCubesNumbersToReceive, listCubesNumbersToSend = [], []
     for i in range(num_proc):
-        tmp = reduceListRedundancy(listCubesNumbersToReceiveTmp[i])
-        listCubesNumbersToReceive.append(tmp)
-        tmp = reduceListRedundancy(listCubesNumbersToSendTmp[i])
-        listCubesNumbersToSend.append(tmp)
+        listCubesNumbersToReceive.append(reduceListRedundancy(listCubesNumbersToReceiveTmp[i]))
+        listCubesNumbersToSend.append(reduceListRedundancy(listCubesNumbersToSendTmp[i]))
     # now we construct the corresponding chunkNumbers and processNumbers lists
     listChunkNumbersToReceive, listChunkNumbersToSend = [], []
     for L in listCubesNumbersToReceive:
