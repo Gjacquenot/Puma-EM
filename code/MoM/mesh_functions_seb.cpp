@@ -33,7 +33,6 @@ int main(int argc, char *argv[]) {
   
   const int E = 3 * T; // there are 3 edges per triangles
   blitz::Array<int, 2> col_sorted_e_v(E, 2);
-  int max_decimal;
   for (int i=0 ; i<T ; i++) {
     for (int j=0 ; j<3 ; j++) {
       int n_orig = j;
@@ -43,20 +42,15 @@ int main(int argc, char *argv[]) {
       int index = i*3 + j;
       col_sorted_e_v(index, 0) = std::min(r_orig, r_end);
       col_sorted_e_v(index, 1) = std::max(r_orig, r_end);
-      max_decimal = std::max(max_decimal, col_sorted_e_v(index, 1));
     }
   }
   
-  double X = 10.0;
-  while (X<max_decimal) X *= 10.0; // we look for smallest "X" such that "1eX > max_decimal"
-
   // we now sort the decimal_e_v
   // we need an argsort type function, given by the Dictionary class (see mesh.h)
-  std::vector< pair<double, int> > decimal_e_v_ToIndexes;
+  std::vector< pair< pair<int, int>, int> > decimal_e_v_ToIndexes;
   decimal_e_v_ToIndexes.reserve(E);
   for (int j=0 ; j<E ; j++) {
-    const double decimal_e_v = col_sorted_e_v(j, 0) + col_sorted_e_v(j, 1)/X;
-    decimal_e_v_ToIndexes.push_back(pair<double, int> (decimal_e_v, j));
+    decimal_e_v_ToIndexes.push_back(pair< pair<int, int>, int> (pair<int, int>(col_sorted_e_v(j, 0), col_sorted_e_v(j, 1)), j));
   }
 
   sort(decimal_e_v_ToIndexes.begin(), decimal_e_v_ToIndexes.end());
@@ -68,13 +62,10 @@ int main(int argc, char *argv[]) {
   
   std::vector<int> indexesEqualPrecedingTmp;
   for (int j=1 ; j<E ; j++) {
-    const double sorted_decimal_j = decimal_e_v_ToIndexes[j].first;
-    const double sorted_decimal_j_1 = decimal_e_v_ToIndexes[j-1].first;
-    const double diff = abs(sorted_decimal_j - sorted_decimal_j_1);
-    if (diff==0.0) indexesEqualPrecedingTmp.push_back(j);
+    if (decimal_e_v_ToIndexes[j].first == decimal_e_v_ToIndexes[j-1].first) indexesEqualPrecedingTmp.push_back(j);
   }
   decimal_e_v_ToIndexes.clear();
-  std::vector< pair<double, int> > (decimal_e_v_ToIndexes).swap(decimal_e_v_ToIndexes);
+  std::vector< pair< pair<int, int>, int> > (decimal_e_v_ToIndexes).swap(decimal_e_v_ToIndexes);
 
   const int N_indexesEqualPreceding = indexesEqualPrecedingTmp.size();
   blitz::Array<int, 1> indexesEqualPreceding(N_indexesEqualPreceding);

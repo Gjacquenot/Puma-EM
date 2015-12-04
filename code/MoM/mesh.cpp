@@ -594,6 +594,8 @@ void is_surface_closed(blitz::Array<int, 1>& is_closed_surface,
       }
     }
   }
+  cout << "is_closed_surface = " << is_closed_surface << endl;
+  flush(cout);
 }
 
 
