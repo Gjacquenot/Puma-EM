@@ -206,17 +206,16 @@ Level::Level(const Level & sonLevel,
   numberTimesCopied = 0;
   N = N_expansion;
   k = sonLevel.getK();
-  int j;
   level = sonLevel.getLevel()-1;
   leaf = false; // because this level is created from a lower (finer) level...
-  ceiling = 0;
-  DIRECTIONS_PARALLELIZATION = 0;
+  ceiling = 0; // default
+  DIRECTIONS_PARALLELIZATION = 0; // default
   cubeSideLength = 2.0*sonLevel.getCubeSideLength();
   maxNumberCubes1D = sonLevel.getMaxNumberCubes1D()/2;
-  if ( (my_id==0) && (VERBOSE==1) ) cout << "construction of level " << level << endl;
+  if ( (my_id==0) && (VERBOSE==1) ) std::cout << "construction of level " << level << std::endl;
   flush(cout);
   addNode(Cube(sonLevel.getCube(0), level, big_cube_lower_coord, cubeSideLength)); // initialization
-  for (j=1 ; j<sonLevel.getLevelSize() ; ++j) // we walk through the sons list
+  for (int j=1 ; j<sonLevel.getLevelSize() ; j++) // we walk through the sons list
   {
     if (sonLevel.getCube(j).getFatherNumber() == cubes.back().getNumber()) cubes.back().addSon(sonLevel.getCube(j));
     else this->addNode(Cube(sonLevel.getCube(j), level, big_cube_lower_coord, cubeSideLength));
@@ -262,7 +261,8 @@ Level::~Level()
 
 void Level::NCubesXYZComputation(const int VERBOSE)
 {
-  int NxMax, NyMax, NzMax, NxMin, NyMin, NzMin, my_id = MPI::COMM_WORLD.Get_rank();
+  const int my_id = MPI::COMM_WORLD.Get_rank();
+  int NxMax, NyMax, NzMax, NxMin, NyMin, NzMin;
   NxMax = NyMax = NzMax = 0;
   NxMin = NyMin = NzMin = maxNumberCubes1D;
   for (unsigned int j=0 ; j<cubes.size() ; ++j) {
@@ -296,7 +296,6 @@ void Level::alphaTranslationsComputation(const int VERBOSE,
                                          const float alphaTranslation_thresholdRelValueMax,
                                          const float alphaTranslation_RelativeCountAboveThreshold)
 {
-  blitz::Range all = blitz::Range::all();
   const int translationOrder = getN(), NThetas = getNThetas(), NPhis = getNPhis();
   const int translationOrder_prime = static_cast<int>(ceil(translationOrder * alphaTranslation_smoothing_factor));
 
@@ -327,7 +326,8 @@ void Level::alphaTranslationsComputation(const int VERBOSE,
     weightsThetasPhis.resize(N_directions);
     const int offset = this->MPI_Scatterv_displs(my_id);
     for (int i=0 ; i<N_directions ; ++i) {
-      thetasPhis(i, all) = thetasPhis_all_directions(offset + i, all);
+      thetasPhis(i, 0) = thetasPhis_all_directions(offset + i, 0);
+      thetasPhis(i, 1) = thetasPhis_all_directions(offset + i, 1);
       weightsThetasPhis(i) = weightsThetasPhis_all_directions(offset + i);
     }
   }
@@ -410,7 +410,7 @@ void Level::alphaTranslationsComputation(const int VERBOSE,
       }
     }
   }
-  if ( (my_id==0) && (VERBOSE==1) ) cout << endl;
+  if ( (my_id==0) && (VERBOSE==1) ) std::cout << std::endl << std::endl;
   // now we compute the alphaTranslationsIndexes. This is necessary due to the
   // fact that we use the symmetries in alpha computation, which results
   // in less computation time and less memory consumption for exactly the
@@ -426,6 +426,7 @@ void Level::alphaTranslationsComputation(const int VERBOSE,
         oldAlphaIndex(index) = index;
       }
     }
+    blitz::Range all = blitz::Range::all();
     for (int m=0; m<2; ++m) {
       for (int n=0; n<2; ++n) {
         for (int p=0; p<2; ++p) {
@@ -437,21 +438,6 @@ void Level::alphaTranslationsComputation(const int VERBOSE,
       }
     }
   }
-}
-
-double Level::getAlphaTranslationsSizeMB(void) const
-{
-  const int Nx = this->alphaTranslations.extent(0), Ny = this->alphaTranslations.extent(1), Nz = this->alphaTranslations.extent(2);
-  int N_alpha_elements = 0;
-  for (int x = 0 ; x<Nx ; ++x) {
-    for (int y = 0 ; y<Ny ; ++y) {
-      for (int z = 0 ; z<Nz ; ++z) {
-        N_alpha_elements += this->alphaTranslations(x, y, z).size();
-      }
-    }
-  }
-  const double alphaTranslationsSizeMB = N_alpha_elements * 2.0 * 4.0 / (1024.0 * 1024.0);
-  return alphaTranslationsSizeMB;
 }
 
 void Level::alphaTranslationIndexConstructionZ(blitz::Array<int, 1>& newAlphaIndex,
@@ -530,6 +516,20 @@ void Level::alphaTranslationIndexConstructionX(blitz::Array<int, 1>& newAlphaInd
   else newAlphaIndex = oldAlphaIndex;
 }
 
+double Level::getAlphaTranslationsSizeMB(void) const
+{
+  const int Nx = this->alphaTranslations.extent(0), Ny = this->alphaTranslations.extent(1), Nz = this->alphaTranslations.extent(2);
+  int N_alpha_elements = 0;
+  for (int x = 0 ; x<Nx ; ++x) {
+    for (int y = 0 ; y<Ny ; ++y) {
+      for (int z = 0 ; z<Nz ; ++z) {
+        N_alpha_elements += this->alphaTranslations(x, y, z).size();
+      }
+    }
+  }
+  return N_alpha_elements * 2.0 * 4.0 / (1024.0 * 1024.0);
+}
+
 void Level::shiftingArraysComputation(void)
 /**
  * This is the function that computes the shifting coefficients from each corner of the cube
@@ -551,7 +551,7 @@ void Level::shiftingArraysComputation(void)
  * (1,1,1) -> column 7
  */
 {
-  const int N_theta = thetas.size(), N_phi = phis.size();
+  const int N_theta = this->thetas.size(), N_phi = this->phis.size();
   shiftingArrays.resize(8, N_theta * N_phi);
   double sinTheta, cosTheta, shiftingDistance = this->cubeSideLength/4.0;
   double k_hat[3], shiftingVector[3];
@@ -675,7 +675,7 @@ void Level::searchCubesNeighborsIndexes(void)
   const int N_cubes = getLevelSize();
   for (int i=0 ; i<N_cubes ; ++i) {
     const float * absCartCoord(cubes[i].absoluteCartesianCoord);
-    vector<int> neighborsIndexes;
+    std::vector<int> neighborsIndexes;
     // we find the neighbors
     for (int x=-1 ; x<2 ; ++x) {
       for (int y=-1 ; y<2 ; ++y) {

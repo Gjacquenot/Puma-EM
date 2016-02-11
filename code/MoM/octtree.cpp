@@ -131,7 +131,7 @@ Octtree::Octtree(const string octtree_data_path, const blitz::Array<double, 2>& 
     minCubesArraysSize = levels[0].getCubesSizeMB();
     indMinCubesArraysSize = 0;
   } // end of first level construction...using braces
-  /// construction of the coarser levels
+  // construction of the coarser levels
   for (int j=1 ; j<N_levels ; ++j) {
     blitz::Array<float, 1> XthetasNextLevel, XphisNextLevel;
     if (j<N_levels-1) {
@@ -186,22 +186,22 @@ Octtree::Octtree(const string octtree_data_path, const blitz::Array<double, 2>& 
     assignCubesToProcessors(num_procs, CUBES_DISTRIBUTION);
     writeAssignedLeafCubesToDisk(octtree_data_path, "cubesIndexAndNumberToProcessNumber_FOR_Z_NEAR.txt");
   }
-  else if (ALLOW_CEILING_LEVEL==1) { //we remove the non-necessary levels
-    int j = levels.size() - 1;
-    while (j>indMinCubesArraysSize) {
-      levels.pop_back();
-      j--;
+  else { // (CUBES_DISTRIBUTION==0) 
+    if (ALLOW_CEILING_LEVEL==1) { //we remove the non-necessary levels
+      int index = levels.size() - 1;
+      while (index>indMinCubesArraysSize) {
+        levels.pop_back();
+        index--;
+      }
+      levels[indMinCubesArraysSize].setCeiling(1);
+      std::vector<Level>(levels).swap(levels); // trick for trimming exceeding capacity
     }
-    levels[indMinCubesArraysSize].setCeiling(1);
-    std::vector<Level>(levels).swap(levels); // trick for trimming exceeding capacity
     N_levels = levels.size();
-  }
-  if (CUBES_DISTRIBUTION==0) {
+    levels[N_levels-1].setCeiling(1);
     for (int j=1 ; j<N_levels ; j++) levels[j].searchCubesNeighborsIndexes();
     assignCubesToProcessors(num_procs, CUBES_DISTRIBUTION);
     for (int j=0 ; j<N_levels ; j++) levels[j].computeLocalCubesIndexes(this->getProcNumber());
     // alpha translations 
-    if ( (proc_id==0) && (VERBOSE==1) ) cout << "Searching the indexes of the possible cubes for alpha translations.........." << endl;
     for (int l=0; l<N_levels; l++) this->findAlphaTransParticipantsIndexes(l);
     // level reduction computation...
     for (int j=0 ; j<N_levels ; j++) levels[j].computeLevelReduction();
@@ -214,10 +214,11 @@ void Octtree::assignCubesToProcessors(const int num_procs, const int CUBES_DISTR
 {
   // we use a top-down approach, which ensures that each cube
   // has all its descendants on the same processor
-  int L = N_levels-1, NCubes, my_id = MPI::COMM_WORLD.Get_rank();
+  int L = N_levels-1, NCubes; 
+  const int my_id = MPI::COMM_WORLD.Get_rank();
   if (N_levels==1) this->DIRECTIONS_PARALLELIZATION = 0; // get rid of a border case
+  const int NUMBER_PARALLELIZED_LEVELS = static_cast<int>(round(N_levels/3.0));
   if ( (this->DIRECTIONS_PARALLELIZATION==1)&&(CUBES_DISTRIBUTION==0) ) { // we parallelize the last level by directions
-    const int NUMBER_PARALLELIZED_LEVELS = static_cast<int>(round(N_levels/3.0));
     levels[L].DIRECTIONS_PARALLELIZATION = 1;
     // computation of the MPI_Scatterv_scounts / MPI_Scatterv_displs
     std::vector<int> N_phi_per_process(num_procs);
@@ -242,7 +243,7 @@ void Octtree::assignCubesToProcessors(const int num_procs, const int CUBES_DISTR
       for (int i=0; i<num_procs; i++) cout << " " << N_phi_per_process[i];
       cout << " ]" << endl;
       cout << "Process " << my_id << ". The sharing of directions between processes is as follows:" << endl; 
-      cout << "Process " << my_id << "    levels[L].MPI_Scatterv_scounts = " << levels[L].MPI_Scatterv_scounts << endl;
+      cout << "Process " << my_id << "    levels[" << levels[L].getLevel() << "].MPI_Scatterv_scounts = " << levels[L].MPI_Scatterv_scounts << endl;
     }
     L = L-1;
   }
@@ -259,7 +260,7 @@ void Octtree::assignCubesToProcessors(const int num_procs, const int CUBES_DISTR
     else procNumber = 0; // we start over again
   }
   // we need to set the sonsProcNumbers for the finest directions-parallelized level L+1
-  // it is not important for the higher directions-parallelized levels
+  // it is not necessary for the higher directions-parallelized levels
   if ( (this->DIRECTIONS_PARALLELIZATION==1)&&(CUBES_DISTRIBUTION==0) ) {
     NCubes = levels[L+1].getLevelSize();
     for (int i=0 ; i<NCubes ; ++i) {
@@ -350,7 +351,6 @@ void Octtree::constructArrays(void)
         cout << "  size of alphaTranslations = " << alphaTranslationsSizeMB(j) << " MB;" << endl;
         cout << "  size of alphaTranslationsIndexes = " <<  levels[j].getAlphaTranslationsIndexesSizeMB() << " MB;" << endl;
         cout << "  size of cubes = " << cubesSizeMB(j) << " MB, number of cubes = " << levels[j].cubes.size() << endl;
-        cout << "  size of indexes for alphaTranslations candidates = " << levels[j].getSizeMBOfAlphaTransParticipantsIndexes() << " MB;" << endl;
         cout << "  size of shiftingArrays = " << shiftingArraysSizeMB(j) << " MB;" << endl;
       }
     }
@@ -434,21 +434,23 @@ void Octtree::findAlphaTransParticipantsIndexes(const int l)
   int N_to_send(0), N_to_receive(0);
   // we treat the ceiling level differently than the regular levels
   // hereafter is the code for the ceiling level
-  if (l==N_levels-1) { // if we are at the ceiling level
+  if (l==this->N_levels-1) { // if we are at the ceiling level
     for (int i=0; i<N_local_cubes; ++i) { // loop on the local cubes
       int indexLocalCube = localCubesIndexes[i];
       std::vector<int> localAlphaTransParticipantsIndexes, nonLocalAlphaTransParticipantsIndexes;
       for (int j=0; j<N_cubes; ++j) { // loop on all the cubes (because ceiling level)
         const float * diffAbsCartCoord_1(levels[l].cubes[indexLocalCube].absoluteCartesianCoord); 
         const float * diffAbsCartCoord_2(levels[l].cubes[j].absoluteCartesianCoord);
-        const float diffAbsCartCoord[3] = {diffAbsCartCoord_1[0]-diffAbsCartCoord_2[0], diffAbsCartCoord_1[1]-diffAbsCartCoord_2[1], diffAbsCartCoord_1[2]-diffAbsCartCoord_2[2]};
+        const float diffAbsCartCoord[3] = {diffAbsCartCoord_1[0]-diffAbsCartCoord_2[0], 
+                                           diffAbsCartCoord_1[1]-diffAbsCartCoord_2[1], 
+                                           diffAbsCartCoord_1[2]-diffAbsCartCoord_2[2]};
         bool condition = false;
         // condition = true if cubes are not touching
         for (int mm=0; mm<3; ++mm) condition = (condition || (abs(diffAbsCartCoord[mm]) > 1.0) );
         if (condition) {
           if ( levels[l].cubes[j].getProcNumber()==levels[l].cubes[indexLocalCube].getProcNumber() )
             localAlphaTransParticipantsIndexes.push_back(j);
-          else { // the alphaTransPArticipant is not local
+          else { // the alphaTransParticipant is not local
             nonLocalAlphaTransParticipantsIndexes.push_back(j);
             listOfFcToBeReceivedTmp[levels[l].cubes[j].getProcNumber()].push_back(j);
             listOfFcToBeSentTmp[levels[l].cubes[j].getProcNumber()].push_back(indexLocalCube);
@@ -465,7 +467,7 @@ void Octtree::findAlphaTransParticipantsIndexes(const int l)
     }
   }
   else { // for the NON-CEILING level
-    for (int i=0; i<N_local_cubes; ++i) {
+    for (int i=0; i<N_local_cubes; ++i) { // loop on the local cubes
       const int indexLocalCube = localCubesIndexes[i];
       std::vector<int> localAlphaTransParticipantsIndexes, nonLocalAlphaTransParticipantsIndexes;
       const std::vector<int> possibleIndexes(getNeighborsSonsIndexes(levels[l].cubes[indexLocalCube].getFatherIndex(), l+1));
@@ -473,7 +475,9 @@ void Octtree::findAlphaTransParticipantsIndexes(const int l)
         const int possibleIndex = possibleIndexes[j];
         const float * diffAbsCartCoord_1(levels[l].cubes[indexLocalCube].absoluteCartesianCoord);
         const float * diffAbsCartCoord_2(levels[l].cubes[possibleIndex].absoluteCartesianCoord);
-        const float diffAbsCartCoord[3] = {diffAbsCartCoord_1[0]-diffAbsCartCoord_2[0], diffAbsCartCoord_1[1]-diffAbsCartCoord_2[1], diffAbsCartCoord_1[2]-diffAbsCartCoord_2[2]};
+        const float diffAbsCartCoord[3] = {diffAbsCartCoord_1[0]-diffAbsCartCoord_2[0], 
+                                           diffAbsCartCoord_1[1]-diffAbsCartCoord_2[1], 
+                                           diffAbsCartCoord_1[2]-diffAbsCartCoord_2[2]};
         bool condition = false;
         // condition = true if cubes are not touching
         for (int mm=0; mm<3; ++mm) condition = (condition || (abs(diffAbsCartCoord[mm]) > 1.0) );
@@ -545,6 +549,7 @@ void Octtree::findAlphaTransParticipantsIndexes(const int l)
     std::cout << "For level " << levels[l].getLevel() << ", the total number of Fc to be sent/received is = " << tot_N_send << " / " << tot_N_recv << std::endl;
     std::cout << "For level " << levels[l].getLevel() << ", the average number per process of Fc to be sent/received is = " << avg_N_send << " / " << avg_N_recv << std::endl;
     std::cout << "For level " << levels[l].getLevel() << ", the maximum number per process of Fc to be sent/received is = " << max_N_send << " / " << max_N_recv << std::endl;
+    std::cout << std::endl;
   }
 }
 
@@ -604,19 +609,19 @@ void Octtree::updateSup(const blitz::Array<std::complex<float>, 1>& I_PQ) /// co
         }
       }
     }
-    else {
+    else if ( (l>0) && (levels[l-1].DIRECTIONS_PARALLELIZATION!=1) && (levels[l].DIRECTIONS_PARALLELIZATION==1)) { // levels[l].DIRECTIONS_PARALLELIZATION==1
       const int sonLevel = l-1, N_directions = levels[l].MPI_Scatterv_scounts(my_id);
       std::vector<int> localCubesIndexesSonLevel(levels[sonLevel].getLocalCubesIndexes());
+      blitz::Array<int, 1> FatherIndexes(num_procs);
       int N_local_cubes_sonLevel = localCubesIndexesSonLevel.size(), max_N_local_cubes_sonLevel;
-      blitz::Array<int, 1> FatherIndexes(num_procs), Array_N_local_cubes_sonLevel(num_procs);
-      MPI_Allgather(&N_local_cubes_sonLevel, 1, MPI::INT, Array_N_local_cubes_sonLevel.data(), 1, MPI::INT, MPI_COMM_WORLD);
-      max_N_local_cubes_sonLevel = max(Array_N_local_cubes_sonLevel);
+      MPI_Allreduce(&N_local_cubes_sonLevel, &max_N_local_cubes_sonLevel, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
       // initialization of the Sdowns Arrays
       for (int i=0 ; i<N_local_cubes ; ++i) {
         if (levels[l].Sdown(i).size()==0) levels[l].Sdown(i).resize(2, N_directions);
         levels[l].Sdown(i) = 0.0;
       }
-      // now the aggregation stage
+      // now the aggregation stage...
+      // we first create two intermediary radiation functions (it is done on each process)
       blitz::Array<std::complex<float>, 2> S_tmp(2, N_theta*N_phi), S_tmp2(2, N_directions * num_procs);
       // we need to construct the receiving rcounts and rdispls arrays...
       blitz::Array<int, 1> scounts(levels[l].MPI_Scatterv_scounts), sdispls(levels[l].MPI_Scatterv_displs);
@@ -642,10 +647,10 @@ void Octtree::updateSup(const blitz::Array<std::complex<float>, 1>& I_PQ) /// co
         }
         else S_tmp = 0.0;
         // we now "explode" the radiation functions...
-        MPI_Alltoallv( S_tmp(0, all).data(), scounts.data(), sdispls.data(), MPI::COMPLEX, S_tmp2(0, all).data(), rcounts.data(), rdispls.data(), MPI::COMPLEX, MPI_COMM_WORLD);
-        MPI_Alltoallv( S_tmp(1, all).data(), scounts.data(), sdispls.data(), MPI::COMPLEX, S_tmp2(1, all).data(), rcounts.data(), rdispls.data(), MPI::COMPLEX, MPI_COMM_WORLD);
+        MPI_Alltoallv( S_tmp(0, all).data(), scounts.data(), sdispls.data(), MPI_COMPLEX, S_tmp2(0, all).data(), rcounts.data(), rdispls.data(), MPI_COMPLEX, MPI_COMM_WORLD);
+        MPI_Alltoallv( S_tmp(1, all).data(), scounts.data(), sdispls.data(), MPI_COMPLEX, S_tmp2(1, all).data(), rcounts.data(), rdispls.data(), MPI_COMPLEX, MPI_COMM_WORLD);
         // we also need to pass the father indexes...
-        MPI_Allgather(&fatherIndex, 1, MPI::INT, FatherIndexes.data(), 1, MPI::INT, MPI_COMM_WORLD);
+        MPI_Allgather(&fatherIndex, 1, MPI_INT, FatherIndexes.data(), 1, MPI_INT, MPI_COMM_WORLD);
         // we now perform aggregation at the parallelized-by-directions level...
         for (unsigned int j=0 ; j<FatherIndexes.size() ; ++j) {
           int fatherIndex = FatherIndexes(j);
@@ -653,7 +658,7 @@ void Octtree::updateSup(const blitz::Array<std::complex<float>, 1>& I_PQ) /// co
         }
       }
     }
-  }
+  } // end loop on levels, starting from finest to coarsest
 }
 
 void Octtree::SupAlphaMultiplication(blitz::Array<std::complex<float>, 2>& SupAlpha,
