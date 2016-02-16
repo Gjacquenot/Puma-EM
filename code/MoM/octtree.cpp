@@ -553,7 +553,7 @@ void Octtree::findAlphaTransParticipantsIndexes(const int l)
   }
 }
 
-void Octtree::shiftExp(blitz::Array<std::complex<float>, 2> S,
+void Octtree::shiftExp(blitz::Array<std::complex<float>, 2>& S,
                        const blitz::Array<std::complex<float>, 1>& shiftingArray)
 {
   const int N = shiftingArray.size();
