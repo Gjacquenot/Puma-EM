@@ -557,10 +557,8 @@ void Octtree::shiftExp(blitz::Array<std::complex<float>, 2> S,
                        const blitz::Array<std::complex<float>, 1>& shiftingArray)
 {
   const int N = shiftingArray.size();
-  for (int i=0; i<N; i++) {
-    S(0, i) *= shiftingArray(i);  
-    S(1, i) *= shiftingArray(i);  
-  }
+  for (int i=0; i<N; i++) S(0, i) *= shiftingArray(i);
+  for (int i=0; i<N; i++) S(1, i) *= shiftingArray(i);
 }
 
 void Octtree::updateSup(const blitz::Array<std::complex<float>, 1>& I_PQ) /// coefficients of RWG functions
@@ -588,7 +586,7 @@ void Octtree::updateSup(const blitz::Array<std::complex<float>, 1>& I_PQ) /// co
         levels[l].computeSup(levels[l].Sdown(indexLocalCube), k, I_PQ, levels[l].cubes[indexLocalCube], levels[l].thetas, levels[l].phis);
       }
     }
-    else if ( (l>0) && (levels[l].DIRECTIONS_PARALLELIZATION!=1) ) { // the Sups are obtained by interpolation from the sonsCubes Sups
+    else if ( levels[l].DIRECTIONS_PARALLELIZATION!=1 ) { // the Sups are obtained by interpolation from the sonsCubes Sups
       blitz::Array<std::complex<float>, 2> S_tmp(2, N_directions);
       for (int i=0 ; i<N_local_cubes ; ++i) {
         int indexLocalCube = levels[l].cubesIndexesAfterReduction[localCubesIndexes[i]];
@@ -609,7 +607,7 @@ void Octtree::updateSup(const blitz::Array<std::complex<float>, 1>& I_PQ) /// co
         }
       }
     }
-    else if ( (l>0) && (levels[l-1].DIRECTIONS_PARALLELIZATION!=1) && (levels[l].DIRECTIONS_PARALLELIZATION==1)) { // levels[l].DIRECTIONS_PARALLELIZATION==1
+    else if ( (levels[l-1].DIRECTIONS_PARALLELIZATION!=1) && (levels[l].DIRECTIONS_PARALLELIZATION==1) ) { // levels[l].DIRECTIONS_PARALLELIZATION==1
       const int sonLevel = l-1, N_directions = levels[l].MPI_Scatterv_scounts(my_id);
       std::vector<int> localCubesIndexesSonLevel(levels[sonLevel].getLocalCubesIndexes());
       blitz::Array<int, 1> FatherIndexes(num_procs);
