@@ -151,8 +151,13 @@ void Level::copyLevel(const Level & levelToCopy) // copy constructor
   }
   alphaTranslationsIndexes.resize(alphaTranslationsIndexes.extent(0), alphaTranslationsIndexes.extent(1), alphaTranslationsIndexes.extent(2), alphaTranslationsIndexes.extent(3));
   alphaTranslationsIndexes = levelToCopy.alphaTranslationsIndexes;
-  shiftingArrays.resize(levelToCopy.getShiftingArrays().extent(0), levelToCopy.getShiftingArrays().extent(1));
-  shiftingArrays = levelToCopy.getShiftingArrays();
+
+  shiftingArrays.resize(levelToCopy.shiftingArrays.size());
+  for (int i=0; i<shiftingArrays.size(); i++) {
+    shiftingArrays[i].resize(levelToCopy.shiftingArrays[i].size());
+    for (int j=0; j<shiftingArrays[i].size(); j++) shiftingArrays[i][j] = levelToCopy.shiftingArrays[i][j];
+  }
+
   weightsThetas.resize(levelToCopy.getWeightsThetas().size());
   weightsThetas = levelToCopy.getWeightsThetas();
   weightsPhis.resize(levelToCopy.getWeightsPhis().size());
@@ -253,7 +258,8 @@ Level::~Level()
   alphaTranslations.free();
   alphaTranslationsIndexesNonZeros.free();
   alphaTranslationsIndexes.free();
-  shiftingArrays.free();
+  for (int i=0; i<shiftingArrays.size(); i++) shiftingArrays[i].resize(0);
+  shiftingArrays.clear();
   Sdown.free();
   MPI_Scatterv_scounts.free();
   MPI_Scatterv_displs.free();
@@ -552,7 +558,8 @@ void Level::shiftingArraysComputation(void)
  */
 {
   const int N_theta = this->thetas.size(), N_phi = this->phis.size();
-  shiftingArrays.resize(8, N_theta * N_phi);
+  shiftingArrays.resize(8);
+  for (int i=0; i<8; i++) shiftingArrays[i].resize(N_theta * N_phi);
   double sinTheta, cosTheta, shiftingDistance = this->cubeSideLength/4.0;
   double k_hat[3], shiftingVector[3];
   blitz::Array< blitz::Array<double, 1>, 1> shiftingVectors(8);
@@ -575,7 +582,7 @@ void Level::shiftingArraysComputation(void)
         k_hat[1] = sinTheta*sin(phis(n));
         k_hat[2] = cosTheta;
         const double temp(k_hat[0]*shiftingVector[0] + k_hat[1]*shiftingVector[1] + k_hat[2]*shiftingVector[2]);
-        shiftingArrays(p, m + n*N_theta) = static_cast<std::complex<float> > (exp(-I*k*temp));
+        shiftingArrays[p][m + n*N_theta] = static_cast<std::complex<float> > (exp(-I*k*temp));
       }
     }
   }

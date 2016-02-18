@@ -76,7 +76,7 @@ class Level {
     blitz::Array<float, 1> weightsThetas;
     //! the phi weights of the current level 
     blitz::Array<float, 1> weightsPhis;
-    blitz::Array<std::complex<float>, 2> shiftingArrays;
+    std::vector< std::vector< std::complex<float> > > shiftingArrays;
     blitz::Array< blitz::Array<std::complex<float>, 1>, 3> alphaTranslations;
     blitz::Array< blitz::Array<int, 1>, 3> alphaTranslationsIndexesNonZeros;
     blitz::Array<int, 4> alphaTranslationsIndexes; // necessary due to the use of symmetry
@@ -255,13 +255,11 @@ class Level {
                                       const int /*N_Gauss*/);
     void RWGs_renumbering(void);
     void shiftingArraysComputation(void);
-    double getShiftingArraysSizeMB(void) const {return shiftingArrays.size() *  2.0*4.0/(1024.0*1024.0);}
+    double getShiftingArraysSizeMB(void) const {return shiftingArrays.size() * shiftingArrays[0].size() *  2.0*4.0/(1024.0*1024.0);}
     blitz::Array<int, 1> getAlphaTranslationsExtents(void) const;
     blitz::Array< blitz::Array<std::complex<float>, 1>, 3> getAlphaTranslations(void) const {return alphaTranslations;}
     double getAlphaTranslationsSizeMB(void) const;
     double getAlphaTranslationsIndexesSizeMB(void) const {return alphaTranslationsIndexes.size() * 4.0/(1024.0*1024.0);}
-    blitz::Array<std::complex<float>, 2> getShiftingArrays(void) const {return shiftingArrays;}
-    const blitz::Array<std::complex<float>, 1> getShiftingArray(const double Dx, const double Dy, const double Dz) const {return shiftingArrays((Dx>0.0) * 4 + (Dy>0.0) * 2 + (Dz>0.0), blitz::Range::all());}
     void alphaTranslationsComputation(const int VERBOSE,
                                       const float alphaTranslation_smoothing_factor,
                                       const float alphaTranslation_thresholdRelValueMax,

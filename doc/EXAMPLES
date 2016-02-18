@@ -24,8 +24,8 @@ MLFMA E_field =
 
 
 at observation points r_obs =
-[[  0.1          0.1         20.        ]
- [  0.1          0.1         20.10000038]]
+[[  0.1          0.1         20. ]
+ [  0.1          0.1         20.1]]
 
 See 'E_obs.txt' and 'r_obs.txt' in './result' directory for the results of the computation, where you will also find the far field values.
 

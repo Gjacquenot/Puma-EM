@@ -103,7 +103,7 @@ class Octtree {
                                  const std::vector<int>& /*indexesAlphaParticipants*/,
                                  const int /*DIRECTIONS_PARALLELIZATION*/);
     void shiftExp(blitz::Array<std::complex<float>, 2>& /*S*/,
-                  const blitz::Array<std::complex<float>, 1>& /*shiftingArray*/);
+                  const std::vector< std::complex<float> >& /*shiftingArray*/);
     void computeFarField (blitz::Array<std::complex<float>, 2>& e_theta_far,
                           blitz::Array<std::complex<float>, 2>& e_phi_far,
                           const blitz::Array<float, 1>& r_phase_center,
