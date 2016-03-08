@@ -173,22 +173,22 @@ void xiTmpConstruction(blitz::Array<float, 1>& xiTmp,
                        const int CYCLIC,
                        const int INCLUDED_BOUNDARIES)
 {
-  int i, ind, Nxi = xi.size();
+  const int Nxi = xi.size();
   if ( (CYCLIC<=0) || ((startInd>-1) && (startInd+NOrder<Nxi)) ) {
-    for (i=0 ; i<NOrder+1 ; i++) xiTmp(i) = xi(startInd + i);
+    for (int i=0 ; i<NOrder+1 ; i++) xiTmp(i) = xi(startInd + i);
   }
   else {
     if (INCLUDED_BOUNDARIES==0) { // (xi(0)!=a) || (xi(Nxi-1)!=b)
-      for (i=0 ; i<NOrder+1 ; i++) {
-        ind = startInd + i;
+      for (int i=0 ; i<NOrder+1 ; i++) {
+        const int ind = startInd + i;
         if (ind<0) xiTmp(i) = xi(Nxi + ind) + a - b;
         else if (ind>Nxi-1) xiTmp(i) = xi(ind-Nxi) + b - a;
         else xiTmp(i) = xi(ind);
       }
     }
     else { // (xi(0)==a) && (xi(Nxi-1)==b)
-      for (i=0 ; i<NOrder+1 ; i++) {
-        ind = startInd + i;
+      for (int i=0 ; i<NOrder+1 ; i++) {
+        const int ind = startInd + i;
         if (ind<0) xiTmp(i) = xi(Nxi + ind - 1) + a - b; // we "jump" over xi[Nxi-1] (because xi[Nxi-1]==b)
         else if (ind>Nxi-1) xiTmp(i) = xi(ind-Nxi+1) + b - a; // we "jump" over xi[0] (because xi[0]==a)
         else xiTmp(i) = xi(ind);
@@ -361,19 +361,19 @@ LagrangeFastInterpolator2D::LagrangeFastInterpolator2D(const blitz::Array<float,
   indexesForLinesInterp = -1;
   indexesForColumnsInterp = -1;
 
-  int startIndXi, startIndYi, index1D, i, j, p, q;
+  int startIndXi, startIndYi, index1D;
   blitz::Array<float, 1> xiTmp(NOrderXi+1), yiTmp(NOrderYi+1);
   blitz::Array<float, 2> coeffsXi(Nx, NOrderXi+1), coeffsYi(Ny, NOrderYi+1);
   blitz::Array<int, 2> indexesXi(Nx, NOrderXi+1), indexesYi(Ny, NOrderYi+1);
   // coefficients for all the elements of vector x
-  for (i=0 ; i<Nx; i++) {
+  for (int i=0 ; i<Nx; i++) {
     startIndXi = findStartInd(x(i), xi, NOrderXi, CYCLIC_xi);
     xiTmpConstruction(xiTmp, xi, axi, bxi, startIndXi, NOrderXi, CYCLIC_xi, INCLUDED_BOUNDARIES_xi);
     LagrangeInterpolationCoeffs(coeffsXi(i, all), x(i), xiTmp, PERIODIC_xi);
     indexesConstruction(indexesXi(i, all), startIndXi, NOrderXi);
   }
   // coefficients for all the elements of vector y
-  for (i=0 ; i<Ny; i++) {
+  for (int i=0 ; i<Ny; i++) {
     startIndYi = findStartInd(y(i), yi, NOrderYi, CYCLIC_yi);
     xiTmpConstruction(yiTmp, yi, ayi, byi, startIndYi, NOrderYi, CYCLIC_yi, INCLUDED_BOUNDARIES_yi);
     LagrangeInterpolationCoeffs(coeffsYi(i, all), y(i), yiTmp, PERIODIC_yi);
@@ -382,9 +382,9 @@ LagrangeFastInterpolator2D::LagrangeFastInterpolator2D(const blitz::Array<float,
   // Lines and Columns interpolators construction
   float sign;
   // construction of Lines interpolator
-  for (i=0 ; i<Nx; i++) {
-    for (j=0 ; j<Ny; j++) {
-      for (q=0 ; q<(NOrderYi+1) ; q++) {
+  for (int i=0 ; i<Nx; i++) {
+    for (int j=0 ; j<Ny; j++) {
+      for (int q=0 ; q<(NOrderYi+1) ; q++) {
         index2DtoIndex1D(index1D, sign, i, indexesYi(j, q), Nx, Nyi, INCLUDED_BOUNDARIES_yi);
         coefficientsForLinesInterp(i + j*Nx, q) = coeffsYi(j, q) * sign;
         indexesForLinesInterp(i + j*Nx, q) = index1D;
@@ -392,9 +392,9 @@ LagrangeFastInterpolator2D::LagrangeFastInterpolator2D(const blitz::Array<float,
     }
   }
   // construction of Columns interpolator
-  for (i=0 ; i<Nx; i++) {
-    for (j=0 ; j<Nyi; j++) {
-      for (p=0 ; p<(NOrderXi+1) ; p++) {
+  for (int i=0 ; i<Nx; i++) {
+    for (int j=0 ; j<Nyi; j++) {
+      for (int p=0 ; p<(NOrderXi+1) ; p++) {
         index2DtoIndex1D(index1D, sign, indexesXi(i, p), j, Nxi, Nyi, INCLUDED_BOUNDARIES_xi);
         coefficientsForColumnsInterp(i + j*Nx, p) = coeffsXi(i, p) * sign;
         indexesForColumnsInterp(i + j*Nx, p) = index1D;
