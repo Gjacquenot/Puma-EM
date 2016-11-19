@@ -31,6 +31,8 @@ echo "input dir = $INPUT_DIR"
 echo "simulation dir = $SIMU_DIR"
 echo "result dir = $RESULT_DIR"
 
+PYTHON_CMD="python"
+
 [ ! -e "${SIMU_DIR}" ] && mkdir -p ${SIMU_DIR}
 rm -rf ${SIMU_DIR}/tmp*
 rm -rf ${SIMU_DIR}/geo/*.msh* ${SIMU_DIR}/geo/*.txt  
@@ -47,7 +49,6 @@ echo " "
 . ./config_mpi.sh
 # custom command following mpi configuration
 MPI_CMD="mpirun --hostfile $MPI_HOSTFILE -np $N_PROCESSES "
-PYTHON_CMD="python"
 # first the mesh setup and generation. Only on one process
 ${PYTHON_CMD} code/setup_GMSH.py --inputdir ${INPUT_DIR} --simudir ${SIMU_DIR}
 { time -p ./GMSHcommand.sh; } 2> ${SIMU_DIR}/result/CPU_time_GMSH.txt
@@ -95,6 +96,7 @@ ${PYTHON_CMD} code/RCS_MLFMA.py --inputdir ${INPUT_DIR} --simudir ${SIMU_DIR}
 # copying the result in the puma-em directory
 [ ! -e "${RESULT_DIR}" ] && mkdir -p ${RESULT_DIR}
 cp -r ${SIMU_DIR}/tmp0/iterative_data ${RESULT_DIR}
+cp -r ${SIMU_DIR}/tmp0/octtree_data/big_cube_center_coord.txt ${RESULT_DIR}
 cp -r ${SIMU_DIR}/result/* ${RESULT_DIR}
 cp -r ${SIMU_DIR}/geo/*.geo ${RESULT_DIR}
 rm -rf ${SIMU_DIR} GMSHcommand.sh

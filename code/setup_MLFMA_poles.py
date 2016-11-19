@@ -139,12 +139,14 @@ def computeTreeParameters(my_id, tmpDirName, a, k, N_levels, params_simu):
     L_coarsest = L_computation(k, a*(2**N_levels), NB_DIGITS)
     # theta abscissas
     NpointsTheta = L_coarsest + 1
+    DTheta = 0
     if not params_simu.AUTOMATIC_THETAS and (params_simu.USER_DEFINED_NB_THETA > 0):
         NpointsTheta = params_simu.USER_DEFINED_NB_THETA
     else:
-        NpointsTheta *= int(ceil((params_simu.STOP_THETA - params_simu.START_THETA)/pi))
+        NpointsThetaTmp = NpointsTheta * (params_simu.STOP_THETA - params_simu.START_THETA)/pi
+        NpointsTheta = int(ceil(NpointsThetaTmp))+1
     octtreeXthetas_coarsest = zeros(NpointsTheta, 'd')
-    if not NpointsTheta==1:
+    if NpointsTheta>1:
         DTheta = (params_simu.STOP_THETA - params_simu.START_THETA)/(NpointsTheta - 1)
         for i in range(NpointsTheta):
             octtreeXthetas_coarsest[i] = params_simu.START_THETA + i*DTheta
@@ -154,12 +156,14 @@ def computeTreeParameters(my_id, tmpDirName, a, k, N_levels, params_simu):
         octtreeXthetas_coarsest[0] = params_simu.START_THETA
     # phis abscissas
     NpointsPhi = 2 * L_coarsest
+    DPhi = 0
     if not params_simu.AUTOMATIC_PHIS and (params_simu.USER_DEFINED_NB_PHI > 0):
         NpointsPhi = params_simu.USER_DEFINED_NB_PHI
     else:
-        NpointsPhi *= int(ceil((params_simu.STOP_PHI - params_simu.START_PHI)/(2.0*pi)))
+        NpointsPhiTmp = NpointsPhi * (params_simu.STOP_PHI - params_simu.START_PHI)/(2.0*pi)
+        NpointsPhi = int(ceil(NpointsPhiTmp))+1
     octtreeXphis_coarsest = zeros(NpointsPhi, 'd')
-    if not NpointsPhi==1:
+    if NpointsPhi>1:
         DPhi = (params_simu.STOP_PHI - params_simu.START_PHI)/(NpointsPhi-1)
         for i in range(NpointsPhi):
             octtreeXphis_coarsest[i] = params_simu.START_PHI + i*DPhi
@@ -167,8 +171,13 @@ def computeTreeParameters(my_id, tmpDirName, a, k, N_levels, params_simu):
         octtreeXphis_coarsest[-1] = params_simu.STOP_PHI
     else:
         octtreeXphis_coarsest[0] = params_simu.START_PHI
-    if (my_id==0) and (params_simu.VERBOSE == 1):
-        print("L for coarsest level = " + str(L_coarsest))
+    if (my_id==0):
+        print("Summary of sampling points at the coarsest level (used for far-field sampling).")
+        print("L_coarsest =", L_coarsest)
+        print("For 0 < theta < 180, NpointsTheta = L_coarsest + 1 =", L_coarsest + 1)
+        print("For", params_simu.START_THETA/pi*180, "< theta <", params_simu.STOP_THETA/pi*180, ", NpointsTheta =", NpointsTheta, ", DTheta =", DTheta/pi*180, "degrees")
+        print("For 0 < phi < 360, NpointsPhi = 2 * L_coarsest =", 2 * L_coarsest)
+        print("For", params_simu.START_PHI/pi*180, "< phi <", params_simu.STOP_PHI/pi*180, ", NpointsPhi =", NpointsPhi, ", DPhi =", DPhi/pi*180, "degrees")
     writeASCIIBlitzArrayToDisk(octtreeXthetas_coarsest, os.path.join(tmpDirName, 'octtree_data/octtreeXthetas_coarsest.txt') )
     writeASCIIBlitzArrayToDisk(octtreeXphis_coarsest, os.path.join(tmpDirName, 'octtree_data/octtreeXphis_coarsest.txt') )
     MPI.COMM_WORLD.Barrier()
