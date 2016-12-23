@@ -857,7 +857,7 @@ void computeMonostaticRCS(Octtree & octtree,
       writeIntToASCIIFile(ITERATIVE_DATA_PATH + "iter.txt", iter);
     }
   }
-  else {
+  else { // ANGLES_FROM_FILE!=1
     blitz::Array<float, 1> octtreeXthetas_coarsest, octtreeXphis_coarsest;
     readFloatBlitzArray1DFromASCIIFile(OCTTREE_DATA_PATH + "octtreeXphis_coarsest.txt", octtreeXphis_coarsest);
     readFloatBlitzArray1DFromASCIIFile(OCTTREE_DATA_PATH + "octtreeXthetas_coarsest.txt", octtreeXthetas_coarsest);
@@ -918,6 +918,9 @@ void computeMonostaticRCS(Octtree & octtree,
             // solving
             octtree.setNumberOfUpdates(0);
             if (USE_PREVIOUS_SOLUTION != 1) ZI = 0.0;
+            else {
+              for (int pp=0; pp<V_CFIE.size(); pp++) ZI(pp) = (abs(V_CFIE(pp)) > 1e-15) ? ZI(pp) * V_CFIE(pp)/abs(V_CFIE(pp)) : ZI(pp);
+            }
             if (SOLVER=="BICGSTAB") bicgstab(ZI, error, iter, flag, matvec, psolve, V_CFIE, TOL, MAXITER, my_id, num_procs, ITERATIVE_DATA_PATH + "/convergence.txt");
             else if (SOLVER=="GMRES") gmres(ZI, error, iter, flag, matvec, psolve, V_CFIE, TOL, RESTART, MAXITER, my_id, num_procs, ITERATIVE_DATA_PATH + "/convergence.txt");
             else if ((SOLVER=="RGMRES") || (SOLVER=="FGMRES")) fgmres(ZI, error, iter, flag, matvec, psolve, V_CFIE, TOL, RESTART, MAXITER, my_id, num_procs, ITERATIVE_DATA_PATH + "/convergence.txt");
@@ -941,6 +944,7 @@ void computeMonostaticRCS(Octtree & octtree,
               }
             }
             octtree.computeFarField(e_theta_far, e_phi_far, r_phase_center, thetas, phis, ZI, OCTTREE_DATA_PATH);
+            for (int pp=0; pp<V_CFIE.size(); pp++) ZI(pp) = (abs(V_CFIE(pp)) > 1e-15) ? ZI(pp) * abs(V_CFIE(pp))/V_CFIE(pp) : ZI(pp);
             // filling of the RCS Arrays
             if (HH || HV) {
               for (int j=0 ; j<BetaPoints ; ++j) {
