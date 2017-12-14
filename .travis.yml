@@ -22,15 +22,29 @@ matrix:
 
 before_install:
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo apt-get --yes update; fi
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo apt-get --yes install g++; fi
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo apt-get --yes install gfortran; fi
-  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo apt-get --yes install liblapack-dev; fi
-  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo apt-get --yes install fftw3; fi
-  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo apt-get --yes install libfftw3-dev; fi
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo apt-get --yes install gmsh; fi
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo apt-get --yes install autoconf; fi
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo apt-get --yes install libtool; fi
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo apt-get --yes install python-dev; fi
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo apt-get --yes install python-scipy; fi
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo apt-get --yes install python-matplotlib; fi
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo apt-get --yes install python-mpi4py; fi
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo apt-get --yes install python-tk; fi
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo apt-get --yes install openmpi-bin; fi
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo apt-get --yes install libopenmpi-dev; fi
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo apt-get --yes install dvipng; fi
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo apt-get --yes install cvs; fi
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo apt-get --yes install automake; fi
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo apt-get --yes install libblitz0-dev; fi
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo apt-get --yes install libblitz0ldbl; fi
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install gcc; fi
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install fftw --with-fortran; fi
 
+
 install:
-  - cd installScripts && ./UBUNTU_14.04_INSTALL.sh
+  - make
 
 #script:
 #  # Test the program
