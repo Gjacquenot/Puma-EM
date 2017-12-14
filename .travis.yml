@@ -42,14 +42,12 @@ before_install:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install gcc; fi
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install fftw --with-fortran; fi
 
-
 install:
   - make
 
-#script:
-#  # Test the program
-#  - make test
-#  # Create package
+script:
+  # Create package
+  - make package
 #  - make package
 #  # Make sure we can install with no issues.
 #  - make install
