@@ -30,19 +30,15 @@ before_install:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install fftw --with-fortran; fi
 
 install:
-  - mkdir hosocean-build && cd hosocean-build
-  # Configure
-  - cmake $TRAVIS_BUILD_DIR/cmake -DCMAKE_BUILD_TYPE=$BTYPE -DCMAKE_INSTALL_PREFIX=~/hosocean
-  # Build
-  - make
+  - cd installScripts && ./UBUNTU_14.04_INSTALL.sh
 
-script:
-  # Test the program
-  - make test
-  # Create package
-  - make package
-  # Make sure we can install with no issues.
-  - make install
+#script:
+#  # Test the program
+#  - make test
+#  # Create package
+#  - make package
+#  # Make sure we can install with no issues.
+#  - make install
 #  # Create coverage report
 #  - if [[ "$BTYPE" == "Coverage" ]];
 #    then
