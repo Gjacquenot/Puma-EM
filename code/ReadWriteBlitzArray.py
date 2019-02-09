@@ -4,13 +4,13 @@ from scipy import zeros, real, imag, array
 
 def readIntFromDisk(filename):
     f = open(filename, 'r')
-    out = f.readlines();
+    out = f.readlines()
     f.close()
     return int(out[0])
 
 def readFloatFromDisk(filename):
     f = open(filename, 'r')
-    out = f.readlines();
+    out = f.readlines()
     f.close()
     return float(out[0])
 
@@ -25,7 +25,7 @@ def writeScalarToDisk(x, filename):
 
 def writeASCIIBlitzArrayToDisk(A, filename):
     f = open(filename, 'w')
-    dimensions = A.shape 
+    dimensions = A.shape
     N_dim = len(dimensions)
     string = '(0,' + str(dimensions[0]-1) + ')'
     for i in dimensions[1:]:
@@ -62,7 +62,7 @@ def writeASCIIBlitzArrayToDisk(A, filename):
             for i in range(dimensions[0]):
                 for j in range(dimensions[1]):
                     string1 = str(real(A[i,j]))
-                    string2 = str(imag(A[i,j])) 
+                    string2 = str(imag(A[i,j]))
                     string = '(' + string1 + ',' + string2 + ') '
                     f.write(string)
                 if i<dimensions[0]-1:
