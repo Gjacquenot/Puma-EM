@@ -1,18 +1,14 @@
 \documentclass[a4paper,10pt]{book}
-\usepackage{t1enc}
-\usepackage[english]{babel}
-\usepackage{calc}
-\usepackage{amsmath,amssymb}
-\usepackage{epsfig}
-\usepackage{fourier}
-%\usepackage{utopia}
-%\usepackage{times}
+\usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
-\usepackage{a4wide}
-\usepackage{url}
+\usepackage[english]{babel}
+\usepackage{color}
+\usepackage[bookmarks=true, colorlinks=false, hidelinks]{hyperref}
+\usepackage{bookmark}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb}
 \usepackage{fancyhdr}
 \usepackage{array,longtable}
-\usepackage{color}
 \usepackage{listings}
 
 \setcounter{secnumdepth}{3}
@@ -52,10 +48,10 @@ Puma-EM is a code that allows the computation of various electromagnetic quantit
 \end{itemize}
 %
 \par
-The target is for now a perfect electric conductor (PEC). The method used is the boundary elements method, also commonly known as the method of moments (MOM). The basis functions used are the Rao-Wilton-Glisson triangular rooftops. The integral equation implemented is the combined fields integral equation (CFIE) formulation, which can be degenerated into an electric field integral equation (EFIE) or magnetic field integral equation (MFIE). 
+The target is for now a perfect electric conductor (PEC). The method used is the boundary elements method, also commonly known as the method of moments (MOM). The basis functions used are the Rao-Wilton-Glisson triangular rooftops. The integral equation implemented is the combined fields integral equation (CFIE) formulation, which can be degenerated into an electric field integral equation (EFIE) or magnetic field integral equation (MFIE).
 %
 \par
-Puma-EM also makes use of the Multilevel fast multipole method (MLFMM or MLFMA) for speeding up the computations and also allowing a larger number of basis RWG functions (and hence allowing to solve larger problems) than with the classical MOM. 
+Puma-EM also makes use of the Multilevel fast multipole method (MLFMM or MLFMA) for speeding up the computations and also allowing a larger number of basis RWG functions (and hence allowing to solve larger problems) than with the classical MOM.
 %
 \par
 In addition to the MLFMM, Puma-EM is parallelized and can run on laptop, desktop and homogeneous cluster architectures. The rule of thumb for the number of unknowns Puma-EM can reasonably handle per GByte of memory is between $500,000$ and $2,000,000$ (depending upon the problem specificities and the details of the machine architecture). For example, Puma-EM has solved the monostatic scattering of a cubic target involving $53.9$ million of unknowns, on a cluster of 2 machines having each ``only'' 16 GBytes of memory. It can routinely solve in a few hours problems involving more than 1 million of unkowns of a low-end (dated 2004) 2 GByte laptop.
@@ -70,7 +66,7 @@ For ease of installation, the puma-em directory should be located on an NFS disk
 \subsection{You have admin rights to the machine}
 %
 \par
-Installing can be tricky, as Puma-EM depends upon numerous libraries, some of which are still under active development. However, to make it easier, some distributions are supported through an automated installation procedure. These are Ubuntu, Fedora, OpenSuse and CentOS. To install on these distributions, simply type 
+Installing can be tricky, as Puma-EM depends upon numerous libraries, some of which are still under active development. However, to make it easier, some distributions are supported through an automated installation procedure. These are Ubuntu, Fedora, OpenSuse and CentOS. To install on these distributions, simply type
 \begin{verbatim}
 puma-em$ ./install.sh
 \end{verbatim}
@@ -129,7 +125,7 @@ In "tcsh" shell, it is done as follows by entering in the shell:
 \begin{verbatim}
 set path = ( $path ~/local/bin )
 \end{verbatim}
-or by modifying the \texttt{.tcshrc} accordingly. If using the bash shell, enter 
+or by modifying the \texttt{.tcshrc} accordingly. If using the bash shell, enter
 \begin{verbatim}
 export PATH=$PATH:/home/jack/local/bin
 \end{verbatim}
@@ -159,7 +155,7 @@ LIB_SEARCH_PATH= -L/home/jack/local/lib
 \end{verbatim}
 %
 \par
-You could also set up a LD\_LIBRARY\_PATH and other global variables, but the \file{makefile.inc} included in puma-em makes this unnecessary. 
+You could also set up a LD\_LIBRARY\_PATH and other global variables, but the \file{makefile.inc} included in puma-em makes this unnecessary.
 %
 \par
 To test if the installation was successful, go into Puma-EM directory and issue the commands:
@@ -196,7 +192,7 @@ python setup.py install --prefix=$HOME/local
 \end{verbatim}
 %
 \par
-Then set up the environment variable such that your python will be able to import numpy, and also necessary to install SciPy. Type: 
+Then set up the environment variable such that your python will be able to import numpy, and also necessary to install SciPy. Type:
 \begin{verbatim}
 setenv PYTHONPATH $HOME/local/lib64/python2.5/site-packages
 \end{verbatim}
@@ -215,7 +211,7 @@ Type "help", "copyright", "credits" or "license" for more information.
 >>> import numpy
 >>> numpy.version.version
 '1.6.1'
->>> 
+>>>
 \end{verbatim}
 
 \subsubsection{Installing SciPy}
@@ -247,13 +243,13 @@ Type "help", "copyright", "credits" or "license" for more information.
 >>> import scipy
 >>> scipy.version.version
 '0.8.0'
->>> 
+>>>
 \end{verbatim}
 %
 \par
 One last thing. SciPy also ships Blitz++ modules, which are used for interfacing Python and C++, but they are a bit buggy. It is not mandatory, but we can replace them by the ones that we downloaded (see section \ref{subsec:blitz_install}). We do this by issuing the following command from the \texttt{/home/jack} folder:
 \begin{verbatim}
-cp -r local/include/blitz/* 
+cp -r local/include/blitz/*
     local/lib64/python2.5/site-packages/scipy/weave/blitz/blitz/
 \end{verbatim}
 
@@ -281,7 +277,7 @@ Type "help", "copyright", "credits" or "license" for more information.
 >>> import argparse
 >>> argparse.__version__
 '1.1'
->>> 
+>>>
 \end{verbatim}
 %
 \par
@@ -297,7 +293,7 @@ python setup.py install --prefix=$HOME/local
 \par
 This module installs itself in the \texttt{$\sim$/local/lib} directory, so we need to make Python aware of that by modifying the variable \parameter{PYTHONPATH} (tcsh shell):
 \begin{verbatim}
-setenv PYTHONPATH 
+setenv PYTHONPATH
 $HOME/local/lib64/python2.5/site-packages:$HOME/local/lib/python2.5/site-packages
 \end{verbatim}
 
@@ -338,7 +334,7 @@ If you succeed, could you post the steps on the Forum? Better yet, if you could 
 \section{Windows}
 %
 \par
-It is possible to use Puma-EM on Windows... Through a Linux Virtual Machine running on VMWare \url{http://www.vmware.com/} for example! It might be possible to compile and use Puma-EM on Cygwin \url{http://www.cygwin.com/} but it has not been reported. Yet. 
+It is possible to use Puma-EM on Windows... Through a Linux Virtual Machine running on VMWare \url{http://www.vmware.com/} for example! It might be possible to compile and use Puma-EM on Cygwin \url{http://www.cygwin.com/} but it has not been reported. Yet.
 
 
 \chapter{Using}
@@ -347,7 +343,7 @@ It is possible to use Puma-EM on Windows... Through a Linux Virtual Machine runn
 \label{sec:Introduction}
 %
 \par
-Your starting point is the configuration file \file{simulation\_parameters.py}, located in \texttt{./run\_in\_out}, which is the default folder for simulation inputs and outputs. While it may be repellent at first (no graphical user interface?? Are you freakin' kiddin' me??), it is actually not so difficult to get acquainted with. It contains the parameters that will define the simulation, such as the frequency, the target, the type of result you want (RCS, bistatic RCS, array of dipoles excitation, antenna pattern), and some post-processing possibilities. 
+Your starting point is the configuration file \file{simulation\_parameters.py}, located in \texttt{./run\_in\_out}, which is the default folder for simulation inputs and outputs. While it may be repellent at first (no graphical user interface?? Are you freakin' kiddin' me??), it is actually not so difficult to get acquainted with. It contains the parameters that will define the simulation, such as the frequency, the target, the type of result you want (RCS, bistatic RCS, array of dipoles excitation, antenna pattern), and some post-processing possibilities.
 %
 \par
 Once you have modified \file{simulation\_parameters.py} to suit your needs (see below), simply type:
@@ -366,19 +362,19 @@ The default number of processes is 1.
 \par
 The code has to perform a lot of disk operations to store and retrieve computation data. The default IO folder for the computations is \texttt{./simuDir}. To perform the computation's IO in another folder (for example non-NFS, fast disks), simply type:
 \begin{verbatim}
-puma-em$ ./run.sh -nX -s/path/to/local/disks/simulation_dir 
+puma-em$ ./run.sh -nX -s/path/to/local/disks/simulation_dir
 \end{verbatim}
 The code will automatically create the provided simulation folder (as long as you have permissions to write in the parent folder). You can also use this technique on computers which have several disks (for example a spinning and a solid-state disk), and you want to use the fastest one. The folder will be erased at the end of the simulation.
 %
 \par
 And finally, if you want to setup a use a non-default input-output folder (default is \texttt{./run\_in\_out}):
 \begin{verbatim}
-puma-em$ ./run.sh -nX -s /path/to/local/disks/simulation_dir 
+puma-em$ ./run.sh -nX -s /path/to/local/disks/simulation_dir
          -i /use/new/in_out/folder
 \end{verbatim}
 You can also opt for a local folder:
 \begin{verbatim}
-puma-em$ ./run.sh -nX -i local_in_out 
+puma-em$ ./run.sh -nX -i local_in_out
 \end{verbatim}
 This \texttt{local\_in\_out} folder will be created locally, where \texttt{run.sh} is located. The use of different input/output folders is useful for keeping past simulations, and to be able to re-run a simulation by simply passing the folder as an argument to \texttt{run.sh}. A last remark on the command syntax: the differences in spacings between the flags and their arguments is voluntary. It just shows it does not matter.
 
@@ -523,7 +519,7 @@ params_simu.BISTATIC_R_OBS_FILENAME = "r_obs.txt"
 #
 # r_obs_x r_obs_y r_obs_z
 \end{verbatim}
-In the default \file{r\_obs.txt} file, the field is sampled at $\mathbf{r_1} = [0.1, 0.1, 20.0 ]$ and $\mathbf{r_2} = [0.1, 0.1, 20.1 ]$. The file \file{r\_obs.txt} can be constructed by a simple program, allowing to visualize the field along lines, curves, planes, volumes, etc. As it is an input file, it should be located in the input/output folder. 
+In the default \file{r\_obs.txt} file, the field is sampled at $\mathbf{r_1} = [0.1, 0.1, 20.0 ]$ and $\mathbf{r_2} = [0.1, 0.1, 20.1 ]$. The file \file{r\_obs.txt} can be constructed by a simple program, allowing to visualize the field along lines, curves, planes, volumes, etc. As it is an input file, it should be located in the input/output folder.
 
 \subsubsection{User-defined far-field sampling of E-field}
 %
@@ -538,7 +534,7 @@ params_simu.BISTATIC_ANGLES_OBS_FILENAME = "bistatic_angles_obs.txt"
 # 1 line per observation angle, as many lines as there are angles
 # each line has 2 columns which are the angles in degrees (easier for human reading).
 # We must have: 0 <= theta <= 180 degrees (0 is the z axis, 180 is -z).
-# likewise, 0 <= phi <= 360 degrees. For theta = 90 degrees, phi = 0 is the x axis, 
+# likewise, 0 <= phi <= 360 degrees. For theta = 90 degrees, phi = 0 is the x axis,
 # 180 is -x, 360 is x.
 #
 # theta_obs phi_obs
@@ -630,7 +626,7 @@ We then decide at which locations we want to sample the monostatic fields:
 \begin{verbatim}
 if params_simu.MONOSTATIC_SAR==1:
     # dipole antenna will "fly" in a plane defined by local x and y axis
-    # we also need an origin for the plane, 
+    # we also need an origin for the plane,
     # and a distribution of observation points
     params_simu.SAR_local_x_hat = [-1.0, 0.0, 0.0]
     params_simu.SAR_local_y_hat = [0.0, 0.0, 1.0]
@@ -645,7 +641,7 @@ if params_simu.MONOSTATIC_SAR==1:
     params_simu.SAR_N_x_points = 8
     params_simu.SAR_N_y_points = 3
 \end{verbatim}
-This is self explanatory. 
+This is self explanatory.
 
 
 \section{Antenna radiation pattern}
@@ -673,7 +669,7 @@ params_simu.SHOW_FIGURE = 1
 \end{verbatim}
 %
 \par
-An antenna system comprises in general an excitation feed, a waveguiding structure and a radiation part (horn). The excitation source (a dipole) should be located within the structure. Typically, an electric dipole located at $\lambda/4$ of the end of a waveguide will provide a very acceptable model of a dipole feed. I refer you to section \ref{subsec:dipole_excitation} for how to excite the structure with a dipole. 
+An antenna system comprises in general an excitation feed, a waveguiding structure and a radiation part (horn). The excitation source (a dipole) should be located within the structure. Typically, an electric dipole located at $\lambda/4$ of the end of a waveguide will provide a very acceptable model of a dipole feed. I refer you to section \ref{subsec:dipole_excitation} for how to excite the structure with a dipole.
 %
 \par
 The \texttt{params\_simu.SHOW\_FIGURE} can be set to zero, but then no image will be displayed. It is also possible to show only half of the pattern, or even a quarter. For this, set the far angles as follows:
@@ -684,7 +680,6 @@ params_simu.STOP_PHI = pi/2.0
 ...
 params_simu.SHOW_FIGURE = 1
 \end{verbatim}
-and the pattern for $0\leq \theta \leq \pi$, $0\leq \phi \leq \frac{\pi}{2}$ will be displayed. 
+and the pattern for $0\leq \theta \leq \pi$, $0\leq \phi \leq \frac{\pi}{2}$ will be displayed.
 
-\bibliography{references}
 \end{document}
