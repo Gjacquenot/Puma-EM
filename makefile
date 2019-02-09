@@ -15,7 +15,7 @@ install_lam-mpi:
 package:
 	make clean;
 	python $(PROGR_DIR_PATH)/makePackage.py;
-libs: 
+libs:
 	cd $(PROGR_DIR_PATH)/MoM; make libs; make communicateZnearBlocks; make mpi_mlfma; make mesh_functions_seb; make mesh_cubes; make distribute_Z_cubes; make RWGs_renumbering; make compute_Z_near; make compute_SAI_precond;
 communicateZnearBlocks:
 	cd $(PROGR_DIR_PATH)/MoM; make communicateZnearBlocks;
@@ -35,13 +35,20 @@ mesh_cubes:
 	cd $(PROGR_DIR_PATH)/MoM; make mesh_cubes;
 documentation:
 	cd doc; make documentation;
-clean: 
+clean:
 	rm -rf *~ *.pyc *.txt *.out *.tar *.gz *.tgz MPIcommand.sh GMSHcommand.sh __pycache__;
 	cd run_in_out; rm -rf *~ *.pyc;
-	cd $(PROGR_DIR_PATH); make clean; 
+	cd $(PROGR_DIR_PATH); make clean;
 	cd geo; make clean;
 	cd installScripts; make clean;
 	cd doc; make clean;
 	rm -rf Puma-EM;
 	rm -rf tmp*;
 	rm -rf result* simuDir*;
+docker_run:
+	if [[ "${shell docker images -q pumaem 2> /dev/null}" == "" ]]; then \
+		docker build . -t pumaem; \
+	fi
+	docker run --rm -u $(shell id -u ${USER} ):$(shell id -g ${USER} ) \
+       -v $(shell pwd):/opt/share -w /opt/share pumaem /bin/bash -c \
+       "make CFLAGS=\"-c -O3 -fPIC -pthread -march=native -mfpmath=both\""
