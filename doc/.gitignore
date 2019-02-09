@@ -1,0 +1,16 @@
+html
+latex
+*.log
+*.bak
+*.aux
+*.bbl
+*.blg
+*.dvi
+*.log
+*.toc
+*.ps
+*.pdf
+*.fls
+*.fdb_latexmk
+*.gz
+*.out
