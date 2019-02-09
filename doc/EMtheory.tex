@@ -1,18 +1,14 @@
 \documentclass[a4paper,10pt]{book}
-\usepackage{t1enc}
-\usepackage[english]{babel}
-\usepackage{calc}
-\usepackage{amsmath,amssymb}
-\usepackage{epsfig}
-\usepackage{fourier}
-%\usepackage{utopia}
-%\usepackage{times}
+\usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
-\usepackage{a4wide}
-\usepackage{url}
+\usepackage[english]{babel}
+\usepackage{color}
+\usepackage[bookmarks=true, colorlinks=false, hidelinks]{hyperref}
+\usepackage{bookmark}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb}
 \usepackage{fancyhdr}
 \usepackage{array,longtable}
-\usepackage{color}
 \usepackage{listings}
 \usepackage{booktabs}
 \usepackage{multirow}
@@ -59,7 +55,7 @@ We are going to derive the integral equations for a dielectric body immersed in 
 \item [$\varepsilon_0 = 1.0/(c^2 \mu_0)$] permittivity of vacuum
 \item [$\varepsilon_{r, i}$] relative permittivity of medium $i$
 \item [$\varepsilon_i = \varepsilon_0\varepsilon_{r, i}$] permittivity of medium $i$
-\item [$\eta_i = \sqrt{\frac{\mu_i}{\varepsilon_i}}$] wave impedance in medium $i$ 
+\item [$\eta_i = \sqrt{\frac{\mu_i}{\varepsilon_i}}$] wave impedance in medium $i$
 \item [$k_i = \omega \sqrt{\mu_i \varepsilon_i}$] wavenumber of medium $i$
 \item [$\omega = 2 \pi f$] where $f$ is the frequency.
 \end{description}
@@ -105,11 +101,11 @@ Applying duality (by using (\ref{eqn:Maxwell-H}) and (\ref{eqn:Maxwell-E}): $\fi
 Defining the equivalent currents:
 \begin{align}
 \current{J}_{S,1} &\triangleq \vect{\hat{n}} \times \field{H}_1 \\
-\current{M}_{S,1} &\triangleq \field{E}_1 \times \vect{\hat{n}} 
+\current{M}_{S,1} &\triangleq \field{E}_1 \times \vect{\hat{n}}
 \end{align}
 we can rewrite (\ref{eqn:magneticFieldInt}) as follows:
 \begin{equation}\label{eqn:magneticFieldInt-2}
-\field{H}_1\left(\vect{r}\right) = \field{H}^\text{inc}\left(\vect{r}\right) + \frac{\nabla \nabla \cdot + k_1^2}{j \omega \mu_1} \int_S G_1(\vect{r}, \vect{r}') \current{M}_{S,1}\left(\vect{r}'\right) d\vect{r}' + \int_S \nabla G_1(\vect{r}, \vect{r}') \times \current{J}_{S,1}\left(\vect{r}'\right) d\vect{r}' 
+\field{H}_1\left(\vect{r}\right) = \field{H}^\text{inc}\left(\vect{r}\right) + \frac{\nabla \nabla \cdot + k_1^2}{j \omega \mu_1} \int_S G_1(\vect{r}, \vect{r}') \current{M}_{S,1}\left(\vect{r}'\right) d\vect{r}' + \int_S \nabla G_1(\vect{r}, \vect{r}') \times \current{J}_{S,1}\left(\vect{r}'\right) d\vect{r}'
 \end{equation}
 where the vector calculus identity $\nabla \times \left( G(\vect{r}, \vect{r}') \current{J}\left(\vect{r}'\right)\right) = \nabla G(\vect{r}, \vect{r}') \times \current{J}\left(\vect{r}'\right)$ has been used.
 %
@@ -151,9 +147,9 @@ And by duality the MFIE:
 By defining (remember that $\vect{\hat{n}}$ points outwards):
 \begin{align}
 \current{J}_{S,2} &\triangleq (-\vect{\hat{n}}) \times \field{H}_2 \\
-\current{M}_{S,2} &\triangleq \field{E}_2 \times (-\vect{\hat{n}}) 
+\current{M}_{S,2} &\triangleq \field{E}_2 \times (-\vect{\hat{n}})
 \end{align}
-we rewrite (\ref{eqn:magneticFieldIntInside}) as 
+we rewrite (\ref{eqn:magneticFieldIntInside}) as
 \begin{equation}\label{eqn:magneticFieldIntInside-2}
 \field{H}_2\left(\vect{r}\right) = \frac{\nabla \nabla \cdot + k_2^2}{j \omega \mu_2} \int_S G_2(\vect{r}, \vect{r}') \current{M}_{S,2}\left(\vect{r}'\right) d\vect{r}' + \int_S \nabla G_2(\vect{r}, \vect{r}') \times \current{J}_{S,2}\left(\vect{r}'\right) d\vect{r}'.
 \end{equation}
@@ -174,7 +170,7 @@ Since $\current{J}_{S,2} \triangleq (-\vect{\hat{n}}) \times \field{H}_2$, we ha
 Since the boundary conditions impose that $\field{E}_1 = \field{E}_2$ and $\field{H}_1 = \field{H}_2$, it follows from the equivalent current definitions that $\current{M}_{S,2} = -\current{M}_{S,1}$ and $\current{J}_{S,2} = -\current{J}_{S,1}$. Hence the last equation can be rewritten as follows:
 \begin{equation}\label{eqn:MFIE-I}
 \boxed{
-0 = - \frac{1}{2} \vect{\hat{n}} \times \current{J}_{S,1} +  \operator{K}_2\left( \current{J}_{S,1}\right) + \frac{1}{j \omega \mu_2} \operator{D}_2\left(\current{M}_{S,1}\right) 
+0 = - \frac{1}{2} \vect{\hat{n}} \times \current{J}_{S,1} +  \operator{K}_2\left( \current{J}_{S,1}\right) + \frac{1}{j \omega \mu_2} \operator{D}_2\left(\current{M}_{S,1}\right)
 } \qquad MFIE-I
 \end{equation}
 and the EFIE-I is obtained by duality:
@@ -190,7 +186,7 @@ and the EFIE-I is obtained by duality:
 Let's first recall the integral equations:
 \begin{equation*}
 \boxed{
-\field{H}^\text{inc} = - \frac{1}{2} \vect{\hat{n}} \times \current{J}_{S,1} - \operator{K}_1 \left(\current{J}_{S,1}\right) - \frac{1}{j \omega \mu_1} \operator{D}_1 \left( \current{M}_{S,1}\right) 
+\field{H}^\text{inc} = - \frac{1}{2} \vect{\hat{n}} \times \current{J}_{S,1} - \operator{K}_1 \left(\current{J}_{S,1}\right) - \frac{1}{j \omega \mu_1} \operator{D}_1 \left( \current{M}_{S,1}\right)
 } \qquad MFIE-O \tag{\ref{eqn:MFIE-O} recalled}
 \end{equation*}
 \begin{equation*}
@@ -234,11 +230,11 @@ In matrix form, we have that
   -\left(\operator{K}_{1} + \operator{K}_{2} \right) & - \frac{1}{j \omega \mu_1}\operator{D}_{1} - \frac{1}{j \omega \mu_2}\operator{D}_{2}
 \end{matrix}
 \right]
-\cdot 
+\cdot
 \left[
 \begin{matrix}
   \current{J}_{S,1} \\
-  \current{M}_{S,1}  
+  \current{M}_{S,1}
 \end{matrix}
 \right]
 =
@@ -255,31 +251,31 @@ In matrix form, we have that
 \par
 For this formulation we combine the outside fields together, and the inside fields together: EFIE-O (\ref{eqn:EFIE-O}) with MFIE-O (\ref{eqn:MFIE-O}), and EFIE-I (\ref{eqn:EFIE-I}) with MFIE-I (\ref{eqn:MFIE-I}).
 \begin{equation}\label{eqn:CFIE-O}
-  \addtolength{\fboxsep}{5pt} 
- \text{CFIE-O}: \quad   \boxed{ 
-   \begin{split} 
-      \alpha \field{E}^\text{inc} - \left(1-\alpha \right) \eta_1\field{H}^\text{inc} &= \alpha \left[- \frac{1}{j \omega \varepsilon_1} \operator{D}_1 \left( \current{J}_{S,1}\right) + \frac{1}{2} \vect{\hat{n}} \times \current{M}_{S,1}  + \operator{K}_1 \left(\current{M}_{S,1}\right) \right]  \\ 
+  \addtolength{\fboxsep}{5pt}
+ \text{CFIE-O}: \quad   \boxed{
+   \begin{split}
+      \alpha \field{E}^\text{inc} - \left(1-\alpha \right) \eta_1\field{H}^\text{inc} &= \alpha \left[- \frac{1}{j \omega \varepsilon_1} \operator{D}_1 \left( \current{J}_{S,1}\right) + \frac{1}{2} \vect{\hat{n}} \times \current{M}_{S,1}  + \operator{K}_1 \left(\current{M}_{S,1}\right) \right]  \\
       & \qquad - \left(1-\alpha \right) \eta_1 \left[ - \frac{1}{2} \vect{\hat{n}} \times \current{J}_{S,1} - \operator{K}_1 \left(\current{J}_{S,1}\right) - \frac{1}{j \omega \mu_1} \operator{D}_1 \left( \current{M}_{S,1}\right)  \right]
-   \end{split} 
-   } 
+   \end{split}
+   }
 \end{equation}
 where $\eta_1 = \sqrt{\frac{\mu_1}{\varepsilon_1}}$, and where $0<\alpha<1$. For $\alpha = 0.2$, one usually obtains good convergence results. If $\alpha = 1$, the EFIE is obtained. If $\alpha = 0$, we have the MFIE. For the inside CFIE:
 \begin{equation}\label{eqn:CFIE-I}
-  \addtolength{\fboxsep}{5pt} 
- \text{CFIE-I}: \quad   \boxed{ 
-   \begin{split} 
+  \addtolength{\fboxsep}{5pt}
+ \text{CFIE-I}: \quad   \boxed{
+   \begin{split}
       0 &= \alpha \left[\frac{1}{j \omega \varepsilon_2} \operator{D}_2\left(\current{J}_{S,1}\right) + \frac{1}{2} \vect{\hat{n}} \times \current{M}_{S,1} -  \operator{K}_2\left( \current{M}_{S,1}\right) \right] \\ &\qquad \qquad \qquad - \left(1-\alpha \right) \eta_2 \left[ - \frac{1}{2} \vect{\hat{n}} \times \current{J}_{S,1} + \operator{K}_2\left( \current{J}_{S,1}\right)  + \frac{1}{j \omega \mu_2} \operator{D}_2\left(\current{M}_{S,1}\right) \right].
-   \end{split} 
-   } 
+   \end{split}
+   }
 \end{equation}
 %
 \par
 The advantage of this formulation is that it can be applied to perfect electric conductor (PEC) bodies---the magnetic current and inside fields vanish, leaving us with a simplified CFIE-O):
 \begin{equation}\label{eqn:CFIE-O-PEC}
-  \addtolength{\fboxsep}{5pt} 
- \text{PEC CFIE-O}: \quad   \boxed{ 
+  \addtolength{\fboxsep}{5pt}
+ \text{PEC CFIE-O}: \quad   \boxed{
       \alpha \field{E}^\text{inc} - \left(1-\alpha \right) \eta_1\field{H}^\text{inc} = \alpha \left[- \frac{1}{j \omega \varepsilon_1} \operator{D}_1 \left( \current{J}_{S,1}\right)\right]  - \left(1-\alpha \right) \eta_1 \left[ - \frac{1}{2} \vect{\hat{n}} \times \current{J}_{S,1} - \operator{K}_1 \left(\current{J}_{S,1}\right) \right]
-   } 
+   }
 \end{equation}
 
 \include{PEC_integral_equations}
@@ -288,5 +284,8 @@ The advantage of this formulation is that it can be applied to perfect electric 
 \include{Near_interactions}
 \include{MLFMA_interactions}
 
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{Bibliography}
 \bibliography{references}
 \end{document}
