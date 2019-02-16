@@ -63,6 +63,6 @@ deploy:
     - doc/EMtheory.pdf
     - doc/guide.pdf
   on:
-    # tags: true
+    tags: true
     repo: Gjacquenot/Puma-EM
-    branch: master
+    # branch: master
