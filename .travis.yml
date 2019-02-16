@@ -2,6 +2,9 @@ sudo: required
 dist: trusty
 language: fortran
 
+services:
+  - docker
+
 matrix:
   include:
     - os: linux
@@ -44,6 +47,7 @@ before_install:
 
 install:
   - make
+  - make documentation_from_docker
 
 script:
   # Create package
@@ -60,3 +64,16 @@ script:
 #    make coverage;
 #    bash <(curl -s https://codecov.io/bash) -X gcov;
 #    fi
+deploy:
+  provider: releases
+  api_key:
+    secure: ywulupWTWky8SRFb5lkvz9c5eLb155rQMWDuA47ZxvBuXGEyxu5u+45teXJjwut0vSEEkSnPB7rzbYpO0kkAq944Xq6havM2XVrcR/bZdh4VvsRAxJ2sVKx1rAgDiLVL4wNS9MmFBznmeA2DG2IZJ7UnAaW3uBYe6uOcpVgnNAXG+zOcUFZ9uMO0y9VBZiVCfs2Apq65QVlmf7/eQI4p3w4+P73iqcwVCObBY9C9fzCgKWoTp5QOk9gLIUlfxE5T9YUxTwvVv1XafO+K/sC9UgpTnPUG1IpwwcjurTZ1XiSkhtzd2juZw0eigsiXky4xzkNHbu8W9A5nShmH381mXc/8ExH8S3s5Qx2FsfEPQL6Bn9H5wCAutCA4b2Z0UwVeP6sFGsYsdRSJq5ARVwk5jFZBlfbuPBBSBtMowtLBawhXiATA5sCBMq+aeGOliiligqlx9FXpPe8FVo2+/UwpmcXW6e+jAka8+bSD2UtsRz+nvxShdcecojaiAz+y/S4KusgPw1e+cl5q7eW3d6OOHWOVzZIH4VEUGtMo5TCUF4lrqLfark4jsz92dTYBfoe9J/NRO8mquaRPM3CyeIxcT2zomuAulNOSxXKmDW+ietcrrJufbshWvUyI2NhIJnBMjwZLAXMEFnOIvi8QUi54Aq5RvvbvlulrnaL1JUryXIA=
+  skip_cleanup: true
+  file_glob: false
+  file:
+    - doc/EMtheory.pdf
+    - doc/guide.pdf
+  on:
+    # tags: true
+    repo: Gjacquenot/Puma-EM
+    branch: master
