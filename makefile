@@ -52,3 +52,5 @@ docker_run:
 	docker run --rm -u $(shell id -u ${USER} ):$(shell id -g ${USER} ) \
        -v $(shell pwd):/opt/share -w /opt/share pumaem /bin/bash -c \
        "make CFLAGS=\"-c -O3 -fPIC -pthread -march=native -mfpmath=both\""
+documentation_from_docker:
+	cd doc; make documentation_from_docker;
