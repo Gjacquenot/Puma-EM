@@ -18,7 +18,7 @@ documentation_from_docker:
 	fi;
 	docker run --rm -u $(shell id -u ${USER} ):$(shell id -g ${USER} ) \
        -v $(shell pwd):/opt/share -w /opt/share pumaemdoc /bin/bash -c \
-       "doxygen -u && make documentation"
+       "make documentation"
 build_docker_doc_image:
 	docker build . -t pumaemdoc
 .PHONY: clean clean_except_pdf
