@@ -13,9 +13,9 @@ clean_except_pdf:
 	rm -rf *~ html latex *.aux *.bbl *.blg *.dvi *.log *.toc *.ps;
 	rm -rf *.fls *.out *.bak *.fdb_latexmk *.gz;
 documentation_from_docker:
-	if [[ "${shell docker images -q pumaemdoc 2> /dev/null}" == "" ]]; then \
+	if [ "${shell docker images -q pumaemdoc 2> /dev/null}" = "" ]; then \
 		docker build . -t pumaemdoc; \
-	fi
+	fi;
 	docker run --rm -u $(shell id -u ${USER} ):$(shell id -g ${USER} ) \
        -v $(shell pwd):/opt/share -w /opt/share pumaemdoc /bin/bash -c \
        "doxygen -u && make documentation"
