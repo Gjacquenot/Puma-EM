@@ -50,20 +50,9 @@ install:
   - make documentation_from_docker
 
 script:
-  # Create package
-  - make package
-#  - make package
-#  # Make sure we can install with no issues.
-#  - make install
-#  # Create coverage report
-#  - if [[ "$BTYPE" == "Coverage" ]];
-#    then
-#    echo "Coverage";
-#    find $TRAVIS_BUILD_DIR -type f -name "*.gcno";
-#    find $TRAVIS_BUILD_DIR -type f -name "*.gcna";
-#    make coverage;
-#    bash <(curl -s https://codecov.io/bash) -X gcov;
-#    fi
+  - echo "Script"
+  # - make package
+
 deploy:
   provider: releases
   api_key:
