@@ -46,7 +46,7 @@ clean:
 	rm -rf tmp*;
 	rm -rf result* simuDir*;
 docker_run:
-	if [[ "${shell docker images -q pumaem 2> /dev/null}" == "" ]]; then \
+	if [ "${shell docker images -q pumaem 2> /dev/null}" = "" ]; then \
 		docker build . -t pumaem; \
 	fi
 	docker run --rm -u $(shell id -u ${USER} ):$(shell id -g ${USER} ) \
