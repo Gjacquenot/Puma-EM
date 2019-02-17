@@ -12,6 +12,8 @@ Puma-EM provides surface Method of Moments for Electromagnetics, enhanced
 by using the Multilevel Fast Multipole Method. Code is parallelized and runs on
 Desktops and clusters.
 
+Theory and user manuals can be downloaded on the [release page](https://github.com/Gjacquenot/Puma-EM/releases).
+
 
 ## Introduction
 
