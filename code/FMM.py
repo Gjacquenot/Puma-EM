@@ -1,5 +1,5 @@
 from mpi4py import *
-from scipy import log, log10, ceil, floor, arccos, product, where, real, sqrt
+from scipy import log, log10, ceil, floor, where, real, sqrt
 from EM_constants import *
 
 def L_computation(k, a, NB_DIGITS):
