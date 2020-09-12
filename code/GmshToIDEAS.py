@@ -71,17 +71,17 @@ if __name__=="__main__":
     vertexes_coord, triangle_vertexes = read_mesh(os.path.join(path, targetName + '.msh'), z_offset)
     triangle_edgesNumbers, edgeNumber_vertexes, edgeNumber_triangles, triangle_adjacentTriangles, is_triangle_adjacentTriangles_via_junction = edges_computation(triangle_vertexes, vertexes_coord)
     T = len(triangle_adjacentTriangles)
-    print "number of triangles T =", T
+    print("number of triangles T =", T)
 
-    print "    reordering triangles for normals coherency...",
+    print("    reordering triangles for normals coherency...",)
     t0 = time.clock()
     triangles_surfaces = reorder_triangle_vertexes(triangle_adjacentTriangles, is_triangle_adjacentTriangles_via_junction, triangle_vertexes, vertexes_coord)
     S = max(triangles_surfaces)+1
     time_reordering_normals = time.clock()-t0
-    print "time =", time_reordering_normals, "seconds"
+    print("time =", time_reordering_normals, "seconds")
 
     t0 = time.clock()
-    print "writing the mesh file in I-DEAS format...",
+    print("writing the mesh file in I-DEAS format...",)
     createIDEASFile(vertexes_coord, triangle_vertexes, path, targetName)
-    print "time =", time.clock() - t0, "seconds"
+    print("time =", time.clock() - t0, "seconds")
 
