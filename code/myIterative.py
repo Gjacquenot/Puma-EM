@@ -53,7 +53,7 @@ def myGmresPython( A, x, b, M, restrt, max_it, tol ):
         #r = M \ ( b-A*x )
         r = b - dot(A, x)
         V[:, 0] = r / norm( r )
-        #print 'sum(V[:, 0]) =', sum(V[:, 0])
+        #print('sum(V[:, 0]) =', sum(V[:, 0]))
         s = norm( r )*e1
         # construct orthonormal basis using Gram-Schmidt
         for i in range(m):
@@ -62,10 +62,10 @@ def myGmresPython( A, x, b, M, restrt, max_it, tol ):
             for k in range(i+1):
                 H[k, i] = sum(w * conjugate(V[:, k]))
                 w = w - H[k, i] * V[:, k]
-            #print "sum(w) =", sum(w)
+            #print("sum(w) =", sum(w))
             H[i+1, i] = norm( w )
             V[:, i+1] = w / H[i+1, i]
-            #print "sum(V[:, i+1]) =", sum(V[:, i+1])
+            #print("sum(V[:, i+1]) =", sum(V[:, i+1]))
             # apply Givens rotation
             for k in range(i):
                 ##temp = cs[k] * H[k, i] + sn[k] * H[k+1, i]
@@ -78,7 +78,7 @@ def myGmresPython( A, x, b, M, restrt, max_it, tol ):
             ##H[i, i] = cs[i]*H[i, i] + sn[i]*H[i+1, i]
             H[i, i] = conjugate(cs[i])*H[i, i] - conjugate(sn[i])*H[i+1, i]
             H[i+1,i] = 0.0
-            #print "sum(sum(H)) =", sum(sum(H))
+            #print("sum(sum(H)) =", sum(sum(H)))
             # approximate residual norm
             ##temp = cs[i] * s[i]
             temp = conjugate(cs[i]) * s[i] - conjugate(sn[i]) * s[i+1]
@@ -86,7 +86,7 @@ def myGmresPython( A, x, b, M, restrt, max_it, tol ):
             s[i+1] = sn[i] * s[i] + cs[i] * s[i+1]
             s[i] = temp;
             error = abs(s[i+1]) / bnrm2
-            #print "error =", error
+            #print("error =", error)
             # update approximation
             if ( error <= tol ):
                 y = linalg.solve( H[:i+1, :i+1], s[:i+1] )
@@ -96,13 +96,13 @@ def myGmresPython( A, x, b, M, restrt, max_it, tol ):
         if ( error <= tol ):
             return x, error, iter, flag
         y = linalg.solve( H[:m, :m], s[:m] )
-        #print "sum(y) =", sum(y)
+        #print("sum(y) =", sum(y))
         x = x + dot(V[:, :m], y)          # update approximation
-        #print "sum(x) =", sum(x)
+        #print("sum(x) =", sum(x))
         #r = M \ ( b-A*x )                           # compute residual
         r = b - dot(A, x)
         error = abs(s[i+1]) / bnrm2                  # check convergence
-        #print "error =", error
+        #print("error =", error)
         if ( error <= tol ):
             return x, error, iter, flag
 
@@ -148,7 +148,7 @@ def myBiCGSTAB(A, x, b, M, max_it, tol):
     r_tld = copy.deepcopy(r);
     for iter in range(1, max_it):
         rho = dot(conjugate(r_tld), r)
-        print rho
+        print(rho)
         if (rho==0.0):
             return x, error, iter, flag
         if iter==1:
@@ -235,11 +235,11 @@ if __name__=="__main__":
     I = matrixmultiply(linalg.inv(Z), V)
     # myGmresPython
     I2, error2, iteration2, info2 = myGmresPython( Z, X0, V, M, restart, maxiter, tol )
-    print "error2, iteration2, info2 =", error2, iteration2, info2
+    print("error2, iteration2, info2 =", error2, iteration2, info2)
     # myGmresC++
     X0 = zeros(N, ELEM_TYPE)
     I3, error3, iteration3, info3 = myGmresC( Z, X0, V, M, restart, maxiter, tol )
-    print "error3, iteration3, info3 =", error3, iteration3, info3
+    print("error3, iteration3, info3 =", error3, iteration3, info3)
 
-    print sum(I), sum(I2), sum(I3)
+    print(sum(I), sum(I2), sum(I3))
 
