@@ -1,11 +1,12 @@
 import sys, os, argparse
 from MLFMA import print_times
 from scipy import cos, sin, conj, log10, real, sum, dot, pi, sqrt, exp
-from scipy import array, arange, zeros, ones, amax
+from scipy import array, amax
 from V_EH import G_EJ_G_HJ
 from EM_constants import *
 from ReadWriteBlitzArray import *
 from read_dipole_excitation import read_dipole_excitation, read_input_angles
+
 
 def getField(filename):
     f = open(filename, 'r')
@@ -22,6 +23,7 @@ def getField(filename):
     E_obs = array(E_tmp2[:,0:6:2], 'd') + array(E_tmp2[:,1:6:2], 'd') * 1.j
     return r_obs, E_obs
 
+
 def monostatic_SAR(params_simu, simuDirName):
     r_SAR = readASCIIBlitzFloatArray2DFromDisk(os.path.join(simuDirName, 'result/r_SAR.txt'))
     SAR_RCS_HH = readASCIIBlitzFloatArray1DFromDisk(os.path.join(simuDirName, 'result/SAR_RCS_HH_ASCII.txt'))
@@ -29,6 +31,7 @@ def monostatic_SAR(params_simu, simuDirName):
     SAR_RCS_VH = readASCIIBlitzFloatArray1DFromDisk(os.path.join(simuDirName, 'result/SAR_RCS_VH_ASCII.txt'))
     SAR_RCS_VV = readASCIIBlitzFloatArray1DFromDisk(os.path.join(simuDirName, 'result/SAR_RCS_VV_ASCII.txt'))
     return SAR_RCS_HH, SAR_RCS_VV, SAR_RCS_HV, SAR_RCS_VH, r_SAR
+
 
 def monostatic_RCS(params_simu, simuDirName):
     phis_far_field = 180./pi * readASCIIBlitzFloatArray1DFromDisk(os.path.join(simuDirName, 'result/phis_far_field_ASCII.txt'))
@@ -38,6 +41,7 @@ def monostatic_RCS(params_simu, simuDirName):
     RCS_VH = readASCIIBlitzFloatArray2DFromDisk(os.path.join(simuDirName, 'result/RCS_VH_ASCII.txt'))
     RCS_VV = readASCIIBlitzFloatArray2DFromDisk(os.path.join(simuDirName, 'result/RCS_VV_ASCII.txt'))
     return RCS_HH, RCS_VV, RCS_HV, RCS_VH, thetas_far_field, phis_far_field
+
 
 def bistatic_RCS(params_simu, inputDirName, simuDirName):
     phis_far_field = 180./pi * readASCIIBlitzFloatArray1DFromDisk(os.path.join(simuDirName, 'result/phis_far_field_ASCII.txt'))
@@ -60,12 +64,13 @@ def bistatic_RCS(params_simu, inputDirName, simuDirName):
         P_inc += real(dot(E_inc, conj(E_inc)))
     if (params_simu.BISTATIC_EXCITATION_PLANE_WAVE == 1):
         E_inc = array([params_simu.E_inc_theta, params_simu.E_inc_phi], 'D')
-        P_inc += real(dot(E_inc, conj(E_inc)))            
+        P_inc += real(dot(E_inc, conj(E_inc)))
     if (params_simu.BISTATIC_EXCITATION_DIPOLES == 1) and (params_simu.BISTATIC_EXCITATION_PLANE_WAVE == 1):
         print("WARNING: you have dipole and plane wave excitation simultaneously. Is it what you intended??")
     sigma_phi = 4.0*pi * p_scatt_phi/P_inc
     sigma_theta = 4.0*pi * p_scatt_theta/P_inc
     return sigma_theta, sigma_phi, thetas_far_field, phis_far_field
+
 
 def antenna_pattern(params_simu, simuDirName):
     phis_far_field = 180./pi * readASCIIBlitzFloatArray1DFromDisk(os.path.join(simuDirName, 'result/phis_far_field_ASCII.txt'))
@@ -77,6 +82,7 @@ def antenna_pattern(params_simu, simuDirName):
     e_theta, e_phi = scatt_e_theta + source_e_theta, scatt_e_phi + source_e_phi
     sigma_theta, sigma_phi = real(e_theta * conj(e_theta)), real(e_phi*conj(e_phi))
     return sigma_theta, sigma_phi, thetas_far_field, phis_far_field
+
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser(description='...')
@@ -102,7 +108,7 @@ if __name__=='__main__':
             print(monostatic_angles)
         else:
             RCS_HH, RCS_VV, RCS_HV, RCS_VH, thetas_far_field, phis_far_field = monostatic_RCS(params_simu, simuDirName)
-            nameOfFileToSaveTo = os.path.join(simuDirName, 'result', "simulation_parameters.txt") 
+            nameOfFileToSaveTo = os.path.join(simuDirName, 'result', "simulation_parameters.txt")
             params_simu.saveTo(nameOfFileToSaveTo)
             from pylab import rc, plot, show, xlabel, ylabel, xticks, yticks, grid, legend, title
             #rc('text', usetex=True)
@@ -139,7 +145,7 @@ if __name__=='__main__':
         if params_simu.BISTATIC_R_OBS==1:
             r_obs, E_field = getField(os.path.join(simuDirName, "result", "E_obs_scatt.txt"))
             print('\r')
-            print("MLFMA scattered E_field = ") 
+            print("MLFMA scattered E_field = ")
             print(E_field)
             print('\r')
             print("at observation points r_obs = ")
@@ -147,7 +153,7 @@ if __name__=='__main__':
             print('\r')
             print("See 'E_obs_scatt.txt' and 'r_obs.txt' in './result' directory for the results of the computation, where you will also find the far field values.")
             print('\r')
-        nameOfFileToSaveTo = os.path.join(simuDirName, 'result', "simulation_parameters.txt") 
+        nameOfFileToSaveTo = os.path.join(simuDirName, 'result', "simulation_parameters.txt")
         params_simu.saveTo(nameOfFileToSaveTo)
 
         # user supplied observation angles
@@ -240,5 +246,3 @@ if __name__=='__main__':
 
     if params_simu.MONOSTATIC_SAR==1:
         SAR_RCS_HH, SAR_RCS_VV, SAR_RCS_HV, SAR_RCS_VH, r_SAR = monostatic_SAR(params_simu, simuDirName)
-
-
