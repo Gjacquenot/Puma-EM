@@ -65,7 +65,7 @@ def createZ_sparse_MLFMA(chunkNumber):
 if __name__=="__main__":
     #N = int(4)
     #A = (rand(N, 2) + 1.j * rand(N, 2)).astype('F')
-    #print product(A.shape)*A.itemsize/1024.**2
+    #print(product(A.shape)*A.itemsize/1024.**2)
     #t0 = time.time()
     #filename = "A.txt"
     ##writeBinaryArray(A, filename)
@@ -73,8 +73,8 @@ if __name__=="__main__":
     #t0 = time.time()
     ##readBinaryArray(N, filename)
     #time_readBinaryArray = time.time() - t0
-    #print "time for writing Binary Array =", time_writeBinaryArray
-    #print "time for reading Binary Array =", time_readBinaryArray
+    #print("time for writing Binary Array =", time_writeBinaryArray)
+    #print("time for reading Binary Array =", time_readBinaryArray)
 
     #createZ_sparse_MLFMA(0)
     sendbuf = rand(3,3).tolist()
@@ -83,15 +83,15 @@ if __name__=="__main__":
     status = MPI.Status()
     num_proc = MPI.COMM_WORLD.Get_size()
     my_id = MPI.COMM_WORLD.Get_rank()
-    print "           my ID is", my_id, "in", num_proc, "processes"
+    print("           my ID is", my_id, "in", num_proc, "processes")
     if (my_id == 1):
         tag = 0
-        print "sendbuf = ", sendbuf
+        print("sendbuf = ", sendbuf)
         MPI.COMM_WORLD.send([sendbuf, MPI.FLOAT], 0, tag)
     else:
         tag = my_id
         recvbuf = MPI.COMM_WORLD.recv(1, tag, status)
-        print "recvbuf = ", recvbuf
+        print("recvbuf = ", recvbuf)
     MPI.Finalize()
 
 
