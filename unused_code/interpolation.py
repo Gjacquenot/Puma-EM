@@ -115,7 +115,7 @@ def gaussInterpVector(x, a, b, xi, yi, NOrder, CYCLIC, int_method, IS_THETA, yi_
 
 def gaussInterpMatrix(x, axi, bxi, xi, NOrderX, CYCLIC_X, int_method_x, y, ayi, byi, yi, NOrderY, CYCLIC_Y, int_method_y, Zi):
     Nx, Nxi, Ny, Nyi = x.shape[0], xi.shape[0], y.shape[0], yi.shape[0]
-    print "Ny =", Ny
+    print("Ny =", Ny)
     Z = zeros((Nx, Ny), Complex)
     Ztmp = zeros((Nxi, Ny), Complex)
     for i in range(Nxi):
@@ -163,7 +163,7 @@ def LagrangeVariableStepInterpolation(x, y_i, x_i):
                  libraries = ['MoM'],
                  headers = ['<iostream>','<complex>','"interpolation.h"'],
                  compiler = 'gcc')
-    #print "Lagrange coeffs =", coeffs
+    #print("Lagrange coeffs =", coeffs)
     return sum(y_i * coeffs)
 
 
@@ -288,14 +288,14 @@ def testAnterpolation(N):
     Z = exp(-1.j*Y)
     gplt.surf(real(Z*Y))
     I = sum(sum(W*Y*Z))
-    
+
     W_a = anterDecimate2DLfi(Xtheta, Xtheta[0::2], 4, Xphi, Xphi[0::2], 4, W)
-    print W_a[4,::2]
-    print W[8,::4]
+    print(W_a[4,::2])
+    print(W[8,::4])
     Y_a, Z_a = zeros(W_a.shape, Complex), zeros(W_a.shape, Complex)
     Y_a, Z_a = Y[0::2,0::2], Z[0::2,0::2]
     I_a = sum(sum(Y_a*Z_a*W_a))
-    print I, I_a, sum(sum(Y_a*Z[0::2,0::2]*W[0::2,0::2]))
+    print(I, I_a, sum(sum(Y_a*Z[0::2,0::2]*W[0::2,0::2])))
 
 if __name__=="__main__":
     Dtheta = pi/10
@@ -303,7 +303,7 @@ if __name__=="__main__":
     theta = arange(0, pi+Dtheta, Dtheta)
     phi = arange(0, 2*pi, Dphi) # we don't include 2*pi, as in testMLFMAinterp.py
     Ntheta, Nphi = theta.shape[0], phi.shape[0]
-    print "Ntheta, Nphi =", Ntheta, Nphi
+    print("Ntheta, Nphi =", Ntheta, Nphi)
     Y_original = zeros((Ntheta, Nphi), Complex)
     for i in range(Nphi):
         Y_original[:,i] = cos(theta) * sin(phi[i])
@@ -311,7 +311,7 @@ if __name__=="__main__":
     #x_i = phi_i
     #y_i = sin(x_i)
     #y = LagrangeVariableStepInterpolation(x_i[11], y_i[6:10], x_i[6:10])
-    #print "interpolated y =", y, ", real y =", y_i[11]
+    #print("interpolated y =", y, ", real y =", y_i[11])
 
     # 1-D interpolation
 ##     y_interp = Lagrange_vector_interpolation(X_i, X_i[0::4], Y_i[0::4], 3)
