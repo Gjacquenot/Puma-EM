@@ -24,12 +24,12 @@ def zbesh_interface(z_cmplx, fnu):
                 libraries = ['g2c', 'm', 'AMOS'],
                 headers = ['<iostream>','<complex>','"zbesh_interface.h"'],
                 compiler = 'gcc')
-	
+
 	return h_scipy, h_cpp
 
 if __name__=="__main__":
 	z_cmplx = 9000 - 100.j
 	fnu = 115.5
  	h_scipy, h_cpp = zbesh_interface(z_cmplx, fnu)
- 	print h_scipy, h_cpp[0]
-        
+ 	print(h_scipy, h_cpp[0])
+
