@@ -2,11 +2,11 @@ import os, sys
 from math import pi
 from scipy import zeros, array, arange, dot
 from scipy import sparse, linalg, cos, sin, conj, log10, real, sum, imag
-from scipy.sparse.linalg import gmres, bicgstab, lgmres
+from scipy.sparse.linalg import bicgstab
 from meshClass import MeshClass
 from PyGmsh import executeGmsh, write_geo
-from Z_MoM import Z_CFIE_MoM, Z_EH_J_MoM
-from V_EH import computeV_EH, G_EJ_G_HJ, V_EH_dipole_alternative, V_EH_plane
+from Z_MoM import Z_CFIE_MoM
+from V_EH import computeV_EH
 from EM_constants import *
 from MoMPostProcessing import *
 try:
