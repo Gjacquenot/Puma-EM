@@ -19,7 +19,7 @@ def createMPIsystemCommand(pathToProgram, programName, number_procs):
     filename = 'MPIcommand.sh'
     f = open(filename, 'w')
     f.write("# automatically generated file. Cleans the OMPI_* variables from the environment\n")
-    f.write("for i in $(env | grep OMPI_MCA |sed 's/=/ /' | awk '{print $1}')\n")
+    f.write("for i in $(env | grep OMPI_MCA |sed 's/=/ /' | awk '{print($1}')\n"))
     f.write("do\n")
     f.write("\tunset $i\n")
     f.write("done\n")
