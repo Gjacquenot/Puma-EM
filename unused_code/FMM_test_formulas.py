@@ -10,7 +10,7 @@ from EM_constants import *
 
 def  P_Legendre(L, z):
     """The wrapping function for 'P_Legendre' in 'FMM.cpp'."""
-    
+
     P = zeros(L+1, Float)
     wrapping_code = """P_Legendre(P, z);"""
     weave.inline(wrapping_code,
@@ -30,7 +30,7 @@ def cross(a, b):
 
 def sphere_integral_theta_identity(theta, phi, k, d, D_hat, l):
     """The sphere identity is formula (3.13) in [Chew 2001]"""
-    
+
     result = zeros(theta.shape[0], Complex)
     for i in range(theta.shape[0]):
         k_hat = array([sin(theta[i])*cos(phi), sin(theta[i])*sin(phi), cos(theta[i])], Float)
@@ -39,12 +39,12 @@ def sphere_integral_theta_identity(theta, phi, k, d, D_hat, l):
 
 
 def sphere_integral_phi_identity(phi, k, d, D_hat, l):
-    
+
     result = zeros(phi.shape[0], Complex)
     for i in range(phi.shape[0]):
         result[i] = fixed_quad(sphere_integral_theta_identity, 0., pi, args=(phi[i], k, d, D_hat, l), n=25)[0]
     return result
-    
+
 
 def sphere_integral_identity(k, d, D_hat, l):
 
@@ -119,17 +119,17 @@ if __name__=="__main__":
     norm_D = sqrt(dot(D, D))
     D_hat = D/norm_D
     theta_D = arccos(D_hat[2])
-    print "theta_D =", theta_D*180./pi
+    print("theta_D =", theta_D*180./pi)
     if (abs(D_hat[2])<1.0):
         arccos_phi_D = arccos(D_hat[0]/sin(theta_D))
-        print "arccos_phi_D =", arccos(D_hat[0]/sin(theta_D))
-        print "arccos(1.0)=", arccos(1.0)
+        print("arccos_phi_D =", arccos(D_hat[0]/sin(theta_D)))
+        print("arccos(1.0)=", arccos(1.0))
         phi_D = arccos_phi_D
-        if (D_hat[1]<0.): 
+        if (D_hat[1]<0.):
             phi_D = 2.*pi - arccos_phi_D
     else:
         phi_D = 0.
-    print "phi_D =", phi_D*180./pi
+    print("phi_D =", phi_D*180./pi)
     d = array([0.03, 0.01, 0.012], Float)
     norm_d = sqrt(dot(d, d))
     d_hat = d/norm_d
@@ -139,19 +139,19 @@ if __name__=="__main__":
     mu_r = 1.
     k = w * sqrt(eps_0*eps_r*mu_0*mu_r)
     L  = int(ceil(abs(k*norm_d + 1. * (k*norm_d)**(1./3.))))
-    print "L =", L
+    print("L =", L)
     G = exp(-1.j * k * sqrt(dot(D+d, D+d))) / (4 * pi * sqrt(dot(D+d, D+d)))
-    
+
 ##     for L in range(55):
 ##  	j_sph = sqrt(pi/(2.* k*norm_d)) * jv(arange(L+1)+0.5, k*norm_d)
 ##  	h2_sph = sqrt(pi/(2.* k*norm_D)) * hankel2(arange(L+1)+0.5, k*norm_D)
 ##         P_Leg = P_Legendre(L, dot(d_hat, D_hat))
 ##         coeff = (-1)**arange(L+1) * (2*arange(L+1) + 1)
 ##         G_addition_theorem = -1.j*k/(4*pi) * sum(coeff * j_sph * h2_sph * P_Leg)
-##         print G, G_addition_theorem
+##         print(G, G_addition_theorem)
 
     # here we verify formula (3.13) of [Chew 2001]
     l = L+2
-    print sphere_integral_identity(k, d, D_hat, l)
-    print sphere_integral_phi_identity_GK(0., pi, k, d, D_hat, l) + sphere_integral_phi_identity_GK(pi, 2.*pi, k, d, D_hat, l)
-    print 4*pi*(-1.j)**l * sqrt(pi/(2.* k*norm_d)) * jv(l+0.5, k*norm_d) * P_Legendre(l, dot(d_hat, D_hat))[-1]
+    print(sphere_integral_identity(k, d, D_hat, l))
+    print(sphere_integral_phi_identity_GK(0., pi, k, d, D_hat, l) + sphere_integral_phi_identity_GK(pi, 2.*pi, k, d, D_hat, l))
+    print(4*pi*(-1.j)**l * sqrt(pi/(2.* k*norm_d)) * jv(l+0.5, k*norm_d) * P_Legendre(l, dot(d_hat, D_hat))[-1])
