@@ -1,7 +1,7 @@
 import os.path, sys, time
 from scipy import zeros, ones, arange, array, take, reshape, sort, argsort, put, sum, compress, nonzero, prod, floor, mean, sqrt, dot, arccos
-from read_mesh import read_mesh_GMSH_1, read_mesh_GMSH_2
-from PyGmsh import executeGmsh, write_geo, findParameter, findParameterValue
+from read_mesh import read_mesh_GMSH_1
+from PyGmsh import executeGmsh, write_geo
 from EM_constants import *
 import copy
 
