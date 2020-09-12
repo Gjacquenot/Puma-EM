@@ -34,7 +34,7 @@ def G_EJ_G_HJ_cpp(r_dip, r_obs, eps_r, mu_r, k):
         G_EJ(i, j) = G_EJ_vector[i][j];
         G_HJ(i, j) = G_HJ_vector[i][j];
       }
-    }    
+    }
     """
     weave.inline(wrapping_code,
                  ['G_EJ', 'G_HJ', 'r_dip', 'r_obs', 'eps', 'mu', 'k'],
@@ -67,7 +67,7 @@ def G_EJ_G_HJ(r_dip, r_obs, eps_r, mu_r, k):
     y_yp_R_square = (y_yp/R) * (y_yp/R)
     z_zp_R_square = (z_zp/R) * (z_zp/R)
     G_EJ [0, 1] = term_2*y_yp/R*x_xp/R
-    G_EJ [0, 2] = term_2*z_zp/R*x_xp/R 
+    G_EJ [0, 2] = term_2*z_zp/R*x_xp/R
     G_EJ [1, 2] = term_2*z_zp/R*y_yp/R
     G_EJ [1, 0] = G_EJ [0, 1]
     G_EJ [2, 0] = G_EJ [0, 2]
@@ -90,7 +90,7 @@ def G_EJ_G_HJ(r_dip, r_obs, eps_r, mu_r, k):
 def V_EH_dipole(J_dip, r_dip, list_of_edges_numbers, RWGNumber_CFIE_OK, RWGNumber_signedTriangles, RWGNumber_edgeVertexes, RWGNumber_oppVertexes, vertexes_coord, w, eps_r, mu_r):
     """I don't know yet what's gonna go here.
     Anyway, we use prefentially 2-D triangles arrays in the C++ code"""
-    # creation of the local V arrays 
+    # creation of the local V arrays
     E = list_of_edges_numbers.shape[0]
     V_EH = zeros((E, 4), 'D')
     V_FULL_PRECISION = 1
@@ -135,7 +135,7 @@ def V_EH_dipole_alternative(J_dip, r_dip, list_of_edges_numbers, RWGNumber_CFIE_
     pass
     #"""I don't know yet what's gonna go here.
     #Anyway, we use prefentially 2-D triangles arrays in the C++ code"""
-    ## creation of the local V arrays 
+    ## creation of the local V arrays
     #E = list_of_edges_numbers.shape[0]
     #V_EH = zeros((E, 4), 'D')
     #V_FULL_PRECISION = 1
@@ -247,13 +247,13 @@ def computeV_EH(target_mesh, J_dip, r_dip, w, eps_r, mu_r, list_of_edges_numbers
             #V_EH = V_EH_delta_gap(J_dip, r_dip, list_of_edges_numbers, target_mesh.edges_numbers_triangles, target_mesh.vertexes_coord, target_mesh.triangles_vertexes, target_mesh.triangles_edges_numbers, target_mesh.triangles_edges_kinds, target_mesh.triangles_edges_signs, target_mesh.triangles_edges_lengths, target_mesh.triangles_edges_opp_vertexes, target_mesh.triangles_normals, target_mesh.triangles_areas, target_mesh.triangles_centroids, w, eps_r, mu_r).astype(ELEM_TYPE)
             #return V_EH
         #else:
-            #print "ERROR!! You asked for delta gap excitation, but none is defined in the file", target_mesh.geoName
+            #print("ERROR!! You asked for delta gap excitation, but none is defined in the file", target_mesh.geoName)
             #sys.exit(1)
     else:
         print("ERROR: Wrong excitation setting. Exiting")
         sys.exit(1)
-        
-        
+
+
 if __name__=="__main__":
     path = './geo'
     targetName = 'sphere'
