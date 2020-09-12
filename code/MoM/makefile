@@ -73,7 +73,7 @@ scatter_mesh_per_cube.o: scatter_mesh_per_cube.cpp readWriteBlitzArrayFromFile.h
 	$(MPICC) $(INCLUDE_PATH) $(CFLAGS) scatter_mesh_per_cube.cpp
 compute_Z_near.o: compute_Z_near.cpp readWriteBlitzArrayFromFile.h Z_EJ_Z_HJ.h scatter_mesh_per_cube.h scatter_mesh_per_cube.cpp
 	$(MPICC) $(INCLUDE_PATH) $(CFLAGS) compute_Z_near.cpp
-compute_SAI_precond.o: compute_SAI_precond.cpp readWriteBlitzArrayFromFile.h 
+compute_SAI_precond.o: compute_SAI_precond.cpp readWriteBlitzArrayFromFile.h
 	$(MPICC) $(INCLUDE_PATH) $(CFLAGS) compute_SAI_precond.cpp
 mpi_mlfma.o: mpi_mlfma.cpp  Z_sparse_MLFMA.h mesh.h octtree.h octtree.cpp level.h level.cpp ./iterative/iterative.h V_E_V_H.h alpha_computation.h V_E_V_H_dipole.cpp V_E_V_H_plane.cpp EMConstants.h
 	$(MPICC) $(INCLUDE_PATH) $(CFLAGS) mpi_mlfma.cpp
@@ -114,9 +114,9 @@ GL.o: GL.cpp
 
 
 
-clean: 
-	rm -f *.o *.a *.txt *~ *.pyc octtree mpi_mlfma testMPI communicateZnearBlocks mesh_functions_seb mesh_cubes distribute_Z_cubes RWGs_renumbering compute_Z_near compute_SAI_precond; 
-	cd $(LIBAMOS_ZBESH_PATH); make clean; 
-	cd $(LIBZGELS_PATH); make clean; 
+clean:
+	rm -f *.o *.a *.txt *~ *.pyc octtree mpi_mlfma testMPI communicateZnearBlocks mesh_functions_seb mesh_cubes distribute_Z_cubes RWGs_renumbering compute_Z_near compute_SAI_precond;
+	cd $(LIBAMOS_ZBESH_PATH); make clean;
+	cd $(LIBZGELS_PATH); make clean;
 	cd $(LIBITERATIVE_PATH); make clean;
 
