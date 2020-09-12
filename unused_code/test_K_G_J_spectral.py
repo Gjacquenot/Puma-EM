@@ -11,7 +11,6 @@ def K_G_J_spectral(k_rho, v, rho, z, zprime, w, eps_0, mu_0, z_i, mu_i, eps_i):
     d_i = zeros(N,'d')
     d_i[1:-1] = z_i[1:]-z_i[:-1]
 
-    
     code = """
     using namespace blitz;
     int i;
@@ -33,9 +32,9 @@ def K_G_J_spectral(k_rho, v, rho, z, zprime, w, eps_0, mu_0, z_i, mu_i, eps_i):
     LC.k_i.resize(N);
     LC.k_i = k_i;
     for (i=0 ; i<100 ; i++) {
-    	KA_xx = KA_xx_spectral (k_rho, v, rho, z, zprime, m, n, LC);
-	cout << KA_xx << endl;  
-	}
+        KA_xx = KA_xx_spectral (k_rho, v, rho, z, zprime, m, n, LC);
+        cout << KA_xx << endl;
+    }
     return_val = KA_xx;
     """
 
@@ -63,5 +62,4 @@ if __name__=="__main__":
     eps_i = array([3.-0.3j, 2.-0.3j, 2., 1.],'D')
     mu_i = array([1., 1., 1., 1.],'D')
     KA_xx = K_G_J_spectral(k_rho, v, rho, z, zprime, w, eps_0, mu_0, z_i, mu_i, eps_i)
-    print KA_xx
-
+    print(KA_xx)
