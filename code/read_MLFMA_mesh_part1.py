@@ -1,6 +1,7 @@
 import sys, os, argparse, time
 from ReadWriteBlitzArray import writeScalarToDisk, writeBlitzArrayToDisk
-from read_mesh import read_mesh_GMSH_1, read_mesh_GMSH_2, read_mesh_GiD, read_mesh_ANSYS
+from read_mesh import read_mesh_GMSH_2, read_mesh_GiD, read_mesh_ANSYS
+
 
 def readMesh(path, name, params_simu):
     if params_simu.meshFormat == 'GMSH':
@@ -43,7 +44,7 @@ def setup_mesh(params_simu, simuDirName):
     writeBlitzArrayToDisk(vertexes_coord, os.path.join(meshPath, 'vertexes_coord.txt'))
     writeBlitzArrayToDisk(triangle_vertexes, os.path.join(meshPath, 'triangle_vertexes.txt'))
 
-	
+
 if __name__=='__main__':
     parser = argparse.ArgumentParser(description='...')
     parser.add_argument('--inputdir')
