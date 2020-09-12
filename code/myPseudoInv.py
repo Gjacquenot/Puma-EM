@@ -48,7 +48,7 @@ def computeMyPinv(A):
     if info==0:
         return out[0][:n] # see comments on B in "zgels.f"
     else:
-        print "argument", abs(i), "has illegal value. exiting"
+        print("argument", abs(i), "has illegal value. exiting")
         sys.exit(1)
 
 def computeMyPinvCC(A, LIB_G2C):
@@ -90,7 +90,7 @@ def computeMyPinvCC(A, LIB_G2C):
         else:
             return B[:n]
     else:
-        print "argument", abs(i), "has illegal value. exiting"
+        print("argument", abs(i), "has illegal value. exiting")
         sys.exit(1)
 
 def computeTriangleUpSolve(A, LIB_G2C):
@@ -132,18 +132,18 @@ def computeTriangleUpSolve(A, LIB_G2C):
         else:
             return B[:n]
     else:
-        print "argument", abs(i), "has illegal value. exiting"
+        print("argument", abs(i), "has illegal value. exiting")
         sys.exit(1)
 
 if __name__=="__main__":
     machEps = macheps()
-    print "Python eps =", machEps
-    #print "FORTRAN eps =", dlamch('E')
-    #print "FORTRAN safe min =", dlamch('S')
-    #print "FORTRAN base of the machine =", dlamch('B')
-    #print "FORTRAN eps*base =", dlamch('P')
-    #print "FORTRAN number of (base) digits in the mantissa =", dlamch('N')
-    #print "FORTRAN rmax = ", dlamch('O')
+    print("Python eps =", machEps)
+    #print("FORTRAN eps =", dlamch('E'))
+    #print("FORTRAN safe min =", dlamch('S'))
+    #print("FORTRAN base of the machine =", dlamch('B'))
+    #print("FORTRAN eps*base =", dlamch('P'))
+    #print("FORTRAN number of (base) digits in the mantissa =", dlamch('N'))
+    #print("FORTRAN rmax = ", dlamch('O'))
 
     N = 3
     M = 3
@@ -151,7 +151,7 @@ if __name__=="__main__":
     A1 = copy.deepcopy(A0)
     A2 = zeros((M, N), 'D', 2)
     A2[:] = A0
-    print A0
+    print(A0)
     #for j in range(A1.shape[0]):
         #A2[j] = A0[j]
     LIB_G2C = 'g2c' # for gcc >= 4.3.0, LIB_G2C = 'gfortran'
@@ -160,7 +160,7 @@ if __name__=="__main__":
     X2 = computeMyPinvCC(A2, LIB_G2C)
     X3 = computeTriangleUpSolve(A1, LIB_G2C)
     print
-    print "X1 - X2 = "
-    print X1 -X2
-    print "X1 - X3 = "
-    print X1 - X3
+    print("X1 - X2 = ")
+    print(X1 -X2)
+    print("X1 - X3 = ")
+    print(X1 - X3)
