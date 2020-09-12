@@ -1,12 +1,13 @@
-from Numeric import *
+# from Numeric import *
 from scipy import *
 from scipy import weave
+import weave
 from scipy import linalg
 from weave import converters
 import time
 
 def multiplyAndSum(A, B):
-    code = """ 
+    code = """
            double result;
            result = sum(A*B) + sum(A+B);
            """
@@ -25,16 +26,16 @@ if __name__=="__main__":
     B = rand(2, N, 2*N)
     t0 = time.time()
     multiplyAndSum(A, B)
-    print time.time() - t0, "seconds..."
+    print(time.time() - t0, "seconds...")
 
     A = rand(2, 2*N*N)
     B = rand(2, 2*N*N)
     t0 = time.time()
     multiplyAndSum(A, B)
-    print time.time() - t0, "seconds..."
+    print(time.time() - t0, "seconds...")
 
     A = rand(2*N*N, 2)
     B = rand(2*N*N, 2)
     t0 = time.time()
     multiplyAndSum(A, B)
-    print time.time() - t0, "seconds..."
+    print(time.time() - t0, "seconds...")
