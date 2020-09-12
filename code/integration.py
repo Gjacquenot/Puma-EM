@@ -1,6 +1,7 @@
 from math import pi
 from scipy import zeros, sqrt, sort, real, sum, cos
 
+
 def integr_1D_X_W(a, b, N_points, METHOD, INCLUDE_BOUDARIES):
     """This function yields the abscissas and weights for 3 integration methods:
     PONCELET (mid-point), TRAPEZOIDAL RULE, GAUSS. The boolean INCLUDE_BOUDARIES specifies if one
@@ -12,7 +13,7 @@ def integr_1D_X_W(a, b, N_points, METHOD, INCLUDE_BOUDARIES):
             X[j] = a + j*h
             W[j] = h
         W[0] /= 2.0
-        W[N_points-1] /= 2.0;
+        W[N_points-1] /= 2.0
     elif (METHOD == "PONCELET"): # mid-point method
         h = (b-a)/N_points
         for j in range(N_points):
@@ -34,6 +35,7 @@ def integr_1D_X_W(a, b, N_points, METHOD, INCLUDE_BOUDARIES):
         Wtmp[0], Wtmp[-1] = 0.0, 0.0
         X, W = Xtmp, Wtmp
     return X, W
+
 
 def mlegzo(n):
     """I found this function on the Internet (search for MLEGZO)"""
@@ -74,10 +76,12 @@ def mlegzo(n):
         w[n-nr] = w[nr-1]
     return sort(x, kind='mergesort'), w
 
+
 def largeXGLWGL(N_points):
     """find Gauss-Legendre abscissas and weights for large N. See page 39 of Guillaume Sylvand thesis"""
     X, W = mlegzo(N_points)
     return X, W
+
 
 if __name__=="__main__":
 
@@ -91,4 +95,3 @@ if __name__=="__main__":
     X2, W2 = mlegzo(n)
     print(max(abs(X1 - X2)))
     print(max(abs(W1 - W2)))
-
