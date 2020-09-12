@@ -17,7 +17,7 @@ def L_computation(k, a, NB_DIGITS):
     L_tmp4 = a*real(k)*sqrt(3) + 1.8 * NB_DIGITS**(2.0/3.0) * (a*real(k)*sqrt(3))**(1.0/3.0) # Song, Chew, "Fast and Efficient..."
     #my_id = MPI.COMM_WORLD.Get_rank()
     #if (my_id==0):
-        #print "L_tmp1 =", L_tmp1, ", L_tmp2 =", L_tmp2, ", L_tmp3 =", L_tmp3, ", L_tmp4 =", L_tmp4
+        #print("L_tmp1 =", L_tmp1, ", L_tmp2 =", L_tmp2, ", L_tmp3 =", L_tmp3, ", L_tmp4 =", L_tmp4)
     L2 = where(L_tmp2<5., 5, int(ceil( L_tmp2 )))
     #return L2
     return int(floor( L_tmp4 ))
@@ -34,10 +34,10 @@ def octtreeXWN_computation(boundary_inf, boundary_sup, L, N_levels, int_method, 
     INCLUDE_BOUNDARIES_2 = ( (int_method=="GAUSSL") & INCLUDE_BOUNDARIES )
     if (INCLUDE_BOUNDARIES_2):
         # we also include 0 and pi at the extremities for enhancing the interpolation
-        # this is especially true for gauss-legendre abscissas with non-cyclic interpolation 
+        # this is especially true for gauss-legendre abscissas with non-cyclic interpolation
         N_points_max += 2
     #if (my_id==0):
-    #    print "N_points_max =", N_points_max
+    #    print("N_points_max =", N_points_max)
     octtreeX = zeros((N_levels-1, N_points_max), 'd')
     octtreeW = zeros((N_levels-1, N_points_max), 'd')
     octtreeN = zeros(N_levels-1, 'i')
@@ -101,8 +101,8 @@ def computeTreeParameters(my_id, tmpDirName, a, k, N_levels, params_simu):
         octtreeXthetas[i,:Npoints] = arccos(octtreeXcosThetas[i, Npoints-1::-1])
     octtreeXphis, octtreeWphis, octtreeNphis = octtreeXWN_computation(0.0, 2.0*pi, L, N_levels, params_simu.int_method_phi, params_simu.INCLUDE_BOUNDARIES)
     #if (my_id==0):
-    #    print "Nthetas =", octtreeNthetas
-    #    print "Nphis =", octtreeNphis
+    #    print("Nthetas =", octtreeNthetas)
+    #    print("Nphis =", octtreeNphis)
     # order of interpolation
     NOrderInterpTheta = L[0]
     NOrderInterpPhi = L[0]
