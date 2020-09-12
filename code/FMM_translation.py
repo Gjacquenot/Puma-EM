@@ -39,12 +39,12 @@ def IT_theta_IT_phi_alpha_C(r_mn, k, L, XcosTheta, Xphi, ELEM_TYPE):
     #return alpha_mn
 
 def alpha_computation(cubes_centroids, a, k, L, XcosTheta, Xphi, ELEM_TYPE):
-    print "alpha computation"
+    print("alpha computation")
     N_points_theta, N_points_phi = XcosTheta.shape[0], Xphi.shape[0]
     N_Cx = int(round( ( (max(cubes_centroids[:,0]) + a/2.0) - (min(cubes_centroids[:,0]) - a/2.0) )/a ) )
     N_Cy = int(round( ( (max(cubes_centroids[:,1]) + a/2.0) - (min(cubes_centroids[:,1]) - a/2.0) )/a ) )
     N_Cz = int(round( ( (max(cubes_centroids[:,2]) + a/2.0) - (min(cubes_centroids[:,2]) - a/2.0) )/a ) )
-    print "N_Cx =", N_Cx, ", N_Cy =", N_Cy, ", N_Cz =", N_Cz
+    print("N_Cx =", N_Cx, ", N_Cy =", N_Cy, ", N_Cz =", N_Cz)
     alpha = zeros((2*N_Cx-1, 2*N_Cy-1, 2*N_Cz-1, N_points_theta, N_points_phi), ELEM_TYPE)
     for m in range(2*N_Cx-1):
         for n in range(2*N_Cy-1):
@@ -58,12 +58,12 @@ def alpha_computation(cubes_centroids, a, k, L, XcosTheta, Xphi, ELEM_TYPE):
     return alpha
 
 def alpha_computation_alternative(cubes_centroids, a, k, L, XcosTheta, Xphi, ELEM_TYPE):
-    print "alpha computation"
+    print("alpha computation")
     N_points_theta, N_points_phi = XcosTheta.shape[0], Xphi.shape[0]
     N_Cx = int(round( ( (max(cubes_centroids[:,0]) + a/2.0) - (min(cubes_centroids[:,0]) - a/2.0) )/a ) )
     N_Cy = int(round( ( (max(cubes_centroids[:,1]) + a/2.0) - (min(cubes_centroids[:,1]) - a/2.0) )/a ) )
     N_Cz = int(round( ( (max(cubes_centroids[:,2]) + a/2.0) - (min(cubes_centroids[:,2]) - a/2.0) )/a ) )
-    print "N_Cx =", N_Cx, ", N_Cy =", N_Cy, ", N_Cz =", N_Cz
+    print("N_Cx =", N_Cx, ", N_Cy =", N_Cy, ", N_Cz =", N_Cz)
     alpha = zeros((2*N_Cx-1, 2*N_Cy-1, 2*N_Cz-1, N_points_theta, N_points_phi), ELEM_TYPE)
     for m in range(2*N_Cx-1):
         for n in range(2*N_Cy-1):
