@@ -23,9 +23,9 @@ def testVolakisMoM(path, targetName, f, M0M_FULL_PRECISION):
     CFIE = array([coeff, 0.0, 0.0, -(1.0-coeff) * 377], 'D')
     list_of_test_edges_numbers = arange(N_RWG,dtype='i')#.astype('i')#[0::6]
     list_of_src_edges_numbers = arange(N_RWG,dtype='i')#.astype('i')#[2::6]
-    print "Target_MoM instanciation"
+    print("Target_MoM instanciation")
     target_MoM = Target_MoM(CFIE, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh, w, eps_r, mu_r, TDS_APPROX, Z_s, MOM_FULL_PRECISION)
-    print "Matrix inversion..."
+    print("Matrix inversion...")
     target_MoM.compute_Y_CFIE()
     T = target_mesh.T
     if 'plate' in targetName:
@@ -36,7 +36,7 @@ def testVolakisMoM(path, targetName, f, M0M_FULL_PRECISION):
     sigmas_HH = zeros(len(phis), 'f')
     sigmas_VV = zeros(len(phis), 'f')
     for polarization in ['HH', 'VV']:
-        print "polarization " + polarization
+        print("polarization " + polarization)
         index = 0
         r_obs = zeros(3).astype('d') # observation point for the incoming field
         for phi in phis:
@@ -98,7 +98,7 @@ if __name__=='__main__':
         elif 'cone-sphere' in targetName or 'cone-gap-sphere' in targetName:
             f = 0.869e9
         else:
-            print "No target named", targetName, ". Exiting"
+            print("No target named", targetName, ". Exiting")
     MOM_FULL_PRECISION = 1
     sigmas_HH, sigmas_VV = testVolakisMoM(path, targetName, f, MOM_FULL_PRECISION)
 
