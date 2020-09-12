@@ -32,12 +32,12 @@ params_simu.CFIE = [params_simu.nu, 0, 0, -(1.0-params_simu.nu) * 377]
 params_simu.BE_BH_N_Gauss_points = 1
 
 # do we allow parallelization by directions??
-# this option should be enabled if there is a big number of processors wrt the number of cubes 
+# this option should be enabled if there is a big number of processors wrt the number of cubes
 # at the ceiling level
 params_simu.DIRECTIONS_PARALLELIZATION = 1
 
 # do we allow a ceiling level that could be other than the third coarsest level?
-# the ceiling level having the smallest memory footprint by its cubes is chosen
+# the ceiling level having the smallest memory footprint(by its cubes is chosen)
 params_simu.ALLOW_CEILING_LEVEL = 0
 
 # number of digits for the L computation
@@ -45,18 +45,18 @@ params_simu.NB_DIGITS = 3
 
 # do we use the previous solution in monostatic computation?
 params_simu.USE_PREVIOUS_SOLUTION = 1
-# do we use the bistatic approximation for computing the monostatic RCS? 
+# do we use the bistatic approximation for computing the monostatic RCS?
 # (much faster but less accurate if yes = 1)
 params_simu.MONOSTATIC_BY_BISTATIC_APPROX = 0
 params_simu.MAXIMUM_DELTA_PHASE = 0.0 # in degrees
 
 # max block size for the near field and preconditioner matrices (in MBytes)
-# the near field and preconditioner matrices are sliced in blocks and 
+# the near field and preconditioner matrices are sliced in blocks and
 # dumped to the disk in order to minimize RAM memory occupation
 params_simu.MAX_BLOCK_SIZE = 100.
 
 # the integration type. Usually Gauss-Legendre for theta and Poncelet for phi.
-params_simu.int_method_theta = "GAUSSL" 
+params_simu.int_method_theta = "GAUSSL"
 params_simu.int_method_phi = "PONCELET"
 params_simu.INCLUDE_BOUNDARIES = 0
 
