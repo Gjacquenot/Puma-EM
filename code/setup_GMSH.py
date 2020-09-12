@@ -1,5 +1,6 @@
 import sys, os, argparse
-from PyGmsh import executeGmsh, write_geo, isGeoFileThere
+from PyGmsh import write_geo, isGeoFileThere
+
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser(description='...')
@@ -18,7 +19,7 @@ if __name__=='__main__':
     exec('from ' + simuParams + ' import *')
     # JPA : si l'utilisateur n'a pas donne de chemin vers la geometrie, on cherche dans le repertoire de donnees
     if params_simu.pathToTarget == "":
-        params_simu.pathToTarget = inputDirName;
+        params_simu.pathToTarget = inputDirName
 
     filename = 'GMSHcommand.sh'
     if params_simu.meshToMake:
@@ -39,5 +40,3 @@ if __name__=='__main__':
         os.system("cp " + os.path.join(params_simu.pathToTarget, params_simu.targetName + params_simu.meshFileTermination) + ' ' + geoDirName)
     f.close()
     os.system("chmod u+x " + filename)
-        
-
