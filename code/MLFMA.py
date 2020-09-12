@@ -6,7 +6,8 @@ except ImportError:
 from EM_constants import *
 from meshClass import MeshClass
 from MoMPostProcessing import *
-from ReadWriteBlitzArray import readIntFromDisk, readFloatFromDisk, read1DBlitzArrayFromDisk, readASCIIBlitzComplexFloatArray2DFromDisk
+from ReadWriteBlitzArray import readIntFromDisk, readFloatFromDisk, read1DBlitzArrayFromDisk
+
 
 def read_CPU_time(filename):
     file = open(filename, 'r')
