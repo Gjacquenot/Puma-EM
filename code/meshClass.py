@@ -16,7 +16,7 @@ import copy
 
 class MeshClass:
     def __init__(self, path, targetName, targetDimensions_scaling_factor, z_offset, languageForMeshConstruction, meshFormat, meshFileTermination):
-	
+
         self.path, self.name, self.geoName = path, targetName + meshFileTermination, targetName + '.geo'
         self.targetName = targetName
         self.z_offset = z_offset
@@ -30,7 +30,7 @@ class MeshClass:
         if self.meshFormat == 'GMSH':
             self.DELTA_GAP, ORIGIN_POINT, END_POINT = findDeltaGap(self.path, self.targetName)
             if self.DELTA_GAP:
-                ## a delta gap should always be defined in the *.geo file as 
+                ## a delta gap should always be defined in the *.geo file as
                 ## '// delta_gap' written aside the Line we want to be the delta gap
                 self.delta_gap = [ORIGIN_POINT, END_POINT]
                 self.delta_gap_indexes = [ORIGIN_POINT-1, END_POINT-1]
@@ -59,7 +59,7 @@ class MeshClass:
         print("  number of triangles = " + str(self.T))
         print("  edges classification...")
         sys.stdout.flush()
-        
+
         if self.languageForMeshConstruction=="C" or self.languageForMeshConstruction=="C++":
             t0 = time.clock()
             #self.triangles_surfaces, self.IS_CLOSED_SURFACE, self.RWGNumber_signedTriangles, self.RWGNumber_edgeVertexes, self.RWGNumber_oppVertexes = edges_computation_C_old(self.triangle_vertexes, self.vertexes_coord, self.path)
@@ -69,8 +69,8 @@ class MeshClass:
             print("  test of the closed surfaces : " + str(self.IS_CLOSED_SURFACE))
             if self.meshFormat == 'GMSH':
                 if self.DELTA_GAP:
-                    # here we must create a C++ function that calculates the mid point of each RWG and sees 
-                    # if the RWG is part of the delta gap. That function would use vertexes_coord and 
+                    # here we must create a C++ function that calculates the mid point of each RWG and sees
+                    # if the RWG is part of the delta gap. That function would use vertexes_coord and
                     # self.RWGNumber_edgeVertexes as inputs.
                     pass
             self.time_edges_classification = time.clock()-t0
@@ -112,14 +112,14 @@ class MeshClass:
             print("  Number of edges = " + str(self.N_edges))
             print("  Number of RWG = " + str(self.N_RWG))
             sys.stdout.flush()
-        
+
         self.compute_RWG_CFIE_OK()
         if self.N_RWG<1e4:
             stride = 1
         else:
             stride = self.N_RWG/100
         self.average_RWG_length = compute_RWG_meanEdgeLength(self.vertexes_coord, self.RWGNumber_edgeVertexes, stride)
-        
+
     def normals_check(self):
         triangles_areas, triangles_normals = triangles_areas_normals_computation(self.vertexes_coord, self.triangle_vertexes, self.triangles_surfaces)
         self.test_normal_integral = zeros(self.S, 'd')
@@ -137,7 +137,7 @@ class MeshClass:
         # The following expression is lacking the fact that a surface can be metallic
         # or dielectric. If metallic, then there is no M current, even if surface is closed
         self.RWGNumber_M_CURRENT_OK = ((sum(RWGNumber_CFIE_OK_tmp2, axis=1)>1) * 1).astype('i')
-    
+
     def write_normals(self):
         print("writing normals to a file")
         name = 'normals.pos'
@@ -150,18 +150,18 @@ class MeshClass:
         write_normals(os.path.join(self.path, name), triangles_centroids, triangles_normals, self.triangles_surfaces, -1)
 
     def cubes_data_computation(self, a):
-        #print "Entering cubes_data_computation............."
+        #print("Entering cubes_data_computation.............")
         self.a = a
         self.max_N_cubes_1D, self.N_levels, self.big_cube_lower_coord, self.big_cube_center_coord = cube_lower_coord_computation(a, self.vertexes_coord)
         self.N_levels = max(self.N_levels, 2)
-        #print "N levels =", self.N_levels, ", max N cubes 1D =", self.max_N_cubes_1D
+        #print("N levels =", self.N_levels, ", max N cubes 1D =", self.max_N_cubes_1D)
         RWGNumber_edgeCentroidCoord = compute_RWGNumber_edgeCentroidCoord(self.vertexes_coord, self.RWGNumber_edgeVertexes)
         RWGNumber_cube, RWGNumber_cubeNumber, RWGNumber_cubeCentroidCoord = RWGNumber_cubeNumber_computation(a, self.max_N_cubes_1D, self.big_cube_lower_coord, RWGNumber_edgeCentroidCoord)
         self.cubes_RWGsNumbers, self.cubes_lists_RWGsNumbers, self.cube_N_RWGs, self.cubes_centroids = cubeIndex_RWGNumbers_computation(RWGNumber_cubeNumber, RWGNumber_cubeCentroidCoord)
         self.C = self.cubes_centroids.shape[0]
         self.cubes_lists_NeighborsIndexes, self.cubes_neighborsIndexes, self.cube_N_neighbors = findCubeNeighbors(self.max_N_cubes_1D, self.big_cube_lower_coord, self.cubes_centroids, self.a)
         print("Average number of RWGs per cube : " + str(mean(self.cube_N_RWGs)))
-        #print "Exiting cubes_data_computation.............."
+        #print("Exiting cubes_data_computation..............")
 
     def saveToDisk(self, path):
         """this function writes to disk the arrays necessary for MLFMA to work."""
@@ -239,7 +239,7 @@ class MeshClass:
 class CubeClass:
     def __init__(self):
         pass
-    
+
     def writeIntDoubleArraysToFile(self, pathToSaveTo, cubeNumber):
         writeBlitzArrayToDisk(self.cubeIntArrays, os.path.join(pathToSaveTo, str(cubeNumber) + "_IntArrays.txt"))
         writeBlitzArrayToDisk(self.cubeDoubleArrays, os.path.join(pathToSaveTo, str(cubeNumber) + "_DoubleArrays.txt"))
@@ -256,7 +256,7 @@ class CubeClass:
         startIndex = 5
         #stopIndex = startIndex + self.N_RWG_test
         #self.test_RWGsNumbers = cubeIntArrays[startIndex:stopIndex]
-    
+
         #startIndex = stopIndex
         stopIndex = startIndex + self.N_RWG_src
         self.testSrc_RWGsNumbers = cubeIntArrays[startIndex:stopIndex]
@@ -264,7 +264,7 @@ class CubeClass:
         startIndex = stopIndex
         stopIndex = startIndex + self.N_RWG_src
         self.isEdgeInCartesianRadius = cubeIntArrays[startIndex:stopIndex]
-    
+
         startIndex = stopIndex
         stopIndex = startIndex + self.N_neighbors
         self.cubeNeighborsIndexes = cubeIntArrays[startIndex:stopIndex]
@@ -278,15 +278,15 @@ class CubeClass:
         #self.N_cubeDoubleArrays = self.N_nodes * 3 + 3
         ##cubeDoubleArrays = zeros(self.N_cubeDoubleArrays, 'd')
         #cubeDoubleArrays = read1DBlitzArrayFromDisk(os.path.join(pathToReadFrom, str(cubeNumber) + "_DoubleArrays.txt"), 'd')
-        
+
         #startIndex = 0
         #stopIndex = startIndex + self.N_nodes * 3
         #self.nodesCoord = reshape(cubeDoubleArrays[startIndex:stopIndex], (-1, 3))
-        
+
         #startIndex = stopIndex
         #stopIndex = startIndex + 3
         #self.rCubeCenter = cubeDoubleArrays[startIndex:stopIndex]
-   
+
     def getIntArrays(self):
         return self.N_RWG_test, self.N_RWG_src, self.N_neighbors, self.N_nodes, self.S, self.testSrc_RWGsNumbers, self.localTestSrcRWGNumber_nodes, self.cubeNeighborsIndexes
 
@@ -307,7 +307,7 @@ if __name__=="__main__":
         z_offset = 0.0
         targetDimensions_scaling_factor = 1.0
         languageForMeshConstruction = "C++"
-        meshFormat = 'GMSH' 
+        meshFormat = 'GMSH'
         meshFileTermination = '.msh'
         target_mesh = MeshClass(path, targetName, targetDimensions_scaling_factor, z_offset, languageForMeshConstruction, meshFormat, meshFileTermination)
         target_mesh.constructFromGmshFile()
@@ -317,7 +317,7 @@ if __name__=="__main__":
         #target_mesh.saveToDisk("./geo")
         #target_mesh2 = MeshClass(path, targetName, targetDimensions_scaling_factor, z_offset, languageForMeshConstruction, meshFormat, meshFileTermination)
         #target_mesh2.constructFromSavedArrays("./geo")
-        #print "delta_gap =", target_mesh.DELTA_GAP
+        #print("delta_gap =", target_mesh.DELTA_GAP)
     if 0:
         #lc = [0.0005]
         lc = [.02, 0.01, 0.0075, 0.005, 0.0025, 0.001, 0.00075]
