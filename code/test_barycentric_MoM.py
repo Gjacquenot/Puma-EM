@@ -29,7 +29,7 @@ def computeCurrentsVisualization(w, target_mesh, ZI):
 
 class Target_MoM:
     def __init__(self, CFIE, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh, w, eps_r, mu_r, TDS_APPROX, Z_s, MOM_FULL_PRECISION):
-        print "Target_MoM instanciation..."
+        print("Target_MoM instanciation...")
         signSurfObs, signSurfSrc = 1.0, 1.0 # no dielectric target here
         target_mesh.RWGNumber_M_CURRENT_OK *= 0
         self.Z_CFIE_J, self.Z_CFIE_M = Z_CFIE_MoM(CFIE, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh.RWGNumber_CFIE_OK, target_mesh.RWGNumber_M_CURRENT_OK, target_mesh.RWGNumber_signedTriangles, target_mesh.RWGNumber_edgeVertexes, target_mesh.RWGNumber_oppVertexes, target_mesh.vertexes_coord, w, eps_r, mu_r, signSurfObs, signSurfSrc, TDS_APPROX, Z_s, MOM_FULL_PRECISION)
@@ -49,16 +49,16 @@ class Target_MoM:
         self.Y_CFIE = linalg.inv(self.Z_CFIE_J)
 
     def solveByInversion(self):
-       print "Matrix inversion..."
+       print("Matrix inversion...")
        self.compute_Y_CFIE()
        self.I_CFIE = dot(self.Y_CFIE, self.V_CFIE)
 
     def solveByLUdecomposition(self):
-        print "LU decomposition and solution..."
+        print("LU decomposition and solution...")
         t0 = time.clock()
         lu, piv = linalg.lu_factor(self.Z_CFIE_J)
         self.I_CFIE = linalg.lu_solve((lu, piv), self.V_CFIE)
-        print "Done. time =", time.clock() - t0, "seconds"
+        print("Done. time =", time.clock() - t0, "seconds")
 
 
 def itercount(residual):
@@ -84,13 +84,13 @@ if __name__=="__main__":
     z_offset = 0.0
     targetDimensions_scaling_factor = 1.0
     languageForMeshConstruction = "C++"
-    meshFormat = 'GMSH' 
+    meshFormat = 'GMSH'
     meshFileTermination = '.msh'
     target_mesh = MeshClass(path, targetName, targetDimensions_scaling_factor, z_offset, languageForMeshConstruction, meshFormat, meshFileTermination)
     target_mesh.constructFromGmshFile()
     N_RWG = target_mesh.N_RWG
     print("average RWG length = " + str(target_mesh.average_RWG_length) + "m = lambda /" + str((c/f)/target_mesh.average_RWG_length))
-    print 
+    print()
     w = 2. * pi * f
     eps_r = 1.
     mu_r = 1.
@@ -114,21 +114,21 @@ if __name__=="__main__":
             #CFIE = array([coeff, coeff, -(1.0 - coeff) * sqrt(mu_0/eps_0), -(1.0 - coeff) * sqrt(mu_0/eps_0)], 'D')
             #CFIE = array([coeff, 0, -(1.0 - coeff) * sqrt(mu_0/eps_0), -(1.0 - coeff) * sqrt(mu_0/eps_0)], 'D')
             CFIE = array([coeff* 1.0/sqrt(mu_0/eps_0), 0, -(1.0 - coeff), -(1.0 - coeff)], 'D')
-            print "CFIE =", CFIE
+            print("CFIE =", CFIE)
             target_MoM = Target_MoM(CFIE, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh, w, eps_r, mu_r, TDS_APPROX, Z_s, MOM_FULL_PRECISION)
             # excitation computation
             target_MoM.V_EH_computation(CFIE, target_mesh, J_dip, r_dip, w, eps_r, mu_r, list_of_test_edges_numbers, EXCITATION)
             V_RWG = target_MoM.V_CFIE
             #target_MoM.solveByInversion()
             target_MoM.solveByLUdecomposition()
-            print "inverted MoM RCS =", sum(target_MoM.I_CFIE*target_MoM.V_EH[:,0])
+            print("inverted MoM RCS =", sum(target_MoM.I_CFIE*target_MoM.V_EH[:,0]))
             I_RWG = target_MoM.I_CFIE
             Z_RWG = target_MoM.Z_CFIE_J
             #computeCurrentsVisualization(w, target_mesh, target_MoM.I_CFIE)
             # now we try the iterative method
             count = 0
             I_CFIE_bicgstab = bicgstab(target_MoM.Z_CFIE_J, target_MoM.V_CFIE, x0=None, tol=1.0e-05, maxiter=1000, xtype=None, callback=itercount)
-            print "bicgstab MoM RCS =", sum(I_CFIE_bicgstab[0]*target_MoM.V_EH[:,0]), "# of iterations =", count
+            print("bicgstab MoM RCS =", sum(I_CFIE_bicgstab[0]*target_MoM.V_EH[:,0]), "# of iterations =", count)
 
     # now construction of the barycentric mesh: the classical way
     target_mesh_bary = MeshClass(path, targetName, targetDimensions_scaling_factor, z_offset, languageForMeshConstruction, meshFormat, meshFileTermination)
@@ -137,7 +137,7 @@ if __name__=="__main__":
 
     #t0 = time.clock()
     edgeNumber_vertexes, edgeNumber_triangles, triangle_adjacentTriangles, is_triangle_adjacentTriangles_via_junction = edges_computation(target_mesh_bary.triangle_vertexes, target_mesh_bary.vertexes_coord)
-    #print is_triangle_adjacentTriangles_via_junction
+    #print(is_triangle_adjacentTriangles_via_junction)
     #time_edges_classification = time.clock()-t0
     #print("  edges classification cumulated time = " + str(time_edges_classification) + " seconds")
 
@@ -191,18 +191,18 @@ if __name__=="__main__":
             #CFIE = array([coeff, coeff, -(1.0 - coeff) * sqrt(mu_0/eps_0), -(1.0 - coeff) * sqrt(mu_0/eps_0)], 'D')
             #CFIE = array([coeff, 0, -(1.0 - coeff) * sqrt(mu_0/eps_0), -(1.0 - coeff) * sqrt(mu_0/eps_0)], 'D')
             CFIE = array([coeff* 1.0/sqrt(mu_0/eps_0), 0, -(1.0 - coeff), -(1.0 - coeff)], 'D')
-            print "CFIE =", CFIE
+            print("CFIE =", CFIE)
             target_MoM = Target_MoM(CFIE, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh_bary, w, eps_r, mu_r, TDS_APPROX, Z_s, MOM_FULL_PRECISION)
             # excitation computation
             target_MoM.V_EH_computation(CFIE, target_mesh_bary, J_dip, r_dip, w, eps_r, mu_r, list_of_test_edges_numbers, EXCITATION)
             #target_MoM.solveByInversion()
             target_MoM.solveByLUdecomposition()
-            print "inverted MoM RCS =", sum(target_MoM.I_CFIE*target_MoM.V_EH[:,0])
+            print("inverted MoM RCS =", sum(target_MoM.I_CFIE*target_MoM.V_EH[:,0]))
             #computeCurrentsVisualization(w, target_mesh, target_MoM.I_CFIE)
             # now we try the iterative method
             count = 0
             I_CFIE_bicgstab = bicgstab(target_MoM.Z_CFIE_J, target_MoM.V_CFIE, x0=None, tol=1.0e-05, maxiter=1000, xtype=None, callback=itercount)
-            print "bicgstab MoM RCS =", sum(I_CFIE_bicgstab[0]*target_MoM.V_EH[:,0]), "# of iterations =", count
+            print("bicgstab MoM RCS =", sum(I_CFIE_bicgstab[0]*target_MoM.V_EH[:,0]), "# of iterations =", count)
 
 
     # now construction of the barycentric mesh: the new way based on the original mesh
@@ -219,7 +219,7 @@ if __name__=="__main__":
     print("average barycentric RWG length = " + str(target_mesh_bary.average_RWG_length) + "m = lambda /" + str((c/f)/target_mesh_bary.average_RWG_length))
     T = divided_triangles_vertexes.shape[0]
     target_mesh_bary.RWGNumber_CFIE_OK, target_mesh_bary.RWGNumber_M_CURRENT_OK = compute_barycentric_RWG_CFIE_OK(target_mesh.RWGNumber_CFIE_OK, target_mesh.RWGNumber_M_CURRENT_OK, 6*T)
-    print "T_bary =", 6*T
+    print("T_bary =", 6*T)
     list_of_test_edges_numbers = arange(target_mesh_bary.N_RWG,dtype='i')
     list_of_src_edges_numbers = arange(target_mesh_bary.N_RWG,dtype='i')
     MOM_FULL_PRECISION = 1
@@ -236,21 +236,21 @@ if __name__=="__main__":
             #CFIE = array([coeff, coeff, -(1.0 - coeff) * sqrt(mu_0/eps_0), -(1.0 - coeff) * sqrt(mu_0/eps_0)], 'D')
             #CFIE = array([coeff, 0, -(1.0 - coeff) * sqrt(mu_0/eps_0), -(1.0 - coeff) * sqrt(mu_0/eps_0)], 'D')
             CFIE = array([coeff* 1.0/sqrt(mu_0/eps_0), 0, -(1.0 - coeff), -(1.0 - coeff)], 'D')
-            print "CFIE =", CFIE
+            print("CFIE =", CFIE)
             target_MoM = Target_MoM(CFIE, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh_bary, w, eps_r, mu_r, TDS_APPROX, Z_s, MOM_FULL_PRECISION)
             # excitation computation
             target_MoM.V_EH_computation(CFIE, target_mesh_bary, J_dip, r_dip, w, eps_r, mu_r, list_of_test_edges_numbers, EXCITATION)
             V_RWG_bary = target_MoM.V_CFIE
             #target_MoM.solveByInversion()
             target_MoM.solveByLUdecomposition()
-            print "inverted MoM RCS =", sum(target_MoM.I_CFIE*target_MoM.V_EH[:,0])
+            print("inverted MoM RCS =", sum(target_MoM.I_CFIE*target_MoM.V_EH[:,0]))
             I_RWG_bary = target_MoM.I_CFIE
             Z_RWG_bary = target_MoM.Z_CFIE_J
             #computeCurrentsVisualization(w, target_mesh, target_MoM.I_CFIE)
             # now we try the iterative method
             count = 0
             I_CFIE_bicgstab = bicgstab(target_MoM.Z_CFIE_J, target_MoM.V_CFIE, x0=None, tol=1.0e-05, maxiter=1000, xtype=None, callback=itercount)
-            print "bicgstab MoM RCS =", sum(I_CFIE_bicgstab[0]*target_MoM.V_EH[:,0]), "# of iterations =", count
+            print("bicgstab MoM RCS =", sum(I_CFIE_bicgstab[0]*target_MoM.V_EH[:,0]), "# of iterations =", count)
 
 
     RWG_to_barycentricRWG, RWG_to_barycentricRWG_coefficients = create_RWG_to_barycentricRWG(target_mesh.RWGNumber_signedTriangles, target_mesh.RWGNumber_edgeVertexes, divided_triangles_vertexes, target_mesh_bary.vertexes_coord)
@@ -265,7 +265,7 @@ if __name__=="__main__":
             V_RWG_2[i] += RWG_to_barycentricRWG_coefficients[i, j] * V_RWG_bary[index]
 
 #    for i in range(N_RWG):
-#        print V_RWG[i], V_RWG_2[i], real(V_RWG_2[i]-V_RWG[i])/real(V_RWG[i]), imag(V_RWG_2[i]-V_RWG[i])/imag(V_RWG[i])
+#        print(V_RWG[i], V_RWG_2[i], real(V_RWG_2[i]-V_RWG[i])/real(V_RWG[i]), imag(V_RWG_2[i]-V_RWG[i])/imag(V_RWG[i]))
 
     # second test: M * Z_bary * Mtranspose * I = Z*I
     #Z_RWG_bary
@@ -290,8 +290,8 @@ if __name__=="__main__":
             #ZI_RWG_2[i] += RWG_to_barycentricRWG_coefficients[i, j] * ZI_RWG_bary[index]
 
     #for i in range(N_RWG):
-        #ZI_RWG[i] = sum(Z_RWG[i,:] * I_RWG)    
+        #ZI_RWG[i] = sum(Z_RWG[i,:] * I_RWG)
 
     #for i in range(N_RWG):
-        #print ZI_RWG[i], ZI_RWG_2[i], real(ZI_RWG_2[i]-ZI_RWG[i])/real(ZI_RWG[i]), imag(ZI_RWG_2[i]-ZI_RWG[i])/imag(ZI_RWG[i])
+        #print(ZI_RWG[i], ZI_RWG_2[i], real(ZI_RWG_2[i]-ZI_RWG[i])/real(ZI_RWG[i]), imag(ZI_RWG_2[i]-ZI_RWG[i])/imag(ZI_RWG[i]))
 
