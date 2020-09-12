@@ -5,11 +5,10 @@ try:
     from scipy.weave import converters
 except ImportError:
     pass
-from meshClass import MeshClass, CubeClass
-from mesh_functions_seb import edgeNumber_triangles_indexes
+from meshClass import MeshClass
 from PyGmsh import executeGmsh, write_geo
 from EM_constants import *
-from ReadWriteBlitzArray import readIntFromDisk, writeScalarToDisk, writeBlitzArrayToDisk, readBlitzArrayFromDisk, read1DBlitzArrayFromDisk
+
 
 def Z_CFIE_MoM(CFIE, list_of_test_edges_numbers, list_of_src_edges_numbers, RWGNumber_CFIE_OK, RWGNumber_M_CURRENT_OK, RWGNumber_signedTriangles, RWGNumber_edgeVertexes, RWGNumber_oppVertexes, vertexes_coord, w, eps_r, mu_r, signSurfObs, signSurfSrc, TDS_APPROX, Z_s, MOM_FULL_PRECISION):
     """I don't know yet what's gonna go here.
