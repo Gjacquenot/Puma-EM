@@ -60,6 +60,6 @@ if __name__=="__main__":
 
     for N in range(14):
 	for k in range(N):
-	    print N, k, factorial(N)/factorial(N-k)/factorial(k), factorial_N_k(N, k)/factorial(k), binomial(N, k)
+	    print(N, k, factorial(N)/factorial(N-k)/factorial(k), factorial_N_k(N, k)/factorial(k), binomial(N, k))
 
 
