@@ -1,7 +1,7 @@
-import sys, os
+import sys
 from MOM import *
-from mesh_functions_seb import triangles_centroids_computation, triangles_areas_normals_computation
 from V_EH import computeV_EH
+
 
 def testVolakisMoM(path, targetName, f, M0M_FULL_PRECISION):
     # data generation of Volakis article, IEEE Antennas and Propagation Magazine, December 1992
@@ -43,9 +43,9 @@ def testVolakisMoM(path, targetName, f, M0M_FULL_PRECISION):
             sys.stdout.write("\r" + "%.4s" %str(phis[0]/pi*180.) + " -> phi = %.4s" %str(phi/pi*180.) + " -> %.4s" %str(phis[-1]/pi*180.))
             sys.stdout.flush()
             # unit vectors computation
-            r_hat = array([sin(theta)*cos(phi), sin(theta)*sin(phi), cos(theta)], 'd');
-            theta_hat = array([cos(theta)*cos(phi), cos(theta)*sin(phi), -sin(theta)], 'd');
-            phi_hat = array([-sin(phi), cos(phi), 0.0], 'd');
+            r_hat = array([sin(theta)*cos(phi), sin(theta)*sin(phi), cos(theta)], 'd')
+            theta_hat = array([cos(theta)*cos(phi), cos(theta)*sin(phi), -sin(theta)], 'd')
+            phi_hat = array([-sin(phi), cos(phi), 0.0], 'd')
             # excitation parameters computation
             J_dip_factor = 1.0
             if polarization=='HH':
