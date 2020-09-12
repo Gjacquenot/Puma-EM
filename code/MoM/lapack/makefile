@@ -21,6 +21,5 @@ zgels.so: $(OBJECTS_lib)
 	#f2py zgels.f dlamch.f -m zgels -h zgels.pyf --overwrite-signature
 	f2py -c zgels.pyf $(OBJECTS_lib)
 
-clean: 
+clean:
 	rm -f zgels.so *.o *.a *~ *.pyc
-
