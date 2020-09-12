@@ -67,12 +67,12 @@ def print_times(params_simu, simuDirName):
     #print(str(variables['Wall_time_Mg_computation']) + " Wall time (seconds) for constructing SAI precond")
     print(str(CPU_time_RWGs_renumbering) + " CPU time (seconds) for RWGs_renumbering")
     print(str(CPU_time_MLFMA) + " CPU time (seconds) for MLFMA iterations and solution. Iterations = " + str(NIterMLFMA))
-    #print target_MLFMA.Wall_time_Target_MLFMA_resolution, "Wall time (seconds) for MLFMA iterations and solution. Iterations =", target_MLFMA.NIterMLFMA
+    #print(target_MLFMA.Wall_time_Target_MLFMA_resolution, "Wall time (seconds) for MLFMA iterations and solution. Iterations =", target_MLFMA.NIterMLFMA)
     if numberOfMatvecs>0:
         print(str(CPU_time_MLFMA/numberOfMatvecs) + " CPU time (seconds) per MLFMA matvec")
-        #print target_MLFMA.Wall_time_Target_MLFMA_resolution/target_MLFMA.numberOfMatvecs, "Wall time (seconds) per MLFMA matvec"
+        #print(target_MLFMA.Wall_time_Target_MLFMA_resolution/target_MLFMA.numberOfMatvecs, "Wall time (seconds) per MLFMA matvec")
     print(str(CPU_time_read_MLFMA_mesh_part1 + CPU_time_mesh_functions_seb + CPU_time_read_MLFMA_mesh_part2 + CPU_time_distribute_Z_cubes + variables['CPU_time_distribute_ZChunks_and_cubes'] + CPU_time_compute_Z_near + variables['CPU_time_Z_near_computation'] + CPU_time_communicateZnearBlocks + variables['CPU_time_Mg_computation'] + CPU_time_compute_SAI_precond + CPU_time_RWGs_renumbering + CPU_time_MLFMA) + " CPU time (seconds) for complete MLFMA solution (GMSH excluded).")
-    #print Wall_time_Z_near_computation + Wall_time_Mg_computation + target_MLFMA.Wall_time_Target_MLFMA_resolution, "Wall time (seconds) for complete MLFMA solution"
+    #print(Wall_time_Z_near_computation + Wall_time_Mg_computation + target_MLFMA.Wall_time_Target_MLFMA_resolution, "Wall time (seconds) for complete MLFMA solution")
     if params_simu.CURRENTS_VISUALIZATION:
         computeCurrentsVisualization(params_simu, variables, simuDirName)
     if params_simu.SAVE_CURRENTS_CENTROIDS:
