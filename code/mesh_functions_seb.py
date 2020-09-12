@@ -43,7 +43,7 @@ def edges_computation(triangle_vertexes, vertexes_coord):
     # that appear in the "edges_vertexes" array.
     #
     # However, if we want efficiency, we can create an array of edges sorted as follows:
-    # 1) sort the elements of the first two columns alongside dimension 1; 
+    # 1) sort the elements of the first two columns alongside dimension 1;
     # 2) sort the pairs following their 1st element alongside dimension 0;
     # 3) sort the pairs following their 2nd element alongside dimension 0,
     #    but with keeping the order of their first element.
@@ -51,7 +51,7 @@ def edges_computation(triangle_vertexes, vertexes_coord):
     # counting the occurrences of an edge, one should only count its similar
     # neighbors, thereby greatly reducing the computational cost of the algorithm
 
-    # we now construct an array of sorted "edges_vertexes" following dimension 1 (the columns) 
+    # we now construct an array of sorted "edges_vertexes" following dimension 1 (the columns)
     col_sorted_e_v = sort(edges_vertexes[:, :2], 1, kind='mergesort')
     #edges_opp_vertexes = edges_vertexes[:, 2]
     del edges_vertexes
@@ -161,7 +161,7 @@ def RWGNumber_signedTriangles_computation(edgeNumber_triangles, edgeNumber_verte
     t5 = time.clock()
     N_edges = len(edgeNumber_triangles)
     # RWGNumber_signedTrianglesTmp_1 is an array of fixed size N_edges. It will be equal to
-    # edgeNumber_triangles if there are no junctions. If there are junctions, RWGNumber_signedTrianglesTmp_2 
+    # edgeNumber_triangles if there are no junctions. If there are junctions, RWGNumber_signedTrianglesTmp_2
     # will be non-empty. This is for limiting the memory requirements on this part of the code.
     RWGNumber_signedTrianglesTmp_1, RWGNumber_signedTrianglesTmp_2 = zeros((N_edges, 2), 'i'), {}
     RWGNumber_edgeNumber = range(N_edges)
@@ -205,7 +205,7 @@ def RWGNumber_signedTriangles_computation(edgeNumber_triangles, edgeNumber_verte
                     else:
                         triangles_angles[i] = 2*pi - arccos(Cos)
             # we now sort the triangles wrt their respective position wrt xHatEdge
-            ind_sortedTriangles = argsort(triangles_angles, kind='mergesort') 
+            ind_sortedTriangles = argsort(triangles_angles, kind='mergesort')
             sortedTriangles = take(triangles, ind_sortedTriangles)
             sortedTriangleSurfaces = triangles_surfaces[sortedTriangles]
             # we now form all the possible RWGs with the sorted triangles. Normally none of these RWGs can be bisected by a triangle now
@@ -345,7 +345,7 @@ def reorder_triangle_vertexes(triangle_adjacentTriangles, is_triangle_adjacentTr
     coherently for a given surface. For this purpose it gives a good order of
     appearance of the triangles vertexes. This function acts directly on
     the array 'triangle_vertexes'.
-    
+
     This function also returns triangles_surfaces"""
 
     print("      reordering triangles for normals coherency...")
@@ -375,7 +375,7 @@ def reorder_triangle_vertexes(triangle_adjacentTriangles, is_triangle_adjacentTr
             t = list_t_to_reorder.pop()
             calling_t = list_calling_t.pop()
             # we change circulation of t according to calling_t
-            change_triangle_circulation(calling_t, t, triangle_vertexes) 
+            change_triangle_circulation(calling_t, t, triangle_vertexes)
             is_triangle_reordered[int(t)] = 1
             triangles_surfaces[int(t)] = surf_number
             #index = 0
@@ -391,7 +391,7 @@ def reorder_triangle_vertexes(triangle_adjacentTriangles, is_triangle_adjacentTr
             # we extend the list to reorder with the triangles adjacent to t
             list_t_to_reorder.extend(t_adjacent_triangles)
             # we extend the list of "calling" triangles with t
-            list_calling_t.extend([int(t)] * len(t_adjacent_triangles))  
+            list_calling_t.extend([int(t)] * len(t_adjacent_triangles))
     # we loop on the surfaces, because all normals are coherent but maybe not directed outwards closed surfaces...
     print("      redirecting the normals outward...")
     sys.stdout.flush()
@@ -431,8 +431,8 @@ def is_surface_closed(triangles_surfaces, edgeNumber_triangles):
     connected_surfaces = {}
     # we now count the number of INNER edges for each surface.
     # the edges that are junctions receive a special treatment:
-    # only if the edge has two triangles on the given surface, 
-    # can it be counted as an inner edge, which will then be 
+    # only if the edge has two triangles on the given surface,
+    # can it be counted as an inner edge, which will then be
     # counted in NUMBER_EDGES_IN_SURFACE
     NUMBER_EDGES_IN_SURFACE = zeros(S, 'i')
     for edge_number, triangles_tmp in edgeNumber_triangles.items():
@@ -533,7 +533,7 @@ def divide_triangles(RWGNumber_signedTriangles, RWGNumber_edgeVertexes, reordere
     # in divided_triangles_vertexes, the column indexes:
     # 0, 2, 4 correspond to the nodes 0, 1, 2 of the triangles_vertexes
     # 1, 3, 5 correspond to the midpoints of the edges n01, n12, n20 of the triangles
-    # 6 corresponds to the r_grav of the triangle 
+    # 6 corresponds to the r_grav of the triangle
     divided_triangles_vertexes[:, 0] = reordered_triangle_vertexes[:, 0]
     divided_triangles_vertexes[:, 2] = reordered_triangle_vertexes[:, 1]
     divided_triangles_vertexes[:, 4] = reordered_triangle_vertexes[:, 2]
@@ -590,7 +590,7 @@ def create_barycentric_triangles(divided_triangles_vertexes, vertexes_coord, MAX
         # 0, 2, 4 correspond to the nodes 0, 1, 2 of the triangles_vertexes
         # 1, 3, 5 correspond to the midpoints of the edges n01, n12, n20 of the triangles
         # 6 corresponds to the r_grav of the triangle
-        # draw a triangle and bary-divide it and number points with above indexes to derive the following 
+        # draw a triangle and bary-divide it and number points with above indexes to derive the following
         n0 = divided_triangles_vertexes[t, 0]
         n1 = divided_triangles_vertexes[t, 1]
         n2 = divided_triangles_vertexes[t, 2]
@@ -619,8 +619,8 @@ def create_barycentric_RWGs(RWGNumber_signedTriangles, RWGNumber_edgeVertexes, d
     N_RWG = RWGNumber_signedTriangles.shape[0]
     barycentric_RWGNumber_signedTriangles = zeros((T_bary+2*N_RWG, 2),'int32')
     barycentric_RWGNumber_edgeVertexes = zeros((T_bary+2*N_RWG, 2),'int32')
-    barycentric_RWGNumber_oppVertexes = zeros((T_bary+2*N_RWG, 2),'int32')    
-    # first we take care of the 6 barycentric RWGs that are enclosed in each original triangle 
+    barycentric_RWGNumber_oppVertexes = zeros((T_bary+2*N_RWG, 2),'int32')
+    # first we take care of the 6 barycentric RWGs that are enclosed in each original triangle
     for t in range(T):
         barycentric_RWGNumber_signedTriangles[6*t + 0, :] = [6*t+0, 6*t+1]
         barycentric_RWGNumber_signedTriangles[6*t + 1, :] = [6*t+1, 6*t+2]
@@ -633,7 +633,7 @@ def create_barycentric_RWGs(RWGNumber_signedTriangles, RWGNumber_edgeVertexes, d
         # 0, 2, 4 correspond to the nodes 0, 1, 2 of the triangles_vertexes
         # 1, 3, 5 correspond to the midpoints of the edges n01, n12, n20 of the triangles
         # 6 corresponds to the r_grav of the triangle
-        # draw a triangle and bary-divide it and number points with above indexes to derive the following 
+        # draw a triangle and bary-divide it and number points with above indexes to derive the following
         barycentric_RWGNumber_edgeVertexes[6*t + 0, :] = [divided_triangles_vertexes[t,1], divided_triangles_vertexes[t,6]]
         barycentric_RWGNumber_edgeVertexes[6*t + 1, :] = [divided_triangles_vertexes[t,2], divided_triangles_vertexes[t,6]]
         barycentric_RWGNumber_edgeVertexes[6*t + 2, :] = [divided_triangles_vertexes[t,3], divided_triangles_vertexes[t,6]]
@@ -817,7 +817,7 @@ def create_BC_to_barycentricRWG(RWGNumber_edgeVertexes, RWGNumber_oppVertexes, R
         n0 = RWGNumber_edgeVertexes[i,0]
         RWGs = node_to_RWG[n0]
         nRWGs = len(RWGs)
-        
+
 
 
     return node_to_RWG
@@ -839,7 +839,7 @@ if __name__=="__main__":
     #vertexes_coord, triangle_vertexes, triangles_physicalSurface = read_mesh_GMSH_2(os.path.join(path, targetName + '.msh'), targetDimensions_scaling_factor, z_offset)
     edgeNumber_vertexes, edgeNumber_triangles, triangle_adjacentTriangles, is_triangle_adjacentTriangles_via_junction = edges_computation(triangle_vertexes, vertexes_coord)
     T = len(triangle_adjacentTriangles)
-    #print "attribution of a surface number to each triangle...",
+    #print("attribution of a surface number to each triangle...",)
     #triangles_surfaces = triangles_surfaces_computation(triangle_adjacentTriangles, is_triangle_adjacentTriangles_via_junction)
     #S = max(triangles_surfaces)+1
 
@@ -857,9 +857,9 @@ if __name__=="__main__":
     #triangles_centroids = triangles_centroids_computation(vertexes_coord, triangle_vertexes)
     #triangles_areas, triangles_normals = triangles_areas_normals_computation(vertexes_coord, triangle_vertexes, triangles_surfaces)
     #write_normals(os.path.join(path, "normals.pos"), triangles_centroids, triangles_normals, triangles_surfaces, -1)
-    
+
     RWGNumber_signedTriangles, RWGNumber_edgeVertexes, N_edges, N_RWG = RWGNumber_signedTriangles_computation(edgeNumber_triangles, edgeNumber_vertexes, triangles_surfaces, is_closed_surface, triangle_vertexes, vertexes_coord)
-    #print RWGNumber_signedTriangles
+    #print(RWGNumber_signedTriangles)
     RWGNumber_oppVertexes = RWGNumber_oppVertexes_computation(RWGNumber_signedTriangles, RWGNumber_edgeVertexes, triangle_vertexes)
     print("    Number of edges = " + str(N_edges))
     print("    Number of RWG = " + str(N_RWG))
@@ -879,4 +879,4 @@ if __name__=="__main__":
 
 
     node_to_RWG = create_BC_to_barycentricRWG(RWGNumber_edgeVertexes, vertexes_coord)
-    
+
