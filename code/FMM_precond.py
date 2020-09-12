@@ -175,7 +175,7 @@ def Mg_CSR(my_id, processNumber_to_ChunksNumbers, chunkNumber_to_cubesNumbers, c
         if my_id==0:
             newPercentage = int(index * 100.0/len(chunkNumbers))
             if (newPercentage - percentage)>=5:
-                print "Process", my_id, ": computing SAI precond chunk.", newPercentage, "% completed"
+                print("Process", my_id, ": computing SAI precond chunk.", newPercentage, "% completed")
                 sys.stdout.flush()
                 percentage = newPercentage
         pathToSaveToChunk = os.path.join(pathToSaveTo, "chunk" + str(chunkNumber))
