@@ -1,8 +1,9 @@
 import os, sys, time
-from scipy import zeros, size, compress, sort, take, put, array
+from scipy import zeros, compress, take, put
 from PyGmsh import executeGmsh, write_geo
 #from scipy import weave
 #from scipy.weave import converters
+
 
 def preRead_mesh_GMSH_1(name):
     file = open(name, 'r')
@@ -48,7 +49,7 @@ def read_mesh_GMSH_1(name, targetDimensions_scaling_factor, z_offset):
     if not (targetDimensions_scaling_factor==1.0):
         vertexes_coord *= targetDimensions_scaling_factor
     vertexes_coord[:, -1] += z_offset
-    
+
     # we check whether we have a source
     SOURCE = False
     PhysicalSurfaceNumberToName = {}
@@ -61,7 +62,7 @@ def read_mesh_GMSH_1(name, targetDimensions_scaling_factor, z_offset):
             PhysicalSurfaceNumberToName[newKey] = elem2[1]
             if "source" in PhysicalSurfaceNumberToName[newKey]:
                 SOURCE = True
-    
+
     # we now extract the triangles and write them to a file
     if 'Elements' in content:
         elements_key = 'Elements'
@@ -137,7 +138,7 @@ def preRead_mesh_GMSH_2(meshFile_name):
        this function splits the meshFile_name.msh file into smaller entities.
        How do we do it?
 
-       Each time we encounter a new 'entity' in the mesh file, such as 'Nodes' 
+       Each time we encounter a new 'entity' in the mesh file, such as 'Nodes'
        for example, we create a new file for it, name it with the entity name,
        say 'meshFile_name.msh.Nodes', and place there all corresponding entities,
        i.e. Nodes in this example.
@@ -240,7 +241,7 @@ def read_mesh_GMSH_2(name, targetDimensions_scaling_factor, z_offset):
         triangles_physicalSurface[index] = tmp[3]
         index += 1
     g.close()
-    
+
     # indexes of elements in Python/C++ arrays start at 0.
     # However, triangles_nodes don't necessarily start at 0.
     # So the following 4 lines correct that.
@@ -284,7 +285,7 @@ def preRead_mesh_GiD(meshFile_name):
        This function splits the meshFile_name.msh file into smaller entities.
        How do we do it?
 
-       Each time we encounter a new 'entity' in the mesh file, such as 'Nodes' 
+       Each time we encounter a new 'entity' in the mesh file, such as 'Nodes'
        for example, we create a new file for it, name it with the entity name,
        say 'meshFile_name.msh.Nodes', and place there all corresponding entities,
        i.e. Nodes in this example.
@@ -363,7 +364,7 @@ def read_mesh_GiD(name, targetDimensions_scaling_factor, z_offset):
         triangles_physicalSurface[index] = 0 # not like GMSH here: GMSH triangles have a physical surface number
         index += 1
     g.close()
-    
+
     # indexes of elements in Python/C++ arrays start at 0.
     # However, triangles_nodes don't necessarily start at 0.
     # So the following 4 lines correct that.
@@ -407,7 +408,7 @@ def preRead_mesh_ANSYS(meshFile_path):
        This function splits the meshFile_name.msh file into smaller entities.
        How do we do it?
 
-       Each time we encounter a new 'entity' in the mesh file, such as 'Nodes' 
+       Each time we encounter a new 'entity' in the mesh file, such as 'Nodes'
        for example, we create a new file for it, name it with the entity name,
        say 'meshFile_name.msh.Nodes', and place there all corresponding entities,
        i.e. Nodes in this example.
@@ -495,7 +496,7 @@ def read_mesh_ANSYS(path, name, targetDimensions_scaling_factor, z_offset):
         triangles_physicalSurface[index] = 0 # not like GMSH here: GMSH triangles have a physical surface number
         index += 1
     g.close()
-    
+
     # indexes of elements in Python/C++ arrays start at 0.
     # However, triangles_nodes don't necessarily start at 0.
     # So the following 4 lines correct that.
@@ -551,13 +552,13 @@ if __name__=="__main__":
     t0 = time.time()
     vertexes_coord_2, triangles_vertexes_2, triangles_physicalSurface_2 = read_mesh_GMSH_2(os.path.join(path, targetName) + '.msh', targetDimensions_scaling_factor, z_offset)
     print("time for new *.msh file reading = " + str(time.time() - t0))
-    
+
     print
     print("difference between python and C++ code. If results different than 0, there is a problem.")
     print(str(sum(abs(vertexes_coord_1 - vertexes_coord_2))))
     print(str(sum(abs(triangles_vertexes_1 - triangles_vertexes_2))))
     print(str(sum(abs(triangles_physicalSurface_1 - triangles_physicalSurface_2))))
-    
+
     vertexes_coord_GiD, triangles_vertexes_GiD, triangles_physicalSurface_GiD = read_mesh_GiD(os.path.join(path, 'aaa1') + '.msh', targetDimensions_scaling_factor, z_offset)
 
     content = preRead_mesh_ANSYS('./geo')
