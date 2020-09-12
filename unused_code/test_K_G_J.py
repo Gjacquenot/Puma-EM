@@ -9,7 +9,7 @@ def K_G_J(rho, z, zprime, w, eps_0, mu_0, z_i, mu_i, eps_i):
     d_i = zeros(N,'d')
     d_i[1:-1] = z_i[1:]-z_i[:-1]
 
-    
+
     code = """
     using namespace blitz;
     int i;
@@ -59,5 +59,5 @@ if __name__=="__main__":
     mu_i = array([1., 1., 1., 1.],'D')
     for rho in arange(0,0.2,0.01):
         result = K_G_J(rho, z, zprime, w, eps_0, mu_0, z_i, mu_i, eps_i)
-        #print result
+        #print(result)
 
