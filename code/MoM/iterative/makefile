@@ -1,6 +1,6 @@
 include ../../../makefile.inc
 
-ZSOURCESF = ZGMRESREVCOM.f zaxpy.f zrotg.f zdotc.f dcabs1.f ztrsv.f xerbla.f zgemv.f zscal.f dznrm2.f ZSTOPTEST2.f zcopy.f lsame.f 
+ZSOURCESF = ZGMRESREVCOM.f zaxpy.f zrotg.f zdotc.f dcabs1.f ztrsv.f xerbla.f zgemv.f zscal.f dznrm2.f ZSTOPTEST2.f zcopy.f lsame.f
 
 OBJECTS_lib = iterative.o
 
@@ -14,5 +14,5 @@ libITERATIVE: $(OBJECTS_lib)
 iterative.o: iterative.cpp
 	$(MPICC) $(INCLUDE_PATH) $(CFLAGS) iterative.cpp
 
-clean: 
+clean:
 	rm -f *.o libITERATIVE.a *~
