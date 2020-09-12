@@ -70,26 +70,26 @@ if __name__=="__main__":
         k = w * sqrt(eps_0*params_simu.eps_r*mu_0*params_simu.mu_r) + 1.j * 0.
         J_dip = array([params_simu.J_src_x[0], params_simu.J_src_y[0], params_simu.J_src_z[0]], 'D')
         r_dip = array([params_simu.r_src_x[0], params_simu.r_src_y[0], params_simu.r_src_z[0]], 'f')
-        print target_MLFMA.CPU_time_Target_MLFMA_making, "CPU time (seconds) for constructing MLFMA data"
+        print(target_MLFMA.CPU_time_Target_MLFMA_making, "CPU time (seconds) for constructing MLFMA data")
         del target_mesh # we gain memory here
         target_MLFMA.solve(params_simu)
-        print "N RWG =", N_RWG
+        print("N RWG =", N_RWG)
         sys.stdout.write("average edge length = %.5s" %str(target_MLFMA.average_edge_length) + " m = %.5s" %str(target_MLFMA.average_edge_length/(c/params_simu.f)) + " lambdas \n")
-        print target_MLFMA.CPU_time_Target_MLFMA_making, "CPU time (seconds) for constructing MLFMA data"
-        print target_MLFMA.CPU_time_Target_MLFMA_resolution, "CPU time (seconds) for MLFMA iterations and solution. Iterations =", target_MLFMA.NIterMLFMA
-        print target_MLFMA.CPU_time_Target_MLFMA_resolution/target_MLFMA.numberOfMatvecs, "CPU time (seconds) per MLFMA matvec"
-        print target_MLFMA.CPU_time_Target_MLFMA_making + target_MLFMA.CPU_time_Target_MLFMA_resolution, "CPU time (seconds) for complete MLFMA solution"
-        print target_MLFMA.Wall_time_Target_MLFMA_making, "Wall time (seconds) for constructing MLFMA data"
-        print target_MLFMA.Wall_time_Target_MLFMA_resolution, "Wall time (seconds) for MLFMA iterations and solution. Iterations =", target_MLFMA.NIterMLFMA
-        print target_MLFMA.Wall_time_Target_MLFMA_resolution/target_MLFMA.numberOfMatvecs, "Wall time (seconds) per MLFMA matvec"
-        print target_MLFMA.Wall_time_Target_MLFMA_making + target_MLFMA.Wall_time_Target_MLFMA_resolution, "Wall time (seconds) for complete MLFMA solution"
-        print "computing the RCS..."
+        print(target_MLFMA.CPU_time_Target_MLFMA_making, "CPU time (seconds) for constructing MLFMA data")
+        print(target_MLFMA.CPU_time_Target_MLFMA_resolution, "CPU time (seconds) for MLFMA iterations and solution. Iterations =", target_MLFMA.NIterMLFMA)
+        print(target_MLFMA.CPU_time_Target_MLFMA_resolution/target_MLFMA.numberOfMatvecs, "CPU time (seconds) per MLFMA matvec")
+        print(target_MLFMA.CPU_time_Target_MLFMA_making + target_MLFMA.CPU_time_Target_MLFMA_resolution, "CPU time (seconds) for complete MLFMA solution")
+        print(target_MLFMA.Wall_time_Target_MLFMA_making, "Wall time (seconds) for constructing MLFMA data")
+        print(target_MLFMA.Wall_time_Target_MLFMA_resolution, "Wall time (seconds) for MLFMA iterations and solution. Iterations =", target_MLFMA.NIterMLFMA)
+        print(target_MLFMA.Wall_time_Target_MLFMA_resolution/target_MLFMA.numberOfMatvecs, "Wall time (seconds) per MLFMA matvec")
+        print(target_MLFMA.Wall_time_Target_MLFMA_making + target_MLFMA.Wall_time_Target_MLFMA_resolution, "Wall time (seconds) for complete MLFMA solution")
+        print("computing the RCS...")
         target_mesh = MeshClass(params_simu.pathToTarget, params_simu.targetName, targetDimensions_scaling_factor, params_simu.z_offset, params_simu.languageForMeshConstruction)
         J_obs = array([params_simu.J_obs_x[0], params_simu.J_obs_y[0], params_simu.J_obs_z[0]], 'D')
         r_obs = array([params_simu.r_obs_x[0], params_simu.r_obs_y[0], params_simu.r_obs_z[0]], 'f')
         target_MLFMA.computeV_TE(target_mesh, J_obs, r_obs, params_simu.EXCITATION)
         res.MLFMA_RCS[index] = dot(target_MLFMA.ZI_MLFMA, target_MLFMA.V_TE)
-        print "MLFMA RCS =", res.MLFMA_RCS[index]
+        print("MLFMA RCS =", res.MLFMA_RCS[index])
 
         res.numberOfRWGs[index] = N_RWG
         res.CPU_initializationTimes[index] = target_MLFMA.CPU_time_Target_MLFMA_making
@@ -123,4 +123,3 @@ if __name__=="__main__":
     grid(True)
     show()
     #MPI.Finalize()
-
