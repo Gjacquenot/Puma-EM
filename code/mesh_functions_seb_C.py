@@ -9,7 +9,6 @@ from scipy import zeros, ones, arange, array, take, reshape, sort, argsort, put,
 from read_mesh import read_mesh_GMSH_1, read_mesh_GMSH_2
 from PyGmsh import executeGmsh, write_geo, findParameter, findParameterValue
 from EM_constants import *
-import copy
 from ReadWriteBlitzArray import *
 
 
@@ -22,7 +21,7 @@ def edges_computation_C(triangle_vertexes, vertexes_coord, saveDir):
     # that appear in the "edges_vertexes" array.
     #
     # However, if we want efficiency, we can create an array of edges sorted as follows:
-    # 1) sort the elements of the first two columns alongside dimension 1; 
+    # 1) sort the elements of the first two columns alongside dimension 1;
     # 2) sort the pairs following their 1st element alongside dimension 0;
     # 3) sort the pairs following their 2nd element alongside dimension 0,
     #    but with keeping the order of their first element.
@@ -46,7 +45,7 @@ def edges_computation_C(triangle_vertexes, vertexes_coord, saveDir):
     writeBlitzArrayToDisk(triangle_vertexes, os.path.join(saveDir, 'triangle_vertexes') + '.txt')
 
     print(commands.getoutput("./code/MoM/mesh_functions_seb " + saveDir + "/"))
-   
+
     print("time C++ execution = " + str(time.clock() - t10))
     N_RWG = readIntFromDisk(os.path.join(saveDir, "N_RWG.txt"))
     reordered_triangle_vertexes = readBlitzArrayFromDisk(os.path.join(saveDir, "triangle_vertexes.txt"), T, 3, 'i')
@@ -68,7 +67,7 @@ def edges_computation_C_old(triangle_vertexes, vertexes_coord, saveDir):
     # that appear in the "edges_vertexes" array.
     #
     # However, if we want efficiency, we can create an array of edges sorted as follows:
-    # 1) sort the elements of the first two columns alongside dimension 1; 
+    # 1) sort the elements of the first two columns alongside dimension 1;
     # 2) sort the pairs following their 1st element alongside dimension 0;
     # 3) sort the pairs following their 2nd element alongside dimension 0,
     #    but with keeping the order of their first element.
@@ -93,14 +92,14 @@ def edges_computation_C_old(triangle_vertexes, vertexes_coord, saveDir):
       for (int j=0 ; j<3 ; j++) {
         int n_orig = j;
         int n_end = (j<2) ? j+1 : 0;
-        int r_orig = triangle_vertexes(i, n_orig);  
+        int r_orig = triangle_vertexes(i, n_orig);
         int r_end = triangle_vertexes(i, n_end);
         int index = i*3 + j;
         col_sorted_e_v(index, 0) = std::min(r_orig, r_end);
         col_sorted_e_v(index, 1) = std::max(r_orig, r_end);
-      } 
+      }
     }
-    
+
     const int max_decimal = max(col_sorted_e_v(blitz::Range::all(), 1));
     double X = 10.0;
     while (X<max_decimal) X *= 10.0; // we look for smallest "X" such that "1eX > max_decimal"
@@ -123,7 +122,7 @@ def edges_computation_C_old(triangle_vertexes, vertexes_coord, saveDir):
 
     diff = 1.0;
     for (int j=1 ; j<E ; j++) diff(j) = abs(sorted_decimal_e_v(j) - sorted_decimal_e_v(j-1));
-    
+
     blitz::Array<int, 1> indexesEqualPreceding;
     std::vector<int> indexesEqualPrecedingTmp;
     for (int j=0 ; j<E ; j++) {
@@ -134,7 +133,7 @@ def edges_computation_C_old(triangle_vertexes, vertexes_coord, saveDir):
     for (int j=0 ; j<N_indexesEqualPreceding ; j++) indexesEqualPreceding(j) = indexesEqualPrecedingTmp[j];
     indexesEqualPrecedingTmp.clear();
 
-     
+
     std::string SaveDir = saveDir;
     std::cout << std::endl;
     // compute_indexesEqualEdges
