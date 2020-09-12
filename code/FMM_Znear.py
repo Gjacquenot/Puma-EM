@@ -19,7 +19,7 @@ def Z_nearPerCube(path, cube, CFIE, cubeNumber, w, eps_r, mu_r, ELEM_TYPE, Z_TMP
 
 def chunk_of_Z_nearCRS_Computation(CFIE, cubesNumbers, w, eps_r, mu_r, ELEM_TYPE, Z_TMP_ELEM_TYPE, TDS_APPROX, Z_s, MOM_FULL_PRECISION, pathToSaveTo):
     """this function computes a chunk of the near non-diagonal part of the MoM matrix,
-    but saves all the atomic elements on the disk. These elements will later on be used 
+    but saves all the atomic elements on the disk. These elements will later on be used
     by chunk_of_Z_nearCRS_Assembling and MgPrecondition"""
     pathToReadCubeFrom = pathToSaveTo
     list_cubes = compute_list_cubes(cubesNumbers, pathToReadCubeFrom)
@@ -33,7 +33,7 @@ def Z_nearCRS_Computation(my_id, processNumber_to_ChunksNumbers, chunkNumber_to_
         if my_id==0:
             newPercentage = int(index * 100.0/len(processNumber_to_ChunksNumbers[my_id]))
             if (newPercentage - percentage)>=5:
-                print "Process", my_id, ": computing Z_CFIE_near chunk.", newPercentage, "% completed"
+                print("Process", my_id, ": computing Z_CFIE_near chunk.", newPercentage, "% completed")
                 sys.stdout.flush()
                 percentage = newPercentage
         pathToSaveToChunk = os.path.join(pathToSaveTo, "chunk" + str(chunkNumber))
