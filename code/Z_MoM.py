@@ -14,7 +14,7 @@ from ReadWriteBlitzArray import readIntFromDisk, writeScalarToDisk, writeBlitzAr
 def Z_CFIE_MoM(CFIE, list_of_test_edges_numbers, list_of_src_edges_numbers, RWGNumber_CFIE_OK, RWGNumber_M_CURRENT_OK, RWGNumber_signedTriangles, RWGNumber_edgeVertexes, RWGNumber_oppVertexes, vertexes_coord, w, eps_r, mu_r, signSurfObs, signSurfSrc, TDS_APPROX, Z_s, MOM_FULL_PRECISION):
     """I don't know yet what's gonna go here.
     Anyway, we use prefentially 2-D triangles arrays in the C++ code"""
-    # creation of the local MoM matrices 
+    # creation of the local MoM matrices
     E_test, E_src = list_of_test_edges_numbers.shape[0], list_of_src_edges_numbers.shape[0]
     Z_CFIE_J = zeros((E_test, E_src), 'D')
     Z_CFIE_M = zeros((E_test, E_src), 'D')
@@ -39,7 +39,7 @@ def Z_CFIE_MoM(CFIE, list_of_test_edges_numbers, list_of_src_edges_numbers, RWGN
 def Z_EH_J_MoM(TENETHNH, list_of_test_edges_numbers, list_of_src_edges_numbers, RWGNumber_CFIE_OK, RWGNumber_signedTriangles, RWGNumber_edgeVertexes, RWGNumber_oppVertexes, vertexes_coord, w, eps_r, mu_r, signSurfObs, signSurfSrc, TDS_APPROX, Z_s, MOM_FULL_PRECISION):
     """I don't know yet what's gonna go here.
     Anyway, we use prefentially 2-D triangles arrays in the C++ code"""
-    # creation of the local MoM matrices 
+    # creation of the local MoM matrices
     E_test, E_src = list_of_test_edges_numbers.shape[0], list_of_src_edges_numbers.shape[0]
     Z_tE_J = zeros((E_test, E_src), 'D')
     Z_nE_J = zeros((E_test, E_src), 'D')
@@ -104,7 +104,7 @@ if __name__=="__main__":
     z_offset = 0.0
     targetDimensions_scaling_factor = 1.0
     languageForMeshConstruction = "Python"
-    meshFormat = 'GMSH' 
+    meshFormat = 'GMSH'
     meshFileTermination = '.msh'
     target_mesh = MeshClass(path, targetName, targetDimensions_scaling_factor, z_offset, languageForMeshConstruction, meshFormat, meshFileTermination)
     target_mesh.constructFromGmshFile()
@@ -132,5 +132,5 @@ if __name__=="__main__":
                 f.write(" ")
             f.write("\n")
         f.close()
-    print "time =", time.clock() - t0
+    print("time =", time.clock() - t0)
 
