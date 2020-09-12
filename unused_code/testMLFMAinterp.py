@@ -14,12 +14,12 @@ def plotFtheta(F, theta, indPhi):
     This allows us to see if equation (31) from "Optimal Interpolation of Radiated Fields over a Sphere", IEEE AP november 1991 is correct"""
     Ntheta, Nphi = F.shape[0], F.shape[1]
     indPhiPlusPi = indPhi + Nphi/2
-    print Nphi, indPhi, indPhiPlusPi
+    print(Nphi, indPhi, indPhiPlusPi)
     Falternative = zeros(Ntheta, Float)
     for i in range(Ntheta):
         if theta[i]<0.0:
             Falternative[i] = -F[Ntheta-i-1, indPhiPlusPi]
-            print theta[i], theta[Ntheta-i-1]
+            print(theta[i], theta[Ntheta-i-1])
         else:
             Falternative[i] = F[i, indPhi]
     plot(theta, F[:, indPhi], 'bo-', theta, Falternative, 'rx-')
@@ -63,7 +63,7 @@ def target_FMM_interpolation(target_FMM_L, target_FMM_TRUE, NOrderTheta, PERIODI
         #gplt.surf(abs(target_FMM_L_1.B_tEJ_src[0,0]))
         A = abs(target_FMM_TRUE.B_tEJ_src[0,0]-target_FMM_interp.B_tEJ_src[0,0])
         #A = abs(target_FMM_interp.B_tEJ_src[0,0])
-        v = imv.surf(arange(target_FMM_TRUE.Xphi.shape[0]), arange(target_FMM_TRUE.Xtheta.shape[0]), A/max(max(A))*5) 
+        v = imv.surf(arange(target_FMM_TRUE.Xphi.shape[0]), arange(target_FMM_TRUE.Xtheta.shape[0]), A/max(max(A))*5)
     return target_FMM_interp
 
 
@@ -87,7 +87,7 @@ if __name__=="__main__":
     target_mesh.write_cubes(path, name)
     d0 = 6
     L  = L_computation(k, a)+4
-    print "L =", L
+    print("L =", L)
     N_points_theta = L+1
     N_points_phi = 2*L
     INCLUDE_BOUNDARIES = 0
@@ -107,8 +107,8 @@ if __name__=="__main__":
     target_mesh.write_cubes(path, name)
     N_points_theta, N_points_phi = L+1, 2*L
     d0 = 6
-    print "L_FMM =", L
-    print "FMM: N_points_theta =", N_points_theta, ", N_points_phi =", N_points_phi
+    print("L_FMM =", L)
+    print("FMM: N_points_theta =", N_points_theta, ", N_points_phi =", N_points_phi)
     target_FMM_L_1 = Target_FMM(CFIE, list_of_edges_numbers, L, target_mesh, w, eps_r, mu_r, N_points_theta, N_points_phi, int_method_theta, int_method_phi, INCLUDE_BOUNDARIES, J_dip, r_dip, 'F', MOM_FULL_PRECISION, BE_BH_N_Gauss_points)
     ZI_FMM_far_L_1 = target_FMM_L_1.matvec_far(I_PQ)
 
@@ -116,10 +116,10 @@ if __name__=="__main__":
     CYCLIC_Theta, CYCLIC_Phi = 1, 1
     PERIODIC_Theta, PERIODIC_Phi = 1, 1
     target_FMM_interp = target_FMM_interpolation(target_FMM_L, target_FMM_L_1, NOrderTheta, PERIODIC_Theta, CYCLIC_Theta, int_method_theta, NOrderPhi, PERIODIC_Phi, CYCLIC_Phi, int_method_phi)
-    #print target_FMM_interp.B_tEJ_src[0,0]
-    print "ZI_FMM_far_L =", ZI_FMM_far_L
-    print "ZI_FMM_far_L_1 =", ZI_FMM_far_L_1
-    print "ZI_FMM_interp =", target_FMM_interp.matvec_far(I_PQ)
+    #print(target_FMM_interp.B_tEJ_src[0,0])
+    print("ZI_FMM_far_L =", ZI_FMM_far_L)
+    print("ZI_FMM_far_L_1 =", ZI_FMM_far_L_1)
+    print("ZI_FMM_interp =", target_FMM_interp.matvec_far(I_PQ))
     #if 0:
         #PhiInd = 15
         #coordInd = 0
