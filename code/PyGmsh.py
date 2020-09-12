@@ -4,9 +4,10 @@ try:
 except ImportError:
     import subprocess as commands
 
+
 def findDeltaGap(path, targetName):
-    """This function looks for a delta gap defined in the GMSH geo file. 
-       The way to define a delta gap is by adding a '// delta_gap' 
+    """This function looks for a delta gap defined in the GMSH geo file.
+       The way to define a delta gap is by adding a '// delta_gap'
        in the geo file next to the line/curve that will function as a delta gap."""
     isGeoFileThere(path, targetName)
     fileName = os.path.join(path, targetName + '.geo')
@@ -25,6 +26,7 @@ def findDeltaGap(path, targetName):
             END_POINT = int(points_of_delta_gap[1].split('}')[0])
             break
     return IS_DELTA_GAP_THERE, ORIGIN_POINT, END_POINT
+
 
 def findParameter(path, targetName, parameter):
     """this function modifies a geo file through its parameters.
@@ -84,7 +86,7 @@ def isGeoFileThere(path, targetName):
     geoFile = targetName + '.geo'
     for machin in listOfFiles:
         if geoFile in machin:
-            return 
+            return
     print("PyGmsh: your target name", geoFile, "does not exist in", path)
     print("Exiting.")
     sys.exit()
