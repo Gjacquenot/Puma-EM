@@ -1,5 +1,3 @@
-import string
-
 class Params_Simu:
 
     def display(self):
