@@ -1,5 +1,5 @@
 import os
-import string
+
 
 def constructArborescense(path):
     """this function construct the arborescence of a directory, i.e. it seeks for all its sub-directories"""
@@ -110,4 +110,3 @@ if __name__=="__main__":
             pathToCopyTo = os.path.join(PACKAGE_DIR, pathToCopyFrom)
             os.makedirs(pathToCopyTo)
         copySources(SHORT_LICENCE, COPYRIGHT, CONTACT, pathToCopyFrom, pathToCopyTo)
-
