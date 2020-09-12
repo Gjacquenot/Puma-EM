@@ -27,7 +27,7 @@ def computeCurrentsVisualization(w, target_mesh, ZI):
 
 class Target_MoM:
     def __init__(self, CFIE, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh, w, eps_r, mu_r, TDS_APPROX, Z_s, MOM_FULL_PRECISION):
-        print "Target_MoM instanciation..."
+        print("Target_MoM instanciation...")
         signSurfObs, signSurfSrc = 1.0, 1.0 # no dielectric target here
         target_mesh.RWGNumber_M_CURRENT_OK *= 0
         self.Z_CFIE_J, self.Z_CFIE_M = Z_CFIE_MoM(CFIE, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh.RWGNumber_CFIE_OK, target_mesh.RWGNumber_M_CURRENT_OK, target_mesh.RWGNumber_signedTriangles, target_mesh.RWGNumber_edgeVertexes, target_mesh.RWGNumber_oppVertexes, target_mesh.vertexes_coord, w, eps_r, mu_r, signSurfObs, signSurfSrc, TDS_APPROX, Z_s, MOM_FULL_PRECISION)
@@ -54,44 +54,44 @@ class Target_MoM:
         self.Y_CFIE = linalg.inv(self.Z_CFIE_J)
 
     def solveByInversion(self):
-       print "Matrix inversion..."
+       print("Matrix inversion...")
        self.compute_Y_CFIE()
        self.I_CFIE = dot(self.Y_CFIE, self.V_CFIE)
 
     def solveByLUdecomposition(self):
-        print "LU decomposition and solution..."
+        print("LU decomposition and solution...")
         t0 = time.clock()
         lu, piv = linalg.lu_factor(self.Z_CFIE_J)
         self.I_CFIE = linalg.lu_solve((lu, piv), self.V_CFIE)
-        print "Done. time =", time.clock() - t0, "seconds"
+        print("Done. time =", time.clock() - t0, "seconds")
 
 class dielectricTarget_MoM:
     def __init__(self, CFIE_coeff, TENETHNH, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh, w, eps_r_out, mu_r_out, eps_r_in, mu_r_in, MOM_FULL_PRECISION, FORMULATION):
         self.numberOfMedia = sum(target_mesh.IS_CLOSED_SURFACE) + 1
-        print "MOM.py: number of possible media =", self.numberOfMedia
-        print "Target_MoM instanciation..."
+        print("MOM.py: number of possible media =", self.numberOfMedia)
+        print("Target_MoM instanciation...")
         t0 = time.clock()
         TDS_APPROX, Z_s = 0, 0.0 + 0.0j
         N_J, N_M = len(list_of_test_edges_numbers), len(list_of_test_edges_numbers)
         self.Z = zeros((N_J + N_M, N_J + N_M), 'D')
 
         if FORMULATION=="CFIE": # we have CFIE
-            print "OK, using CFIE formulation"
-            print "dielectricTarget_MoM: computing the outside interactions..."
+            print("OK, using CFIE formulation")
+            print("dielectricTarget_MoM: computing the outside interactions...")
             coeff = CFIE_coeff
             TE, NE, TH, NH = TENETHNH[0], TENETHNH[1], TENETHNH[2], TENETHNH[3]
             CFIE = array([TE * coeff, NE * coeff, -TH * (1.0 - coeff) * sqrt(mu_0/(eps_0*eps_r_out)), -NH * (1.0 - coeff) * sqrt(mu_0/(eps_0*eps_r_out))], 'D')
             signSurfObs, signSurfSrc = 1.0, 1.0
             self.Z[:N_J, :N_J], self.Z[:N_J,N_J:N_J + N_M] = Z_CFIE_MoM(CFIE, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh.RWGNumber_CFIE_OK, target_mesh.RWGNumber_M_CURRENT_OK, target_mesh.RWGNumber_signedTriangles, target_mesh.RWGNumber_edgeVertexes, target_mesh.RWGNumber_oppVertexes, target_mesh.vertexes_coord, w, eps_r_out, mu_r_out, signSurfObs, signSurfSrc, TDS_APPROX, Z_s, MOM_FULL_PRECISION)
 
-            print "dielectricTarget_MoM: computing the inside interactions..."
+            print("dielectricTarget_MoM: computing the inside interactions...")
             CFIE = array([TE * coeff, NE * coeff, -TH * (1.0 - coeff) * sqrt(mu_0/(eps_0*eps_r_in)), -NH * (1.0 - coeff) * sqrt(mu_0/(eps_0*eps_r_in))], 'D')
             signSurfObs, signSurfSrc = -1.0, -1.0
             self.Z[N_J:N_J + N_M,:N_J], self.Z[N_J:N_J + N_M, N_J:N_J + N_M] = Z_CFIE_MoM(CFIE, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh.RWGNumber_CFIE_OK, target_mesh.RWGNumber_M_CURRENT_OK, target_mesh.RWGNumber_signedTriangles, target_mesh.RWGNumber_edgeVertexes, target_mesh.RWGNumber_oppVertexes, target_mesh.vertexes_coord, w, eps_r_in, mu_r_in, signSurfObs, signSurfSrc, TDS_APPROX, Z_s, MOM_FULL_PRECISION)
 
         elif FORMULATION=="PMCHWT": # we have PMCHWT
-            print "OK, using PMCHWT formulation"
-            print "dielectricTarget_MoM: computing the outside interactions..."
+            print("OK, using PMCHWT formulation")
+            print("dielectricTarget_MoM: computing the outside interactions...")
             signSurfObs, signSurfSrc = 1.0, 1.0
             CFIE_for_PMCHWT = array([1.0, 0., 0., 0.], 'D')
             Z_EJ, Z_EM = Z_CFIE_MoM(CFIE_for_PMCHWT, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh.RWGNumber_CFIE_OK, target_mesh.RWGNumber_M_CURRENT_OK, target_mesh.RWGNumber_signedTriangles, target_mesh.RWGNumber_edgeVertexes, target_mesh.RWGNumber_oppVertexes, target_mesh.vertexes_coord, w, eps_r_out, mu_r_out, signSurfObs, signSurfSrc, TDS_APPROX, Z_s, MOM_FULL_PRECISION)
@@ -103,7 +103,7 @@ class dielectricTarget_MoM:
             self.Z[N_J:N_J+N_M, :N_J] = -eta_0*Z_EM # Z_HJ = -Z_EM
             self.Z[N_J:N_J+N_M,N_J:N_J + N_M] = eta_0*(eps_0*eps_r_out / (mu_0 * mu_r_out)) * Z_EJ # Z_HM = eps/mu * Z_EJ
 
-            print "dielectricTarget_MoM: computing the inside interactions..."
+            print("dielectricTarget_MoM: computing the inside interactions...")
             signSurfObs, signSurfSrc = -1.0, -1.0
             Z_EJ, Z_EM = Z_CFIE_MoM(CFIE_for_PMCHWT, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh.RWGNumber_CFIE_OK, target_mesh.RWGNumber_M_CURRENT_OK, target_mesh.RWGNumber_signedTriangles, target_mesh.RWGNumber_edgeVertexes, target_mesh.RWGNumber_oppVertexes, target_mesh.vertexes_coord, w, eps_r_in, mu_r_in, signSurfObs, signSurfSrc, TDS_APPROX, Z_s, MOM_FULL_PRECISION)
             #Z_EJ, Z_nE_J, Z_HJ, Z_nH_J = Z_EH_J_MoM(TENETHNH, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh.RWGNumber_CFIE_OK, target_mesh.RWGNumber_signedTriangles, target_mesh.RWGNumber_edgeVertexes, target_mesh.RWGNumber_oppVertexes, target_mesh.vertexes_coord, w, eps_r_in, mu_r_in, signSurfObs, signSurfSrc, TDS_APPROX, Z_s, MOM_FULL_PRECISION)
@@ -115,8 +115,8 @@ class dielectricTarget_MoM:
             self.Z[N_J:N_J+N_M,N_J:N_J + N_M] += eta_1*(eps_0*eps_r_in / (mu_0 * mu_r_in)) * Z_EJ # Z_HM = eps/mu * Z_EJ
 
         elif FORMULATION=="JMCFIE":
-            print "OK, using JMCFIE formulation"
-            print "dielectricTarget_MoM: computing the outside interactions..."
+            print("OK, using JMCFIE formulation")
+            print("dielectricTarget_MoM: computing the outside interactions...")
             signSurfObs, signSurfSrc = 1.0, 1.0
             coeff = CFIE_coeff
             TENETHNH = array([1.0, 1.0, 1.0, 1.0])
@@ -128,7 +128,7 @@ class dielectricTarget_MoM:
             self.Z[N_J:N_J+N_M, :N_J] = coeff * sqrt(mu_0/(eps_0*eps_r_out)) * Z_tH_J - (1.0-coeff) * Z_nE_J
             self.Z[N_J:N_J+N_M,N_J:N_J + N_M] = coeff * sqrt(mu_0/(eps_0*eps_r_out)) *(eps_0*eps_r_out / (mu_0 * mu_r_out)) * Z_tE_J + (1.0-coeff) * Z_nH_J
 
-            print "dielectricTarget_MoM: computing the inside interactions..."
+            print("dielectricTarget_MoM: computing the inside interactions...")
             signSurfObs, signSurfSrc = -1.0, -1.0
             Z_tE_J, Z_nE_J, Z_tH_J, Z_nH_J = Z_EH_J_MoM(TENETHNH, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh.RWGNumber_CFIE_OK, target_mesh.RWGNumber_signedTriangles, target_mesh.RWGNumber_edgeVertexes, target_mesh.RWGNumber_oppVertexes, target_mesh.vertexes_coord, w, eps_r_in, mu_r_in, signSurfObs, signSurfSrc, TDS_APPROX, Z_s, MOM_FULL_PRECISION)
             self.Z[:N_J, :N_J] -= coeff * Z_tE_J + (1.0)*(1.0-coeff) * sqrt(mu_0/(eps_0*eps_r_in)) * Z_nH_J
@@ -138,10 +138,10 @@ class dielectricTarget_MoM:
             self.Z[N_J:N_J+N_M, :N_J] -= coeff * sqrt(mu_0/(eps_0*eps_r_in)) * Z_tH_J - (1.0)*(1.0-coeff) * Z_nE_J
             self.Z[N_J:N_J+N_M,N_J:N_J + N_M] -= coeff * sqrt(mu_0/(eps_0*eps_r_in)) *(eps_0*eps_r_in / (mu_0 * mu_r_in)) * Z_tE_J + (1.0)*(1.0-coeff) * Z_nH_J
         else:
-            print "use another formulation please. Error."
+            print("use another formulation please. Error.")
             sys.exit(1)
 
-        print "Done. time =", time.clock() - t0, "seconds"
+        print("Done. time =", time.clock() - t0, "seconds")
         self.iter_counter = 0
     # functions
     def matvec(self, x):
@@ -200,18 +200,18 @@ class dielectricTarget_MoM:
         self.Y = linalg.inv(self.Z)
 
     def solveByInversion(self):
-        print "Matrix inversion..."
+        print("Matrix inversion...")
         t0 = time.clock()
         self.compute_Y()
-        print "Done. time =", time.clock() - t0, "seconds"
+        print("Done. time =", time.clock() - t0, "seconds")
         self.I = dot(self.Y, self.V)
 
     def solveByLUdecomposition(self):
-        print "LU decomposition and solution..."
+        print("LU decomposition and solution...")
         t0 = time.clock()
         lu, piv = linalg.lu_factor(self.Z)
         self.I = linalg.lu_solve((lu, piv), self.V)
-        print "Done. time =", time.clock() - t0, "seconds"
+        print("Done. time =", time.clock() - t0, "seconds")
 
 def itercount(residual):
     global count
@@ -236,7 +236,7 @@ if __name__=="__main__":
     z_offset = 0.0
     targetDimensions_scaling_factor = 1.0
     languageForMeshConstruction = "C++"
-    meshFormat = 'GMSH' 
+    meshFormat = 'GMSH'
     meshFileTermination = '.msh'
     target_mesh = MeshClass(path, targetName, targetDimensions_scaling_factor, z_offset, languageForMeshConstruction, meshFormat, meshFileTermination)
     target_mesh.constructFromGmshFile()
@@ -264,7 +264,7 @@ if __name__=="__main__":
             #CFIE = array([coeff, coeff, -(1.0 - coeff) * sqrt(mu_0/eps_0), -(1.0 - coeff) * sqrt(mu_0/eps_0)], 'D')
             #CFIE = array([coeff, 0, -(1.0 - coeff) * sqrt(mu_0/eps_0), -(1.0 - coeff) * sqrt(mu_0/eps_0)], 'D')
             CFIE = array([coeff* 1.0/sqrt(mu_0/eps_0), 0, 0, -(1.0 - coeff)], 'D')
-            print "CFIE =", CFIE
+            print("CFIE =", CFIE)
             target_MoM = Target_MoM(CFIE, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh, w, eps_r, mu_r, TDS_APPROX, Z_s, MOM_FULL_PRECISION)
             # excitation computation
             FORMULATIONS = ["CFIE", "PMCHWT", "JMCFIE"]
@@ -282,14 +282,14 @@ if __name__=="__main__":
             J_dip = array([1.0, 0.0, 0.], 'D')
             r_dip = array([0., 0., 2.0], 'd')
             target_MoM.V_EH_computation(CFIE, target_mesh, J_dip, r_dip, w, eps_r, mu_r, list_of_test_edges_numbers, EXCITATION)
-            print "inverted MoM RCS =", -sum(target_MoM.I_CFIE*target_MoM.V_EH[:,0])
+            print("inverted MoM RCS =", -sum(target_MoM.I_CFIE*target_MoM.V_EH[:,0]))
             #computeCurrentsVisualization(w, target_mesh, target_MoM.I_CFIE)
             # now we try the iterative method
             #count = 0
             #I_CFIE_bicgstab = bicgstab(target_MoM.Z_CFIE_J, target_MoM.V_CFIE, x0=None, tol=1.0e-05, maxiter=1000, xtype=None, callback=itercount)
             #V = V_EH_computation(self, CFIE_coeff, TENETHNH, target_mesh, J_dip, r_dip, w, eps_r, mu_r, list_of_test_edges_numbers, 'dipole', FORMULATION)
 
-            #print "bicgstab MoM RCS =", -sum(I_CFIE_bicgstab[0]*V[:,0]), "# of iterations =", count
+            #print("bicgstab MoM RCS =", -sum(I_CFIE_bicgstab[0]*V[:,0]), "# of iterations =", count)
             ## computation of the scattered fields
             E_0 = array([-1.0,0.0,0.0],'D')
             k_hat = array([0.,0.,-1.0],'d')
@@ -302,8 +302,8 @@ if __name__=="__main__":
                 E_x.append(sum(-target_MoM.I_CFIE*V_EH[:,0]))
                 E_inc_x.append(E_0[0] * exp(-1.j * k_out * dot(k_hat, r_obs - r_ref)))
                 E_tot_x.append(E_x[-1] + E_inc_x[-1])
-                print z, E_x[-1], E_tot_x[-1]
-    
+                print(z, E_x[-1], E_tot_x[-1])
+
             fr = open('E_tot_x_real.txt','w')
             fi = open('E_tot_x_imag.txt','w')
             for elem in E_tot_x:
@@ -348,7 +348,7 @@ if __name__=="__main__":
             V_EH_obs = V_EH_dipole_alternative(J_obs, r_obs, list_of_test_edges_numbers, target_mesh.RWGNumber_signedTriangles, target_mesh.RWGNumber_edgeVertexes, target_mesh.RWGNumber_oppVertexes, target_mesh.vertexes_coord, w, eps_r, mu_r)
             H_x_obs[index] = dot(target_MoM.I_CFIE, V_EH_obs[:,2])
             index += 1
-        
+
         from pylab import plot, rc, subplot, xlabel, ylabel, legend, xticks, yticks, grid, gca, setp, show
         #rc('text', usetex=True)
         FontSize=18
@@ -372,8 +372,8 @@ if __name__=="__main__":
         TENETHNH = array([1., 1., 1., 1.], 'd')
         target_MoM = dielectricTarget_MoM(CFIE_coeff, TENETHNH, list_of_test_edges_numbers, list_of_src_edges_numbers, target_mesh, w, eps_r_out, mu_r_out, eps_r_in, mu_r_in, MOM_FULL_PRECISION, FORMULATION)
         N_J, N_M = len(list_of_test_edges_numbers), len(list_of_test_edges_numbers)
-        
-        
+
+
         #J_dip = array([0.0, 1.0, 0.], 'D') * sqrt((c/f)/sqrt(mu_0/eps_0) * 3.0/pi)
         #r_dip = array([0.0, 0.0, 0.2714], 'd')
         #target_MoM.V_EH_computation(CFIE, target_mesh, J_dip, r_dip, w, eps_r_out, mu_r_out, list_of_test_edges_numbers, EXCITATION)
@@ -386,12 +386,12 @@ if __name__=="__main__":
 
         count = 0
         I_bicgstab = bicgstab(target_MoM.Z,target_MoM.V,x0=None,tol=1.0e-4, maxiter=500,xtype=None, callback=itercount)[0]
-        print "bicgstab MoM  # of iterations =", count
+        print("bicgstab MoM  # of iterations =", count)
 
         count = 0
         I_gmres = lgmres(target_MoM.Z, target_MoM.V, x0=None, tol=1.0e-4, maxiter=500, callback=itercount)[0]
-        print "lgmres MoM  # of iterations =", count
-        
+        print("lgmres MoM  # of iterations =", count)
+
         ## computation of the scattered fields
         J_obs = array([1.0, 0.0, 0.0], 'D')
         E_x, E_inc_x, E_tot_x = [], [], []
@@ -402,9 +402,9 @@ if __name__=="__main__":
             E_inc_x.append(E_0[0] * exp(-1.j * k_out * dot(k_hat, r_obs - r_ref)))
             E_tot_x.append(E_x[-1] + E_inc_x[-1])
             #print
-            #print "Ex scatt inv   =", E_x[-1], "z =", z 
-            #print "Ex scatt gmres =", sum(-I_gmres[:N_J]*V_EH[:,0] + I_gmres[N_J:N_J + N_M]*V_EH[:,2]), "r_obs =", r_obs 
-            #print "Ex scatt bicgs =", sum(-I_bicgstab[:N_J]*V_EH[:,0] + I_bicgstab[N_J:N_J + N_M]*V_EH[:,2])
+            #print("Ex scatt inv   =", E_x[-1], "z =", z )
+            #print("Ex scatt gmres =", sum(-I_gmres[:N_J]*V_EH[:,0] + I_gmres[N_J:N_J + N_M]*V_EH[:,2]), "r_obs =", r_obs )
+            #print("Ex scatt bicgs =", sum(-I_bicgstab[:N_J]*V_EH[:,0] + I_bicgstab[N_J:N_J + N_M]*V_EH[:,2]))
         for z in arange(-0.075,0.075,0.005):
             r_obs = array([0.0, 0.0, z], 'd')
             V_EH = computeV_EH(target_mesh, J_obs, r_obs, w, eps_r_in, mu_r_in, list_of_test_edges_numbers, 'dipole', 'F')
@@ -449,12 +449,12 @@ if __name__=="__main__":
         # incoming field computation
         #G_EJ, G_HJ = G_EJ_G_HJ(r_dip, r_obs, eps_r_out, mu_r_out, w/c)
         #E_inc, H_inc = dot(G_EJ, J_obs), dot(G_HJ, J_obs)
-        #print "incoming E_field at observation point =", E_inc
-        
-        #print "Ex scatt inv =", sum(-target_MoM.I_CFIE[:N_J]*V_EH[:,0] + target_MoM.I_CFIE[N_J:N_J + N_M]*V_EH[:,2])
-        #print "Ex scatt bicgstab =", sum(-I_CFIE_bicgstab[:N_J]*V_EH[:,0] + I_CFIE_bicgstab[N_J:N_J + N_M]*V_EH[:,2])
-        #print "Ex scatt gmres =", sum(-I_CFIE_gmres[:N_J]*V_EH[:,0] + I_CFIE_gmres[N_J:N_J + N_M]*V_EH[:,2])
-        #print "total =", sum(-target_MoM.I_CFIE[:N_J]*V_EH[:,0] + target_MoM.I_CFIE[N_J:N_J + N_M]*V_EH[:,2]) + E_inc[0]
-        #print "bicgstab dielectric MoM RCS =", sum(-I_CFIE_iter[:N_J]*V_EH[:,0] + I_CFIE_iter[N_J:N_J + N_M]*V_EH[:,2]) + E_inc[0], "# of iterations =", target_MoM.iter_counter
+        #print("incoming E_field at observation point =", E_inc)
+
+        #print("Ex scatt inv =", sum(-target_MoM.I_CFIE[:N_J]*V_EH[:,0] + target_MoM.I_CFIE[N_J:N_J + N_M]*V_EH[:,2]))
+        #print("Ex scatt bicgstab =", sum(-I_CFIE_bicgstab[:N_J]*V_EH[:,0] + I_CFIE_bicgstab[N_J:N_J + N_M]*V_EH[:,2]))
+        #print("Ex scatt gmres =", sum(-I_CFIE_gmres[:N_J]*V_EH[:,0] + I_CFIE_gmres[N_J:N_J + N_M]*V_EH[:,2]))
+        #print("total =", sum(-target_MoM.I_CFIE[:N_J]*V_EH[:,0] + target_MoM.I_CFIE[N_J:N_J + N_M]*V_EH[:,2]) + E_inc[0])
+        #print("bicgstab dielectric MoM RCS =", sum(-I_CFIE_iter[:N_J]*V_EH[:,0] + I_CFIE_iter[N_J:N_J + N_M]*V_EH[:,2]) + E_inc[0], "# of iterations =", target_MoM.iter_counter)
 
 
